@@ -1,0 +1,27 @@
+<div class="h-full w-full">
+
+    @switch (selectedWidget()?.id) {
+      @case (1) {
+        <app-telegram></app-telegram>
+      }
+      @case (2) {
+        <app-whatsapp></app-whatsapp>
+      }
+      @case (3) {
+        <app-sms></app-sms>
+      }
+      @case (4) {
+        <app-email></app-email>
+      }
+      @case (5) {
+        <app-instagram></app-instagram>
+      }
+      @case (6) {
+        <app-messenger></app-messenger>
+      }
+      @default {
+        <p>No se sabe que es</p>
+      }
+    }
+
+</div>

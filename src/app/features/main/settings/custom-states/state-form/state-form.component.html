@@ -1,0 +1,312 @@
+<!-- Camapania -->
+<div *ngIf="tipoEstado == 2">
+  <form
+    [formGroup]="formCampaign"
+    (ngSubmit)="save()"
+    class="grid grid-cols-1 gap-6"
+  >
+    <!-- Nombre -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="nombreEstado">
+        Nombre <span class="text-sm text-red-500">*</span>
+      </label>
+      <div class="relative">
+        <input
+          pInputText
+          id="nombre"
+          formControlName="name"
+          placeholder="Ej. Aprobado"
+          required
+          class="w-full pr-10"
+        />
+      </div>
+      <div
+        *ngIf="
+          formCampaign.controls.name.invalid &&
+          formCampaign.controls.name.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formCampaign.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div>
+    </div>
+
+    <!-- Descripcion -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="descripcion"> Descripción </label>
+      <textarea
+        id="descripcion"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="description"
+      ></textarea>
+    </div>
+
+    <!-- Color -->
+    <div class="flex flex-col space-y-1 w-full">
+      <label class="text-sm font-medium" for="Color">
+        Color <span class="text-sm text-red-500">*</span>
+      </label>
+
+      <p-colorPicker
+        id="color"
+        formControlName="color"
+        format="hex"
+        required
+        styleClass="!w-full"
+        panelClass="w-full"
+        appendTo="body"
+      ></p-colorPicker>
+
+      <div
+        *ngIf="
+          formCampaign.controls.color.invalid &&
+          formCampaign.controls.color.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formCampaign.controls.color.errors?.['required']"
+        >
+          El Color es requerido.
+        </small>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-self-end pt-2 gap-4">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        type="submit"
+        size="small"
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        styleClass="w-full"
+        severity="primary"
+        [disabled]="formCampaign.invalid || loadingCampania"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-xl" />
+      </p-button>
+    </div>
+  </form>
+</div>
+
+<!-- Atención -->
+<div *ngIf="tipoEstado == 1">
+  <form
+    [formGroup]="formAssistance"
+    (ngSubmit)="save()"
+    class="grid grid-cols-1 gap-6"
+  >
+    <!-- Nombre -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="nombreEstado">
+        Nombre <span class="text-sm text-red-500">*</span>
+      </label>
+      <div class="relative">
+        <input
+          pInputText
+          id="nombre"
+          formControlName="name"
+          placeholder="Ej. Aprobado"
+          required
+          class="w-full pr-10"
+        />
+      </div>
+      <div
+        *ngIf="
+          formAssistance.controls.name.invalid &&
+          formAssistance.controls.name.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formAssistance.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div>
+    </div>
+
+    <!-- Descripcion -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="descripcion"> Descripción </label>
+      <textarea
+        id="descripcion"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="description"
+      ></textarea>
+    </div>
+
+    <!-- Color -->
+    <div class="flex flex-col space-y-1 w-full">
+      <label class="text-sm font-medium" for="Color">
+        Color <span class="text-sm text-red-500">*</span>
+      </label>
+
+      <p-colorPicker
+        id="color"
+        formControlName="color"
+        format="hex"
+        required
+        styleClass="!w-full"
+        panelClass="w-full"
+        appendTo="body"
+      ></p-colorPicker>
+
+      <div
+        *ngIf="
+          formAssistance.controls.color.invalid &&
+          formAssistance.controls.color.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formAssistance.controls.color.errors?.['required']"
+        >
+          El Color es requerido.
+        </small>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="idtipoConsulta"> Canal </label>
+      <p-select
+        id="categoria"
+        [options]="listCategoryChannels"
+        optionLabel="name"
+        optionValue="id"
+        formControlName="categoryId"
+        placeholder="Seleccione el canal"
+        appendTo="body"
+      />
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-self-end pt-2 gap-4">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        type="submit"
+        size="small"
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        styleClass="w-full"
+        severity="primary"
+        [disabled]="formAssistance.invalid || loadingAtencion"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-xl" />
+      </p-button>
+    </div>
+  </form>
+</div>
+
+<!-- Canales -->
+<div *ngIf="tipoEstado == 0">
+  <form
+    [formGroup]="formChannel"
+    (ngSubmit)="save()"
+    class="grid grid-cols-1 gap-6"
+  >
+    <!-- Nombre -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="nombreEstado">
+        Nombre<span class="text-sm text-red-500">*</span>
+      </label>
+      <div class="relative">
+        <input
+          pInputText
+          id="nombre"
+          formControlName="name"
+          placeholder="Ej. Aprobado"
+          required
+          class="w-full pr-10"
+        />
+      </div>
+      <div
+        *ngIf="
+          formChannel.controls.name.invalid && formChannel.controls.name.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formChannel.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div>
+    </div>
+
+    <!-- Descripcion -->
+    <div class="flex flex-col space-y-1">
+      <label class="text-sm font-medium" for="descripcion"> Descripción </label>
+      <textarea
+        id="descripcion"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="description"
+      ></textarea>
+    </div>
+
+    <!-- Color -->
+    <div class="flex flex-col space-y-1 w-full">
+      <label class="text-sm font-medium" for="Color">
+        Color <span class="text-sm text-red-500">*</span>
+      </label>
+
+      <p-colorPicker
+        id="color"
+        formControlName="color"
+        format="hex"
+        required
+        styleClass="!w-full"
+        panelClass="w-full"
+        appendTo="body"
+      ></p-colorPicker>
+
+      <div
+        *ngIf="
+          formChannel.controls.color.invalid &&
+          formChannel.controls.color.touched
+        "
+      >
+        <small
+          class="text-xs text-red-500"
+          *ngIf="formChannel.controls.color.errors?.['required']"
+        >
+          El Color es requerido.
+        </small>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="idtipoConsulta"> Canal </label>
+      <p-select
+        id="categoria"
+        [options]="listCategoryChannels"
+        optionLabel="name"
+        optionValue="id"
+        formControlName="categoryId"
+        placeholder="Seleccione el canal"
+        appendTo="body"
+      />
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-self-end pt-2 gap-4">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        type="submit"
+        size="small"
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        styleClass="w-full !rounded-full !shadow-none"
+        severity="primary"
+        [disabled]="formChannel.invalid || loadingCanal"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-lg" />
+      </p-button>
+    </div>
+  </form>
+</div>

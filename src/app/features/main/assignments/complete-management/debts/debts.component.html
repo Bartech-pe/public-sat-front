@@ -1,0 +1,78 @@
+<div class="grid grid-cols-1 gap-2">
+  <div
+    class="grid grid-cols-2 gap-2 py-1 px-2 bg-slate-200 rounded-md border font-medium shadow-xl"
+  >
+    <div>DEUDA TOTAL</div>
+    <div class="flex justify-end">
+      {{ total | currency }}
+    </div>
+  </div>
+  <ng-container *ngFor="let debt of debts | keyvalue">
+    <div class="grid grid-cols-1 gap-2">
+      <div
+        class="grid grid-cols-2 gap-2 py-1 px-2 bg-slate-200 font-medium shadow-xl"
+      >
+        <div>
+          {{ debt.key }}
+        </div>
+        <div class="flex justify-end">
+          TOTAL: {{ getCuotaZero(debt.value)?.monto | currency }}
+        </div>
+      </div>
+
+      <ng-container *ngFor="let group of groupByref(debt.value) | keyvalue">
+        <div class="grid grid-cols-1 gap-2 px-2">
+          <div class="bg-slate-100 text-xs">
+            <div>Referencia: {{ getCuotaZero(group.value)?.referencia }}</div>
+          </div>
+          <table>
+            <thead>
+              <tr class="bg-slate-700 text-slate-50">
+                <th>
+                  <div class="text-xs py-1 px-2 text-left">Año-cuota</div>
+                </th>
+                <th><div class="text-xs py-1 px-2">Doc. de pago</div></th>
+                <th><div class="text-xs py-1 px-2">Fec. vencimiento</div></th>
+                <th><div class="text-xs py-1 px-2">Estado</div></th>
+                <th>
+                  <div class="text-xs py-1 px-2 text-right">
+                    Deuda a la fecha
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let item of group.value">
+                <tr class="text-sm">
+                  <td>
+                    <div class="py-0.5 px-2">
+                      {{ item.ano }}-{{ item.cuota }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2">{{ item.documento }}</div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-center">
+                      {{ item.fechavencimiento }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-center">
+                      {{ item.estado }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-end">
+                      {{ item.monto | currency }}
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</div>

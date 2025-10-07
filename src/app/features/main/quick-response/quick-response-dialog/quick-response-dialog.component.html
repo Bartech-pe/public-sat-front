@@ -1,0 +1,134 @@
+<p-dialog
+  [modal]="true"
+  [header]="header"
+  [(visible)]="visible"
+  (onHide)="onClose()"
+  styleClass="modal-lg"
+>
+  <form [formGroup]="quickform" class="grid gap-2 py-4">
+    <div class="p-field-radiobutton flex gap-3 mb-3">
+      <label class="w-4rem">Estado</label>
+      <div class="flex gap-3">
+        <p-radiobutton
+          [value]="true"
+          formControlName="isActive"
+          inputId="estadoActivo"
+        />
+        <label for="estado-activa">Activa</label>
+        <p-radiobutton
+          [value]="false"
+          formControlName="isActive"
+          inputId="estadoActivo"
+        />
+        <label for="estado-activa">Inactiva</label>
+      </div>
+    </div>
+    <div class="flex items-center gap-x-4 mb-3">
+      <label for="title" class="whitespace-nowrap">Título </label>
+      <input id="title" type="text" pInputText formControlName="title" />
+    </div>
+    @if(quickform.controls['title'].dirty &&
+    quickform.hasError('required','title')){
+    <small class="p-error">Es requerido el titulo</small>
+    }
+    <div class="flex items-center gap-x-4 mb-3">
+      <label for="category" class="whitespace-nowrap">Categoría</label>
+      <p-select
+        [options]="quickResponseCategories()"
+        optionLabel="name"
+        placeholder="Selecciona una categoría"
+        optionValue="quickResponseCategoryId"
+        formControlName="quickResponseCategoryId"
+      ></p-select>
+    </div>
+    @if(quickform.controls['quickResponseCategoryId'].dirty &&
+    quickform.hasError('required','quickResponseCategoryId')){
+    <small class="p-error">Es requerido la categoria</small>
+    }
+    <div class="p-field mb-3">
+      <label for="contenido">Contenido</label>
+      <div class="flex gap-2 mb-2">
+        <button
+          pButton
+          icon="pi pi-bold"
+          class="p-button-text"
+          (click)="applyFormatting('bold')"
+        >
+          <iconify-icon [icon]="'mdi:format-bold'" class="text-xl" />
+        </button>
+
+        <button
+          pButton
+          icon="pi pi-italic"
+          class="p-button-text"
+          (click)="applyFormatting('italic')"
+        >
+          <iconify-icon [icon]="'mdi:format-italic'" class="text-xl" />
+        </button>
+        <button
+          pButton
+          icon="pi pi-underline"
+          class="p-button-text"
+          (click)="applyFormatting('underline')"
+        >
+          <iconify-icon [icon]="'mdi:format-underline'" class="text-xl" />
+        </button>
+      </div>
+      <textarea
+        #textareaRef
+        pInputTextarea
+        id="contenido"
+        formControlName="content"
+        rows="4"
+      ></textarea>
+      <div class="text-xs mt-1">
+        Caracteres:
+        <span [ngClass]="{ 'text-red-500': IsLimitExceeded }"
+          >{{ quickform.value.content?.length }}/{{ characterLimit }}</span
+        >
+      </div>
+    </div>
+    @if(quickform.controls['content'].dirty &&
+    quickform.hasError('required','content')){
+    <small class="p-error">Es requerido un contenido</small>
+    } @if(quickform.controls['content'].dirty &&
+    quickform.hasError('maxlength','content')){
+    <small class="p-error">Maximó 500 caracteres</small>
+    }
+    <div class="flex items-center gap-x-4 mb-3">
+      <label for="palabrasClave" class="whitespace-nowrap"
+        >Palabras Clave</label
+      >
+      <input
+        id="palabrasClave"
+        pInputText
+        formControlName="keywords"
+        placeholder="Ej: pago, factura, ayuda"
+      />
+    </div>
+    @if (quickform.get('keywords')?.errors?.['invalidKeyword']) {
+    <small class="p-error"
+      >Cada palabra clave debe estar separada por comas, sin espacios en
+      medio.</small
+    >
+    } @if (quickform.get('keywords')?.errors?.['duplicateKeyword']) {
+    <small class="p-error">No se permiten palabras clave duplicadas.</small>
+    }
+
+    <div class="flex justify-end gap-4">
+      <div class="flex justify-self-end gap-2">
+        <button-cancel (click)="onClose()" />
+        <p-button
+          severity="info"
+          size="small"
+          type="submit"
+          label="Guardar"
+          (click)="createQuickRespone()"
+          [disabled]="!quickform.valid"
+        >
+          <iconify-icon [icon]="'ci:save'" class="text-xl" />
+        </p-button>
+      </div>
+    </div>
+  </form>
+</p-dialog>

@@ -1,0 +1,15 @@
+export const environment = {
+  production: true,
+  apiUrl: '/',
+  // wsUrl: '/',
+  // apiUrlImage: '/',
+  version: '1.0',
+  year: '2025',
+  roleIdAdministrador: 1,
+  roleIdSupervisor: 2,
+  roleIdAsesor: 3,
+  channelConnectorApiUrl: 'https://1cc3b2bc459a.ngrok-free.app',
+  urlTextoAudio: 'http://24.144.82.222:8000',
+  // citizenApiUrl: 'http://172.29.55.54:8042/api/v1',
+  // urlVicidial: 'http://161.132.45.63:4000',
+};

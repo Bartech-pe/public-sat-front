@@ -1,0 +1,403 @@
+<div class="w-full flex justify-center">
+  <div class="w-full p-0">
+    <form
+      *ngIf="formData"
+      [formGroup]="formData"
+      (ngSubmit)="createCampaing()"
+      class="space-y-4 w-full rounded-xl"
+    >
+      <p-fieldset legend="Información Básica">
+        <div class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Nombre -->
+            <div>
+              <label for="nombre" class="block text-sm font-medium mb-1"
+                >Nombre <span class="text-xs">*</span></label
+              >
+              <input
+                id="nombre"
+                type="text"
+                pInputText
+                formControlName="name"
+                placeholder="Ingrese nombre"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Identificación del remitente -->
+            <div>
+              <label for="idRemitente" class="block text-sm font-medium mb-1"
+                >Identificación del remitente
+                <span class="text-xs">*</span></label
+              >
+              <input
+                id="idRemitente"
+                type="text"
+                pInputText
+                formControlName="senderId"
+                placeholder="Ingrese identificación"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Contactos -->
+            <div>
+              <label for="idContacto" class="block text-sm font-medium mb-1"
+                >Contactos <span class="text-xs">*</span></label
+              >
+              <p-select
+                [options]="contactos"
+                formControlName="contact"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar Contacto"
+                class="w-full mb-2"
+                appendTo="body"
+              ></p-select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="id_estado_campania"
+                class="block text-sm font-medium mb-1"
+                >Estado <span class="text-xs">*</span></label
+              >
+              <p-dropdown
+                [options]="estadoCampanias"
+                formControlName="id_estado_campania"
+                optionLabel="nombre"
+                optionValue="id"
+                placeholder="Seleccionar Estado"
+                class="w-full mb-3"
+                appendTo="body"
+              ></p-dropdown>
+            </div>
+
+            <div>
+              <label
+                for="id_area_campania"
+                class="block text-sm font-medium mb-1"
+                >Área <span class="text-xs">*</span></label
+              >
+              <p-dropdown
+                [options]="areaCampanias"
+                formControlName="id_area_campania"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Seleccionar Área"
+                class="w-full mb-3"
+                appendTo="body"
+              ></p-dropdown>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+
+      <p-fieldset legend="Contenido">
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Mensaje -->
+          <div>
+            <label for="mensaje" class="block text-sm font-medium mb-1"
+              >Mensaje <span class="text-xs">*</span></label
+            >
+            <textarea
+              id="mensaje"
+              rows="3"
+              formControlName="message"
+              placeholder="Ingrese el mensaje de texto"
+              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm p-2 resize-none"
+            ></textarea>
+          </div>
+        </div>
+      </p-fieldset>
+
+      <p-fieldset legend="Carga de Excel">
+        <div class="grid grid-cols-1 gap-4">
+          <p class="text-sm text-gray-600 flex items-center gap-3">
+            <span
+              >Sube el archivo <strong>Excel</strong> o <strong>CSV</strong> con
+              los datos de los contribuyentes.</span
+            >
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <ngx-file-drop
+              dropZoneLabel="Arrastra y suelta o haz clic para seleccionar"
+              (onFileDrop)="onFileDropped($event)"
+              (click)="onDropZoneClick()"
+              [multiple]="false"
+              [accept]="'.xlsx,.xls,.csv'"
+              class="drop-zone cursor-pointer"
+            >
+              <ng-template ngx-file-drop-content-tmp>
+                <div class="drop-zone-content">
+                  <p class="text-sm">
+                    Arrastra y suelta tu archivo aquí o
+                    <strong>haz clic</strong> para seleccionar
+                  </p>
+                  <span class="file-types text-sm"
+                    >Formatos permitidos: .xlsx, .xls, .csv</span
+                  >
+                </div>
+              </ng-template>
+            </ngx-file-drop>
+            <input
+              #fileInput
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              (change)="onFileSelected($event)"
+              style="display: none"
+            />
+
+            <div
+              class="mt-3 text-sm text-gray-600 flex items-center gap-3"
+              *ngIf="nombreArchivo"
+            >
+              <span class="mb-0 me-2"
+                >Archivo cargado: <strong>{{ nombreArchivo }} </strong></span
+              >
+
+              <button
+                (click)="eliminarArchivo()"
+                class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded shadow cursor-pointer transition-transform hover:scale-105"
+              >
+                <iconify-icon [icon]="'lucide:file-x'" class="text-lg" />
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+
+      <!-- <p-fieldset *ngIf="previewData.length" legend="Vista previa de Datos">
+        <div class="grid grid-cols-1 gap-4">
+          <p-table
+            [value]="previewData"
+            [paginator]="true"
+            [rows]="10"
+            [scrollable]="true"
+            scrollHeight="500px"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    N°
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Celular
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Desctrib
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Placa
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Año
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Periodo
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Total
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Cta_cte
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    WSP
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs uppercase gap-4">
+                    Código
+                  </div>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.user?.name }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.segmento }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.perfil }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.contribuyente }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.tipoContribuyente }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.codigo }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.deuda }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.fecha }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.telefono1 }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ row.telefono2 }}
+                  </p>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-fieldset> -->
+
+      <!-- Botones -->
+      <div class="flex justify-between items-center">
+        <!-- <div class="flex items-center">
+          <p-checkbox
+            inputId="codigoPais"
+            name="countryCode"
+            value="countryCode"
+            formControlName="countryCode"
+            [(ngModel)]="countryCode"
+          />
+          <label for="codigoPais" class="ml-2 mt-2">
+            Agregar código de país
+          </label>
+        </div> -->
+        <div class="pt-4 flex justify-end space-x-2">
+          <p-button
+            size="small"
+            label="Vista Previa"
+            styleClass="w-full !rounded-full !shadow-none"
+            severity="primary"
+            (click)="showDialog()"
+            [disabled]="formData.invalid"
+          >
+            <iconify-icon
+              icon="solar:eye-linear"
+              class="text-xl"
+            ></iconify-icon>
+          </p-button>
+          <p-button
+            type="submit"
+            size="small"
+            [label]="id ? 'Actualizar' : 'Guardar'"
+            styleClass="w-full !rounded-full !shadow-none"
+            severity="primary"
+            [disabled]="formData.invalid"
+          >
+            <iconify-icon icon="ci:save" class="text-xl"></iconify-icon>
+          </p-button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<p-dialog
+  header="Editar Plantilla"
+  styleClass="modal-3xl"
+  [(visible)]="visible"
+  [modal]="true"
+>
+  <ng-template #header>
+    <div class="inline-flex items-center justify-center gap-2">
+      <span class="font-bold whitespace-nowrap">Vista Previa</span>
+    </div>
+  </ng-template>
+  <div>
+    <p-table
+      [value]="listaVistaPrevia"
+      [paginator]="true"
+      [rows]="10"
+      [responsiveLayout]="'scroll'"
+      sortMode="multiple"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>
+            <div class="flex items-center text-xs uppercase gap-4">
+              Número de celular
+            </div>
+          </th>
+          <th>
+            <div
+              class="flex items-center text-xs uppercase gap-4"
+            >
+              Mensaje
+            </div>
+          </th>
+          <th>
+            <div class="flex items-center justify-center text-xs uppercase gap-4">
+              Número de letras
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <p class="text-sm font-light">{{ item.contact }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light">{{ item.message }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light text-center">
+              {{ item.message.length }}
+            </p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <ng-template #footer>
+    <div>
+      <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
+    </div>
+  </ng-template>
+</p-dialog>

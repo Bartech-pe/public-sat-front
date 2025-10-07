@@ -1,0 +1,23 @@
+<h5 class="font-bold text-xl mb-2">Canectar Perfil de Instagram</h5>
+<p class="font-normal text-sm text-gray-600 mb-4">
+  Para añadir tu perfil de Instagram como un canal, necesitas autenticarlo haciendo clic en el botón siguiente.
+</p>
+
+<div class="w-full space-y-4">
+  <div class="flex items-center justify-center p-6 rounded border border-gray-200 bg-white shadow-sm">
+    <div class="text-center">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+        alt="Instagram"
+        class="w-14 h-14 mx-auto mb-3"
+      />
+      <p class="text-sm text-gray-600 mb-4">Haz clic en el botón para iniciar sesión con tu cuenta de Instagram.</p>
+      <p-button
+        label="Continuar con Instagram"
+        icon=""
+        class="w-full bg-sky-500"
+        (click)="connectInstagram()"
+      ></p-button>
+    </div>
+  </div>
+</div>

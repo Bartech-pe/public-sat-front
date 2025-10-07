@@ -1,0 +1,52 @@
+<div class="max-w-md mx-auto  p-6 space-y-4">
+  <div *ngIf="!progreso" class="flex flex-col items-center my-6">
+    <p-progressSpinner strokeWidth="4" animationDuration=".8s"
+      [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+    <p class="mt-2 text-sm text-gray-500">Cargando progreso...</p>
+  </div>
+  <ng-container  *ngIf="progreso">
+      <p-progressBar
+        [value]="progresoCampania"
+        [showValue]="true"
+        [unit]="'%'"
+        styleClass="mb-3"
+      ></p-progressBar>
+
+      <div class="text-sm text-center text-gray-600 mb-4">
+        {{ progresoCampania }}% completado ({{ progreso?.llamadas_realizadas }} de {{ progreso?.total_leads }})
+      </div>
+
+      <div class="flex items-center justify-between">
+        
+        <div class="flex items-center space-x-2 text-gray-600">
+          <iconify-icon [icon]="'lucide:file-json'" class="text-xl" />
+          <span>N° total de registros asignados:</span>
+        </div>
+        <span class="font-semibold text-gray-900">{{ progreso?.total_leads }}</span>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2 text-blue-600">
+          <iconify-icon [icon]="'lucide:phone-call'" class="text-xl text-blue-600" />
+          <span>Llamadas realizadas:</span>
+        </div>
+        <span class="font-semibold text-blue-700">{{ progreso?.llamadas_realizadas }}</span>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2 text-yellow-600">
+          <iconify-icon [icon]="'lucide:phone-incoming'" class="text-xl text-yellow-600" />
+          <span>Llamadas pendientes:</span>
+        </div>
+        <span class="font-semibold text-yellow-700">{{ progreso?.llamadas_pendientes }}</span>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2 text-green-600">
+          <iconify-icon [icon]="'lucide:square-user'" class="text-xl text-green-600" />
+          <span>Agentes conectados:</span>
+        </div>
+        <span class="font-semibold text-green-700">{{ progreso?.agentes_conectados }}</span>
+      </div>
+  </ng-container>
+</div>

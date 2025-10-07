@@ -1,0 +1,83 @@
+<form
+  [formGroup]="formData"
+  (ngSubmit)="onSubmit()"
+  class="grid grid-cols-1 gap-6"
+>
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="nameHabilidad">
+        Nombre de la habilidad <span class="text-xs">*</span>
+      </label>
+      <input id="nameHabilidad" pInputText formControlName="name" />
+      <!-- <div
+        *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+      >
+        <small *ngIf="formData.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div> -->
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="category">
+        Categoría <span class="text-xs">*</span>
+      </label>
+      <p-select
+        id="category"
+        [options]="listCategorias"
+        formControlName="category"
+        placeholder="Seleccione..."
+        appendTo="body"
+      />
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="descriptionHabilidad">
+        Descripción detallada <span class="text-xs">*</span>
+      </label>
+      <textarea
+        id="descriptionHabilidad"
+        rows="4"
+        cols="30"
+        pTextarea
+        formControlName="description"
+      ></textarea>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="category">
+        Configuración de niveles
+      </label>
+      <div class="flex flex-col gap-2">
+        <p class="font-light text-sm">Define cómo se evaluará esta habilidad</p>
+        <p class="font-medium text-sm">Sistema de evaluación:</p>
+        <p class="font-light text-sm">
+          Numérico: Escala 1-5 (donde 5 = Experto)
+        </p>
+        <p class="font-light text-sm">
+          Las habilidades se evalúan en escala del 1 al 5, dónde 5 representa el
+          nivel de experto.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="flex justify-between gap-4">
+    <div class="flex items-center gap-2 py-1">
+      <p-toggleswitch formControlName="status" inputId="activeHabilidad" />
+      <label class="text-sm font-medium pb-1.5" for="activeHabilidad">{{
+        isActive ? "Activo" : "Inactivo"
+      }}</label>
+    </div>
+    <div class="flex justify-self-end gap-2">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        severity="primary"
+        size="small"
+        type="submit"
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        styleClass="w-full !rounded-full !shadow-none"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-xl" />
+      </p-button>
+    </div>
+  </div>
+</form>

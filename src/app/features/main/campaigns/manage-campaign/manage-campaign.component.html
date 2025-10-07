@@ -1,0 +1,176 @@
+<div class="w-full flex justify-center">
+  <div class="w-full px-3">
+    <div class="flex flex-col gap-4">
+      <!-- Encabezado -->
+      <div class="bg-gray-50 shadow rounded-xl p-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h5 class="text-2xl font-semibold mb-1">Gestión de Campañas</h5>
+            <div class="flex flex-col w-full gap-3 text-n-slate-11">
+              <p
+                class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+              >
+                Administra campañas de notificación SMS, Correo y Audio
+              </p>
+            </div>
+          </div>
+          <button-save
+            label="Gestión de Campaña"
+            [icon]="'mdi:plus-circle-outline'"
+            (click)="addNew()"
+          />
+        </div>
+      </div>
+
+      <!-- Buscador -->
+      <div class="bg-white shadow rounded-xl p-4">
+        <h2 class="text-lg font-semibold mb-2">Buscar Campañas</h2>
+        <div class="w-full md:w-1/4 mb-4">
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="filtroNombre"
+              placeholder="Buscar por nombre..."
+              class="w-full p-inputtext-md !rounded-full"
+              (input)="filtrar()"
+            />
+          </p-iconfield>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
+        <p-table
+          [value]="campaniaListFiltradas"
+          [paginator]="true"
+          [rows]="10"
+          [responsiveLayout]="'scroll'"
+          sortMode="multiple"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Nombre <p-sortIcon field="name" />
+                </div>
+              </th>
+              <th pSortableColumn="campaignType.name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Tipo
+                  <p-sortIcon field="campaignType.name"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="department.name">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-4"
+                >
+                  Área <p-sortIcon field="department.name" />
+                </div>
+              </th>
+              <th pSortableColumn="startDate">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-4"
+                >
+                  Fecha inicio <p-sortIcon field="startDate" />
+                </div>
+              </th>
+              <th pSortableColumn="endDate">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-4"
+                >
+                  Fecha fin <p-sortIcon field="endDate" />
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-4"
+                >
+                  Estado
+                </div>
+              </th>
+              <th>
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Creado Por
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Acciones
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-registro>
+            <tr>
+              <td>
+                <p class="text-sm font-light">{{ registro.name }}</p>
+              </td>
+             <td class="flex items-center gap-2">
+                <p class="text-sm font-light">
+                  {{ registro.campaignType?.id === 3 
+                      ? registro.campaignType?.name + ' ID VICIDIAL: ' + registro.vdCampaignId 
+                      : registro.campaignType?.name }}
+                </p>
+
+                  <button
+                    *ngIf="registro.campaignType?.id === 3"
+                    (click)="copiarCampaniaId(registro)"
+                    class="text-xs text-black-500 hover:underline"
+                  >
+                     {{ registro.copiado ? 'Copiado' : 'Copiar' }}
+                  </button>
+              </td>
+              <td>
+                <p class="text-sm font-light">
+                  {{ registro.department?.name }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ registro.startDate | date : "dd/MM/yyyy" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ registro.endDate | date : "dd/MM/yyyy" }}
+                </p>
+              </td>
+              <td>
+                <div class="flex justify-center items-center">
+                  <span
+                    class="estado-tag"
+                    [ngStyle]="{
+                      'background-color': registro.campaignState?.color,
+                       color: getContraste(registro.campaignState?.color)
+                    }"
+                  >
+                    {{ registro.campaignState?.name }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ registro.createdByUser?.name }}</p>
+              </td>
+              <td class="w-28">
+                <div class="flex justify-center items-center gap-1">
+                  <button-edit (click)="edit(registro)" />
+                  <btn-delete (click)="remove(registro)" />
+                  <button-detail (click)="verResultados(registro)" />
+                  <!-- <button-statu  (click)="verResultados(registro)"/> -->
+                  <button-progress (click)="verResultadosProgreso(registro)" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    </div>
+  </div>
+</div>

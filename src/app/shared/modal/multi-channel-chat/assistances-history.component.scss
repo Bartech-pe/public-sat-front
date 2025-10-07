@@ -1,0 +1,32 @@
+.historial-modal {
+  .p-dialog-content {
+    padding: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .custom-scrollpanel {
+    .p-scrollpanel-content {
+      padding: 0;
+    }
+  }
+
+  .messages-scrollpanel {
+    .p-scrollpanel-content {
+      padding: 0;
+    }
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

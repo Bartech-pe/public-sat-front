@@ -1,0 +1,595 @@
+<div class="flex flex-col gap-4 px-3 pb-40">
+  <!-- Encabezado -->
+  <div class="shadow-lg rounded-xl p-4 bg-gray-50">
+    <div class="flex justify-between">
+      <h5 class="text-2xl font-semibold mb-1">Panel de Monitoreo</h5>
+    </div>
+
+    <div class="flex flex-col w-full gap-3 text-n-slate-11">
+      <p
+        class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+      >
+        Revisión de los estados de comunicación de los asesores.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Box 1 - ALÓ SAT no tiene endpoint -->
+  <div class="bg-white rounded-xl shadow-lg p-4">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">ALÓ SAT</h3>
+    <!-- Si hay datos, mostrarlos -->
+    <div class="space-y-3" *ngIf="viciCount; else loadingAloSat">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">En cola</p>
+          <p class="text-xl font-bold text-blue-600">{{ viciCount.llamadasEnCola }}</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Llamadas atendidas</p>
+        <p class="text-xl font-bold text-green-600">{{ viciCount.llamadasAtendidas }}</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Llamadas perdidas</p>
+        <p class="text-xl font-bold text-yellow-600">{{ viciCount.llamadasPerdidas }}</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Total</p>
+        <p class="text-xl font-bold text-indigo-600">{{ viciCount.llamadasTotales }}</p>
+      </div>
+    </div>
+
+    <!-- Template de carga -->
+    <ng-template #loadingAloSat>
+      <p class="text-gray-400 text-sm">Cargando datos de ALÓ SAT...</p>
+    </ng-template>
+  </div>
+
+  <!-- Box 2 - CORREO -->
+  <div class="bg-white rounded-xl shadow-lg p-4">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">Correo</h3>
+    <div class="space-y-3" *ngIf="mailCount; else loadingMail">
+      <div>
+        <p class="text-sm text-gray-500">Atendidos</p>
+        <p class="text-xl font-bold text-green-600">{{ mailCount.attendedCount }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Pend. Ayer</p>
+        <p class="text-xl font-bold text-red-600">{{ mailCount.notAttendedYesterday }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Pend. Hoy</p>
+        <p class="text-xl font-bold text-indigo-600">{{ mailCount.notAttendedToday }}</p>
+      </div>
+    </div>
+    <ng-template #loadingMail>
+      <p class="text-gray-400 text-sm">Cargando datos de Correo...</p>
+    </ng-template>
+  </div>
+
+  <!-- Box 3 - CHAT SAT -->
+  <div class="bg-white rounded-xl shadow-lg p-4">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">Chat SAT</h3>
+    <div class="space-y-3" *ngIf="chatCount; else loadingChat">
+      <div>
+        <p class="text-sm text-gray-500">En cola</p>
+        <p class="text-xl font-bold text-blue-600">{{ chatCount.inQueque }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Atendidos</p>
+        <p class="text-xl font-bold text-green-600">{{ chatCount.complete }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">sin atender</p>
+        <p class="text-xl font-bold text-yellow-600">{{ chatCount.inComplete }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Total</p>
+        <p class="text-xl font-bold text-indigo-600">{{ chatCount.total }}</p>
+      </div>
+    </div> 
+    <ng-template #loadingChat>
+      <p class="text-gray-400 text-sm">Cargando datos de Chat SAT...</p>
+    </ng-template>
+  </div>
+
+  <!-- Box 4 - CHATBOT -->
+  <div class="bg-white rounded-xl shadow-lg p-4">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">Chatbot</h3>
+    <div class="space-y-3" *ngIf="chatCount; else loadingChatbot">
+      <div>
+        <p class="text-sm text-gray-500">Atendidos Bot</p>
+        <p class="text-xl font-bold text-blue-600">{{ chatCount.botCount }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Atendidos por Agente</p>
+        <p class="text-xl font-bold text-green-600">{{ chatCount.agentCount }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Total</p> 
+        <p class="text-xl font-bold text-indigo-600">{{ chatCount.total }}</p>
+      </div>
+    </div>
+    <ng-template #loadingChatbot>
+      <p class="text-gray-400 text-sm">Cargando datos del Chatbot...</p>
+    </ng-template>
+  </div>
+
+
+  </div>
+  <!-- CONTADORES -->
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- 🔹 Caja 1 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">
+        Llamadas activas actuales:
+      </p>
+      <p class="text-3xl font-bold text-blue-600">
+        {{ vicidialCount?.llamadas_activas ?? '-' }}
+      </p>
+    </div>
+
+    <!-- 🔹 Caja 2 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">Llamadas timbrando:</p>
+      <p class="text-3xl font-bold text-green-600">
+        {{ vicidialCount?.llamadas_en_cola ?? '-' }}
+      </p>
+    </div>
+
+    <!-- 🔹 Caja 3 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">
+        Llamadas en espera de agentes:
+      </p>
+      <p class="text-3xl font-bold text-indigo-600">
+        {{ vicidialCount?.llamadas_en_cola ?? '-' }}
+      </p>
+    </div>
+
+    <!-- 🔹 Caja 4 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">Llamadas IVR:</p>
+      <p class="text-3xl font-bold text-yellow-600">
+        {{ vicidialCount?.llamadas_en_ivr ?? '-' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Segunda fila -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- 🔹 Caja 5 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">Agentes logueados:</p>
+      <p class="text-3xl font-bold text-red-600">
+        {{ vicidialCount?.agentes_logueados ?? '-' }}
+      </p>
+    </div>
+
+    <!-- 🔹 Caja 6 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">Agentes en atención:</p>
+      <p class="text-3xl font-bold text-purple-600">
+        {{ vicidialCount?.agentes_en_atencion ?? '-' }}
+      </p>
+    </div>
+
+    <!-- 🔹 Caja 7 -->
+    <div class="bg-white rounded-xl shadow-md p-4 text-center">
+      <p class="text-sm font-semibold text-gray-600">Agentes disponibles:</p>
+      <p class="text-3xl font-bold text-pink-600">
+        {{ vicidialCount?.agentes_disponibles ?? '-' }}
+      </p>
+    </div>
+  </div>
+
+
+  <!-- TABLAS -->
+
+  <p-tabs [value]="value">
+    <p-tablist class="flex items-center justify-around">
+      <p-tab [value]="0" class="flex items-center">
+        <iconify-icon [icon]="'line-md:phone-call-loop'" class="text-xl" />
+        <span>ALÓ SAT</span>
+      </p-tab>
+      <p-tab [value]="1" class="flex items-center">
+        <iconify-icon [icon]="'line-md:email'" class="text-xl" />
+        <span>CORREO</span>
+      </p-tab>
+      <p-tab [value]="2" class="flex items-center">
+        <iconify-icon [icon]="'line-md:chat'" class="text-xl" />
+        <span>CHAT SAT</span>
+      </p-tab>
+      <p-tab [value]="3" class="flex items-center">
+        <iconify-icon [icon]="'mdi:robot-outline'" class="text-xl" />
+        <span>WhatsApp</span>
+      </p-tab>
+    </p-tablist>
+
+    <!-- TABLAS -->
+
+    <p-tabpanels>
+      <!-- ALÓ SAT -->
+      <p-tabpanel [value]="0">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-lg">Sección ALÓ SAT</h3>
+        </div>
+
+        <table
+          class="table-auto w-full border-collapse border border-gray-300 text-sm"
+        >
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="border p-2">Canal</th>
+              <th class="border p-2">Asesor</th>
+              <th class="border p-2">Estado</th>
+              <th class="border p-2">Tiempo estado</th>
+              <th class="border p-2">Tiempo llamada total</th>
+              <th class="border p-2">Número</th>
+              <th class="border p-2">Promedio tiempo atención</th>
+              <th class="border p-2">Efectividad</th>
+              <th class="border p-2">Detalles</th>
+              <th class="border p-2">Sesión</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of vicidialReport; let i = index">
+              <td class="border p-2">Aló</td>
+              <td class="border p-2 text-center">{{ item.userId }}</td>
+              <td class="border p-2 text-center">{{ item.ultimo_estado }}</td>
+              <td class="border p-2 text-center">{{ item.tiempo_en_estado }}</td>
+              <td class="border p-2 text-center">{{ item.tiempo_total_llamadas }}</td>
+              <td class="border p-2 text-center">{{ item.phonelogin }}</td>
+              <td class="border p-2 text-center">{{ item.promedio_atencion }}</td>
+              <td class="border p-2 text-center">{{ item.efectividad }}</td>
+
+              <!-- Columna Detalles -->
+              <td class="border p-2 relative">
+                <div class="flex gap-2">
+                  <button
+                    (click)="togglePopup(i)"
+                    class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
+                  >
+                    Atenciones
+                  </button>
+
+                  <!-- Popup pequeño -->
+                  <div
+                    *ngIf="popupAbierto === i"
+                    class="absolute top-full right-40 w-64 bg-white border border-gray-300 shadow-lg rounded-lg p-3 text-sm z-50"
+                  >
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="font-semibold text-gray-700"
+                        >Detalle de atenciones</span
+                      >
+                      <button
+                        (click)="cerrarPopup()"
+                        class="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <table class="w-full border-collapse text-xs">
+                      <thead>
+                        <tr class="bg-gray-100">
+                          <th class="border p-1 text-left">Aló</th>
+                          <th class="border p-1 text-left">Correo</th>
+                          <th class="border p-1 text-left">Chat</th>
+                          <th class="border p-1 text-left">WhatsApp</th>
+                          <th class="border p-1 text-left">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="border p-1">20</td>
+                          <td class="border p-1">10</td>
+                          <td class="border p-1">20</td>
+                          <td class="border p-1">10</td>
+                          <td class="border p-1">60</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <button
+                    (click)="toggleTabla('estado')"
+                    class="flex items-center gap-2 rounded-full border border-green-600 px-4 py-1 text-sm font-medium shadow-sm text-green-600 hover:bg-green-100 transition"
+                  >
+                    Estado
+                  </button>
+                </div>
+              </td>
+
+              <!-- Columna Sesión -->
+              <td class="border p-2">
+                <button
+                  (click)="toggleTabla('sesion')"
+                  class="flex items-center gap-2 rounded-full border border-red-600 px-4 py-1 text-sm font-medium shadow-sm text-red-600 hover:bg-red-100 transition"
+                >
+                  Cerrar sesión
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </p-tabpanel>
+
+      <!-- CORREO -->
+      <p-tabpanel [value]="1">
+        <h3 class="font-semibold text-lg mb-3">Sección CORREO</h3>
+
+        <table class="table-auto w-full border-collapse border border-gray-300 text-sm">
+          <thead class="bg-purple-100">
+            <tr>
+              <th class="border p-2">Canal</th>
+              <th class="border p-2">Asesor</th>
+              <th class="border p-2">Estado</th>
+              <th class="border p-2">Tiempo estado</th>
+              <th class="border p-2">Efectividad</th>
+              <th class="border p-2">Atenciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let advisor of mailAdvisors; let i = index">
+              <td class="border p-2">Correo</td>
+              <td class="border p-2">{{ advisor.name }}</td>
+              <td class="border p-2">Activo</td>
+              <td class="border p-2">{{ advisor.minutesSinceUpdate }} min</td>
+              <td class="border p-2">{{ advisor.percentage }}%</td>
+              <td class="border p-2">
+                <button
+                  (click)="togglePopup(i)"
+                  class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
+                >
+                  {{ advisor.attentionCount }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </p-tabpanel>
+
+      <!-- CHAT SAT -->
+      <p-tabpanel [value]="2">
+        <h3 class="font-semibold text-lg mb-3">Sección CHAT SAT</h3>
+
+        <table class="table-auto w-full border-collapse border border-gray-300 text-sm">
+          <thead class="bg-yellow-100">
+            <tr>
+              <th class="border p-2">Canal</th>
+              <th class="border p-2">Asesor</th>
+              <th class="border p-2">Tiempo estado</th>
+              <th class="border p-2">Promedio atención</th>
+              <th class="border p-2">Efectividad</th>
+              <th class="border p-2">Atenciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let advisor of chatAdvisors; let i = index">
+              <td class="border p-2">Chat</td>
+              <td class="border p-2">{{ advisor.name }}</td>
+              <td class="border p-2">{{ advisor.minutesSinceUpdate }} min</td>
+              <td class="border p-2">{{ advisor.avgDurationMinutes }} min</td>
+              <td class="border p-2">{{ advisor.percentage }}%</td>
+              <td class="border p-2">
+                <button
+                  (click)="togglePopup(i)"
+                  class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
+                >
+                  {{ advisor.attentionCount }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </p-tabpanel>
+
+      <!-- WHATSAPP -->
+      <p-tabpanel [value]="3">
+        <h3 class="font-semibold text-lg mb-3">Sección WHATSAPP</h3>
+
+        <table class="table-auto w-full border-collapse border border-gray-300 text-sm">
+          <thead class="bg-green-100">
+            <tr>
+              <th class="border p-2">Canal</th>
+              <th class="border p-2">Asesor</th>
+              <th class="border p-2">Teléfono</th>
+              <th class="border p-2">Promedio atención</th>
+              <th class="border p-2">Duración total</th>
+              <th class="border p-2">Efectividad</th>
+              <th class="border p-2">Atenciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let advisor of wspAdvisors; let i = index">
+              <td class="border p-2">WhatsApp</td>
+              <td class="border p-2">{{ advisor.name }}</td>
+              <td class="border p-2">{{ advisor.phoneNumber }}</td>
+              <td class="border p-2">{{ advisor.avgDurationMinutes }} min</td>
+              <td class="border p-2">{{ advisor.totalDurationMinutes }} min</td>
+              <td class="border p-2">{{ advisor.percentage }}%</td>
+              <td class="border p-2">
+                <button
+                  (click)="togglePopup(i)"
+                  class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
+                >
+                  {{ advisor.attentionCount }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>
+
+<!-- Fondo oscurecido + ventana modal -->
+<div
+  *ngIf="tablaActiva"
+  class="fixed inset-0 flex items-center justify-center z-50"
+>
+  <!-- Fondo oscurecido -->
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <!-- Contenido modal -->
+  <div
+    class="relative bg-white rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 z-10"
+  >
+    <!-- Botón volver -->
+    <button
+      (click)="tablaActiva = null"
+      class="absolute top-3 left-3 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
+    >
+      <i class="pi pi-arrow-left text-xl"></i>
+      <span class="hidden sm:inline text-sm font-medium">Volver</span>
+    </button>
+
+    <!-- Tabla Atenciones -->
+    <div *ngIf="tablaActiva === 'ver'">
+      <h2 class="text-lg font-semibold mb-4 text-center">Atenciones</h2>
+      <div class="overflow-x-auto" *ngIf="attentionDetail; else loadingAtencion">
+        <table class="min-w-full border border-gray-200 rounded-lg shadow-sm text-center">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="border p-2">Aló Sat</th>
+              <th class="border p-2">Correo</th>
+              <th class="border p-2">Chat</th>
+              <th class="border p-2">Chatbot</th>
+              <th class="border p-2">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border p-2">{{ attentionDetail.aloSat }}</td>
+              <td class="border p-2">{{ attentionDetail.mail }}</td>
+              <td class="border p-2">{{ attentionDetail.chat }}</td>
+              <td class="border p-2">{{ attentionDetail.chatbot }}</td>
+              <td class="border p-2 font-bold">{{ attentionDetail.total }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #loadingAtencion>
+        <p class="text-gray-400 text-sm text-center">Cargando datos de atención...</p>
+      </ng-template>
+    </div>
+
+
+    <!-- Tabla Estado -->
+    <div *ngIf="tablaActiva === 'estado'">
+      <h2 class="text-lg font-semibold mb-4 text-center">Estados</h2>
+
+      <div *ngIf="!loadingStateDetails && stateDetails; else loadingEstado" class="overflow-x-auto">
+        <table class="min-w-full border border-gray-200 rounded-lg shadow-sm text-center">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th colspan="2" class="border p-2">Pausa</th>
+              <th colspan="2" class="border p-2">Tiempo muerto</th>
+              <th colspan="2" class="border p-2">Llamada en espera</th>
+              <th colspan="2" class="border p-2">PA</th>
+            </tr>
+            <tr>
+              <th class="border p-2">N°</th>
+              <th class="border p-2">Tiempo total</th>
+              <th class="border p-2">N°</th>
+              <th class="border p-2">Tiempo total</th>
+              <th class="border p-2">N°</th>
+              <th class="border p-2">Tiempo total</th>
+              <th class="border p-2">N°</th>
+              <th class="border p-2">Tiempo total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border p-2">{{ stateDetails.pauseCount }}</td>
+              <td class="border p-2">{{ stateDetails.pauseTime }}</td>
+              <td class="border p-2">{{ stateDetails.deadTimeCount }}</td>
+              <td class="border p-2">{{ stateDetails.deadTime }}</td>
+              <td class="border p-2">{{ stateDetails.holdCount }}</td>
+              <td class="border p-2">{{ stateDetails.holdTime }}</td>
+              <td class="border p-2">{{ stateDetails.paCount }}</td>
+              <td class="border p-2">{{ stateDetails.paTime }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #loadingEstado>
+          <p class="text-gray-400 text-sm text-center py-4">
+            Cargando datos de Estados...
+          </p>
+        </ng-template>
+
+
+        <!-- Paginador -->
+        <div class="flex justify-center mt-4 space-x-2">
+          <button
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm font-medium"
+          >
+            «
+          </button>
+          <button
+            class="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium"
+          >
+            1
+          </button>
+          <button
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm font-medium"
+          >
+            2
+          </button>
+          <button
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm font-medium"
+          >
+            3
+          </button>
+          <button
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm font-medium"
+          >
+            »
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle -->
+<div
+  *ngIf="detalleAbierto"
+  class="fixed inset-0 flex items-center justify-center z-50"
+>
+  <!-- Fondo oscurecido -->
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <!-- Contenido modal -->
+  <div
+    class="relative bg-white rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 z-10"
+  >
+    <!-- Botón volver -->
+    <button
+      (click)="detalleAbierto = false"
+      class="absolute top-3 left-3 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
+    >
+      <i class="pi pi-arrow-left text-xl"></i>
+      <span class="hidden sm:inline text-sm font-medium">Volver</span>
+    </button>
+
+    <!-- Contenido -->
+    <h2 class="text-lg font-semibold mb-4 text-center">
+      Detalle del Indicador
+    </h2>
+    <p class="text-sm text-gray-600 text-center">
+      📊 Aquí podrías mostrar más datos del indicador.
+    </p>
+  </div>
+</div>

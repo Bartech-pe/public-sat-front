@@ -1,0 +1,27 @@
+<div class="fixed bottom-4 right-4 w-72 shadow-lg rounded-lg bg-white border border-gray-300 flex flex-col">
+  <div class="flex justify-between items-center bg-gray-100 px-3 py-2 border-b">
+    <span class="font-semibold text-sm truncate">
+      {{ chat.isGroup ? chat.name : chat.users[0]?.displayName || 'Chat' }}
+    </span>
+    <div class="flex gap-2">
+      <button (click)="handleFullChat()" class="text-blue-500 text-xs">Ver</button>
+      <button (click)="handleClose()" class="text-red-500 text-xs">✕</button>
+    </div>
+  </div>
+
+  <div class="flex-1 p-2 overflow-y-auto max-h-60">
+    <div *ngFor="let msg of messages" class="text-sm my-1">
+      <div [ngClass]="{'text-right': msg.senderId}">
+        <span class="inline-block px-2 py-1 rounded bg-blue-100 text-gray-800">
+          {{ msg.content }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center border-t p-2">
+    <input [(ngModel)]="newMessage" type="text" class="flex-1 text-sm p-1 border border-gray-300 rounded" placeholder="Escribe..." />
+    <button (click)="sendMessage()" class="ml-2 text-blue-600 text-sm">Enviar</button>
+  </div>
+</div>
+

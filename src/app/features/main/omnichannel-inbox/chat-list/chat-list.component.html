@@ -1,0 +1,278 @@
+<p-card [styleClass]="'h-full no-padding-card flex flex-col '">
+  <div class="flex flex-col h-full">
+    <!-- Header sticky - altura fija -->
+    <div class="px-5 pt-5 pb-3 flex-shrink-0 sticky top-0 z-10 bg-white border-b border-gray-100">
+      <h4 class="p-card-title mb-3 text-lg font-semibold">Lista de chats</h4>
+
+      <!-- Buscador -->
+      <p-iconfield class="mb-3">
+        <p-inputicon [className]="'inline-flex relative'">
+          <iconify-icon
+            [icon]="'hugeicons:global-search'"
+            class="text-xl absolute left-3 top-[-15px] text-gray-400"
+          />
+        </p-inputicon>
+        <input
+          type="text"
+          class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          pSize="small"
+          [(ngModel)]="search"
+          (ngModelChange)="loadChatList()"
+          pInputText
+          placeholder="Buscar por usuario o número de telefono"
+        />
+      </p-iconfield>
+
+      <!-- Filtros scrollables -->
+      <div class="w-full">
+        <div class="overflow-hidden">
+          <div class="relative">
+            <div
+              #scrollContainer
+              class="overflow-x-auto scroll-smooth whitespace-nowrap hide-scrollbar pb-2"
+              (mousedown)="startDrag($event)"
+              (mousemove)="onDrag($event)"
+              (mouseup)="stopDrag()"
+              (mouseleave)="stopDrag()"
+              (touchstart)="startDrag($event)"
+              (touchmove)="onDrag($event)"
+              (touchend)="stopDrag()"
+            >
+              <p-selectButton
+                [options]="filterOptions"
+                [(ngModel)]="selectedFilter"
+                (ngModelChange)="loadChatList()"
+                optionLabel="label"
+                [styleClass]="'flex gap-2 h-8 min-w-max'"
+                [itemTemplate]="itemTemplate"
+                [disabled]="isLoading"
+              />
+            </div>
+          </div>
+        </div>
+
+        <ng-template #itemTemplate let-item>
+          <div class="flex items-center gap-1 px-3 py-1 text-sm whitespace-nowrap rounded-full">
+            {{ item.label }}
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="flex-1 overflow-hidden bg-gradient-to-b from-sky-50 to-blue-50">
+        <div class="p-4 space-y-3">
+          <!-- Loading Header con animación -->
+
+
+          <!-- Skeleton Cards -->
+          @for (item of [1,2,3,4,5,6]; track $index) {
+            <div class="bg-white rounded-2xl border-gray-200 p-4 animate-pulse">
+              <div class="flex items-start gap-3">
+                <!-- Avatar skeleton -->
+                <div class="flex-shrink-0 relative">
+                  <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
+                  <div class="absolute bottom-1 right-0 w-5 h-5 bg-gray-300 rounded-full"></div>
+                </div>
+
+                <!-- Content skeleton -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="h-4 bg-gray-200 rounded w-32"></div>
+                    <div class="h-3 bg-gray-200 rounded w-12"></div>
+                  </div>
+
+                  <div class="flex items-start gap-2 mb-3">
+                    <div class="h-3 bg-gray-200 rounded w-16"></div>
+                    <div class="h-3 bg-gray-200 rounded w-48"></div>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-4 h-4 bg-gray-200 rounded"></div>
+                      <div class="w-4 h-4 bg-gray-200 rounded"></div>
+                      <div class="w-6 h-6 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    <!-- Empty State -->
+    @else if (!chatListInbox || chatListInbox.length === 0) {
+      <div class="flex flex-col items-center justify-center h-full overflow-hidden text-gray-500 p-8">
+        <div class="relative mb-6">
+          <!-- Icono principal -->
+          <iconify-icon
+            icon="hugeicons:message-circle"
+            class="text-6xl text-gray-300">
+          </iconify-icon>
+          <!-- Iconos decorativos flotantes -->
+          <iconify-icon
+            icon="hugeicons:search-01"
+            class="absolute -top-2 -right-2 text-2xl text-gray-200 animate-pulse">
+          </iconify-icon>
+          <iconify-icon
+            icon="hugeicons:user-group"
+            class="absolute -bottom-1 -left-2 text-xl text-gray-200 animate-pulse"
+            style="animation-delay: 0.5s">
+          </iconify-icon>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-400 mb-2">No hay chats disponibles</h3>
+        <p class="text-sm text-center text-gray-400 max-w-xs">
+          Las conversaciones aparecerán aquí cuando los usuarios inicien contacto
+        </p>
+
+        <!-- Botón de acción opcional -->
+        <button class="mt-6 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">
+          <iconify-icon icon="hugeicons:refresh" class="mr-2"></iconify-icon>
+          Actualizar
+        </button>
+      </div>
+    }
+    <!-- Chat List -->
+    @else {
+      <div class="flex-1 overflow-y-auto scroll-smooth whitespace-nowrap hide-scrollbar bg-gradient-to-b from-sky-50 to-blue-50">
+        <!-- Mini loading overlay para filtros/búsqueda -->
+        @if (isSearching) {
+          <div class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+              <div class="w-4 h-4 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+              <span class="text-sm text-gray-600">Buscando...</span>
+            </div>
+          </div>
+        }
+
+        <div class="p-1 space-y-2">
+            <div
+              *ngFor="let chat of chatListInbox; trackBy: trackByChat"
+              [ngClass]="{
+                'card-custom bg-white': chat.lastMessage.status === 'unread'
+              }"
+              class="relative notification-green bg-gray-50 rounded-2xl border-gray-200 hover:bg-gray-100 cursor-pointer transition-all duration-200 hover:shadow-sm"
+              (click)="navigateToChat(chat.channelRoomId, chat.assistanceId)"
+            >
+              <div class="flex items-start gap-3 p-4 pl-6">
+                <div class="flex flex-col items-center relative">
+                  <div class="relative">
+                    <p-avatar image="{{chat.lastMessage.citizen.avatar}}" size="large" shape="circle" />
+                    <iconify-icon
+                      icon={{getChannelIcon(chat.channel)}}
+                      [ngClass]="{
+                        'border-gray-100 border-2': ['chatsat', 'sms', 'email'].includes(chat.channel)
+                      }"
+                      class="absolute bottom-[6px] right-[-8px] bg-white p-[1px] rounded-full text-xl flex-shrink-0 mt-0.5"
+                    ></iconify-icon>
+                  </div>
+                  <div class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium shadow-sm">
+                    <iconify-icon icon="mdi:ticket-confirmation-outline" class="w-3 h-3 mr-1"></iconify-icon>
+                    <span>#{{ formatId(chat?.assistanceId) || 'N/A' }}</span>
+                  </div>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <h3 class="font-semibold text-base text-gray-900 truncate">
+                      {{ chat?.lastMessage?.citizen?.fullName || chat?.lastMessage?.citizen?.phone | phoneFormat }}
+                    </h3>
+                    <span class="text-sm text-gray-500 whitespace-nowrap ml-2">{{chat.lastMessage.time}}</span>
+                  </div>
+
+                  <div class="flex items-start gap-2 mb-2">
+                    @if (chat.lastMessage.fromMe) {
+                      <p class="text-sm font-semibold text-gray-600 leading-relaxed">Tú: </p>
+                    }
+                    @if(!chat.lastMessage.message && chat.lastMessage.hasAttachment)
+                    {
+                      <p class="text-sm text-gray-600 truncate leading-relaxed">{{ chat.lastMessage.fromMe? 'Enviaste un archivo':'Archivo adjunto' }}</p>
+                    }@else
+                    {
+                      <p class="text-sm text-gray-600 truncate leading-relaxed">{{ chat.lastMessage.message }}</p>
+                    }
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-500">{{ chat?.advisor?.name | titlecase}}</span>
+
+                    <div class="flex items-center gap-2">
+                      <iconify-icon
+                        *ngIf="['whatsapp','chatsat'].includes(chat.channel)"
+                        icon="{{chat.botStatus === 'active' ? 'lucide:bot': 'lucide:bot-off'}}"
+                        [ngClass]="{
+                          'text-green-500 ': chat.botStatus === 'active',
+                          'text-red-500': chat.botStatus === 'paused'
+                        }"
+                      ></iconify-icon>
+
+                      <iconify-icon
+                        icon={{getChannelStatusIcon(chat.status)}}
+                        [ngClass]="{
+                          'text-yellow-500': chat.status === 'pendiente',
+                          'text-red-500': chat.status === 'prioridad',
+                          'text-green-500': chat.status === 'completado'
+                        }"
+                      ></iconify-icon>
+
+                      @if (chat?.unreadCount && chat?.unreadCount > 0) {
+                        <div class="bg-red-500 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                          {{chat.unreadCount}}
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        </div>
+      </div>
+    }
+  </div>
+</p-card>
+<p-toast position="top-right" key="helpRequest" [baseZIndex]="5000">
+  <ng-template let-message pTemplate="headless" let-closeFn="closeFn">
+    <section
+      class="flex flex-col p-4 gap-4 w-full bg-primary text-white dark:text-black rounded-2xl shadow-lg border-2 border-white"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <iconify-icon icon="mdi:help-circle-outline" class="text-3xl"></iconify-icon>
+          <span class="font-bold text-lg">{{ message.summary }}</span>
+        </div>
+      </div>
+
+      <p class="text-sm">{{ message.detail }}</p>
+
+      <!-- Actions con contador -->
+      <div class="flex gap-3 justify-end items-center">
+        <!-- Contador -->
+        <!-- <p
+          class="font-mono text-lg font-bold"
+          [ngClass]="{
+            'text-green-400': counterSeconds < 60,
+            'text-yellow-400': counterSeconds >= 60 && counterSeconds < 180,
+            'text-red-500': counterSeconds >= 180
+          }"
+        >
+          {{ formattedTime }}
+        </p> -->
+
+        <!-- Botón -->
+        <p-button
+          label="Atender ahora"
+          (onClick)="onAttend(message, closeFn)"
+          styleClass="!bg-white !text-black !rounded-xl !px-3 !py-1"
+          size="small"
+        />
+      </div>
+    </section>
+  </ng-template>
+</p-toast>
+

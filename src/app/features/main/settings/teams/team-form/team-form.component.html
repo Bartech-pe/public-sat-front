@@ -1,0 +1,55 @@
+<form
+  [formGroup]="formData"
+  (ngSubmit)="onSubmit()"
+  class="grid grid-cols-1 gap-6"
+>
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="nameTeam">
+        Nombre <span class="text-xs">*</span>
+      </label>
+      <input id="nameTeam" pInputText formControlName="name" />
+      <!-- <div
+        *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+      >
+        <small *ngIf="formData.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div> -->
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="descriptionTeam">
+        Descripción
+      </label>
+      <textarea
+        id="descriptionTeam"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="description"
+      ></textarea>
+    </div>
+  </div>
+  <div class="flex justify-between gap-4">
+    <div class="flex items-center gap-2 py-1">
+      <p-toggleswitch formControlName="status" inputId="activeTeam" />
+      <label class="text-sm font-medium pb-1.5" for="activeTeam">{{
+        isActive ? "Activo" : "Inactivo"
+      }}</label>
+    </div>
+    <div class="flex justify-self-end gap-2">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        severity="primary"
+        size="small"
+        type="submit"
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        styleClass="w-full !rounded-full !shadow-none"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-lg" />
+      </p-button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,44 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "paths": {
+      "@envs/*": ["./src/envs/*"],
+      "@services/*": ["./src/app/core/services/*"],
+      "@stores/*": ["./src/app/core/stores/*"],
+      "@signals/*": ["./src/app/core/signals/*"],
+      "@guards/*": ["./src/app/core/guards/*"],
+      "@models/*": ["./src/app/core/models/*"],
+      "@interfaces/*": ["./src/app/core/interfaces/*"],
+      "@interceptors/*": ["./src/app/core/interceptors/*"],
+      "@utils/*": ["./src/app/core/utils/*"],
+      "@functions/*": ["./src/app/core/functions/*"],
+      "@constants/*": ["./src/app/core/constants/*"],
+      "@pipes/*": ["./src/app/core/pipes/*"],
+      "@layouts/*": ["./src/app/layouts/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@shared/*": ["./src/app/shared/*"],
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": false
+  }
+}

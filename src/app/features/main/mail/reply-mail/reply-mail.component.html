@@ -1,0 +1,282 @@
+<div class="px-4 py-3" [ngClass]="getReplyClass(reply)">
+  <div class="flex justify-between items-center">
+    <!-- Texto a la izquierda -->
+    <span
+      [ngClass]="[
+        'font-semibold text-sm border rounded-full px-2',
+        replyTag.border
+      ]"
+    >
+      {{ replyTag.label }}
+    </span>
+
+    <!-- Botones a la derecha -->
+    <div *ngIf="showReplyBtns" class="flex gap-2">
+      <btn-custom
+        severity="secondary"
+        tooltip="Responder"
+        icon="entypo:reply"
+        (click)="onReplyClick()"
+      />
+      <btn-custom
+        severity="secondary"
+        tooltip="Reenviar"
+        icon="entypo:forward"
+        (click)="forwardMail(reply.id)"
+      />
+    </div>
+  </div>
+
+  <!-- Mensaje alineado a la izquierda -->
+  <p class="mt-1">
+    {{ reply.message }}
+  </p>
+
+  <!-- Encabezado del reply -->
+  <div class="text-sm text-gray-500 mb-1">
+    <span class="font-medium">{{ reply.from }}</span> —
+    {{ reply.createdAt | date : "dd MMM yyyy, h:mm a" }}
+  </div>
+
+  <!-- ✅ Cuerpo del reply -->
+  <div
+    class="text-gray-800 leading-relaxed whitespace-pre-line"
+    [innerHTML]="getSafeContent(reply.body)"
+  ></div>
+
+  <!-- 📎 Archivos adjuntos del reply -->
+  <div *ngIf="reply.attachments?.length" class="mt-2 space-y-1">
+    <div
+      *ngFor="let file of reply.attachments"
+      class="flex items-center gap-2 text-sm text-gray-600"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fill="#777"
+          d="M14.59 2.59a2 2 0 0 0-2.83 0L5 9.34a4.5 4.5 0 0 0 6.36
+                            6.36l6.36-6.36a2 2 0 0 0-2.83-2.83l-6.36
+                            6.36a.5.5 0 0 1-.71-.71l6.36-6.36a1 1 0 0
+                            1 1.41 1.41l-6.36 6.36a2.5 2.5 0 0
+                            1-3.54-3.54l6.76-6.76z"
+        />
+      </svg>
+      <a [href]="file.url" [download]="file.name" class="hover:underline">{{
+        file.name
+      }}</a>
+      <span class="text-xs text-gray-400">
+        ({{ file.size | number }} bytes)
+      </span>
+    </div>
+  </div>
+
+  <div *ngIf="replyMode" class="mt-2 mb-2">
+    <ng-container *ngIf="replyMode !== 'reply'">
+      <div class="space-y-4 mt-4 mb-4">
+        <input
+          [(ngModel)]="replyTo"
+          type="text"
+          placeholder="Para"
+          class="w-full border border-gray-300 bg-white rounded-lg px-3 py-2 outline-none text-gray-800 placeholder-gray-500 overflow-hidden shadow-sm"
+        />
+
+        <input
+          [(ngModel)]="replySubject"
+          type="text"
+          placeholder="Asunto"
+          class="w-full border border-gray-300 bg-white rounded-lg px-3 py-2 outline-none text-gray-800 placeholder-gray-500 overflow-hidden shadow-sm"
+        />
+      </div>
+    </ng-container>
+
+    <div class="border border-gray-300 rounded-lg shadow-sm">
+      <div class="p-4 bg-white rounded-lg">
+        <p-editor
+          [(ngModel)]="replyText"
+          placeholder="Escribe un mensaje para acompañar el reenvío..."
+          [style]="{ height: '100px' }"
+        />
+      </div>
+
+      <div
+        *ngIf="attachments.length > 0"
+        class="px-4 py-2 border-b border-gray-200 space-y-2 bg-gray-50"
+      >
+        <div
+          *ngFor="let file of attachments; let i = index"
+          class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-2 shadow-sm"
+        >
+          <div class="flex-1 mx-4" *ngIf="file.progress < 100">
+            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                class="h-1 bg-blue-600 transition-all duration-500"
+                [style.width.%]="file.progress"
+              ></div>
+            </div>
+          </div>
+
+          <div *ngIf="file.progress === 100" class="text-green-600 mx-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+          </div>
+
+          <button
+            type="button"
+            (click)="removeAttachment(i)"
+            class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71 2.89 18.3 9.18 12 2.89 5.71 4.3 4.29 10.59 10.6 16.89 4.29z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-4 py-3 flex justify-between gap-2 bg-white rounded-lg">
+        <div class="flex items-center gap-3">
+          <div class="relative flex">
+            <button
+              type="button"
+              (click)="handleSend()"
+              class="bg-[#375f95] text-white px-4 py-2 rounded-l-full hover:bg-[#263f61]"
+            >
+              Enviar
+            </button>
+
+            <button
+              type="button"
+              (click)="toggleSendMenu()"
+              class="bg-[#375f95] text-white px-2 rounded-r-full hover:bg-[#263f61] flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+              >
+                <path fill="currentColor" d="M7 10l5 5l5-5z" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex gap-2">
+            <div class="flex items-center justify-center">
+              <btn-custom
+                icon="tabler:message"
+                severity="secondary"
+                tooltip="Insertar respuesta rapida"
+                (click)="selectResponse($event)"
+              />
+
+              <p-popover #responses>
+                <div class="flex flex-col gap-4 p-3">
+                  <div>
+                    <span class="font-medium block mb-2"
+                      >Respuestas rápidas
+                    </span>
+                    <ul class="list-none p-0 m-0 flex flex-col">
+                      <li
+                        *ngFor="let response of predefinedResponseList"
+                        class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border hover:bg-sky-100"
+                        (click)="insertResponse(response)"
+                      >
+                        <div class="flex flex-col gap-2">
+                          <p class="font-medium">
+                            {{ response.title }}
+                          </p>
+                          <div
+                            [innerHTML]="getSafeContent(response.content)"
+                          ></div>
+                        </div>
+                      </li>
+                      @if (predefinedResponseList.length == 0) {
+                      <li class="flex items-center gap-2 px-2 py-3 text-center">
+                        Sin respuestas predifinidas
+                      </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              </p-popover>
+            </div>
+
+            <div class="flex items-center">
+              <input
+                type="file"
+                #fileInput
+                style="display: none"
+                (change)="onFileSelected($event)"
+              />
+              <btn-custom
+                icon="mdi:paperclip"
+                severity="secondary"
+                tooltip="Adjuntar archivos"
+                (click)="attachFile()"
+              />
+            </div>
+
+            <div class="flex items-center gap-2 text-gray-500">
+              <button
+                type="button"
+                (click)="insertSignature()"
+                class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="#777"
+                    d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20m3.5 15h-7v-2h7zm0-4h-7v-2h7zm0-4h-7V7h7z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button
+            (click)="cancelReply()"
+            class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="#777"
+                d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

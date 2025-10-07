@@ -1,0 +1,124 @@
+   <div class="w-full h-px bg-gray-300"></div>
+
+    <form [formGroup]="formData" (ngSubmit)="save()" class="p-6 space-y-4">
+
+      <!-- Nombre -->
+      <div class="flex flex-col space-y-1">
+          <label class="text-sm font-medium" for="nameRole">
+            Nombre<span class="text-xs text-red-500">*</span>
+          </label>
+
+          <div class="relative">
+            <input
+              pInputText
+              id="name"
+              formControlName="name"
+              placeholder="Por favor, introduzca un Titulo."
+              required
+              class="w-full pr-10"
+            />
+            <iconify-icon
+              icon="mdi:account-outline"
+              class="absolute right-2 top-2.5 text-gray-400 text-lg"
+            ></iconify-icon>
+          </div>
+          <div
+              *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+            >
+              <small  class="text-xs text-red-500" *ngIf="formData.controls.name.errors?.['required']"
+                >El Nombre es requerido.</small
+              >
+          </div>
+      </div>
+
+      <!-- Color -->
+     <div class="flex flex-col space-y-1 w-full">
+        <label class="text-sm font-medium" for="Color">
+            Descripción <span class="text-xs text-red-500">*</span>
+          </label>
+
+
+        <textarea rows="5" cols="30" placeholder="Por favor, escriba descripcíon." class="w-full pr-10" pTextarea id="description" formControlName="description"></textarea>
+
+        <div *ngIf="formData.controls.description.invalid && formData.controls.description.touched">
+          <small  class="text-xs text-red-500" *ngIf="formData.controls.description.errors?.['required']">
+            El Descripción es requerido.
+          </small>
+        </div>
+      </div>
+
+      <!-- Fecha -->
+      <div class="flex flex-col space-y-1">
+          <label class="text-sm font-medium" for="nameRole">
+            Fecha<span class="text-xs text-red-500">*</span>
+          </label>
+           <p-datepicker
+              formControlName="date"
+              inputId="buttondisplay"
+              [showIcon]="true"
+              [showOnFocus]="false"
+              styleClass="w-full"
+              class="w-full"
+            ></p-datepicker>
+
+          <div
+              *ngIf="formData.controls.date.invalid && formData.controls.date.touched"
+            >
+              <small  class="text-xs text-red-500" *ngIf="formData.controls.date.errors?.['required']"
+                >El Fecha es requerido.</small
+              >
+          </div>
+      </div>
+
+
+      <!-- Nombre -->
+      <div class="flex flex-col space-y-1">
+          <label class="text-sm font-medium" for="nameRole">
+            Hora<span class="text-xs text-red-500">*</span>
+          </label>
+
+          <div class="relative">
+            <p-datepicker  styleClass="w-full" class="w-full"  formControlName="hour" [iconDisplay]="'input'" [showIcon]="true" [timeOnly]="true" inputId="templatedisplay">
+                <ng-template #inputicon let-clickCallBack="clickCallBack">
+                    <i class="pi pi-clock" (click)="clickCallBack($event)"></i>
+                </ng-template>
+            </p-datepicker>
+
+          </div>
+          <div
+              *ngIf="formData.controls.hour.invalid && formData.controls.hour.touched"
+            >
+              <small  class="text-xs text-red-500" *ngIf="formData.controls.hour.errors?.['required']"
+                >El Hora es requerido.</small
+              >
+          </div>
+      </div>
+
+
+      <div class="w-full h-px bg-gray-300"></div>
+
+      <!-- Botones -->
+      <div class="pt-4 flex justify-end space-x-2">
+        <button
+          pButton
+          type="button"
+          (click)="onCancel()"
+          class="p-button-outlined text-[#0ea5e9] border-[#0ea5e9] flex items-center gap-2"
+        >
+          <iconify-icon icon="mdi:cancel" class="text-lg"></iconify-icon>
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="formData.invalid || loading"
+          class="bg-[#0ea5e9] text-white px-4 py-2 flex items-center gap-2 rounded hover:bg-[#0ea5e9] transition"
+        >
+          <iconify-icon icon="mdi:content-save-outline" class="text-lg"></iconify-icon>
+          {{ id ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+
+</form>
+
+

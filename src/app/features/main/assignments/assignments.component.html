@@ -1,0 +1,374 @@
+<ng-container *ngIf="type === 'GestiónCompleta'; else elseTemplate">
+  <div class="grid grid-cols-1 gap-4">
+    <div class="flex gap-2">
+      <p-button
+        severity="danger"
+        label="Volver"
+        size="small"
+        styleClass="p-button-sm"
+        (click)="closeCompleteManagement()"
+      >
+        <iconify-icon icon="lucide:arrow-left" pButtonIcon />
+      </p-button>
+      <h5 class="text-2xl font-semibold capitalize">Gestión completa</h5>
+    </div>
+    <app-complete-management
+      [portfolioDetail]="portfolioDetailSelect"
+      (refresh)="refreshDetail($event.value)"
+    />
+  </div>
+</ng-container>
+<ng-template #elseTemplate>
+  <div class="px-3">
+    <div class="grid grid-cols-1 gap-4">
+      <!-- Encabezado -->
+      <div class="shadow-lg rounded-xl p-4 bg-gray-50">
+        <div class="flex justify-between">
+          <app-title-sat [showDesc]="false" />
+        </div>
+        <div class="flex flex-col w-full gap-3 text-n-slate-11">
+          <p
+            class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+          >
+            Sectorista: {{ name }} {{ officeFullName }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Fila 1: Totales -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
+        <p-card *ngFor="let item of cardItems; let i = index">
+          <p class="text-center font-light text-sm">{{ item.label }}</p>
+          <p
+            [ngClass]="{
+              'text-center font-bold text-3xl': true,
+              'text-sky-600': i === 2,
+              'text-green-600': i === 3
+            }"
+          >
+            {{ item.total }}
+          </p>
+        </p-card>
+      </div>
+
+      <!-- Fila 2: Cartera Actual + Recordatorios -->
+      <div class="grid grid-cols-1 gap-6">
+        <!-- Cartera Actual -->
+        <p-card>
+          <div class="grid lg:grid-cols-2 gap-2">
+            <div class="h-full flex flex-col md:flex-row gap-6">
+              <!-- Columna Izquierda -->
+              <div class="flex flex-col gap-3 w-full md:w-1/2">
+                <h4 class="font-medium">Cartera Actual</h4>
+                <div class="flex flex-col gap-0.5">
+                  <p-select
+                    [options]="portfolioList"
+                    [(ngModel)]="portfolioId"
+                    placeholder="Seleccionar"
+                    optionValue="id"
+                    optionLabel="name"
+                    class="!rounded-full"
+                    (onChange)="selectPortfolio()"
+                  ></p-select>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <p class="text-sm font-light">Periodo:</p>
+                  <p class="text-sm text-center italic">
+                    {{
+                      !!portfolioSelected
+                        ? (portfolioSelected?.dateStart | date : "dd/MM/yyyy") +
+                          " - " +
+                          (portfolioSelected?.dateEnd | date : "dd/MM/yyyy")
+                        : ""
+                    }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Separador vertical en pantallas grandes -->
+              <p-divider layout="vertical" class="hidden md:block" />
+
+              <!-- Columna Derecha -->
+              <div class="flex flex-col gap-3 w-full md:w-1/2">
+                <h4 class="font-medium">Resumen Diario</h4>
+                <div class="flex justify-between items-center gap-0.5">
+                  <p class="text-sm font-light">Casos sin Gestionar:</p>
+                  <p class="text-sm font-medium">2</p>
+                </div>
+                <!-- <div class="flex justify-between items-center gap-0.5">
+              <p class="text-sm font-light">Meta Diaria:</p>
+              <p class="text-sm font-medium">8/12</p>
+            </div> -->
+                <!--  <div class="flex justify-between items-center gap-0.5">
+              <p class="text-sm font-light">Próximos vencimientos:</p>
+              <p class="text-sm font-medium">0</p>
+            </div>-->
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Recordatorios -->
+        <!-- <p-card *ngIf="!!portfolioSelected">
+          <div class="min-h-[132px] flex flex-col gap-3">
+            <h4 class="font-medium flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 512 512"
+              >
+                <path
+                  fill="currentColor"
+                  d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480"
+                />
+              </svg>
+              Recordatorios Pendientes
+            </h4>
+
+            <div class="flex justify-between items-center gap-0.5">
+              <p class="text-sm font-light">Llamar a empreca ABC - Hoy 14.30</p>
+              <div class="flex justify-center items-center gap-2">
+                <btn-custom-square
+                  label="Completar"
+                  severity="contrast"
+                  type="outlined"
+                  [rounded]="false"
+                />
+                <btn-custom-square
+                  label="Posponer"
+                  severity="contrast"
+                  type="outlined"
+                  [rounded]="false"
+                />
+                <btn-delete text="false" />
+              </div>
+            </div>
+          </div>
+        </p-card> -->
+      </div>
+
+      <ng-container *ngIf="!!portfolioSelected">
+        <!-- Fila 3: Filtros -->
+        <p-card>
+          <div class="flex flex-col gap-3">
+            <h4 class="font-medium">Filtros de búsqueda</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input
+                pInputText
+                [(ngModel)]="searchText"
+                placeholder="Buscar por contribuyente, código..."
+                class="placeholder:text-sm !rounded-full"
+              />
+              <p-select
+                [options]="taxpayerTypes"
+                [(ngModel)]="tipoContribSelected"
+                placeholder="Filtrar por tipo de contribuyente"
+                class="!rounded-full placeholder:!text-sm"
+                [showClear]="true"
+              ></p-select>
+              <p-select
+                [options]="estados"
+                [(ngModel)]="estadoSelected"
+                placeholder="Filtrar por estado"
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+              <p-select
+                [options]="segments"
+                [(ngModel)]="segmentSelected"
+                placeholder="Filtrar por segmento"
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+              <p-select
+                [options]="profiles"
+                [(ngModel)]="profileSelected"
+                placeholder="Filtrar por perfil"
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+              <div class="col-span-1">
+                <div class="flex items-center gap-2">
+                  <label
+                    class="whitespace-nowrap font-semibold text-gray-700 text-sm"
+                  >
+                    Rango Deuda:
+                  </label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <input
+                      pInputText
+                      [(ngModel)]="debtFrom"
+                      placeholder="Desde S/"
+                      class="placeholder:text-sm !rounded-full"
+                    />
+                    <input
+                      pInputText
+                      [(ngModel)]="debtTo"
+                      placeholder="Hasta S/"
+                      class="placeholder:text-sm !rounded-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Fila 4: Tabla -->
+        <p-card>
+          <p-table
+            [value]="portfolioDetailFiltered"
+            [scrollable]="true"
+            scrollHeight="calc(100vh - 500px)"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th><div class="text-center">Código</div></th>
+                <th>
+                  <div class="flex items-center text-xs text-center">
+                    Tipo Doc. Ide.
+                  </div>
+                </th>
+                <th>
+                  <div class="flex items-center text-xs text-center">
+                    N° Doc. Ide.
+                  </div>
+                </th>
+                <th>Contribuyente</th>
+                <th>Tipo de contribuyente</th>
+                <th><div class="text-center">Segmento</div></th>
+                <th><div class="text-center">Perfil</div></th>
+                <th>Deuda Inicial</th>
+                <th>Deuda Actual</th>
+                <th>Email</th>
+                <th><div class="text-center">Whatsapp</div></th>
+                <th>
+                  <div class="flex items-center justify-center">Estado</div>
+                </th>
+                <th></th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>
+                  <div
+                    class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                  >
+                    {{ item?.code }}
+                  </div>
+                </td>
+                <td>
+                  <p class="text-sm font-normal">{{ item?.tipDoc }}</p>
+                </td>
+                <td>
+                  <p class="text-sm font-normal">{{ item?.docIde }}</p>
+                </td>
+                <td>
+                  <div
+                    class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                    tooltipPosition="top"
+                    tooltipStyleClass="text-xs !p-0.5"
+                    pTooltip="{{ item?.taxpayerName }}"
+                  >
+                    {{ item?.taxpayerName }}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    class="w-32 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                  >
+                    {{ item?.taxpayerType }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-sm text-center">
+                    {{ item?.segment }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-sm text-center">{{ item?.profile }}</div>
+                </td>
+                <td>
+                  <div class="text-sm text-end">
+                    {{ item?.debt | currency }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-sm text-end">
+                    {{ item?.currentDebt ?? 0 | currency }}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    class="flex cursor-pointer items-center justify-center gap-2 text-sm"
+                  >
+                    @if (getEmailContacts(item.citizenContacts)?.[0]?.value) {
+                    <span
+                      class="flex items-center gap-1"
+                      (click)="copyEmail(getEmailContacts(item.citizenContacts)?.[0]?.value)"
+                    >
+                      {{ getEmailContacts(item.citizenContacts)?.[0]?.value }}
+                      <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
+                    </span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="text-sm text-center w-30">
+                    @if(getWhatsappContacts(item.citizenContacts)?.[0]?.value){
+                    <a
+                      [href]="'https://wa.me/' + cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-blue-500 hover:underline"
+                    >
+                      {{ cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value) | phoneFormat }}
+                    </a>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center items-center">
+                    <p-chip
+                      class="text-xs text-center !px-0.5"
+                      [ngClass]="{
+                        '!bg-[#d1f7d6] !text-[#2e7d32]': item?.status,
+                        '!bg-[#fff4cd] !text-[#c49000]': !item?.status
+                      }"
+                    >
+                      <div class="w-20">
+                        {{ !item?.status ? "Sin Gestionar" : "Gestionado" }}
+                      </div>
+                    </p-chip>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center justify-center gap-2">
+                    <btn-custom-square
+                      severity="info"
+                      label="Gestionar"
+                      [type]="undefined"
+                      (onClick)="completeManagement(item)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="100" class="text-center p-6">
+                  <div class="flex flex-col items-center text-gray-500">
+                    <p class="text-sm font-medium mt-3">Sin registros</p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>

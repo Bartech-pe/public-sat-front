@@ -1,0 +1,705 @@
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes badgeAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 80px;
+    height: 80px;
+    opacity: 0;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Input personalizado */
+::ng-deep .p-inputtext {
+  transition: all 0.2s ease-in-out;
+}
+
+::ng-deep .p-inputtext:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+  border-color: #4299e1;
+  background-color: #f7fafc;
+}
+
+.dropzone.dragover {
+  border-color: #4299e1;
+  background-color: #ebf8ff;
+  transform: scale(1.02);
+}
+
+/* Attachment items */
+.attachment-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.attachment-item:hover {
+  background: #f1f3f4;
+  border-color: #dee2e6;
+}
+
+/* File icons */
+.file-icon, .file-icon-enhanced, .attachment-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.file-icon.pdf, .file-icon-enhanced.pdf {
+  background: linear-gradient(135deg, #ff4757, #ff3742);
+  color: white;
+}
+
+.file-icon.doc, .file-icon-enhanced.doc {
+  background: linear-gradient(135deg, #2e86de, #54a0ff);
+  color: white;
+}
+
+.file-icon.image, .file-icon-enhanced.image {
+  background: linear-gradient(135deg, #26de81, #20bf6b);
+  color: white;
+}
+
+.file-icon.default, .file-icon-enhanced.default {
+  background: linear-gradient(135deg, #747d8c, #57606f);
+  color: white;
+}
+
+.file-icon-enhanced.excel {
+  background: linear-gradient(135deg, #1dd1a1, #10ac84);
+  color: white;
+}
+
+.file-icon-enhanced.ppt {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+}
+
+.file-icon-enhanced.zip {
+  background: linear-gradient(135deg, #a55eea, #8b43d4);
+  color: white;
+}
+
+.file-icon-enhanced.txt {
+  background: linear-gradient(135deg, #778ca3, #57606f);
+  color: white;
+}
+
+.file-icon-enhanced.video {
+  background: linear-gradient(135deg, #ff7675, #fd79a8);
+  color: white;
+}
+
+.file-icon-enhanced.audio {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  color: white;
+}
+
+.attachment-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+/* Image attachment */
+.image-attachment-container {
+  max-width: 100%;
+  position: relative;
+}
+
+.image-attachment-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.image-attachment-container img:hover {
+  transform: scale(1.02);
+}
+
+.image-attachment-container .overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 12px;
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.image-attachment-container:hover .overlay {
+  opacity: 1;
+}
+
+.image-attachment-container .file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.image-attachment-container .file-name {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* File attachment */
+.file-attachment-enhanced {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+}
+
+.file-attachment-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.file-attachment-enhanced.citizen {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.file-attachment-enhanced.citizen:hover {
+  background: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-attachment-enhanced:hover .download-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Message attachment */
+.message-attachment {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-attachment.citizen {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.attachment-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-meta {
+  font-size: 10px;
+  opacity: 0.8;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Download button */
+.download-btn {
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.download-btn:active {
+  transform: scale(0.95);
+}
+
+/* Drag overlay */
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(59, 130, 246, 0.1);
+  border: 4px dashed #4299e1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.drag-overlay-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 2px dashed #3b82f6;
+  text-align: center;
+}
+
+/* Messages container */
+#messagesContainer {
+  position: relative; /* Necesario para el contexto de position: sticky */
+  scroll-behavior: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  min-height: 0; /* Asegurar que el contenedor sea flexible */
+  display: flex;
+  flex-direction: column;
+}
+#messagesContainer.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+#messagesContainer.scroll-locked {
+  pointer-events: none;
+  user-select: none;
+}
+
+#messagesContainer.scroll-locked::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(249, 250, 251, 0.3);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Loading indicator */
+.loading-messages-indicator {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(180deg, rgba(249, 250, 251, 0.98) 0%, rgba(249, 250, 251, 0.6) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 0 0 16px 16px;
+  margin: -24px -24px 20px -24px;
+  padding: 16px 24px 24px 24px;
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-messages-indicator .loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+.loading-messages-indicator .spinner {
+  animation: spin 1s linear infinite;
+  color: #3b82f6;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Message item */
+.message-item {
+  animation: messageAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+
+.scroll-to-bottom-inside-fixed:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 20px -5px rgba(59, 130, 246, 0.4), 0 8px 10px -3px rgba(59, 130, 246, 0.15);
+}
+
+.scroll-to-bottom-inside-fixed:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.scroll-to-bottom-inside-fixed.pulse {
+  animation: newMessagePulse 0.6s ease-out;
+}
+
+.scroll-to-bottom-inside-fixed {
+  position: sticky; /* Cambiado a sticky para que siga el scroll dentro del contenedor */
+  bottom: 20px; /* Posición fija desde la parte inferior */
+  right: 20px; /* Posición fija desde la derecha */
+  z-index: 40; /* Asegurar que esté por encima de los mensajes */
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0; /* Inicialmente oculto hasta que showScrollButton sea true */
+  transform: translateY(20px) scale(0.8);
+  animation: slideInUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  align-self: flex-end; /* Alinear a la derecha dentro del contenedor flex */
+}
+
+@keyframes newMessagePulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.1); box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.5); }
+  100% { transform: scale(1); }
+}
+
+.scroll-to-bottom-inside-fixed.hiding {
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  pointer-events: none;
+}
+
+/* Unread badge */
+.unread-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3), 0 0 0 2px white;
+  animation: badgeAppear 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s forwards;
+}
+
+.unread-count {
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+/* Conversation start */
+.conversation-start {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+}
+
+.conversation-start::before, .conversation-start::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(209, 213, 219, 0.8), transparent);
+}
+
+.conversation-start-text {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  margin: 0 16px;
+  white-space: nowrap;
+}
+
+/* Textarea */
+textarea {
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.textarea-container {
+  position: relative;
+}
+
+.textarea-container:focus-within .send-hint {
+  opacity: 1;
+}
+
+.send-hint {
+  position: absolute;
+  bottom: -18px;
+  right: 8px;
+  font-size: 10px;
+  color: #9ca3af;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Modal styles */
+::ng-deep .image-preview-modal .p-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+::ng-deep .image-preview-modal .p-dialog-content {
+  padding: 0;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+::ng-deep .image-preview-modal .p-dialog-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+::ng-deep .image-preview-modal .p-dialog-title {
+  color: #374151;
+  font-weight: 600;
+}
+
+::ng-deep .image-preview-modal .p-dialog-header-icon {
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+::ng-deep .image-preview-modal .p-dialog-header-icon:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .image-attachment-container img {
+    max-height: 200px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .file-attachment-enhanced {
+    padding: 8px;
+  }
+
+  .file-icon-enhanced, .file-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .download-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+
+  .unread-badge {
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+  }
+
+  .unread-count {
+    font-size: 11px;
+    padding: 0 3px;
+  }
+
+  ::ng-deep .image-preview-modal .p-dialog {
+    width: 95vw !important;
+    height: 85vh !important;
+    margin: 0;
+  }
+
+  textarea {
+    font-size: 16px;
+  }
+
+  .send-hint {
+    font-size: 9px;
+    bottom: -16px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .message-item, .loading-messages-indicator, .scroll-to-bottom-inside-fixed, .unread-badge {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .scroll-to-bottom-inside-fixed:hover {
+    transform: none;
+  }
+
+  #messagesContainer {
+    scroll-behavior: auto;
+  }
+}
+
+/* General transitions */
+* {
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.messages-container * {
+  will-change: auto;
+}
+
+.loading-messages-indicator, .message-item, .scroll-to-bottom-inside-fixed {
+  will-change: transform, opacity;
+}

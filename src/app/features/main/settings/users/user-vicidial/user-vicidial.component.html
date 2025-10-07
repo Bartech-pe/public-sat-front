@@ -1,0 +1,70 @@
+<div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialUser">
+      Username del agente en VICIdial 
+    </label>
+    <input
+      id="vicidialUser"
+      pInputText
+      [(ngModel)]="vicidial.username"
+      readonly
+    />
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialUserPass">
+      Password de usuario en VICIdial 
+    </label>
+    <input
+      id="vicidialUserPass"
+      pInputText
+      [(ngModel)]="vicidial.userPass"
+      type="password"
+      readonly
+    />
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialPhoneLogin">
+      Extensión/teléfono del agente 
+    </label>
+    <input
+      id="vicidialPhoneLogin"
+      pInputText
+      [(ngModel)]="vicidial.phoneLogin"
+      readonly
+    />
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialPhonePass">
+      Password del teléfono SIP 
+    </label>
+    <input
+      id="vicidialPhonePass"
+      pInputText
+      type="password"
+      [(ngModel)]="vicidial.phonePass"
+      readonly
+    />
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialUserLevel">
+      Nivel de usuario (1=agente, 9=admin) 
+    </label>
+    <input
+      id="vicidialUserLevel"
+      pInputText
+      [(ngModel)]="vicidial.userLevel"
+      readonly
+    />
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="vicidialUserGroup">
+      Grupo del usuario (ej: AGENTS) 
+    </label>
+    <input
+      id="vicidialUserGroup"
+      pInputText
+      [(ngModel)]="vicidial.userGroup"
+      readonly
+    />
+  </div>
+</div>

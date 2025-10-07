@@ -1,0 +1,144 @@
+<div class="gap-4 px-3">
+  <!-- Sección de Asignación de Horarios por Mes -->
+  <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">
+      Asignación de Horarios de Canales (Mensual)
+    </h2>
+    <form
+      [formGroup]="scheduleForm"
+      (ngSubmit)="assignSchedule()"
+      class="space-y-4"
+    >
+      <div>
+        <label for="month" class="block text-sm font-medium text-gray-700"
+          >Seleccionar Mes</label
+        >
+        <p-calendar
+          id="month"
+          formControlName="month"
+          view="month"
+          dateFormat="mm/yy"
+          [showIcon]="true"
+          class="w-full"
+        ></p-calendar>
+        <div
+          *ngIf="
+            scheduleForm.get('month')?.invalid &&
+            (scheduleForm.get('month')?.dirty ||
+              scheduleForm.get('month')?.touched)
+          "
+          class="text-red-500 text-xs"
+        >
+          Mes es requerido.
+        </div>
+      </div>
+      <div>
+        <label for="supervisor" class="block text-sm font-medium text-gray-700"
+          >Canales</label
+        >
+        <p-dropdown
+          id="supervisor"
+          formControlName="supervisor"
+          [options]="channels"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccionar Supervisor"
+          class="w-full"
+        ></p-dropdown>
+        <div
+          *ngIf="
+            scheduleForm.get('supervisor')?.invalid &&
+            (scheduleForm.get('supervisor')?.dirty ||
+              scheduleForm.get('supervisor')?.touched)
+          "
+          class="text-red-500 text-xs"
+        >
+          Supervisor es requerido.
+        </div>
+      </div>
+      <!-- Calendario para asignación de horarios -->
+      <div class="grid grid-cols-7 gap-2 text-center">
+        <div class="font-semibold text-gray-700">Lun</div>
+        <div class="font-semibold text-gray-700">Mar</div>
+        <div class="font-semibold text-gray-700">Mié</div>
+        <div class="font-semibold text-gray-700">Jue</div>
+        <div class="font-semibold text-gray-700">Vie</div>
+        <div class="font-semibold text-gray-700">Sáb</div>
+        <div class="font-semibold text-gray-700">Dom</div>
+        <div
+          *ngFor="let day of daysInMonth; let i = index"
+          class="p-2 border rounded-md hover:bg-blue-100 cursor-pointer"
+        >
+          {{ day }}
+          <p-calendar
+            [formControl]="
+              scheduleForm.get('days').controls[i].get('startTime')
+            "
+            [timeOnly]="true"
+            [showIcon]="true"
+            hourFormat="24"
+            placeholder="Inicio"
+            class="w-full mt-1"
+          ></p-calendar>
+          <p-calendar
+            [formControl]="scheduleForm.get('days').controls[i].get('endTime')"
+            [timeOnly]="true"
+            [showIcon]="true"
+            hourFormat="24"
+            placeholder="Fin"
+            class="w-full mt-1"
+          ></p-calendar>
+        </div>
+      </div>
+      <button
+        pButton
+        type="submit"
+        label="Guardar Asignaciones del Mes"
+        class="w-full"
+        [disabled]="!scheduleForm.valid"
+      ></button>
+    </form>
+  </div>
+
+  <!-- Sección de Configuración de Atención Fuera de Horario -->
+  <!-- <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Configuración de Atención Fuera de Horario</h2>
+        <form [formGroup]="configForm" (ngSubmit)="saveConfig()" class="space-y-4">
+            <div>
+                <label for="contact" class="block text-sm font-medium text-gray-700">Contacto de Emergencia</label>
+                <p-inputText id="contact" formControlName="contact" placeholder="Nombre del contacto" class="w-full"></p-inputText>
+                <div *ngIf="configForm.get('contact')?.invalid && (configForm.get('contact')?.dirty || configForm.get('contact')?.touched)" class="text-red-500 text-xs">
+                    Contacto es requerido.
+                </div>
+            </div>
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                <p-inputText id="phone" formControlName="phone" placeholder="Número de teléfono" class="w-full"></p-inputText>
+                <div *ngIf="configForm.get('phone')?.invalid && (configForm.get('phone')?.dirty || configForm.get('phone')?.touched)" class="text-red-500 text-xs">
+                    <div *ngIf="configForm.get('phone')?.errors?.['required']">Teléfono es requerido.</div>
+                    <div *ngIf="configForm.get('phone')?.errors?.['pattern']">Formato de teléfono inválido.</div>
+                </div>
+            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <p-inputText id="email" formControlName="email" placeholder="Correo electrónico" class="w-full"></p-inputText>
+                <div *ngIf="configForm.get('email')?.invalid && (configForm.get('email')?.dirty || configForm.get('email')?.touched)" class="text-red-500 text-xs">
+                    <div *ngIf="configForm.get('email')?.errors?.['required']">Correo es requerido.</div>
+                    <div *ngIf="configForm.get('email')?.errors?.['email']">Formato de correo inválido.</div>
+                </div>
+            </div>
+            <div>
+                <label for="hours" class="block text-sm font-medium text-gray-700">Horario de Atención Fuera de Horario</label>
+                <p-inputText id="hours" formControlName="hours" placeholder="Ej: 18:00 - 08:00" class="w-full"></p-inputText>
+                <div *ngIf="configForm.get('hours')?.invalid && (configForm.get('hours')?.dirty || configForm.get('hours')?.touched)" class="text-red-500 text-xs">
+                    Horario es requerido.
+                </div>
+            </div>
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700">Notas Adicionales</label>
+                <p-textarea id="notes" formControlName="notes" rows="4" placeholder="Instrucciones adicionales" class="w-full"></p-textarea>
+            </div>
+            <button pButton type="submit" label="Guardar Configuración" class="w-full" [disabled]="!configForm.valid"></button>
+        </form>
+    </div> -->
+</div>

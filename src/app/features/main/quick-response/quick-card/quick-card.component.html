@@ -1,0 +1,132 @@
+<!-- <div
+  class="w-full h-full flex flex-col border rounded-xl p-4 shadow-sm bg-white"
+>
+  <div class="pb-2">
+    <div class="flex items-center gap-2 text-lg text-gray-900 font-semibold">
+      <iconify-icon
+        [icon]="getIcon(item.quickResponseCategory.name)"
+        class="text-blue-500 text-base"
+      ></iconify-icon>
+      {{ item.title }}
+    </div>
+    <p
+      class="text-gray-700 line-clamp-2"
+      [innerHTML]="getFormattedContent(item.content)"
+    ></p>
+  </div>
+  <div class="flex flex-col gap-2 mt-2 text-sm text-gray-600">
+    <div class="flex items-center gap-2">
+      <span>Estado:</span>
+      @if (item.status) {
+      <iconify-icon
+        icon="mdi:check-circle"
+        class="text-green-500 text-base"
+      ></iconify-icon>
+      <span class="text-green-500">Activa</span>
+      } @else {
+      <iconify-icon
+        icon="mdi:close-circle"
+        class="text-red-500 text-base"
+      ></iconify-icon>
+      <span class="text-red-500">Inactiva</span>
+      }
+      <span class="ml-2">| Última edición: {{ item.createdAt }}</span>
+    </div>
+
+    <p class="mt-1">Categoría: {{ item.quickResponseCategory.name }}</p>
+
+    @if (item.keywords) {
+    <p class="mt-1">
+      Palabras clave:
+      <span class="italic text-gray-500">{{ item.keywords }}</span>
+    </p>
+    }
+  </div>
+  <div class="flex items-center gap-2 mt-4">
+    <span
+      class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm flex items-center gap-1"
+    >
+      <i class="pi pi-pencil text-sm"></i> Personalizada
+    </span>
+
+    <div class="ml-auto flex gap-2">
+      <button
+        type="button"
+        class="bg-transparent border border-gray-400 text-gray-800 hover:bg-gray-100 px-3 py-1 rounded text-sm"
+        (click)="edit.emit()"
+      >
+        Editar
+      </button>
+
+      <button
+        type="button"
+        class="bg-red-500 text-white hover:bg-red-600 px-3 py-1 rounded text-sm flex items-center gap-1"
+        (click)="deleteItem.emit()"
+      >
+        <iconify-icon
+          icon="mdi:trash-can"
+          style="font-size: 1rem"
+        ></iconify-icon>
+
+        <span class="sr-only">Eliminar</span>
+      </button>
+    </div>
+  </div>
+</div> -->
+
+<div
+  class="border bg-gray-50 border-gray-400 rounded-lg p-4 shadow-2xl space-y-1"
+>
+  <div class="flex items-center gap-2">
+    <iconify-icon
+      [icon]="getIcon(item.quickResponseCategory.name)"
+      class="text-base"
+    />
+    <p class="font-semibold text-lg">{{ item.title }}</p>
+  </div>
+  <div class="mt-2">
+    <p
+      class="font-normal text-sm"
+      [innerHTML]="getFormattedContent(item.content)"
+    ></p>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <p class="font-normal text-sm mt-1">Estado:</p>
+      <p-tag
+        class="text-xs"
+        [value]="item.status == true ? 'Activo' : 'Inactivo'"
+        [severity]="item.status == true ? 'success' : 'danger'"
+      >
+        @if (item.status) {
+        <iconify-icon icon="prime:check-circle" class="text-lg"></iconify-icon>
+        } @else {
+        <iconify-icon
+          icon="system-uicons:cross-circle"
+          class="text-lg"
+        ></iconify-icon>
+        }
+      </p-tag>
+    </div>
+    <div class="flex items-center gap-2">
+      <p class="font-normal text-sm">| Última edición:</p>
+      <p class="font-semibold text-sm">
+        {{ item.createdAt }}
+      </p>
+    </div>
+  </div>
+  <div class="text-sm text-gray-600">
+    <p class="mt-1">Categoría: {{ item.quickResponseCategory.name }}</p>
+  </div>
+  <div class="flex items-center justify-between gap-2 mt-2">
+    <span
+      class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm flex items-center gap-1"
+    >
+      <i class="pi pi-pencil text-sm"></i> Personalizada
+    </span>
+    <div class="flex items-center gap-2">
+      <btn-edit-square (click)="edit.emit()" />
+      <btn-delete-square (click)="deleteItem.emit()" />
+    </div>
+  </div>
+</div>

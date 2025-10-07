@@ -1,0 +1,467 @@
+<p-dialog
+  [visible]="visible"
+  [modal]="true"
+  [closable]="true"
+  [closeOnEscape]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [maximizable]="true"
+  [header]="tituloModal"
+  [style]="{ width: '90vw', height: '85vh', maxWidth: '1400px' }"
+  (visibleChange)="onHide()"
+  (onShow)="onShow()"
+  styleClass="historial-modal">
+
+  <div class="flex h-full bg-gradient-to-b from-sky-50 to-blue-50 rounded-lg overflow-hidden">
+
+    <!-- Panel Izquierdo: Lista de Asistencias -->
+    <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col min-w-0 shadow-sm">
+
+      <!-- Header con buscador -->
+      <div class="p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div class="space-y-3">
+          <!-- Título y contador -->
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">Asistencias</h3>
+            <p-badge
+              [value]="totalFiltradas.toString()"
+              severity="info"
+              size="large"
+              styleClass="bg-blue-100 text-blue-700">
+            </p-badge>
+          </div>
+
+          <!-- Buscador -->
+          <div class="relative">
+            <span class="p-input-icon-left w-full">
+              <!-- <iconify-icon icon="hugeicons:search-01" class="text-gray-400"></iconify-icon> -->
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="searchTerm"
+                (input)="onSearchChange()"
+                placeholder="Buscar por ID, agente o contenido..."
+                class="w-full pl-10 py-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                [disabled]="loading">
+            </span>
+
+            @if (searchTerm && !isSearching) {
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                (click)="limpiarBusqueda()"
+                pTooltip="Limpiar búsqueda">
+                <iconify-icon icon="mdi:close"></iconify-icon>
+              </button>
+            }
+
+            @if (isSearching) {
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <iconify-icon icon="mdi:loading" class="animate-spin text-gray-400"></iconify-icon>
+              </div>
+            }
+          </div>
+
+          <!-- Indicador de filtro activo -->
+          @if (searchTerm) {
+            <div class="text-xs text-gray-600">
+              Mostrando {{ totalFiltradas }} de {{ totalAsistencias }} asistencias
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Lista de asistencias -->
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <p-scrollPanel [style]="{ width: '100%', height: '100%' }" styleClass="custom-scrollpanel">
+
+          <!-- Loading skeleton -->
+          @if (loading) {
+            <div class="p-4 space-y-3">
+              @for (item of [1,2,3,4,5]; track $index) {
+                <div class="bg-white rounded-2xl border-gray-200 p-4 animate-pulse">
+                  <div class="flex items-start gap-3">
+                    <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
+                    <div class="flex-1">
+                      <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                      <div class="h-3 bg-gray-200 rounded w-48 mb-1"></div>
+                      <div class="h-3 bg-gray-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Sin asistencias -->
+          @else if (mostrarSinAsistencias) {
+            <div class="flex flex-col items-center justify-center h-full py-12 px-4">
+              <iconify-icon icon="mdi:history" class="text-5xl text-gray-300 mb-4"></iconify-icon>
+              <h4 class="text-lg font-medium text-gray-600 mb-2">Sin historial</h4>
+              <p class="text-sm text-gray-500 text-center">
+                No hay asistencias registradas para este ciudadano
+              </p>
+            </div>
+          }
+
+          <!-- Sin resultados de búsqueda -->
+          @else if (mostrarSinResultados) {
+            <div class="flex flex-col items-center justify-center h-full py-12 px-4">
+              <iconify-icon icon="hugeicons:search-01" class="text-5xl text-gray-300 mb-4"></iconify-icon>
+              <h4 class="text-lg font-medium text-gray-600 mb-2">Sin resultados</h4>
+              <p class="text-sm text-gray-500 text-center">
+                No se encontraron asistencias que coincidan con "{{ searchTerm }}"
+              </p>
+              <p-button
+                label="Limpiar búsqueda"
+                icon="mdi:close"
+                severity="secondary"
+                size="small"
+                class="mt-3"
+                (onClick)="limpiarBusqueda()">
+              </p-button>
+            </div>
+          }
+
+          <!-- Lista de asistencias -->
+          @else if (hayResultadosFiltro) {
+            <div class="p-2 space-y-2">
+              @for (asistencia of asistenciasFiltradas; track asistencia.assistanceId) {
+                <div
+                  class="p-4 rounded-2xl border-gray-200 bg-white cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-gray-50"
+                  [class.bg-blue-50]="esAsistenciaSeleccionada(asistencia)"
+                  [class.border-blue-500]="esAsistenciaSeleccionada(asistencia)"
+                  [class.shadow-sm]="esAsistenciaSeleccionada(asistencia)"
+                  (click)="seleccionarAsistencia(asistencia)">
+
+                  <!-- Header de la asistencia -->
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-sm font-bold text-gray-900">
+                        #{{ asistencia.assistanceId }}
+                      </span>
+                      @if (asistencia.status) {
+                        <p-tag
+                          [value]="asistencia.status | titlecase"
+                          [severity]="obtenerSeveridadEstado(asistencia.status)"
+                          styleClass="text-xs">
+                        </p-tag>
+                      }
+                    </div>
+                    @if (asistencia.channel) {
+                      <iconify-icon
+                        [icon]="obtenerIconoCanal(asistencia.channel)"
+                        class="text-gray-500"
+                        [pTooltip]="asistencia.channel | titlecase">
+                      </iconify-icon>
+                    }
+                  </div>
+
+                  <!-- Información adicional -->
+                  <div class="space-y-2 mb-3">
+                    @if (asistencia.startDate) {
+                      <div class="flex items-center text-xs text-gray-600">
+                        <iconify-icon icon="mdi:calendar" class="mr-2"></iconify-icon>
+                        <span>{{ formatearFechaCompleta(asistencia.startDate) }}</span>
+                      </div>
+                    }
+                    @if (asistencia.user) {
+                      <div class="flex items-center text-xs text-gray-600">
+                        <iconify-icon icon="mdi:account" class="mr-2"></iconify-icon>
+                        <span>{{ asistencia.user }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Preview del último mensaje -->
+                  @if (obtenerUltimoMensaje(asistencia); as ultimoMensaje) {
+                    <div class="pt-3 border-t border-gray-100">
+                      <div class="flex items-start space-x-2">
+                        <div class="flex-shrink-0 mt-1">
+                          @if (ultimoMensaje.sender.fromCitizen) {
+                            <iconify-icon icon="mdi:account" class="text-blue-500 text-xs"></iconify-icon>
+                          } @else if (ultimoMensaje.sender.isAgent) {
+                            <iconify-icon icon="mdi:face-agent" class="text-green-500 text-xs"></iconify-icon>
+                          } @else {
+                            <iconify-icon icon="lucide:bot" class="text-purple-500 text-xs"></iconify-icon>
+                          }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs text-gray-700 line-clamp-2 break-words">
+                            {{ obtenerPreviewMensaje(ultimoMensaje) }}
+                          </p>
+                          <p class="text-xs text-gray-500 mt-1">
+                            {{ ultimoMensaje.time }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </p-scrollPanel>
+      </div>
+    </div>
+
+    <!-- Panel Derecho: Detalle de Conversación -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      @if (!asistenciaSeleccionada) {
+        <!-- Estado sin selección -->
+        <div class="flex-1 flex items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50">
+          <div class="text-center max-w-md">
+            <iconify-icon icon="mdi:chat-outline" class="text-6xl text-gray-300 mb-4"></iconify-icon>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Selecciona una asistencia</h3>
+            <p class="text-gray-500 leading-relaxed">
+              Elige una asistencia del panel izquierdo para ver el detalle completo de la conversación y todos los mensajes intercambiados
+            </p>
+          </div>
+        </div>
+      } @else {
+
+        <!-- Header del chat seleccionado -->
+        <div class="bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <iconify-icon icon="mdi:chat" class="text-white text-lg"></iconify-icon>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">
+                  Asistencia #{{ asistenciaSeleccionada.assistanceId }}
+                </h3>
+                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                  <span>{{ asistenciaSeleccionada.messages?.length || 0 }} mensajes</span>
+                  @if (asistenciaSeleccionada.startDate) {
+                    <span>{{ formatearFechaCompleta(asistenciaSeleccionada.startDate) }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              @if (asistenciaSeleccionada.channel) {
+                <p-tag
+                  [value]="asistenciaSeleccionada.channel | titlecase"
+                  severity="info"
+                  [icon]="obtenerIconoCanal(asistenciaSeleccionada.channel)"
+                  styleClass="bg-blue-100 text-blue-700">
+                </p-tag>
+              }
+              @if (asistenciaSeleccionada.status) {
+                <p-tag
+                  [value]="asistenciaSeleccionada.status | titlecase"
+                  [severity]="obtenerSeveridadEstado(asistenciaSeleccionada.status)">
+                </p-tag>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de mensajes -->
+        <div class="flex-1 min-h-0 relative">
+          <div
+            #messagesContainer
+            class="flex-1 min-h-0 max-h-full overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-sky-50 to-blue-50"
+            style="scroll-behavior: smooth;"
+            (scroll)="onScroll($event)">
+
+            @if (isLoadingOlderMessages) {
+              <div class="flex justify-center py-4">
+                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+                  <iconify-icon icon="mdi:loading" class="animate-spin text-blue-500"></iconify-icon>
+                  <span class="text-sm text-gray-600">Cargando mensajes anteriores...</span>
+                </div>
+              </div>
+            }
+
+            @if (asistenciaSeleccionada.messages && asistenciaSeleccionada.messages.length > 0 && !asistenciaSeleccionada.hasMore && !isLoadingOlderMessages) {
+              <div class="text-center">
+                <p-divider align="center" type="solid">
+                  <span class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                    <iconify-icon icon="mdi:history" class="mr-1"></iconify-icon>
+                    Inicio de la conversación
+                  </span>
+                </p-divider>
+              </div>
+            }
+
+            @for (mensaje of asistenciaSeleccionada.messages; track mensaje.id) {
+              <div
+                class="flex message-item"
+                [ngClass]="{
+                  'justify-end': !mensaje.sender.fromCitizen,
+                  'justify-start': mensaje.sender.fromCitizen
+                }">
+                <div [ngClass]="{
+                  'max-w-sm lg:max-w-md xl:max-w-lg': !mensaje.attachments || mensaje.attachments.length === 0,
+                  'max-w-md lg:max-w-lg xl:max-w-xl': mensaje.attachments && mensaje.attachments.length > 0
+                }">
+                  <div
+                    class="relative rounded-2xl px-4 py-3 shadow-sm"
+                    [ngClass]="{
+                      'bg-[#365f95] text-white': !mensaje.sender.fromCitizen,
+                      'bg-white text-gray-800': mensaje.sender.fromCitizen
+                    }">
+                    <!-- Cola del globo -->
+                    <div
+                      class="absolute w-3 h-3 transform rotate-45"
+                      [ngClass]="{
+                        'bg-[#365f95] -right-1 top-4': !mensaje.sender.fromCitizen,
+                        'bg-white -left-1 top-4': mensaje.sender.fromCitizen
+                      }">
+                    </div>
+
+                    <!-- Contenido del mensaje -->
+                    @if (mensaje.content && mensaje.content.trim()) {
+                      <p class="text-sm leading-relaxed relative z-10 mb-1 whitespace-pre-wrap">
+                        {{ mensaje.content }}
+                      </p>
+                    }
+
+                    <!-- Archivos adjuntos -->
+                    @if (mensaje.attachments && mensaje.attachments.length > 0) {
+                      <div class="space-y-3 mt-3 relative z-10">
+                        @for (attachment of mensaje.attachments; track $index) {
+                          @if (attachment.type === 'image') {
+                            <div class="rounded-lg overflow-hidden shadow-sm bg-white/5 backdrop-blur-sm">
+                              <img
+                                [src]="'data:image/' + (attachment.extension || 'jpeg') + ';base64,' + attachment.content"
+                                [alt]="attachment.name || 'imagen.' + (attachment.extension || 'jpg')"
+                                class="w-full h-auto max-h-80 object-cover transition-transform duration-200 hover:scale-105"
+                                style="cursor: zoom-in;">
+                              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                                <div class="flex items-center justify-between">
+                                  <span class="text-white text-xs font-medium truncate">
+                                    {{ attachment.name || 'imagen.' + (attachment.extension || 'jpg') }}
+                                  </span>
+                                  <button
+                                    class="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200">
+                                    <iconify-icon icon="material-symbols:download" class="text-white text-lg"></iconify-icon>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
+                            <div class="bg-white rounded-xl border border-gray-200 p-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                                 [ngClass]="{
+                                   'bg-white/95 border-white/20': !mensaje.sender.fromCitizen,
+                                   'bg-white border-gray-200': mensaje.sender.fromCitizen
+                                 }">
+                              <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                  <div class="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm"
+                                       [ngClass]="{
+                                         'bg-gradient-to-br from-red-500 to-red-600': attachment.extension === 'pdf',
+                                         'bg-gradient-to-br from-blue-500 to-blue-600': ['doc', 'docx'].includes(attachment.extension),
+                                         'bg-gradient-to-br from-green-500 to-green-600': ['xls', 'xlsx'].includes(attachment.extension),
+                                         'bg-gradient-to-br from-yellow-500 to-yellow-600': ['zip', 'rar'].includes(attachment.extension),
+                                         'bg-gradient-to-br from-orange-500 to-orange-600': attachment.extension === 'txt',
+                                         'bg-gradient-to-br from-gray-500 to-gray-600': !['pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar', 'txt'].includes(attachment.extension)
+                                       }">
+                                    <iconify-icon [icon]="obtenerIconoArchivo(attachment.extension || '')" class="text-2xl text-white"></iconify-icon>
+                                  </div>
+                                  <div class="flex-1 min-w-0 space-y-1">
+                                    <div class="font-semibold text-gray-800 text-sm leading-tight truncate">
+                                      {{ attachment.name || 'archivo.' + (attachment.extension || 'unknown') }}
+                                    </div>
+                                    <div class="flex items-center space-x-2 text-xs">
+                                      <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium uppercase">
+                                        {{ (attachment.extension || 'FILE').toUpperCase() }}
+                                      </span>
+                                      @if (attachment.size) {
+                                        <span class="text-gray-500">{{ formatearTamanoArchivo(attachment.size) }}</span>
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  class="w-9 h-9 rounded-full bg-gray-100 hover:bg-blue-100 flex items-center justify-center text-gray-600 hover:text-blue-600 transition-all duration-200 hover:scale-105 shadow-sm ml-2">
+                                  <iconify-icon icon="material-symbols:download-rounded" class="text-lg"></iconify-icon>
+                                </button>
+                              </div>
+                              <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-300"
+                                     [ngClass]="{
+                                       'bg-gradient-to-r from-red-400 to-red-500': attachment.extension === 'pdf',
+                                       'bg-gradient-to-r from-blue-400 to-blue-500': ['doc', 'docx'].includes(attachment.extension),
+                                       'bg-gradient-to-r from-green-400 to-green-500': ['xls', 'xlsx'].includes(attachment.extension),
+                                       'bg-gradient-to-r from-yellow-400 to-yellow-500': ['zip', 'rar'].includes(attachment.extension),
+                                       'bg-gradient-to-r from-orange-400 to-orange-500': attachment.extension === 'txt',
+                                       'bg-gradient-to-r from-gray-400 to-gray-500': !['pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar', 'txt'].includes(attachment.extension)
+                                     }"
+                                     style="width: 100%"></div>
+                              </div>
+                            </div>
+                          }
+                        }
+                      </div>
+                    }
+
+                    <!-- Footer del mensaje -->
+                    <div class="flex items-center justify-between mt-2 relative z-10">
+                      <div class="flex items-center space-x-2">
+                        <span class="text-xs font-medium"
+                              [ngClass]="{
+                                'text-blue-100': !mensaje.sender.fromCitizen,
+                                'text-gray-400': mensaje.sender.fromCitizen
+                              }">
+                          {{ mensaje.time }}
+                        </span>
+                        <!-- <span class="text-xs font-medium"
+                              [ngClass]="{
+                                'text-blue-100': !mensaje.sender.fromCitizen,
+                                'text-gray-600': mensaje.sender.fromCitizen
+                              }">
+                          {{ obtenerTipoMensajeSender(mensaje) }}
+                        </span> -->
+                      </div>
+                      @if (!mensaje.sender.fromCitizen) {
+                        <iconify-icon
+                          [icon]="mensaje.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'"
+                          class="text-xl text-blue-100">
+                        </iconify-icon>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Indicador de fin de conversación -->
+            @if (asistenciaSeleccionada.messages && asistenciaSeleccionada.messages.length > 0) {
+              <div class="text-center mt-6">
+                <p-divider align="center" type="solid">
+                  <span class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                    <iconify-icon icon="mdi:check-circle" class="mr-1"></iconify-icon>
+                    Fin de la conversación
+                  </span>
+                </p-divider>
+              </div>
+            }
+          </div>
+
+          <!-- Botón de scroll hacia abajo -->
+          @if (showScrollButton) {
+            <div class="flex justify-end relative">
+              <button
+                (click)="handleScrollDown()"
+                type="button"
+                class="absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full shadow-lg cursor-pointer border-gray-300 border-2 bg-[#365f95] hover:bg-blue-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                aria-label="Ir al final de la conversación">
+                @if (unreadMessagesCount > 0) {
+                  <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.5rem] h-6 px-1 text-xs font-bold text-white bg-red-500 rounded-full shadow-md animate-bounce">
+                    {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
+                  </span>
+                }
+                <iconify-icon icon="icon-park-outline:down" class="text-white text-lg"></iconify-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</p-dialog>

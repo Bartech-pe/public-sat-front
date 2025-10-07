@@ -1,0 +1,366 @@
+<div class="space-y-6 px-3">
+  <div class="grid grid-cols-4 gap-6">
+    <!-- COLUMNA 1 -->
+    <div class="col-span-2 grid gap-4">
+      <!-- Programar Envío -->
+      <div class="bg-white rounded-xl shadow-xl">
+        <form [formGroup]="formDataProgramEnvio">
+          <div class="bg-[#375f95] rounded-t-xl py-3 px-6">
+            <p class="font-semibold text-white">Programar Envío</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center p-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="fechaHora">
+                Enviar el
+              </label>
+              <p-datepicker
+                formControlName="fechaEnvio"
+                [iconDisplay]="'input'"
+                [showIcon]="true"
+                inputId="icondisplay"
+                styleClass="w-full"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="fechaHora"> Hora </label>
+              <p-datepicker
+                formControlName="horaEnvio"
+                [iconDisplay]="'input'"
+                [showIcon]="true"
+                [timeOnly]="true"
+                inputId="templatedisplay"
+                styleClass="w-full"
+              >
+                <ng-template #inputicon let-clickCallBack="clickCallBack">
+                  <iconify-icon
+                    (click)="clickCallBack($event)"
+                    [icon]="'lets-icons:time'"
+                    class="text-xl"
+                  />
+                </ng-template>
+              </p-datepicker>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p-button
+                size="small"
+                label="Aprobar y Programar"
+                severity="primary"
+                [raised]="true"
+                styleClass="w-full !rounded-full !shadow-none"
+              >
+                <iconify-icon
+                  [icon]="'simple-line-icons:check'"
+                  class="text-xl"
+                />
+              </p-button>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p-button
+                size="small"
+                label="Pausar"
+                severity="danger"
+                [raised]="true"
+                styleClass="w-full !rounded-full !shadow-none"
+              >
+                <iconify-icon [icon]="'carbon:pause-outline'" class="text-xl" />
+              </p-button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Encabezados Email-->
+      <div class="bg-white rounded-xl shadow-xl">
+        <form [formGroup]="formDataEncabezado">
+          <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+            <p class="">Encabezados del Email</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 items-center p-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="fechaHora">
+                Asunto
+              </label>
+              <input id="asunto" pInputText formControlName="asunto" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="remitente">
+                Remitente
+              </label>
+              <p-select
+                [options]="remitentes"
+                formControlName="idRemitente"
+                optionLabel="label"
+                optionValue="id"
+                placeholder="Seleccione"
+                appendTo="body"
+              >
+              </p-select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p-button
+                size="small"
+                label="Actualizar"
+                severity="info"
+                [raised]="true"
+                styleClass="!rounded-full !shadow-none"
+              >
+                <iconify-icon
+                  [icon]="'hugeicons:system-update-01'"
+                  class="text-xl"
+                />
+              </p-button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Contenido HTML del mailing -->
+      <div class="bg-white rounded-xl shadow-xl">
+        <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+          <p>Contenido de Mailing</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 items-center p-6">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium" for="fechaHora"> Asunto </label>
+            <textarea
+              rows="2"
+              cols="30"
+              pTextarea
+              [(ngModel)]="value"
+              class="!rounded-lg"
+            ></textarea>
+          </div>
+          <div class="flex gap-2">
+            <p-button
+              size="small"
+              label="Actualizar HTML"
+              severity="info"
+              [raised]="true"
+              styleClass="w-full !rounded-full !shadow-none"
+            >
+              <iconify-icon
+                [icon]="'hugeicons:system-update-01'"
+                class="text-xl"
+              />
+            </p-button>
+            <p-button
+              size="small"
+              label="Editar Plantilla HTML"
+              severity="primary"
+              [outlined]="true"
+              [raised]="true"
+              styleClass="w-full !rounded-full !shadow-none"
+              (onClick)="abrirEditor()"
+            >
+              <iconify-icon [icon]="'ic:twotone-edit'" class="text-xl" />
+            </p-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plantillas -->
+      <div class="bg-white rounded-xl shadow-xl mb-6">
+        <form [formGroup]="formDataPlantilla">
+          <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+            <p class="">Plantillas</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 items-center p-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="remitente">
+                Plantilla
+              </label>
+              <p-select
+                size="small"
+                [options]="remitentes"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione"
+                formControlName="idPlantilla"
+                appendTo="body"
+              >
+              </p-select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p-button
+                size="small"
+                label="Usar Plantilla"
+                severity="warn"
+                [raised]="true"
+                styleClass="!rounded-full !shadow-none"
+              >
+                <iconify-icon
+                  [icon]="'material-symbols:fact-check-outline-rounded'"
+                  class="text-xl"
+                />
+              </p-button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- COLUMNA 2 -->
+    <div class="col-span-2">
+      <!-- Arte Contenido HTML -->
+      <div class="bg-white rounded-xl shadow-xl mb-6">
+        <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+          <p class="">Arte / Contenido / HTML</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center p-6">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium" for="fechaHora"> HTML </label>
+            <p-button
+              size="small"
+              label="Descargar HTML"
+              severity="info"
+              [raised]="true"
+              styleClass="w-full !rounded-full !shadow-none"
+            >
+              <iconify-icon [icon]="'prime:download'" class="text-xl" />
+            </p-button>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium" for="fechaHora">
+              Detalles
+            </label>
+            <p-button
+              size="small"
+              label="Ver Detalles"
+              severity="primary"
+              [outlined]="true"
+              [raised]="true"
+              styleClass="w-full !rounded-full !shadow-none"
+            >
+              <iconify-icon [icon]="'clarity:details-line'" class="text-xl" />
+            </p-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adjuntos -->
+      <div class="bg-white rounded-xl shadow-xl mb-6">
+        <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+          <p class="">Adjuntos | Max 20 MB cada uno</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 items-center p-6">
+          <div class="flex gap-2 items-center">
+            <label class="text-sm font-medium" for="fechaHora">
+              Base de datos
+            </label>
+            <p-fileupload
+              #fu
+              mode="basic"
+              chooseLabel="Choose"
+              chooseIcon="pi pi-upload"
+              name="demo[]"
+              url="https://www.primefaces.org/cdn/api/upload.php"
+              accept="image/*"
+              maxFileSize="1000000"
+              (onUpload)="onUpload($event)"
+            />
+          </div>
+          <div class="flex gap-2 items-center">
+            <label class="text-sm font-medium" for="fechaHora">
+              Adjunto N° 2 Diseño de Campaña: HTML - DOCX - DOC
+            </label>
+            <p-fileupload
+              #fu
+              mode="basic"
+              chooseLabel="Choose"
+              chooseIcon="pi pi-upload"
+              name="demo[]"
+              url="https://www.primefaces.org/cdn/api/upload.php"
+              accept="image/*"
+              maxFileSize="1000000"
+              (onUpload)="onUpload($event)"
+            />
+          </div>
+          <div class="flex gap-2 items-center">
+            <label class="text-sm font-medium" for="fechaHora">
+              Solicitud
+            </label>
+            <p-fileupload
+              #fu
+              mode="basic"
+              chooseLabel="Choose"
+              chooseIcon="pi pi-upload"
+              name="demo[]"
+              url="https://www.primefaces.org/cdn/api/upload.php"
+              accept="image/*"
+              maxFileSize="1000000"
+              (onUpload)="onUpload($event)"
+            />
+          </div>
+          <div class="flex gap-2 items-center">
+            <label class="text-sm font-medium" for="fechaHora"> Otros </label>
+            <p-fileupload
+              #fu
+              mode="basic"
+              chooseLabel="Choose"
+              chooseIcon="pi pi-upload"
+              name="demo[]"
+              url="https://www.primefaces.org/cdn/api/upload.php"
+              accept="image/*"
+              maxFileSize="1000000"
+              (onUpload)="onUpload($event)"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <p-button
+              size="small"
+              label="Cargar"
+              severity="info"
+              [raised]="true"
+              styleClass="!rounded-full !shadow-none"
+            >
+              <iconify-icon [icon]="'solar:upload-broken'" class="text-xl" />
+            </p-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enviar Campaña -->
+      <div class="bg-white rounded-xl shadow-xl mb-6">
+        <form [formGroup]="formDataEnvioCampania">
+          <div class="bg-gray-300 rounded-t-xl py-3 px-6">
+            <p class="">Enviar Campaña</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 items-center p-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="remitente">
+                Remitente
+              </label>
+              <p-select
+                [options]="remitentes"
+                formControlName="idRemitente"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione"
+                appendTo="body"
+              >
+              </p-select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p-button
+                size="small"
+                label="Enviar Campaña"
+                severity="primary"
+                [raised]="true"
+                styleClass="!rounded-full !shadow-none"
+              >
+                <iconify-icon [icon]="'mynaui:send'" class="text-xl" />
+              </p-button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

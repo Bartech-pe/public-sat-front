@@ -1,0 +1,19 @@
+<div
+  [@slideInOut]="sidebarState"
+  class="h-full flex flex-col w-50 border-e border-slate-200 overflow-hidden bg-[#365f95] fixed left-0 top-0 bottom-0 z-40"
+  style="box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);">
+  <!-- contenido de sidebar -->
+ <div
+    class="h-full flex flex-col w-50 border-e border-slate-200 overflow-hidden bg-[#365f95]"
+  >
+    <!-- Contenido scrollable -->
+    <div class="flex-1 overflow-auto custom-scrollbar pt-18 px-3">
+      <div class="grid grid-cols-1 gap-3">
+        <sidebar-menu [items]="listOpciones" />
+      </div>
+    </div>
+    <!-- Footer del sidebar 
+    <div class="shrink-0 border-t border-slate-200 p-2">
+      <footer-sidebar />
+    </div> -->
+  </div>

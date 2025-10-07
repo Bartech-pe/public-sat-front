@@ -1,0 +1,173 @@
+<div class="w-full flex justify-center">
+  <div class="w-full px-3">
+    <div class="flex flex-col gap-4">
+      <!-- Encabezado -->
+      <div class="bg-gray-50 shadow rounded-xl p-4">
+        <div class="flex justify-between items-center">
+          <!-- Texto a la izquierda -->
+          <div>
+            <h5 class="text-2xl font-semibold mb-1">Campañas - Correo</h5>
+            <div class="flex flex-col w-full gap-3 text-n-slate-11">
+              <p
+                class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+              >
+                Las campañas por correo te permiten enviar correos masivos y
+                personalizados a los ciudadanos.
+              </p>
+            </div>
+          </div>
+
+          <!-- Botones a la derecha -->
+          <div class="flex gap-2">
+            <button-save
+              label="Campañas de Correo"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="openNew()"
+            />
+            <button-save
+              label="Plantillas de Correo Electrónico"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="openTemplate()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
+        <p-table
+          [value]="listaCampaniasSMS"
+          [paginator]="true"
+          [rows]="10"
+          [responsiveLayout]="'scroll'"
+          sortMode="multiple"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  ID <p-sortIcon field="name" />
+                </div>
+              </th>
+              <th pSortableColumn="description">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Nombre <p-sortIcon field="description" />
+                </div>
+              </th>
+              <!-- <th pSortableColumn="fecha_creacion">Fecha de creación <p-sortIcon field="fecha_creacion" /></th> -->
+              <th pSortableColumn="createdByUser.name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Plantilla<p-sortIcon field="createdByUser.name" />
+                </div>
+              </th>
+              <th pSortableColumn="dateStart">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Arte #2 <p-sortIcon field="dateStart" />
+                </div>
+              </th>
+              <th pSortableColumn="dateEnd">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Formato #3 <p-sortIcon field="dateEnd" />
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Opcional #4
+                </div>
+              </th>
+              <th class="items-center" pSortableColumn="amount">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Registros <p-sortIcon field="amount" />
+                </div>
+              </th>
+              <th class="items-center" pSortableColumn="amount">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Cargada <p-sortIcon field="amount" />
+                </div>
+              </th>
+              <th class="items-center" pSortableColumn="amount">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Estado <p-sortIcon field="amount" />
+                </div>
+              </th>
+              <th class="items-center">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Acciones
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <p class="text-sm font-light">{{ item.id }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ item.name }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ item.id }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">
+                  {{ item.idRemitente }}
+                </p>
+              </td>
+              <td class="w-70">
+                <p class="text-sm font-light text-center">
+                  {{ item.mensaje }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item.recuentoSMS }}
+                </p>
+              </td>
+              <td>
+                <div class="flex justify-center items-center">
+                  <p-tag
+                    [value]="item.estado === true ? ' Finalizado' : 'Activo'"
+                    [severity]="item.estado === true ? 'warn' : 'success'"
+                  />
+                </div>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item.totalRegistration }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  <p-tag
+                    [value]="
+                      item.campaignStatus == 1 ? ' Finalizado' : 'Activo'
+                    "
+                  />
+                </p>
+              </td>
+
+              <td class="w-28"></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    </div>
+  </div>
+</div>

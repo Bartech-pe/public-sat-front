@@ -1,0 +1,90 @@
+  <!--<div class="w-full flex gap-2 p-2 cursor-pointer" (click)="popover.toggle($event)">
+  <div class="grow-0">
+    <div class="w-8 h-8 rounded-full bg-white">
+      <div class="w-full h-full flex items-center justify-center font-bold">
+        {{ initals }}
+      </div>
+      <div class="w-full h-2 relative">
+        <div class="absolute right-0 bottom-2">
+          <div
+            [ngClass]="[
+              'w-2 h-2 rounded-full',
+              !connected ? 'bg-green-500' : 'bg-slate-200'
+            ]"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grow">
+    <div class="flex items-center">
+      <div class="grid grid-cols-1">
+        <p class="text-sm font-medium truncate text-white">
+          {{ name }}
+        </p>
+        <p class="text-xs font-extralight italic truncate text-white capitalize">{{ role }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p-popover
+  #popover
+  [showCloseIcon]="true"
+  [dismissable]="true"
+  [baseZIndex]="10000"
+>
+  <div class="flex flex-col gap-2 w-full p-2">
+    <button
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="lucide:keyboard"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
+      Atajos de teclado
+    </button>
+
+     <button
+      (click)="misAsignaciones()"
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="lucide:user-round-pen"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
+      Mis Asignaciones
+    </button> 
+
+    <button
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="lucide:palette"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
+      Cambiar apariencia
+    </button>
+
+    <button
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="lucide:notebook"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
+      Leer la documentación
+    </button>
+
+    <button
+      (click)="clearsession()"
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon icon="lucide:power" class="mr-2" width="16"></iconify-icon>
+      Cerrar sesión
+    </button>
+  </div>
+</p-popover>-->

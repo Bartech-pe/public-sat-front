@@ -1,0 +1,71 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-6">
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Título</label>
+      <input type="text" pInputText formControlName="title" class="w-full" />
+    </div>
+
+    <!-- Mensaje -->
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Mensaje</label>
+      <p-editor formControlName="message" class="!h-80" styleClass="w-full !h-60"></p-editor>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Bandeja de entrada</label>
+      <p-dropdown
+        [options]="inboxOptions"
+        formControlName="inbox"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccione una bandeja de entrada"
+        class="w-full"
+      />
+    </div>
+    <!-- Tipo de envío (ComboBox) -->
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Audiencia</label>
+      <p-dropdown
+        [options]="shippingTypeOptions"
+        formControlName="audience"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccione tipo"
+        class="w-full"
+      />
+    </div>
+
+    <!-- URL -->
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Programar tiempo</label>
+      <p-datepicker
+        inputId="calendar-12h"
+        formControlName="schedule_time"
+        [showTime]="true"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      />
+    </div>
+  </div>
+
+  <!-- Botón de enviar -->
+
+  <div class="flex justify-end gap-4">
+
+    <p-button
+      severity="danger"
+      size="small"
+      [label]="'Cancelar'"
+      (click)="onCancel()"
+    />
+
+    <p-button
+      severity="info"
+      size="small"
+      type="submit"
+      [label]="id ? 'Actualizar' : 'Guardar'"
+      [loading]="loading"
+      [disabled]="formData.invalid"
+    />
+  </div>
+</form>

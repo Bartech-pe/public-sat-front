@@ -1,0 +1,28 @@
+import { CampaignState } from './campaign-state.model';
+import { CampaignType } from './campaign-type.model';
+import { Department } from './department.model';
+import { User } from './user.model';
+
+export interface Campaign {
+  id: number;
+  name: string;
+  description: string;
+  campaignTypeId: number;
+  departmentId: number;
+  campaignStateId: number;
+  startDate?: Date;
+  endDate?: Date;
+  startTime?: Date;
+  endTime?: Date;
+  startDay?: number;
+  endDay?: number;
+  validUntil?: Date;
+  status?: boolean;
+  vdCampaignId?: string;
+  applyHoliday?: boolean; // Se puede cambiar
+
+  campaignType?: CampaignType;
+  department?: Department;
+  campaignState?: CampaignState;
+  createdByUser?: User;
+}

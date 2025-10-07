@@ -1,0 +1,326 @@
+<div class="max-h-[90vh] overflow-y-auto px-4 py-6 space-y-6 bg-gray-50">
+
+    <!-- Encabezado: Título y botones de llamada -->
+    <div class="flex justify-between items-center">
+      <!-- Título -->
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Sistema de Consulta Unificada</h1>
+        <p class="text-sm text-gray-600">Consulta toda la información de contribuyentes de manera centralizada</p>
+      </div>
+
+      <!-- Botones de llamada -->
+      <div class="flex gap-2">
+        <button
+          (click)="solicitarPausa()"
+          class="px-4 py-2 rounded-full text-sm font-medium bg-red-300 text-red-900 hover:bg-red-400 transition-colors"
+        >
+          Solicitar Pausa
+        </button>
+      </div>
+    </div>
+
+  <!-- Reconocimiento de llamada -->
+
+  <div
+    [ngClass]="{
+      'bg-yellow-100 text-yellow-800': enPausa,
+      'bg-sky-50 text-sky-700': !enPausa
+    }"
+    class="w-full rounded-lg p-6 text-center shadow transition-colors"
+  >
+    <p class="text-lg font-medium mb-2 text-gray-600">
+      {{ enPausa ? 'Última llamada hace 2 minutos...' : 'Reconociendo número entrante' }}
+    </p>
+    <div class="text-2xl font-bold flex justify-center items-center gap-2">
+      <iconify-icon
+        [icon]="enPausa ? 'mdi:phone-close' : 'mdi:phone-incoming'"
+        class="text-2xl"
+      ></iconify-icon>
+      968113456
+    </div>
+  </div>
+
+  <!-- 🔄 CONTENEDOR FLEX QUE AGRUPA LOS TRES BLOQUES -->
+<div class="flex flex-col xl:flex-row gap-4 w-full">
+
+  <!-- Información del Contribuyente -->
+  <div class="bg-white rounded-lg shadow p-6 space-y-4 w-full xl:w-[40%]">
+    <div class="flex justify-between items-center border-b pb-3">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800">Juan Carlos Pérez García</h2>
+        <p class="text-sm text-gray-500">Contribuyente N° 12345678</p>
+      </div>
+      <span class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">Activo</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
+      <div>
+        <p class="font-medium text-gray-800">N° Documento de identidad</p>
+        <p>1234567890</p>
+      </div>
+      <div>
+        <p class="font-medium text-gray-800">Tipo de persona</p>
+        <p>Natural</p>
+      </div>
+      <div class="sm:col-span-2">
+        <p class="font-medium text-gray-800">Dirección</p>
+        <p><strong>Calle 123 #45-67, Barrio Centro</strong></p>
+      </div>
+      <div>
+        <p class="font-medium text-gray-800">Teléfono</p>
+        <p>911111111</p>
+      </div>
+      <div>
+        <p class="font-medium text-gray-800">Correo electrónico</p>
+        <p>juan.perez&#64;.com</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control de Llamada -->
+  <div
+    *ngIf="!enPausa; else pausaActiva"
+    class="bg-white rounded-lg shadow p-4 w-full xl:w-[30%]"
+  >
+    <h3 class="text-sm font-semibold mb-2 text-gray-700">Control de Llamada</h3>
+    <div class="text-sm text-gray-600 space-y-1">
+      <p><span class="font-medium">Número:</span> +51 987 654 321</p>
+      <p><span class="font-medium">Duración:</span> <span class="font-mono font-semibold">00:05:23</span></p>
+      <p><span class="font-medium">Estado:</span> Conectado</p>
+    </div>
+    <div class="flex gap-2 mt-4 flex-wrap">
+      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Silenciar</button>
+      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Transferir</button>
+      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Escalar</button>
+      <button class="flex items-center gap-2 rounded-full bg-red-500 px-4 py-2 hover:bg-red-300 text-white">Finalizar</button>
+    </div>
+  </div>
+
+  <ng-template #pausaActiva>
+    <div class="bg-yellow-100 border border-yellow-300 rounded-lg shadow p-4 w-full xl:w-[30%]">
+      <h2 class="text-sm font-semibold mb-2 text-yellow-800">Estado de Pausa</h2>
+      <div class="text-gray-700">Tiempo transcurrido: <strong>00:08:45</strong></div>
+      <div class="text-gray-700">Hora de inicio: <strong>15:47</strong></div>
+      <div class="flex gap-1 mt-3 flex-wrap">
+        <button class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm">
+          Silenciar
+        </button>
+        <button class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm">
+          Transferir
+        </button>
+        <button class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm">
+          Escalar
+        </button>
+        <button class="flex items-center gap-2 rounded-full bg-green-500 px-3 py-1.5 hover:bg-green-300 text-white text-sm">
+          Volver al flujo
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Registro de Atención -->
+  <div class="bg-white rounded-lg shadow p-4 space-y-2 w-full xl:w-[30%]">
+    <h3 class="text-sm font-semibold text-gray-700">Registro de Atención</h3>
+    <p class="text-sm text-gray-600"><span class="font-medium">ID:</span> #ATN-2025-001234</p>
+    <div class="text-sm space-y-2">
+      <select class="w-full border border-gray-300 rounded-full px-2 py-1 text-sm">
+        <option>Telefónico</option>
+      </select>
+      <select class="w-full border border-gray-300 rounded-full px-2 py-1 text-sm">
+        <option>Papeletas</option>
+        <option>Multas</option>
+        <option>Trámites</option>
+      </select>
+      <textarea placeholder="Descripción de la consulta..." class="w-full border border-gray-300 rounded px-2 py-1 text-sm" rows="3"></textarea>
+      <textarea placeholder="Resultado de la atención..." class="w-full border border-gray-300 rounded px-2 py-1 text-sm" rows="2"></textarea>
+      <button
+        class="flex items-center gap-2 rounded-full px-4 py-2 hover:opacity-90 text-white"
+        style="background-color: #194A84"
+      >
+        Guardar
+      </button>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- 👤 Panel Derecho: Info de Ciudadano + Navegación + Tabla -->
+    <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
+      <!-- Info del ciudadano -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <iconify-icon icon="mdi:account-circle" class="text-3xl text-sky-600"></iconify-icon>
+          <h2 class="text-lg font-bold text-gray-800">Juan Carlos Pérez García</h2>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+          <p><span class="font-medium">DNI:</span> 12345678</p>
+          <p><span class="font-medium">RUC:</span> 20123456789</p>
+          <p><iconify-icon icon="mdi:phone" class="text-base"></iconify-icon> 999-123-456</p>
+          <p><iconify-icon icon="mdi:email" class="text-base"></iconify-icon> juan&#64;mail.com</p>
+          <p><iconify-icon icon="mdi:map-marker" class="text-base"></iconify-icon> Lima, Perú</p>
+        </div>
+      </div>
+
+      <!-- Navegación de vistas -->
+      <div class="flex items-center gap-2 pl-2 mb-3">
+        <ng-container *ngFor="let vista of ['Deudas', 'Trámites', 'Medidas', 'Declaraciones', 'Notificaciones', 'Comunicaciones']">
+            <button
+              (click)="vistaSeleccionada = vista"
+              [ngClass]="{
+                'rounded-full px-4 py-2 transition-colors duration-200 border-none': true,
+                'bg-gray-200 text-black': vistaSeleccionada !== vista,
+                'bg-green-100 text-green-600 font-semibold': vistaSeleccionada === vista
+              }">
+              {{ vista }}
+            </button>
+          </ng-container>
+      </div>
+
+      <!-- Exportar y actualizar -->
+      <div class="flex justify-end gap-2">
+        <button class="flex items-center gap-2 rounded-full bg-blue-200 px-4 py-2 hover:bg-blue-300">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
+            <path fill="#373737" d="M4 24C4 12.954 12.954 4 24 4s20 8.954 20 20s-8.954 20-20 20S4 35.046 4 24m31-7.75a1.25 1.25 0 1 0-2.5 0v2.48A9.99 9.99 0 0 0 24 14a9.99 9.99 0 0 0-8 3.998a1.25 1.25 0 0 0 2 1.502a7.503 7.503 0 0 1 13.074 2H27.25a1.25 1.25 0 1 0 0 2.5h6.5c.69 0 1.25-.56 1.25-1.25zM14.25 33c.69 0 1.25-.56 1.25-1.25v-2.48A9.99 9.99 0 0 0 24 34a9.99 9.99 0 0 0 8-3.998a1.25 1.25 0 0 0-2-1.502a7.503 7.503 0 0 1-13.074-2h3.824a1.25 1.25 0 1 0 0-2.5h-6.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25" />
+          </svg>
+          <span>Actualizar</span>
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
+        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
+          <option>Todos los tipos</option>
+        </select>
+        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
+          <option>Todos los canales</option>
+        </select>
+        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
+          <option>Todos los usuarios</option>
+        </select>
+         <div class="flex">
+            <input
+              type="text"
+              placeholder="Buscar..."
+              class="rounded-l-md border border-gray-300 px-2 py-1 w-full focus:outline-none focus:ring-0"
+            />
+            <button
+              class="bg-[#194A84] text-white px-3 py-1 rounded-r-md hover:bg-[#153c6a] transition"
+              title="Buscar"
+            >
+              Buscar
+            </button>
+          </div>
+      </div>
+
+
+      <!-- Tabla -->
+      <div class="overflow-x-auto bg-white rounded-lg shadow">
+          <table class="w-full text-sm text-gray-700">
+              <thead class="bg-gray-100 text-left">
+                <tr>
+                    <th class="px-4 py-2">Fecha/Hora</th>
+                    <th class="px-4 py-2">Tipo</th>
+                    <th class="px-4 py-2">Canal</th>
+                    <th class="px-4 py-2">Método</th>
+                    <th class="px-4 py-2">Contacto usado</th>
+                    <th class="px-4 py-2">Resultado</th>
+                    <th class="px-4 py-2">Usuario</th>
+                    <th class="px-4 py-2 text-center">Detalles</th>
+                </tr>
+              </thead>
+              <tbody>
+              <tr
+                  *ngFor="let item of datosPorVista[vistaSeleccionada]"
+                  class="hover:bg-gray-50 transition"
+              >
+                  <td class="px-4 py-2">{{ item.fecha }}</td>
+                  <td 
+                    class="px-4 py-2" 
+                    [ngClass]="{
+                      'text-blue-700 bg-blue-100 rounded-full': item.tipo?.toLowerCase() === 'cobranza',
+                      'text-green-700 bg-green-100 rounded-full': item.tipo?.toLowerCase() === 'consulta',
+                      'text-black bg-gray-100 rounded-full': !['cobranza', 'consulta'].includes(item.tipo?.toLowerCase())
+                    }"
+                  >
+                    {{ item.tipo }}
+                  </td>
+                  <td class="px-4 py-2">{{ item.canal }}</td>
+                  <td class="px-4 py-2">{{ item.metodo }}</td>
+                  <td class="px-4 py-2">{{ item.contacto }}</td>
+                  <td 
+                      class="px-4 py-2" 
+                      [ngClass]="{
+                        'text-green-700': ['resuelto', 'compromiso de pago', 'contacto exitoso'].includes(item.resultado?.toLowerCase()),
+                        'text-red-600': item.resultado?.toLowerCase() === 'no contesta',
+                        'text-black': ['en proceso', 'fuera de servicio', 'pendiente'].includes(item.resultado?.toLowerCase())
+                      }"
+                    >
+                      {{ item.resultado }}
+                    </td>
+                  <td class="px-4 py-2">{{ item.usuario }}</td>
+                  <td class="px-4 py-2 text-center">
+                    <!-- Botón en la tabla -->
+                    <button 
+                      (click)="abrirModal(item)"
+                      class="flex items-center gap-2 rounded-full px-4 py-2 transition-colors bg-blue-200 text-black hover:bg-blue-300"
+                    >
+                      Ver detalles
+                    </button>
+                  </td>
+                </tr>
+                  <tr *ngIf="datosPorVista[vistaSeleccionada].length === 0">
+                      <td
+                      class="px-4 py-2 text-center text-gray-500"
+                      colspan="8"
+                      >
+                      No hay registros disponibles para esta vista.
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+      </div>
+    </div>
+ 
+
+</div>
+
+
+
+
+
+
+<!-- Modal -->
+<div 
+  *ngIf="mostrarModal" 
+  class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+>
+   <div class="border bg-white shadow-2xl rounded-lg p-6 w-full max-w-md pointer-events-auto">
+    <button 
+      (click)="cerrarModal()" 
+      class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+    >
+      ✕
+    </button>
+    
+    <h2 class="text-lg font-bold text-gray-800 mb-4">Detalles de la atención</h2>
+    
+    <div class="space-y-2 text-sm text-gray-700">
+      <p><strong>Fecha:</strong> {{ selectedItem?.fecha }}</p>
+      <p><strong>Tipo:</strong> {{ selectedItem?.tipo }}</p>
+      <p><strong>Canal:</strong> {{ selectedItem?.canal }}</p>
+      <p><strong>Método:</strong> {{ selectedItem?.metodo }}</p>
+      <p><strong>Contacto:</strong> {{ selectedItem?.contacto }}</p>
+      <p><strong>Resultado:</strong> {{ selectedItem?.resultado }}</p>
+      <p><strong>Usuario:</strong> {{ selectedItem?.usuario }}</p>
+    </div>
+    
+    <div class="mt-4 text-right">
+      <button 
+        (click)="cerrarModal()" 
+        class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

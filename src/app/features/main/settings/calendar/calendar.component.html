@@ -1,0 +1,206 @@
+<div class="grid grid-cols-1 gap-4 px-3">
+  <div class="bg-gray-50 shadow rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h5 class="text-2xl font-semibold mb-1">{{ title }}</h5>
+        <div class="flex flex-col w-full gap-3 text-n-slate-11">
+          <p
+            class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+          >
+            {{ descripcion }}
+          </p>
+        </div>
+      </div>
+      <!-- <button-save
+        [label]="createButtonLabel"
+        [icon]="'mdi:plus-circle-outline'"
+        (click)="addNew()"
+      /> -->
+    </div>
+  </div>
+  <section class="grid grid-cols-1 gap-2">
+    <p-card>
+      <div class="h-full flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="flex">
+              <div
+                class="h-8 w-12 bg-sky-500 text-slate-50 hover:bg-sky-600 py-1 px-2 rounded-s-md flex items-center justify-center cursor-pointer !rounded-l-full !shadow-none"
+                mwlCalendarPreviousView
+                [view]="view"
+                [(viewDate)]="viewDate"
+                (viewDateChange)="closeOpenMonthViewDay()"
+                tooltipPosition="top"
+                tooltipStyleClass="text-xs p-0.5"
+                pTooltip="Mes anterior"
+              >
+                <iconify-icon [icon]="'bx:bxs-chevron-left'" class="text-xl" />
+              </div>
+
+              <div
+                class="h-8 w-12 bg-sky-500 text-slate-50 hover:bg-sky-600 py-1 px-2 rounded-e-md flex items-center justify-center cursor-pointer !rounded-r-full !shadow-none"
+                mwlCalendarNextView
+                [view]="view"
+                [(viewDate)]="viewDate"
+                (viewDateChange)="closeOpenMonthViewDay()"
+                tooltipPosition="top"
+                tooltipStyleClass="text-xs !p-0.5"
+                pTooltip="Mes siguiente"
+              >
+                <iconify-icon [icon]="'bx:bxs-chevron-right'" class="text-xl" />
+              </div>
+            </div>
+            <div
+              class="h-8 bg-sky-600 text-slate-50 hover:bg-sky-600 py-1 px-3 !rounded-full flex items-center justify-center cursor-pointer text-sm font-medium uppercase"
+              mwlCalendarToday
+              [(viewDate)]="viewDate"
+              (viewDateChange)="closeOpenMonthViewDay()"
+            >
+              Hoy
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <h4 class="text-2xl font-medium text-center uppercase">
+              {{ viewDate | date : "MMMM yyyy" }}
+            </h4>
+          </div>
+          <!-- <div class="flex items-center gap-3">
+        <p-button severity="info" size="small" (click)="addEvent()">
+          <div class="flex justify-center items-center font-medium gap-1">
+            <iconify-icon
+              [icon]="'material-symbols:add-rounded'"
+              class="text-lg"
+            />
+            <div>AGREGAR</div>
+          </div>
+        </p-button>
+        <div class="flex gap-2">
+          @for (item of viewOptions; track $index) {
+          <btn-custom
+            [severity]="viewSelected === item.value ? 'contrast' : 'secondary'"
+            [icon]="item.icon"
+            (click)="viewSelected = item.value"
+            class="bg-slate-100 rounded-lg !hover:text-shadow-slate-900"
+          />
+          }
+        </div>
+      </div> -->
+        </div>
+        <div class="rounded-lg !overflow-y-auto">
+          <div [ngSwitch]="viewSelected">
+            <div *ngSwitchCase="'grid'">
+              <div [ngSwitch]="view">
+                <mwl-calendar-month-view
+                  *ngSwitchCase="CalendarView.Month"
+                  [viewDate]="viewDate"
+                  [events]="events"
+                  [refresh]="refresh"
+                  [activeDayIsOpen]="activeDayIsOpen"
+                  (dayClicked)="dayClicked($event.day)"
+                  (eventClicked)="handleEvent('Clicked', $event.event)"
+                  (eventTimesChanged)="eventTimesChanged($event)"
+                >
+                </mwl-calendar-month-view>
+                <mwl-calendar-week-view
+                  *ngSwitchCase="CalendarView.Week"
+                  [viewDate]="viewDate"
+                  [events]="events"
+                  [refresh]="refresh"
+                  (eventClicked)="handleEvent('Clicked', $event.event)"
+                  (eventTimesChanged)="eventTimesChanged($event)"
+                >
+                </mwl-calendar-week-view>
+                <mwl-calendar-day-view
+                  *ngSwitchCase="CalendarView.Day"
+                  [viewDate]="viewDate"
+                  [events]="events"
+                  [refresh]="refresh"
+                  (eventClicked)="handleEvent('Clicked', $event.event)"
+                  (eventTimesChanged)="eventTimesChanged($event)"
+                >
+                </mwl-calendar-day-view>
+              </div>
+            </div>
+            <div *ngSwitchCase="'list'">
+              <p-table
+                #dt1
+                [columns]="cols"
+                [value]="events"
+                stripedRows
+                [scrollable]="true"
+                [exportHeader]="'customExportHeader'"
+                scrollHeight="calc(100vh - 200px)"
+                styleClass="w-full"
+                [globalFilterFields]="['nombre', 'apellido']"
+                exportFilename="adelantos"
+              >
+                <ng-template #header let-columns>
+                  <tr>
+                    <th
+                      *ngFor="let col of columns"
+                      [ngClass]="[col.widthClass ? col.widthClass : '']"
+                    >
+                      <div
+                        [ngClass]="[
+                          'text-xs uppercase',
+                          col.align ? 'text-' + col.align : 'text-start'
+                        ]"
+                      >
+                        {{ col.header }}
+                      </div>
+                    </th>
+                  </tr>
+                </ng-template>
+                <ng-template #body let-item>
+                  <tr>
+                    <td>
+                      <div class="text-start text-sm">
+                        {{ item.title }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-center text-sm">
+                        {{ item.start | date : "dd MMM yyyy" | uppercase }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-center text-sm">
+                        {{ item.end | date : "dd MMM yyyy" | uppercase }}
+                      </div>
+                    </td>
+                    <td class="w-28">
+                      <div class="flex justify-center items-center gap-1">
+                        <!-- <button-edit (click)="deleteEvent(item)" /> -->
+                        <btn-delete (click)="deleteEvent(item)" />
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template #emptymessage>
+                  <ng-container *ngIf="loadingTable; else elseTemplate">
+                    @for (item of [].constructor(4); track $index) {
+                    <tr class="h-12">
+                      <td *ngFor="let col of cols; let even = even">
+                        <p-skeleton />
+                      </td>
+                    </tr>
+                    }
+                  </ng-container>
+                  <ng-template #elseTemplate>
+                    <tr>
+                      <td colspan="100">
+                        <div class="text-center text-sm font-extralight">
+                          No se encontraron registros.
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </section>
+</div>

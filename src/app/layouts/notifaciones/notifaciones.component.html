@@ -1,0 +1,53 @@
+<div class="fixed bottom-0 right-4 flex gap-4 z-50">
+  <div
+    *ngFor="let chat of openedChats; let i = index"
+    class="w-80 bg-white shadow-xl rounded-lg border border-gray-300"
+  >
+    <div
+      class="bg-[#0069a8] text-white p-2 flex justify-between items-center rounded-t-lg"
+    >
+      <span class="text-sm font-semibold truncate">
+        {{ chat.isGroup ? chat.name : getLastMessageNameUser(chat) }}
+      </span>
+      <div class="flex items-center gap-1">
+        <button class="text-xs px-2" (click)="toggleMinimizeChat(i)">
+          {{ chat.minimized ? "🡹" : "🡻" }}
+        </button>
+        <button class="text-xs px-2" (click)="closeFloatingChat(i)">✕</button>
+      </div>
+    </div>
+
+    <!-- Solo mostrar si no está minimizado -->
+    <div *ngIf="chat.minimized">
+      <div class="p-2 h-60 overflow-y-auto text-sm">
+        <chat-message-list
+          [messages]="chat.mensajesflotante || []"
+        ></chat-message-list>
+      </div>
+      <div class="border-t border-slate-200 bg-[#005f4512] p-4">
+        <floating-chat-button
+          [(message)]="newMessage"
+          (send)="sendMessage($event, chat)"
+          (fileUpload)="handleFile($event, chat)"
+        >
+        </floating-chat-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast
+  position="bottom-left"
+  key="confirm"
+  (onClose)="onReject()"
+  [baseZIndex]="5000"
+>
+  <ng-template let-message #message>
+    <div class="flex flex-col items-start flex-auto">
+      <div class="flex items-center gap-2">
+        <span class="font-bold">{{ userCurrent.name }}</span>
+      </div>
+      <div class="font-medium text-md my-2">{{ message.summary }}</div>
+    </div>
+  </ng-template>
+</p-toast>

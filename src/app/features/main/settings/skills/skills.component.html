@@ -1,0 +1,208 @@
+<div class="grid grid-cols-1 gap-4 px-3">
+  <!-- Encabezado -->
+  <div class="bg-gray-50 shadow rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h5 class="text-2xl font-semibold mb-1">{{ title }}</h5>
+        <div class="flex flex-col w-full gap-3 text-n-slate-11">
+          <p
+            class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+          >
+            {{ descripcion }}
+          </p>
+        </div>
+      </div>
+      <button-save
+        [label]="createButtonLabel"
+        [icon]="'mdi:plus-circle-outline'"
+        (click)="addNew()"
+      />
+    </div>
+  </div>
+
+  <section class="w-full">
+    <p-card>
+      <div class="grid grid-cols-1 gap-4">
+        <div class="flex items-center gap-4">
+          <input
+            pInputText
+            [(ngModel)]="searchText"
+            placeholder="Buscar"
+            class="w-64"
+          />
+          <div class="flex flex-col gap-2">
+            <p-select
+              id="category"
+              [options]="listCategorias"
+              [(ngModel)]="categoria"
+              placeholder="Seleccione..."
+              appendTo="body"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <!-- cards -->
+          <!-- <p-card *ngFor="let item of listSkills" class="h-full">
+            <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <p class="font-bold capitalize">{{ item.name }}</p>
+                <div>
+                  <p-chip
+                    [ngClass]="{
+                      '!py-0.5': true,
+                      '!bg-sky-100': item.categoryId === 'Tributaria',
+                      '!bg-green-100': item.categoryId === 'No tributaria',
+                      '!bg-purple-100': item.categoryId === 'Administrativa'
+                    }"
+                    >{{ item.category }}</p-chip
+                  >
+                </div>
+                <p class="font-light">{{ item.description }}</p>
+              </div>
+              <div class="flex justify-end gap-2">
+                <btn-edit-square (onClick)="edit(item)" />
+                <btn-delete-square (onClick)="remove(item)" />
+              </div>
+            </div>
+          </p-card> -->
+
+          <div
+            *ngFor="let item of listSkills"
+            class="border border-gray-400 rounded-lg p-4 shadow-lg"
+          >
+            <div class="space-y-2">
+              <h3 class="font-bold text-lg capitalize">
+                {{ item.name }}
+              </h3>
+              <div>
+                <p-tag
+                  class="text-xl"
+                  [value]="
+                    item.category == 'Tributaria'
+                      ? 'Tributaria'
+                      : item.category === 'No tributaria'
+                      ? 'No Tributaria'
+                      : 'Administrativa'
+                  "
+                  [severity]="
+                    item.category == 'Tributaria'
+                      ? 'success'
+                      : item.category === 'No tributaria'
+                      ? 'warn'
+                      : 'info'
+                  "
+                >
+                </p-tag>
+              </div>
+              <p class="font-normal text-sm text-justify">
+                {{ item.description }}
+              </p>
+              <p class="font-normal text-sm flex items-center gap-1">
+                <iconify-icon [icon]="'stash:data-date'" class="text-lg" />
+                Creado:
+                <span class="font-semibold">{{
+                  item.createdAt | date : "dd/MM/yyyy"
+                }}</span>
+              </p>
+            </div>
+            <div class="flex justify-between">
+              <div class="flex items-center gap-2">
+                <p class="font-normal text-sm mt-1">Estado:</p>
+                <p-tag
+                  class="text-xs"
+                  [value]="item.status == true ? 'Activo' : 'Inactivo'"
+                  [severity]="item.status == true ? 'success' : 'danger'"
+                  ><iconify-icon
+                    *ngIf="item.status == true"
+                    [icon]="'prime:check-circle'"
+                    class="text-lg"
+                  />
+                  <iconify-icon
+                    *ngIf="item.status != true"
+                    [icon]="'system-uicons:cross-circle'"
+                    class="text-lg"
+                  />
+                </p-tag>
+              </div>
+              <div class="flex gap-2">
+                <btn-edit-square (onClick)="edit(item)" />
+                <btn-delete-square (onClick)="remove(item)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+    <!-- <p-table [value]="listUsers">
+      <ng-template #header>
+        <tr>
+          <th>
+            <div class="flex justify-start items-center text-xs uppercase">
+              Agente
+            </div>
+          </th>
+          <th>
+            <div class="flex justify-center items-center text-xs uppercase">
+              Habilidades
+            </div>
+          </th>
+          <th class="w-28">
+            <div class="flex justify-center items-center text-xs uppercase">
+              Acciones
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>
+            <div class="flex items-center gap-2">
+              <p-avatar class="bg-slate-200" size="normal" shape="circle">
+                <p-image
+                  *ngIf="item.avatarUrl"
+                  [src]="item.avatarUrl"
+                  [alt]="item.name"
+                />
+                <span class="font-bold" *ngIf="!item.avatarUrl">{{
+                  item.name[0]
+                }}</span>
+              </p-avatar>
+              <div class="flex flex-col">
+                <h5 class="font-semibold text-base">{{ item.name }}</h5>
+                <p class="text-sm font-light">
+                  {{ item.email }}
+                </p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div
+              class="flex flex-wrap gap-2 items-center justify-center text-sm font-light capitalize italic"
+            >
+              @for (skill of item.skills; track $index) {
+              <p-chip class="!py-1 !px-2 shadow">
+                <div
+                  class="w-6 text-xs rounded-md bg-slate-50 flex justify-center items-center"
+                >
+                  {{ skill?.SkillUser?.score }}
+                </div>
+                <div class="text-xs font-medium">{{ skill.name }}</div>
+              </p-chip>
+              }
+            </div>
+          </td>
+          <td class="w-32">
+            <div class="flex justify-center items-center gap-1">
+              <btn-custom
+                severity="contrast"
+                icon="lucide:stars"
+                tooltip="Asignar habilidades"
+                (click)="assignment(item)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table> -->
+  </section>
+</div>

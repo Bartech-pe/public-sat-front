@@ -1,0 +1,266 @@
+<div class="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <!-- Columna izquierda -->
+  <div class="space-y-4">
+    <!-- Estado de Pausa -->
+    <div class="rounded-lg shadow-xl bg-white p-4">
+      <div>
+        <h3 class="text-base font-semibold mb-2 pb-2 text-sky-700 border-b">
+          Estado de Pausa
+        </h3>
+        <h3 class="text-lg font-bold text-center py-4 text-red-600">
+          <span class="flex items-center justify-center gap-2">
+            <iconify-icon [icon]="'heroicons-outline:pause'" class="text-xl" />
+            PAUSADO - Completando formulario
+          </span>
+        </h3>
+      </div>
+
+      <div class="flex flex-col text-sm text-gray-900">
+        <div class="flex justify-around">
+          <div class="text-center">
+            <div class="font-bold text-lg">00:08:45</div>
+            <div>Tiempo transcurrido</div>
+          </div>
+          <div class="text-center">
+            <div class="font-bold text-lg">15:47</div>
+            <div>Hora de inicio</div>
+          </div>
+        </div>
+
+        <div class="mt-4 bg-sky-100 rounded-lg p-4">
+          <h3 class="text-base font-semibold pb-2 text-sky-700 border-b">
+            Atención Pendiente:
+          </h3>
+
+          <div class="flex flex-col pt-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">ID:</span>
+              <span class="font-mono">#ATN-2025-001234</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Ciudadano:</span>
+              <span class="font-mono">Juan Carlos Pérez</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <p><span class="font-medium">DNI:</span></p>
+              <span class="font-mono">12345678:</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <p><span class="font-medium">Duración llamada:</span></p>
+              <span class="font-mono">00:05:23</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enlaces Directos -->
+    <div class="rounded-lg shadow-xl bg-white p-4">
+      <h3 class="text-base font-semibold mb-4 pb-2 text-sky-700 border-b">
+        Enlaces Directos SAT
+      </h3>
+      <div class="grid grid-cols-2 gap-4 py-2">
+        <p-button
+          size="small"
+          label="Intranet SAT"
+          [raised]="true"
+          (click)="addNew()"
+          styleClass="w-full"
+          severity="info"
+        >
+          <iconify-icon
+            [icon]="'tabler:square-rounded-letter-w'"
+            class="text-xl"
+          />
+        </p-button>
+
+        <p-button
+          size="small"
+          label="SGD"
+          severity="info"
+          (click)="addNew()"
+          styleClass="w-full"
+          [raised]="true"
+        >
+          <iconify-icon
+            [icon]="'tabler:square-rounded-letter-d'"
+            class="text-xl"
+          />
+        </p-button>
+
+        <p-button
+          size="small"
+          label="SIAT"
+          severity="info"
+          (click)="addNew()"
+          styleClass="w-full"
+          [raised]="true"
+        >
+          <iconify-icon
+            [icon]="'tabler:square-rounded-letter-s'"
+            class="text-xl"
+          />
+        </p-button>
+
+        <p-button
+          size="small"
+          label="Web SAT"
+          severity="info"
+          (click)="addNew()"
+          styleClass="w-full"
+          [raised]="true"
+        >
+          <iconify-icon
+            [icon]="'tabler:square-rounded-letter-w'"
+            class="text-xl"
+          />
+        </p-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna derecha (Registro de Atención) -->
+  <div class="lg:col-span-2">
+    <form
+      [formGroup]="formData"
+      (ngSubmit)="onSubmit()"
+      class="rounded-lg shadow-xl bg-white p-4"
+    >
+      <h3 class="text-base font-semibold mb-4 text-sky-700 border-b pb-2">
+        Registro de Atención - Completar Formulario
+      </h3>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="id"> ID de Atención </label>
+          <input id="idAtencion" pInputText formControlName="idAtencion" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="fechaHora">
+            Fecha/Hora
+          </label>
+          <p-datepicker
+            [(ngModel)]="fecha"
+            [fechaHora]="'input'"
+            [showIcon]="true"
+            inputId="fechaHora"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="numeroOrigen"
+            >Número origen</label
+          >
+          <input id="numeroOrigen" pInputText formControlName="numeroOrigen" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="duración"> Duración </label>
+          <input id="duración" pInputText formControlName="duración" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="asesor"> Asesor </label>
+          <input id="asesor" pInputText formControlName="asesor" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium" for="idtipoConsulta">
+            Tipo de consulta
+          </label>
+          <p-select
+            id="idtipoConsulta"
+            [options]="listaTipoConsulta"
+            optionLabel="name"
+            optionValue="id"
+            formControlName="idtipoConsulta"
+            placeholder="Seleccione el tipo de consulta"
+            appendTo="body"
+          />
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="flex flex-col gap-2 pb-4">
+        <label class="text-sm font-medium" for="descriptionConsulta">
+          Descripción de la consulta
+        </label>
+        <textarea
+          id="descriptionConsulta"
+          rows="2"
+          cols="30"
+          pTextarea
+          formControlName="descriptionConsulta"
+        ></textarea>
+      </div>
+
+      <!-- Resultado -->
+      <div class="flex flex-col gap-2 pb-4">
+        <label class="text-sm font-medium" for="resultado">
+          Resultado de la atención
+        </label>
+        <textarea
+          id="resultado"
+          rows="2"
+          cols="30"
+          pTextarea
+          formControlName="resultado"
+        ></textarea>
+      </div>
+
+      <!-- Código Resultado -->
+      <div class="flex flex-col gap-2 pb-4">
+        <label class="text-sm font-medium" for="codigoResultado">
+          Código de Resultado
+        </label>
+        <p-select
+          id="codigoResultado"
+          [options]="listaCodigoResultado"
+          optionLabel="name"
+          optionValue="id"
+          formControlName="codigoResultado"
+          placeholder="Seleccione"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex justify-start gap-4 pt-2">
+        <p-button
+          severity="info"
+          size="small"
+          type="submit"
+          [label]="'Guardar'"
+          styleClass="!rounded-full !shadow-none"
+        >
+          <iconify-icon [icon]="'ci:save'" class="text-xl" />
+        </p-button>
+        <!-- [disabled]="formData.invalid" -->
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Botones inferiores -->
+<div class="w-full bg-white p-6 mt-8 shadow-xl rounded-lg">
+  <div class="flex justify-center gap-4">
+    <p-button
+      label="FINALIZAR PAUSA Y VOLVER A DISPONIBLE"
+      severity="success"
+      [raised]="true"
+      (click)="finalizarPausa()"
+      styleClass="!rounded-full !shadow-none"
+    >
+      <iconify-icon [icon]="'pepicons-pop:pause-circle-off'" class="text-xl" />
+    </p-button>
+
+    <p-button
+      label="FUERA DE LÍNEA"
+      severity="warn"
+      [raised]="true"
+      (click)="fueraLinea()"
+      styleClass="!rounded-full !shadow-none"
+    >
+      <iconify-icon [icon]="'lucide:plane'" class="text-xl" />
+    </p-button>
+  </div>
+</div>

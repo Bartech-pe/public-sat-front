@@ -1,0 +1,184 @@
+<div class="container mx-auto p-6 bg-white rounded-xl">
+
+  <!-- Formulario -->
+  <form [formGroup]="emailForm" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+    <div class="relative col-span-1 md:col-span-2">
+      <label for="name" class="block text-sm font-medium text-gray-900 mb-2">Nombre de Campaña</label>
+      <input pInputText id="name" formControlName="name"
+        class="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors duration-200"
+        placeholder="Nombre de la campaña" />
+      <small *ngIf="emailForm.get('name')?.invalid && emailForm.get('name')?.touched"
+        class="text-red-500 text-xs mt-1 block">
+        El Nombre campaña es obligatorio y debe tener al menos 5 caracteres.
+      </small>
+    </div>
+
+    <div class="relative">
+      <label for="asunto" class="block text-sm font-medium text-gray-900 mb-2">Asunto</label>
+      <input pInputText id="asunto" formControlName="asunto"
+        class="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors duration-200"
+        placeholder="Asunto del correo" />
+      <small *ngIf="emailForm.get('asunto')?.invalid && emailForm.get('asunto')?.touched"
+        class="text-red-500 text-xs mt-1 block">
+        El asunto es obligatorio y debe tener al menos 5 caracteres.
+      </small>
+    </div>
+    <div class="relative">
+      <label for="remitente" class="block text-sm font-medium text-gray-900 mb-2">Remitente</label>
+      <input pInputText id="remitente" formControlName="remitente"
+        class="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors duration-200"
+        placeholder="correo@ejemplo.com" />
+      <small *ngIf="emailForm.get('remitente')?.invalid && emailForm.get('remitente')?.touched"
+        class="text-red-500 text-xs mt-1 block">
+        Ingresa un correo válido.
+      </small>
+    </div>
+    <div class="relative col-span-1 md:col-span-2">
+      <label for="plantilla" class="block text-sm font-medium text-gray-900 mb-2">Plantilla</label>
+      <p-dropdown [options]="plantillas" [showClear]="true" [filter]="true" appendTo="body" formControlName="plantilla"
+        optionLabel="name"
+        class="w-full border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-900 transition-colors duration-200">
+      </p-dropdown>
+    </div>
+  </form>
+
+  <div class="bg-white shadow rounded-xl  mb-4" >
+
+    <p-fieldset legend="Carga de Excel">
+      <div class="grid grid-cols-1 gap-4">
+        <p class="text-sm text-gray-600 flex items-center gap-3">
+          <span>Sube el archivo <strong>Excel</strong> o <strong>CSV</strong> con
+            los datos de los contribuyentes.</span>
+
+          <button type="button" (click)="descargarPlantilla()"
+            class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-green-600 hover:bg-green-700 rounded shadow">
+            <iconify-icon [icon]="'wpf:check-file'" class="text-lg" />
+            Descargar plantilla
+          </button>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+          <ngx-file-drop dropZoneLabel="Arrastra y suelta o haz clic para seleccionar"
+            (onFileDrop)="onFileDropped($event)" (click)="onDropZoneClick()" [multiple]="false"
+            [accept]="'.xlsx,.xls,.csv'" class="drop-zone">
+            <ng-template ngx-file-drop-content-tmp>
+              <div class="drop-zone-content">
+                <p class="text-sm">
+                  <strong>haz clic</strong> para seleccionar
+                </p>
+                <span class="file-types text-sm">Formatos permitidos: .xlsx, .xls, .csv</span>
+              </div>
+            </ng-template>
+          </ngx-file-drop>
+          <input #fileInput type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)"
+            style="display: none" />
+
+          <div class="mt-3 text-sm text-gray-600 flex items-center gap-3" *ngIf="previewData.length">
+            <span class="mb-0 me-2">Archivo cargado: <strong>{{ nombreArchivo }} </strong></span>
+
+            <button (click)="eliminarArchivo()"
+              class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded shadow">
+              <iconify-icon [icon]="'lucide:file-x'" class="text-lg" />
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </p-fieldset>
+  </div>
+
+  <!-- Tabla de Contactos -->
+  <p-table [value]="previewData" *ngIf="previewData" [paginator]="true" [rows]="10" [responsiveLayout]="'scroll'" sortMode="multiple"
+    [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+    class="mb-8 bg-white rounded-lg">
+    <ng-template pTemplate="header">
+      <tr class="bg-gray-100">
+        <th class="p-3 text-left text-gray-700">VER</th>
+        <th class="p-3 text-left text-gray-700">NOMBRE</th>
+        <th class="p-3 text-left text-gray-700">CORREO</th>
+        <th class="p-3 text-left text-gray-700">CELULAR</th>
+        <th class="p-3 text-left text-gray-700">PLACA</th>
+        <th class="p-3 text-left text-gray-700">ANIO</th>
+        <th class="p-3 text-left text-gray-700">PERIODO</th>
+        <th class="p-3 text-left text-gray-700">DEUDA</th>
+        <th class="p-3 text-left text-gray-700">CODIGO</th>
+        <th class="p-3 text-left text-gray-700">SECTORISTA</th>
+        <th class="p-3 text-left text-gray-700">CTA_CTE</th>
+        <th class="p-3 text-left text-gray-700">WHATSAPP</th>    
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-contacto>
+      <tr class="hover:bg-gray-50 transition-colors duration-200">
+        <td class="w-28">
+          <div class="flex justify-center items-center gap-1">
+            <button-detail (click)="verResultados(contacto)" />
+          </div>
+        </td>
+        <td class="p-3 w-96 border-b border-gray-200 text-gray-900">{{ contacto.NOMBRE }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.CORREO }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.CELULAR }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.PLACA }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.ANIO }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.PERIODO }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.DEUDA }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.CODIGO }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.SECTORISTA }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.CTA_CTE }}</td>
+        <td class="p-3 border-b border-gray-200 text-gray-900">{{ contacto.WHATSAPP }}</td>
+     
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Subida de Adjuntos -->
+  <div class="mb-8 bg-gray-50 p-4 rounded-lg mt-4">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">Adjuntos</h3>
+    <p-fileUpload mode="basic" multiple="true" (onSelect)="onUploadAdjuntos($event)" chooseLabel="Subir archivos de Adjuntos"
+      styleClass="p-button p-button-info p-button-outlined mb-3" />
+    <div *ngIf="adjuntos().length" class="flex flex-wrap gap-3">
+      <div *ngFor="let file of adjuntos()"
+        class="flex items-center p-2 bg-white rounded-md border border-gray-200 hover:bg-gray-100 transition-all duration-200">
+        <span class="text-gray-700">{{ file.name }}</span>
+        <button  class="ml-2 p-button-danger p-button-sm p-button-text"
+          (click)="removeAdjunto(file)">
+              Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor de Plantilla -->
+  <!-- <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">Editar Plantilla</h3>
+    <p-editor [(ngModel)]="emailForm.value.plantilla.template" (ngModelChange)="updatePlantillaHtml($event)"
+      [style]="{height:'320px'}" class="w-full border border-gray-200 rounded-md overflow-hidden bg-white"></p-editor>
+  </div> -->
+
+   <div class="pt-4 flex justify-end space-x-2" *ngIf="previewData.length">
+      <button-cancel (click)="onCancel()" />
+      <p-button
+        (click)="saveCamping()"
+        size="small"
+        styleClass="w-full"
+        severity="primary"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-xl" />
+        Guardar
+      </p-button>
+    </div>
+
+  <p-dialog header="Mostrar el campaña de correo" [modal]="true" [(visible)]="visibletemplate" [style]="{ width: '50rem' }" [draggable]="false"
+  [resizable]="false">
+       <div [innerHTML]="templateshtml"></div>
+  </p-dialog>
+
+</div>
+
+<!-- Botón de Previsualización -->
+<!-- <p-button label="Previsualizar Correo" icon="pi pi-eye" (onClick)="previsualizarCorreo()" class="mb-6 bg-blue-600 hover:bg-blue-700 text-white"></p-button> -->
+
+<!-- Vista Previa -->
+<!-- <div *ngIf="previewHtml" class="border p-6 bg-gray-50 rounded-lg shadow-sm">
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">Vista Previa del Correo</h3>
+    <div class="max-h-96 overflow-y-auto" [innerHTML]="previewHtml"></div>
+  </div> -->

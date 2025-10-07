@@ -1,0 +1,51 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-2">
+  <h5 class="font-bold text-xl">Conectar Perfil de chatWeb</h5>
+  <p class="font-normal text-sm text-gray-600 mb-4">
+    Para añadir tu perfil de ChatSat como un canal, necesitas autenticarlo
+    haciendo clic en el botón siguiente.
+  </p>
+
+  <div class="w-full space-y-4">
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Nombre de la bandeja de entrada <span class="text-xs">*</span></label
+      >
+      <input
+        type="text"
+        pInputText
+        class="w-full"
+        placeholder="Por favor, introduzca un nombre de bandeja de entrada"
+        formControlName="name"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Clave de API <span class="text-xs">*</span></label
+      >
+      <input
+        type="password"
+        pInputText
+        class="w-full"
+        formControlName="accessToken"
+        placeholder="Clave de API"
+      />
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button-save
+        [label]="'Crear canal de ChatSat'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      ></button-save>
+    </div>
+  </div>
+</form>
+
+<!--
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Script</label>
+        <textarea [(ngModel)]="scriptCode" class="w-full p-2 border rounded text-sm font-mono" rows="8" readonly></textarea>
+      </div>
+-->

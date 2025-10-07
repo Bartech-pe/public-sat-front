@@ -1,0 +1,466 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "tailwindcss";
+
+@import 'quill/dist/quill.snow.css';
+
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
+:root {
+  --p-button-gap: 0.25rem !important;
+  --p-button-icon-only-width: 2rem !important;
+  --sat-principal: #194a84;
+  --sat-principalHover: #0f2d51;
+  --sat-text: #202022;
+  --sat-white: #fefefe;
+  --sat-error: #eb4038;
+  --sat-textInteractive: #303880;
+  --sat-contentCard: #c0f0fe;
+  --sat-background: #eff1fe;
+  --sat-contentInfo: #f3fffd;
+  --sat-background2: #f4f9fc;
+}
+
+* {
+  font-family: Roboto;
+}
+
+sidebar-button a:hover,
+sidebar-button a:hover p,
+sidebar-button a:hover iconify-icon {
+  color: #365f95 !important;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+/* Scrollbar para navegadores basados en WebKit (Chrome, Edge, Safari) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px; /* más grueso */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: white; /* color del scroll */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background-color 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #2b4e81; /* azul oscuro al pasar el mouse */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: #1e3a66; /* azul aún más oscuro al hacer clic */
+}
+
+.sidebar-animating {
+  will-change: transform;
+  transform: translateZ(0);
+  border-right: none;
+}
+
+.sidebar-animating {
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: white transparent;
+}
+
+.custom-scrollbar:hover {
+  scrollbar-color: #2b4e81 transparent;
+}
+
+::ng-deep .p-colorpicker {
+  width: 100% !important;
+}
+
+.p-colorpicker-preview {
+  width: 100% !important;
+  height: auto !important;
+  padding: 7px !important;
+}
+
+.emoji-mart-search input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 7px;
+  margin-bottom: 8px;
+}
+
+.p-dialog-header {
+  @apply !px-6 !py-3;
+}
+
+::ng-deep .p-tag-success {
+  background-color: #4caf50;
+}
+
+::ng-deep .p-tag-warning {
+  background-color: #ffc107;
+}
+
+::ng-deep .p-tag-danger {
+  background-color: #f44336;
+}
+
+.bg-primary {
+  background-color: var(--sat-principal);
+  color: var(--sat-text);
+}
+
+.sat-background {
+  background-color: var(--sat-background);
+}
+
+.sat-background2 {
+  background-color: var(--sat-background2);
+}
+
+.bg-contentCard {
+  background-color: var(--sat-contentCard);
+}
+
+.text-white {
+  color: var(--sat-white);
+}
+
+.drop-zone {
+  border: 1px dashed #616161;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  color: #007bff;
+  background-color: #f9f9f9;
+}
+
+.p-datatable-thead > tr > th,
+.p-datatable-tbody > tr > td {
+  @apply !px-4 !py-2;
+}
+
+.p-datatable-tbody > tr > td {
+  background-color: var(--sat-background2) !important;
+}
+
+.p-datatable-thead > tr > th {
+  border: 1px solid #cdf0ff !important;
+  background-color: var(--sat-contentCard) !important;
+  color: var(--sat-principal) !important;
+  @apply !font-semibold text-sm;
+}
+.p-datatable-thead > tr:first-child > th:first-child {
+  @apply rounded-tl-lg;
+}
+
+.p-datatable-thead > tr:first-child > th:last-child {
+  @apply rounded-tr-lg;
+}
+
+.p-popover-content {
+  @apply !p-0;
+}
+
+.modal-xs,
+.modal-sm,
+.modal-md,
+.modal-lg,
+.modal-xl,
+.modal-2xl,
+.modal-3xl,
+.modal-4xl,
+.modal-5xl,
+.modal-6xl,
+.modal-7xl,
+.modal-8xl,
+.modal-9xl,
+.modal-10xl,
+.modal-11xl,
+.modal-12xl {
+  @apply w-[95%];
+}
+
+@media (min-width: 20rem) {
+  .modal-xs {
+    @apply w-[18rem];
+  }
+}
+
+@media (min-width: 24rem) {
+  .modal-sm {
+    max-width: 22rem;
+  }
+}
+
+@media (min-width: 38rem) {
+  .modal-md {
+    max-width: 26rem;
+  }
+}
+
+@media (min-width: 32rem) {
+  .modal-lg {
+    width: 30rem;
+  }
+}
+
+@media (min-width: 36rem) {
+  .modal-xl {
+    max-width: 34rem;
+  }
+}
+
+@media (min-width: 42rem) {
+  .modal-2xl {
+    max-width: 40rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .modal-3xl {
+    max-width: 46rem;
+  }
+}
+
+@media (min-width: 56rem) {
+  .modal-4xl {
+    max-width: 54rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .modal-5xl {
+    max-width: 62rem;
+  }
+}
+
+@media (min-width: 72rem) {
+  .modal-6xl {
+    max-width: 70rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .modal-7xl {
+    max-width: 78rem;
+  }
+}
+
+@media (min-width: 88rem) {
+  .modal-8xl {
+    max-width: 86rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .modal-9xl {
+    max-width: 94rem;
+  }
+}
+
+@media (min-width: 104rem) {
+  .modal-10xl {
+    max-width: 102rem;
+  }
+}
+
+@media (min-width: 112rem) {
+  .modal-11xl {
+    max-width: 110rem;
+  }
+}
+
+@media (min-width: 120rem) {
+  .modal-12xl {
+    max-width: 118rem;
+  }
+}
+
+.p-datatable-thead {
+  @apply !py-2;
+}
+
+.p-datatable-thead > tr > th {
+  @apply !py-2;
+}
+
+.p-datatable-tfoot > tr > td {
+  @apply !border-b-0 !py-2;
+}
+
+.p-dialog-header {
+  @apply !px-5 !py-2 border-b border-slate-300 mb-4;
+}
+
+.p-dialog-title {
+  @apply !text-lg !font-medium;
+}
+
+.p-dialog-header-actions .p-button {
+  @apply !w-8 !h-8 rounded-none;
+}
+
+/*ELIMINAR DISEÑO EMOJI*/
+
+.emoji-mart-anchors {
+  display: none !important;
+}
+
+#emoji-mart-search-2 {
+  padding: 6px !important;
+  margin: 10px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 10px !important;
+  width: 94% !important;
+}
+
+.emoji-mart-sr-only {
+  display: none !important;
+}
+
+.emoji-mart-search-icon {
+  display: none !important;
+}
+
+.estado-tag {
+  padding: 1px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-block;
+  transition: all 0.3s ease-in-out;
+  /* animation: pulse 1.5s infinite; */
+}
+
+.activo {
+  background-color: #d1f7d6;
+  color: #2e7d32;
+}
+
+.finalizado {
+  background-color: #fff4cd;
+  color: #c49000;
+}
+
+::ng-deep .p-calendar {
+  width: 100% !important;
+}
+
+::ng-deep .p-inputtext {
+  width: 100% !important;
+}
+
+.p-datepicker {
+  width: 100% !important;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.p-tab {
+  @apply !py-2;
+}
+
+::ng-deep .padding-card-modified .p-card-body {
+  padding: 8px !important;
+}
+
+::ng-deep .no-padding-card .p-card-body {
+  padding: 0px !important;
+}
+
+::ng-deep .chat-card-container .p-card {
+  border-radius: unset !important;
+}
+
+::ng-deep .p-divider-horizontal {
+  padding: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.my-element {
+  --tw-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* Scrollbar general */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track del scrollbar (el fondo) */
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: var(--sat-principal) !important;
+  border-radius: 2px;
+}
+
+/* Thumb del scrollbar (la parte que se arrastra) */
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sat-principalHover) !important;
+  border-radius: 2px;
+}
+
+/* Hover del thumb */
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--sat-textInteractive) !important;
+}
+
+.p-breadcrumb {
+  @apply !py-2 !rounded-lg !text-sm;
+}
+
+.p-breadcrumb-separator svg {
+  @apply !w-3;
+}
+
+@layer utilities {
+  .animate-marquee {
+    animation: marquee 15s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+}
+
+.p-editor .p-editor-toolbar,
+.p-editor .p-editor-content .ql-editor {
+  @apply !bg-white;
+}

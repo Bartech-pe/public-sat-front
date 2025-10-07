@@ -1,0 +1,27 @@
+<h5 class="font-bold text-xl mb-2">Conectar Página de Facebook</h5>
+<p class="font-normal text-sm text-gray-600 mb-4">
+  Para agregar tu página de Facebook como un canal, necesitas autenticar tu cuenta de Facebook.
+</p>
+
+<div class="w-full space-y-8">
+  <div class="flex gap-2 items-center justify-center p-6 rounded border border-gray-200 bg-white shadow-sm">
+    <div class="flex flex-col gap-2 text-center">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+        alt="Facebook"
+        class="w-12 h-12 mx-auto mb-3"
+      />
+      <p class="text-sm text-gray-600 mb-2">
+        Al iniciar sesión, sólo tenemos acceso a los mensajes de tu Página.<br />
+        <span class="text-gray-500">Tus mensajes privados nunca pueden ser accedidos.</span>
+      </p>
+
+      <p-button
+        label="Continuar con Facebook"
+        icon="pi pi-facebook"
+        class="w-full"
+        (click)="connectFacebook()"
+      ></p-button>
+    </div>
+  </div>
+</div>

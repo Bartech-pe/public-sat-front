@@ -1,0 +1,57 @@
+<div class="grid grid-cols-1 gap-6">
+  <div class="grid grid-cols-1 gap-2">
+    <div class="flex justify-center items-center gap-2">
+      <p-multiselect
+        [options]="inboxes"
+        [(ngModel)]="selectedInboxes"
+        optionLabel="name"
+        placeholder="Seleccionar canales"
+        styleClass="w-64"
+        [maxSelectedLabels]="3"
+        appendTo="body"
+      />
+      <button-save
+        icon="lucide:plus"
+        label="Añadir"
+        [disabled]="!selectedInboxes.length"
+        (click)="assign()"
+      />
+    </div>
+    <p-table [value]="assignmentList">
+      <!-- <ng-template #header>
+        <tr>
+          <th>Nombre</th>
+          <th class="w-12">Actions</th>
+        </tr>
+      </ng-template> -->
+      <ng-template #body let-item>
+        <tr>
+          <td>
+            <div class="flex justify-between items-center gap-2">
+              <div class="flex flex-col">
+                <h5 class="text-sm font-medium">
+                  {{ item.inbox?.name }}
+                </h5>
+                <p class="text-xs font-light italic capitalize">
+                  {{ item?.inbox?.channel?.name }}
+                </p>
+              </div>
+            </div>
+          </td>
+          <td class="w-12">
+            <div class="flex items-center">
+              <btn-delete (click)="remove(item)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <div class="flex justify-end">
+    <button-save
+      [label]="'Actualizar canales'"
+      [loading]="loading"
+      (click)="onSubmit()"
+    />
+  </div>
+</div>

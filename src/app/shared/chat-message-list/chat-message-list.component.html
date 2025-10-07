@@ -1,0 +1,124 @@
+<div *ngFor="let msg of messages" class="mb-2 group relative">
+  <!-- Contenedor de alineación -->
+  <div
+    class="flex items-start"
+    [ngClass]="{
+      'justify-start': !msg.senderId,
+      'justify-end': msg.senderId
+    }"
+  >
+    <!-- Botón ⋮, fuera pero alineado con la burbuja -->
+    <div *ngIf="msg.senderId" class="flex relative">
+      <button
+        type="button"
+        class="absolute -left-6 top-5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        (click)="menu.toggle($event); selectedMessage = msg"
+      >
+        <iconify-icon
+          icon="ci:more-vertical"
+          width="18"
+          class="text-gray-500 hover:text-black"
+        ></iconify-icon>
+      </button>
+    </div>
+
+    <!-- Burbuja del mensaje -->
+    <div
+      class="rounded-2xl px-4 py-2 max-w-[70%] shadow-md break-words"
+      [ngClass]="{
+        'bg-gray-100 text-gray-800': !msg.senderId,
+        'bg-blue-500 text-white': msg.senderId
+      }"
+    >
+      <!-- Tipo de mensaje -->
+      <ng-container [ngSwitch]="msg.type">
+        <!-- Texto -->
+        <div *ngSwitchCase="'text'" class="whitespace-pre-wrap">
+          {{ msg.content }}
+        </div>
+
+        <!-- Imagen -->
+        <div *ngSwitchCase="'image'" class="flex flex-col">
+          <img
+            [src]="apiUrlImage + msg.resourceUrl"
+            alt="Imagen"
+            class="rounded-xl max-w-full max-h-60 mb-1 border border-gray-300"
+          />
+          <div
+            *ngIf="msg.content"
+            class="text-xs"
+            [ngClass]="{
+              'text-gray-700': !msg.senderId,
+              'text-gray-100': msg.senderId
+            }"
+          >
+            {{ msg.content }}
+          </div>
+        </div>
+
+        <!-- Video -->
+        <div *ngSwitchCase="'video'" class="flex flex-col">
+          <video
+            controls
+            class="rounded-xl max-w-full max-h-60 border border-gray-300 mb-1"
+          >
+            <source [src]="msg.resourceUrl" type="video/mp4" />
+            Tu navegador no soporta video.
+          </video>
+          <div
+            *ngIf="msg.content"
+            class="text-xs"
+            [ngClass]="{
+              'text-gray-700': !msg.senderId,
+              'text-gray-100': msg.senderId
+            }"
+          >
+            {{ msg.content }}
+          </div>
+        </div>
+
+        <!-- Default -->
+        <div *ngSwitchDefault class="italic text-sm text-gray-500">
+          Mensaje no soportado.
+        </div>
+      </ng-container>
+
+      <!-- Hora + check -->
+      <div
+        class="text-[10px] mt-1 flex items-center gap-1 justify-end"
+        [ngClass]="{
+          'text-gray-200': msg.senderId,
+          'text-gray-500': !msg.senderId
+        }"
+      >
+        {{ msg.createdAt | date : "shortTime" }}
+
+        <ng-container *ngIf="msg.senderId">
+          <iconify-icon
+            *ngIf="!msg.isRead"
+            icon="mdi:check"
+            width="14"
+            class="text-white opacity-50"
+          ></iconify-icon>
+
+          <iconify-icon
+            *ngIf="msg.isRead"
+            icon="mdi:check-all"
+            width="14"
+            class="text-blue-300"
+          ></iconify-icon>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Menú contextual -->
+<p-overlayPanel #menu [dismissable]="true">
+  <button
+    class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+    (click)="eliminarMensaje(selectedMessage!)"
+  >
+    Eliminar
+  </button>
+</p-overlayPanel>

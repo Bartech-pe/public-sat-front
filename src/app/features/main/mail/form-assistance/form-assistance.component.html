@@ -1,0 +1,94 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-6">
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="nameRole">
+        Tipo de Consulta: <span class="text-xs">*</span>
+      </label>
+      <p-select
+        id="roleuserId"
+        [options]="consultTypeList"
+        optionLabel="name"
+        optionValue="id"
+        formControlName="consultTypeId"
+        placeholder="Seleccione..."
+        styleClass="capitalize"
+        panelStyleClass="capitalize"
+        appendTo="body"
+      />
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="name">
+        Nombre <span class="text-xs">*</span>
+      </label>
+      <input id="name" pInputText formControlName="name" />
+      <div
+        *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+      >
+        <small *ngIf="formData.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="tipDoc">
+        Tipo de Documento: <span class="text-xs">*</span>
+      </label>
+      <p-select
+        id="roleuserId"
+        [options]="typeIdeDocList"
+        optionLabel="code"
+        optionValue="code"
+        formControlName="tipDoc"
+        placeholder="Seleccione..."
+        appendTo="body"
+      />
+      <div
+        *ngIf="
+          formData.controls.tipDoc.invalid && formData.controls.tipDoc.touched
+        "
+      >
+        <small *ngIf="formData.controls.tipDoc.errors?.['required']"
+          >El tipo de documento es requerido.</small
+        >
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="docIde">
+        Numero de Documento: <span class="text-xs">*</span>
+      </label>
+      <input id="docIde" pInputText formControlName="docIde" />
+      <div
+        *ngIf="
+          formData.controls.docIde.invalid && formData.controls.docIde.touched
+        "
+      >
+        <small *ngIf="formData.controls.docIde.errors?.['required']"
+          >El numero de documento es requerido.</small
+        >
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="detail">
+        Detalle de la atención:
+      </label>
+      <textarea
+        id="detail"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="detail"
+      ></textarea>
+    </div>
+  </div>
+  <div class="flex justify-end gap-4">
+    <div class="flex gap-2">
+      <button-cancel (click)="onCancel()" />
+      <button-save
+        [label]="'Guardar'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      />
+    </div>
+  </div>
+</form>

@@ -1,0 +1,226 @@
+<!-- HTML Template -->
+<div class="w-full h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
+
+  <!-- Estado de Carga -->
+  <div *ngIf="isLoading" class="h-full">
+    <!-- Header Skeleton -->
+    <div class="border-b border-gray-200 dark:border-gray-800">
+      <div class="flex items-center gap-3 p-4">
+        <div class="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Skeleton -->
+    <div class="p-4 space-y-4">
+      <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center gap-3">
+        <div class="h-8 w-8 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado Sin Datos -->
+  <div *ngIf="!isLoading && !contactData" class="h-full flex flex-col">
+    <!-- Header Sin Datos -->
+    <div class="border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20">
+      <div class="flex items-center gap-3 p-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-400 text-white shadow-md">
+          <iconify-icon icon="material-symbols:database" class="text-2xl"></iconify-icon>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-sm font-bold text-gray-600 dark:text-gray-300 leading-tight">
+            Sin Información
+          </h2>
+          <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            No hay datos disponibles
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Sin Datos -->
+    <div class="flex-1 flex items-center justify-center p-6">
+      <div class="text-center space-y-4">
+        <div class="flex justify-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+            <iconify-icon icon="material-symbols:error" class="text-3xl text-gray-400 dark:text-gray-500"></iconify-icon>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            No hay información de contacto
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 max-w-48 mx-auto leading-relaxed">
+            La información de contacto no está disponible en este momento.
+            Por favor, verifica la conexión a la base de datos.
+          </p>
+        </div>
+
+        <div class="pt-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+            <iconify-icon icon="material-symbols:database" class="text-xs"></iconify-icon>
+            <span class="text-xs font-medium">Base de datos vacía</span>
+          </div>
+        </div>
+
+        <!-- Botón de Recargar -->
+        <div class="pt-4">
+          <button
+            (click)="onReloadData()"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+            <iconify-icon icon="material-symbols:refresh" class="text-sm"></iconify-icon>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado Con Datos -->
+  <div *ngIf="!isLoading && contactData" class="h-full flex flex-col">
+    <!-- Header con gradiente -->
+    <div class="border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
+      <div class="flex items-center gap-3 p-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-600 text-white shadow-md">
+          <iconify-icon icon="pixel:tech-companies" class="text-2xl"></iconify-icon>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
+            {{getShortName(contactData.vcontacto)}}
+          </h2>
+          <p class="text-xs text-orange-700 dark:text-orange-300 font-medium truncate">
+            {{getSubtitle(contactData.vcontacto)}}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <div class="gap-0">
+
+        <!-- Tipo de Documento -->
+        <div *ngIf="contactData.vdocIde" class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onDocumentClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
+                <iconify-icon icon="material-symbols:description" class="text-lg text-blue-600 dark:text-blue-400"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{contactData.vtipDoc}}</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {{contactData.vdocIde.trim()}}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Teléfono -->
+        <div *ngIf="contactData.vnumTel" class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onPhoneClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-green-100 dark:bg-green-900/30">
+                <iconify-icon icon="material-symbols:call" class="text-lg text-green-600 dark:text-green-400"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Teléfono</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {{getFormattedPhone()}}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- WhatsApp -->
+        <!-- <div *ngIf="contactData.vnumTel" class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onWhatsAppClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-green-100 dark:bg-green-900/30">
+                <iconify-icon icon="logos:whatsapp-icon" class="text-lg"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">WhatsApp</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {{getFormattedPhone()}}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div> -->
+
+        <!-- Ubicación -->
+        <div class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onLocationClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-red-100 dark:bg-red-900/30">
+                <iconify-icon icon="material-symbols:location-on" class="text-lg text-red-600 dark:text-red-400"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Ubicación</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Lima, Perú
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Estado -->
+        <div class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onStatusClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 dark:bg-emerald-900/30">
+                <iconify-icon icon="material-symbols:check-circle" class="text-lg text-emerald-600 dark:text-emerald-400"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Estado</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Activo
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Tipo de Contacto -->
+        <div *ngIf="contactData.vtipDoc" class="border-b border-gray-100 dark:border-gray-800">
+          <button class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onTypeClick()">
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex h-8 w-8 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/30">
+                <iconify-icon icon="material-symbols:category" class="text-lg text-purple-600 dark:text-purple-400"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Tipo</p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {{getContactType()}}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Footer decorativo -->
+      <div class="mt-auto p-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="text-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+            <iconify-icon icon="material-symbols:business" class="text-xs"></iconify-icon>
+            <span class="text-xs font-medium">{{getBusinessCategory()}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

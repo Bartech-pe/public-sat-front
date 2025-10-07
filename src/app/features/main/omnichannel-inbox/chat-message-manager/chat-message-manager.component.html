@@ -1,0 +1,1225 @@
+@if(!chatDetail){
+<div
+  class="h-full w-full pt-4 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+>
+  <!-- Header fijo -->
+  <header
+    class="flex items-center justify-between px-4 pb-4 border-b border-gray-200 flex-shrink-0 bg-white z-1"
+  >
+    <div class="flex items-center space-x-3">
+      <p-avatar
+        [image]="
+          'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png'
+        "
+        [className]="'object-cover w-full h-full bg-gray-200'"
+        [size]="'large'"
+        [shape]="'circle'"
+      >
+      </p-avatar>
+      <!-- Contact Details -->
+      <div class="flex flex-col">
+        <span class="font-semibold text-gray-900">Selecciona un chat</span>
+        <div class="flex items-center space-x-2 text-sm">
+          <div class="flex items-center space-x-1">
+            <iconify-icon
+              icon="mdi:chat-outline"
+              class="w-4 h-4 text-gray-400"
+            ></iconify-icon>
+            <span class="text-gray-600">Sin conversación</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Actions (deshabilitados) -->
+    <div class="flex items-center space-x-2">
+      <p-button
+        size="small"
+        severity="contrast"
+        [disabled]="true"
+        [loading]="false"
+        (onClick)="toggleBotService(true)"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon
+            [icon]="'codicon:debug-start'"
+            class="text-xl"
+          ></iconify-icon>
+          <div>Activar Bot</div>
+        </div>
+      </p-button>
+      <p-menu #menu [model]="items" [popup]="true" />
+      <p-button
+        size="small"
+        variant="outlined"
+        severity="secondary"
+        [disabled]="true"
+        [loading]="false"
+        (onClick)="menu.toggle($event)"
+      >
+        <div class="flex justify-center py-0.5 px-0 items-center gap-1">
+          <iconify-icon
+            [icon]="'mi:options-vertical'"
+            class="text-xl"
+          ></iconify-icon>
+        </div>
+      </p-button>
+    </div>
+  </header>
+  <!-- Chat Messages (Estado vacío) -->
+  <section
+    class="h-full min-h-0 max-h-full overflow-y-auto overflow-x-hidden p-6 space-y-6 bg-gradient-to-b from-gray-50 to-gray-100"
+  >
+    <div
+      class="flex flex-col items-center justify-center h-full text-center py-16"
+    >
+      <div
+        class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6"
+      >
+        <iconify-icon
+          icon="mdi:chat-outline"
+          class="text-4xl text-gray-400"
+        ></iconify-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">
+        No hay chat seleccionado
+      </h3>
+      <p class="text-sm text-gray-500 max-w-sm">
+        Selecciona una conversación de la lista para comenzar a chatear.
+      </p>
+    </div>
+  </section>
+  <!-- Footer fijo -->
+  <footer class="border-t border-gray-200 bg-white flex-shrink-0 -rotate-z-1">
+    <div class="p-4">
+      <div class="flex items-center space-x-3">
+        <p-button
+          severity="secondary"
+          size="large"
+          [outlined]="true"
+          [disabled]="true"
+          [loading]="false"
+        >
+          <iconify-icon
+            [icon]="'tdesign:attach'"
+            class="text-lg"
+          ></iconify-icon>
+        </p-button>
+        <div class="flex-1 relative">
+          <div
+            class="flex items-center bg-gray-50 rounded-sm border border-gray-200"
+          >
+            <input
+              type="text"
+              placeholder="Selecciona un chat para escribir..."
+              class="w-full border-0 bg-transparent rounded-sm px-4 py-3 text-sm text-gray-400 focus:outline-none focus:ring-0"
+              disabled
+            />
+          </div>
+        </div>
+        <p-button
+          severity="contrast"
+          size="large"
+          [disabled]="true"
+          [loading]="false"
+        >
+          <iconify-icon
+            [icon]="'icon-park-outline:send'"
+            class="text-xl"
+          ></iconify-icon>
+        </p-button>
+      </div>
+    </div>
+  </footer>
+</div>
+} @else if(chatDetail && chatDetail.status === 'completado' &&
+completionEventReceived){
+<div
+  class="h-full w-full pt-4 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+>
+  <header
+    class="flex items-center justify-between px-4 pb-4 border-b border-gray-200 flex-shrink-0 bg-white z-10"
+  >
+    <div class="flex items-center space-x-3">
+      <p-avatar
+        [image]="chatDetail!.citizen!.avatar"
+        [className]="'object-cover w-full h-full opacity-60'"
+        [size]="'large'"
+        [shape]="'circle'"
+      >
+      </p-avatar>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-4">
+          <span class="font-semibold text-gray-700">
+            {{
+              chatDetail?.citizen?.fullName || chatDetail.citizen.phone
+                | phoneFormat
+            }}
+          </span>
+          <span class="text-gray-500 font-semibold">{{
+            chatDetail.citizen.phone | phoneFormat
+          }}</span>
+        </div>
+        <div class="flex items-center space-x-4 text-sm">
+          <div class="flex items-center space-x-1">
+            <iconify-icon
+              icon="{{ getChannelIcon(chatDetail.channel) }}"
+              class="w-4 h-4 opacity-60"
+            ></iconify-icon>
+            <span class="text-gray-500 font-semibold">{{
+              chatDetail.channel | titlecase
+            }}</span>
+          </div>
+          <p-tag severity="danger" value="Completado"></p-tag>
+          <div
+            class="flex items-center bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium"
+          >
+            <iconify-icon
+              icon="mdi:ticket-confirmation-outline"
+              class="w-3 h-3 mr-1"
+            ></iconify-icon>
+            <span>#{{ formatId(chatDetail?.assistanceId) || "N/A" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Actions deshabilitadas -->
+    <div class="flex items-center space-x-2">
+      <p-button
+        size="small"
+        severity="secondary"
+        [disabled]="true"
+        [loading]="false"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon [icon]="'mdi:lock'" class="text-xl"></iconify-icon>
+          <div>Chat Cerrado</div>
+        </div>
+      </p-button>
+      <p-menu #menu [model]="items" [popup]="true" />
+      <p-button
+        size="small"
+        variant="outlined"
+        severity="secondary"
+        [disabled]="true"
+        [loading]="false"
+      >
+        <div class="flex justify-center py-0.5 px-0 items-center gap-1">
+          <iconify-icon
+            [icon]="'mi:options-vertical'"
+            class="text-xl opacity-50"
+          ></iconify-icon>
+        </div>
+      </p-button>
+    </div>
+  </header>
+  <section
+    class="flex-1 min-h-0 max-h-full overflow-y-auto overflow-x-hidden p-6 bg-gradient-to-b from-red-50 to-red-100"
+  >
+    <div
+      class="flex flex-col items-center justify-center h-full text-center py-16"
+    >
+      <div
+        class="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mb-6 shadow-md"
+      >
+        <iconify-icon
+          icon="mdi:chat-remove-outline"
+          class="text-4xl text-red-500"
+        ></iconify-icon>
+      </div>
+      <h3 class="text-xl font-bold text-red-600 mb-3">Chat Finalizado</h3>
+      <p class="text-sm text-gray-600 max-w-md mb-8 leading-relaxed">
+        Esta conversación ha sido cerrada y finalizada. Los mensajes son de solo
+        lectura y no se pueden enviar nuevos mensajes.
+      </p>
+      <div class="flex flex-col space-y-3 items-center">
+        <p-button
+          label="Ver Chats Finalizados"
+          [icon]="'pi pi-history'"
+          severity="danger"
+          [outlined]="true"
+          size="small"
+          class="shadow-sm"
+          (onClick)="viewClosedChats()"
+        >
+        </p-button>
+        <p-button
+          label="Volver a Lista"
+          [icon]="'pi pi-arrow-left'"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          (onClick)="backToList()"
+        >
+        </p-button>
+      </div>
+    </div>
+  </section>
+  <footer
+    class="border-t border-red-200 bg-red-50 flex-shrink-0 z-1 opacity-60"
+  >
+    <div class="p-4">
+      <div class="flex items-center space-x-3">
+        <p-button
+          severity="secondary"
+          size="large"
+          [outlined]="true"
+          [disabled]="true"
+          [loading]="false"
+        >
+          <iconify-icon
+            [icon]="'tdesign:attach'"
+            class="text-lg"
+          ></iconify-icon>
+        </p-button>
+        <div class="flex-1 relative">
+          <div
+            class="flex items-center bg-red-100 rounded-lg border border-red-200"
+          >
+            <input
+              type="text"
+              placeholder="Chat finalizado - No se pueden enviar mensajes"
+              class="w-full border-0 bg-transparent rounded-lg px-4 py-3 text-sm text-red-400 focus:outline-none focus:ring-0"
+              disabled
+            />
+          </div>
+        </div>
+        <p-button
+          severity="danger"
+          size="large"
+          [disabled]="true"
+          [loading]="false"
+        >
+          <iconify-icon [icon]="'mdi:lock'" class="text-xl"></iconify-icon>
+        </p-button>
+      </div>
+    </div>
+  </footer>
+</div>
+} @else{
+<div
+  class="h-full w-full pt-4 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+>
+  <!-- Header fijo -->
+  <header
+    class="flex items-center justify-between px-4 pb-4 border-b border-gray-200 flex-shrink-0 bg-white z-10"
+  >
+    <div class="flex items-center space-x-3">
+      <p-avatar
+        [image]="chatDetail!.citizen!.avatar"
+        [className]="'object-cover w-full h-full'"
+        [size]="'large'"
+        [shape]="'circle'"
+      >
+      </p-avatar>
+      <!-- Contact Details -->
+      <div class="flex flex-col">
+        <div class="flex items-center gap-3">
+          <span class="font-semibold text-gray-900">
+            {{
+              chatDetail?.citizen?.fullName || chatDetail.citizen.phone
+                | phoneFormat
+            }}
+          </span>
+          @if (chatDetail?.citizen?.fullName) {
+          <span class="text-gray-500 font-medium text-base">{{
+            chatDetail.citizen.phone | phoneFormat
+          }}</span>
+          }
+        </div>
+        <div class="flex items-center space-x-4 text-sm">
+          <div class="flex items-center space-x-1">
+            <iconify-icon
+              icon="{{ getChannelIcon(chatDetail.channel) }}"
+              class="w-4 h-4"
+            ></iconify-icon>
+            <span class="text-gray-500 font-semibold">{{
+              chatDetail.channel | titlecase
+            }}</span>
+          </div>
+          <p-tag
+            [severity]="getChannelStatusTag(chatDetail.status)"
+            [value]="chatDetail!.status | titlecase"
+          ></p-tag>
+          <div
+            class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium shadow-sm"
+          >
+            <iconify-icon
+              icon="mdi:ticket-confirmation-outline"
+              class="w-3 h-3 mr-1"
+            ></iconify-icon>
+            <span>#{{ formatId(chatDetail?.assistanceId) || "N/A" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Actions -->
+    <div class="flex items-center space-x-2">
+      @if(['whatsapp','chatsat'].includes(chatDetail.channel) && chatDetail.status !== 'completado'){
+        @if(chatDetail.botStatus === 'active') {
+      <p-button
+        severity="danger"
+        size="small"
+        [disabled]="false"
+        [loading]="false"
+        (onClick)="toggleBotService(false)"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon
+            [icon]="'lucide:bot-off'"
+            class="text-xl"
+          ></iconify-icon>
+          <div>Pausar Bot</div>
+        </div>
+      </p-button>
+      } @else {
+      <p-button
+        size="small"
+        severity="contrast"
+        [disabled]="false"
+        [loading]="false"
+        (onClick)="toggleBotService(true)"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon
+            [icon]="'codicon:debug-start'"
+            class="text-xl"
+          ></iconify-icon>
+          <div>Activar Bot</div>
+        </div>
+      </p-button>
+      } }
+      <p-menu #menu [model]="items" [popup]="true" />
+      <ng-container *ngIf="advisors.length != 0">
+        <app-advisor
+          [channelRoomId]="this.chatDetail.channelRoomId"
+          [advisors]="advisors"
+          [(visible)]="showTransferModal"
+          (visibleChange)="onCaseTransferred($event)"
+        ></app-advisor>
+      </ng-container>
+      <ng-container>
+        <app-channel-room-statuses
+          [(visible)]="showChaneStatusModal"
+          (visibleChange)="onChannelStatusChange($event)"
+        ></app-channel-room-statuses>
+      </ng-container>
+      <p-button
+        size="small"
+        variant="outlined"
+        severity="secondary"
+        [disabled]="false"
+        [loading]="false"
+        (click)="menu.toggle($event)"
+      >
+        <div class="flex justify-center py-0.5 px-0 items-center gap-1">
+          <iconify-icon
+            [icon]="'mi:options-vertical'"
+            class="text-xl"
+          ></iconify-icon>
+        </div>
+      </p-button>
+    </div>
+  </header>
+  <!-- Chat Messages - CON SCROLL AUTOMÁTICO -->
+  <section
+    #messagesContainer
+    class="flex-1 min-h-0 max-h-full relative overflow-y-auto overflow-x-hidden p-6 space-y-4 bg-gradient-to-b from-gray-50 to-gray-100"
+    style="scroll-behavior: smooth"
+    (scroll)="onScroll($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    [ngClass]="{
+      'border-4 border-dashed border-blue-400 bg-blue-50': isDragOver
+    }"
+  >
+    @if (isDragOver) {
+    <div class="drag-overlay">
+      <div class="drag-overlay-content">
+        <iconify-icon
+          icon="pi pi-cloud-upload"
+          class="text-4xl text-blue-500 mb-2"
+        ></iconify-icon>
+        <p class="text-lg font-semibold text-gray-700">
+          Suelta los archivos aquí
+        </p>
+        <p class="text-sm text-gray-500">Se abrirá el diálogo de archivos</p>
+      </div>
+    </div>
+    } @if (isLoadingMoreMessages) {
+    <div class="loading-messages-indicator">
+      <div class="loading-content">
+        <iconify-icon
+          icon="pi pi-spinner"
+          class="spinner text-lg"
+        ></iconify-icon>
+        <span class="text-sm font-medium text-gray-700"
+          >Cargando mensajes anteriores...</span
+        >
+      </div>
+    </div>
+    } @if (chatDetail?.messages && chatDetail.messages.length > 0 &&
+    !chatDetail.hasMore && !isLoadingMoreMessages) {
+    <div class="conversation-start">
+      <div class="conversation-start-text">
+        <iconify-icon icon="mdi:history" class="mr-1"></iconify-icon>
+        Inicio de la conversación
+      </div>
+    </div>
+    } @if (chatDetail.messages && chatDetail.messages.length) { @for (message of
+    chatDetail.messages; track $index) {
+    <div
+      class="flex message-item"
+      [ngClass]="{
+        'justify-end': !message.sender.fromCitizen,
+        'justify-start': message.sender.fromCitizen
+      }"
+    >
+      <div
+        [ngClass]="{
+          'max-w-sm lg:max-w-md xl:max-w-lg':
+            !message.attachments || message.attachments.length === 0,
+          'max-w-md lg:max-w-lg xl:max-w-xl':
+            message.attachments && message.attachments.length > 0
+        }"
+      >
+        <div
+          class="relative rounded-2xl px-4 py-3 shadow-sm"
+          [ngClass]="{
+            'bg-[#365f95] text-white': !message.sender.fromCitizen,
+            'bg-white text-gray-800': message.sender.fromCitizen
+          }"
+        >
+          <!-- Simple arrow usando CSS -->
+          <div
+            class="absolute w-3 h-3 transform rotate-45"
+            [ngClass]="{
+              'bg-[#365f95] -right-1 top-4': !message.sender.fromCitizen,
+              'bg-white -left-1 top-4': message.sender.fromCitizen
+            }"
+          ></div>
+
+          <!-- Contenido del mensaje -->
+          @if(message.content && message.content.trim()) {
+          <p
+            class="text-sm leading-relaxed relative z-1 mb-1"
+            [innerHTML]="message.content | markdown"
+          ></p>
+          }
+
+          <!-- Mostrar attachments mejorados -->
+          @if (message.attachments && message.attachments.length > 0) {
+          <div class="space-y-3 mt-3">
+            @for (attachment of message.attachments; track $index) { @if
+            (attachment.type === 'image') {
+            <!-- Vista previa de imagen -->
+            <div class="image-attachment-container relative">
+              <div
+                class="rounded-lg overflow-hidden shadow-sm bg-white/5 backdrop-blur-sm"
+              >
+                <img
+                  [src]="
+                    'data:image/' +
+                    (attachment.extension || 'jpeg') +
+                    ';base64,' +
+                    attachment.content
+                  "
+                  [alt]="
+                    attachment.name + '.' + attachment.extension ||
+                    'Imagen adjunta'
+                  "
+                  class="w-full h-auto max-h-80 object-cover transition-transform duration-200 hover:scale-105"
+                  (click)="viewFullImage(attachment)"
+                  style="cursor: zoom-in"
+                />
+                <!-- Overlay con información -->
+                <div
+                  class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-white text-xs font-medium truncate">
+                      {{
+                        attachment.name ||
+                          "imagen." + (attachment.extension || "jpg")
+                      }}
+                    </span>
+                    <button
+                      (click)="downloadAttachment(attachment)"
+                      class="download-btn flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200"
+                    >
+                      <iconify-icon
+                        icon="material-symbols:download"
+                        class="text-white text-lg"
+                      ></iconify-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+            <!-- Vista previa de archivo estilo WhatsApp mejorada -->
+            @else {
+            <div
+              class="bg-white rounded-xl border border-gray-200 p-3 min-w-2xs max-w-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+              [ngClass]="{
+                'bg-white/95 border-white/20 shadow-sm':
+                  !message.sender.fromCitizen,
+                'bg-white border-gray-200': message.sender.fromCitizen
+              }"
+            >
+              <!-- Header principal con icono y botón -->
+              <div class="flex items-start justify-between mb-3">
+                <!-- Sección izquierda: Icono + Info -->
+                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                  <!-- Icono del archivo con gradiente -->
+                  <div
+                    class="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+                    [ngClass]="getFileIconClass(attachment.extension)"
+                  >
+                    <iconify-icon
+                      [icon]="getFileIcon(attachment.extension || '')"
+                      class="text-2xl"
+                    ></iconify-icon>
+                  </div>
+
+                  <!-- Información del archivo -->
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <!-- Nombre del archivo -->
+                    <div
+                      class="font-semibold text-gray-800 text-sm leading-tight truncate"
+                    >
+                      {{
+                        attachment.name ||
+                          "file." + (attachment.extension || "unknown")
+                      }}
+                    </div>
+                    <!-- Metadata -->
+                    <div class="flex items-center space-x-2 text-xs">
+                      <span
+                        class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium uppercase"
+                      >
+                        {{ (attachment.extension || "FILE").toUpperCase() }}
+                      </span>
+                      @if(attachment.fileSize) {
+                      <span class="text-gray-500">{{
+                        formatFileSize(attachment.fileSize)
+                      }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botón de descarga -->
+                <button
+                  (click)="downloadAttachment(attachment)"
+                  class="w-9 h-9 rounded-full bg-gray-100 hover:bg-blue-100 flex items-center justify-center text-gray-600 hover:text-blue-600 transition-all duration-200 hover:scale-105 shadow-sm ml-2"
+                  title="Descargar archivo"
+                >
+                  <iconify-icon
+                    icon="material-symbols:download-rounded"
+                    class="text-lg"
+                  ></iconify-icon>
+                </button>
+              </div>
+
+              <!-- Barra de progreso visual (decorativa) -->
+              <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-300"
+                  [ngClass]="{
+                    'from-red-400 to-red-500':
+                      getFileExtension(attachment) === 'pdf',
+                    'from-blue-600 to-blue-600': ['doc', 'docx'].includes(
+                      getFileExtension(attachment)
+                    ),
+                    'from-green-700 to-green-600': [
+                      'csv',
+                      'xls',
+                      'xlsx'
+                    ].includes(getFileExtension(attachment)),
+                    'from-yellow-500 to-yellow-500': ['zip', 'rar'].includes(
+                      getFileExtension(attachment)
+                    ),
+                    'from-orange-400 to-orange-500': ['txt'].includes(
+                      getFileExtension(attachment)
+                    ),
+                    'from-gray-400 to-gray-500': ![
+                      'pdf',
+                      'doc',
+                      'docx',
+                      'xls',
+                      'xlsx',
+                      'zip',
+                      'rar',
+                      'txt'
+                    ].includes(getFileExtension(attachment))
+                  }"
+                  style="width: 100%"
+                ></div>
+              </div>
+            </div>
+            } }
+          </div>
+          }
+
+          <!-- Footer simple del mensaje -->
+          <div class="flex items-center justify-between mt-2 relative z-1">
+            <span
+              class="text-xs font-medium pr-4"
+              [ngClass]="{
+                'text-blue-100': !message.sender.fromCitizen,
+                'text-gray-400': message.sender.fromCitizen
+              }"
+            >
+              {{ message.time }}
+            </span>
+            @if(!message.sender.fromCitizen && !['whatsapp',
+            'chatsat'].includes(chatDetail.channel)){
+            <iconify-icon
+              [icon]="'mdi:face-agent'"
+              class="text-xl text-blue-100"
+            >
+            </iconify-icon>
+            } @if (!message.sender.fromCitizen && ['whatsapp',
+            'chatsat'].includes(chatDetail.channel)) {
+            <iconify-icon
+              [icon]="message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'"
+              class="text-xl text-blue-100"
+            >
+            </iconify-icon>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    } } @else {
+    <!-- Estado vacío cuando no hay mensajes -->
+    <div
+      class="flex flex-col items-center justify-center h-full text-center py-16"
+    >
+      <div
+        class="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-6 shadow-md"
+      >
+        <iconify-icon
+          icon="mdi:chat-outline"
+          class="text-4xl text-blue-500"
+        ></iconify-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">
+        No hay mensajes aún
+      </h3>
+      <p class="text-sm text-gray-500 max-w-sm mb-6">
+        Inicia una conversación enviando el primer mensaje a este contacto.
+      </p>
+      <div class="flex space-x-3">
+        <p-button
+          label="Plantilla de saludo"
+          [icon]="'pi pi-comments'"
+          severity="secondary"
+          [outlined]="true"
+          size="small"
+          class="shadow-sm"
+        >
+        </p-button>
+        <p-button
+          label="Mensaje rápido"
+          [icon]="'pi pi-bolt'"
+          severity="primary"
+          size="small"
+          class="shadow-sm"
+        >
+        </p-button>
+      </div>
+    </div>
+    }
+  </section>
+  @if (showScrollButton) {
+
+  <div class="flex justify-end relative">
+    <button
+      (click)="handleScrollDown()"
+      type="button"
+      class="absolute bottom-2 right-4 flex items-center justify-center w-8 h-8 rounded-full shadow-lg cursor-pointer border-gray-300 border-2 bg-[#365f95] hover:bg-blue-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      aria-label="Ir al final de la conversación"
+    >
+      <!-- Badge mensajes no leídos -->
+      @if (unreadMessagesCount > 0) {
+      <span
+        class="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.5rem] h-6 px-1 text-xs font-bold text-white bg-red-500 rounded-full shadow-md animate-bounce"
+      >
+        {{ unreadMessagesCount > 99 ? "99+" : unreadMessagesCount }}
+      </span>
+      }
+
+      <!-- Icono con Iconify -->
+      <iconify-icon
+        icon="icon-park-outline:down"
+        class="text-white text-lg"
+      ></iconify-icon>
+    </button>
+  </div>
+  }
+  <!-- Preview de archivos seleccionados -->
+  @if (attachments.length > 0) {
+  <div class="border-t border-gray-200 bg-gray-50 px-4 py-3">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700">
+        Archivos adjuntos ({{ attachments.length }})
+      </span>
+      <p-button
+        [text]="true"
+        severity="secondary"
+        size="small"
+        (onClick)="openAttachmentsDialog()"
+      >
+        <iconify-icon icon="pi pi-eye" class="text-lg"></iconify-icon>
+      </p-button>
+    </div>
+    <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+      @for (attachment of attachments; track attachment.id) {
+      <div
+        class="flex items-center bg-white rounded-lg px-3 py-2 shadow-sm border"
+      >
+        @if (attachment.loading) {
+        <iconify-icon
+          icon="pi pi-spin pi-spinner"
+          class="text-gray-400 mr-2"
+        ></iconify-icon>
+        } @else {
+        <iconify-icon
+          [icon]="getFileIcon(attachment.extension || '')"
+          class="text-gray-600 mr-2"
+        ></iconify-icon>
+        }
+        <span class="text-xs text-gray-700 max-w-20 truncate">{{
+          attachment.file.name
+        }}</span>
+        <p-button
+          [text]="true"
+          severity="danger"
+          size="small"
+          class="ml-1 p-0"
+          (onClick)="removeAttachment(attachment.id)"
+        >
+          <iconify-icon icon="pi pi-times" class="text-xs"></iconify-icon>
+        </p-button>
+      </div>
+      }
+    </div>
+  </div>
+  }
+  <!-- Footer fijo -->
+  <footer class="border-t border-gray-200 bg-white flex-shrink-0 z-1">
+    <div class="p-4">
+      <div class="flex items-center space-x-3">
+        <!-- Attachment Button -->
+        @if (chatDetail.channel == 'chatsat') {
+        <p-button
+          severity="secondary"
+          size="large"
+          [outlined]="true"
+          [disabled]="chatDetail.botStatus == 'active'"
+          [loading]="false"
+          (onClick)="openAttachmentsDialog()"
+          pTooltip="Adjuntar archivo"
+          tooltipPosition="top"
+        >
+          <iconify-icon
+            [icon]="'tdesign:attach'"
+            class="text-lg"
+          ></iconify-icon>
+        </p-button>
+        }
+
+        <div class="flex-1 relative">
+          <div
+            class="flex items-center bg-gray-50 rounded-lg border border-gray-200 focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-sm transition-all duration-200"
+          >
+            <textarea
+              placeholder="Escribe tu mensaje... "
+              autofocus
+              rows="1"
+              class="w-full border-0 bg-transparent rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-0 min-h-[44px] max-h-[120px] overflow-y-auto"
+              [(ngModel)]="messageText"
+              [disabled]="
+                ['whatsapp', 'chatsat'].includes(chatDetail.channel)
+                  ? chatDetail.botStatus == 'active'
+                  : false
+              "
+              (keydown)="onTextareaKeydown($event)"
+              (input)="onTextareaInput($event)"
+              style="line-height: 1.4"
+            >
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Predefined Responses Trigger Button -->
+
+
+        <!-- Predefined Responses Overlay Panel -->
+        <p-overlayPanel
+          #predefinedOp
+          appendTo="body"
+          [target]="trigger"
+          [styleClass]="'w-96 shadow-xl'"
+          [dismissable]="true"
+          [showCloseIcon]="false"
+          [style]="{ 'border-radius': '0.5rem', 'background': 'white', 'border': '1px solid #e5e7eb', 'max-height': '80vh' }"
+        >
+          <div class="flex flex-col h-full max-h-[80vh]">
+            <!-- Sticky Header -->
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center">
+                  <iconify-icon
+                    [icon]="'heroicons-outline:chat-bubble-left-right'"
+                    class="text-blue-500 mr-2"
+                  ></iconify-icon>
+                  Respuestas Predefinidas
+                </h3>
+                <p-button
+                  severity="secondary"
+                  size="small"
+                  [outlined]="true"
+                  icon="pi pi-times"
+                  (onClick)="predefinedOp.hide()"
+                  class="p-button-text p-button-plain"
+                  styleClass="p-1"
+                >
+                  <iconify-icon
+                    [icon]="'material-symbols:close-rounded'"
+                    class="text-xl"
+                  ></iconify-icon>
+                </p-button>
+              </div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-2">
+              @if (predefinedResponses && predefinedResponses.length > 0) {
+                <div class="space-y-2">
+                  @for (response of predefinedResponses; track response.id) {
+                    <div
+                      class="p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200"
+                      (click)="onResponseSelected(response); predefinedOp.hide()"
+                      role="button"
+                      tabindex="0"
+                      (keydown.enter)="onResponseSelected(response); predefinedOp.hide()"
+                    >
+                      <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 mt-1">
+                          <iconify-icon
+                            [icon]="'heroicons-outline:document-text'"
+                            class="text-gray-400 text-lg"
+                          ></iconify-icon>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-medium text-gray-900 truncate mb-1">{{ response.title }}</h4>
+                          <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">{{ response.content }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                  <iconify-icon
+                    [icon]="'heroicons-outline:chat-bubble-left'"
+                    class="text-gray-400 text-4xl mb-2"
+                  ></iconify-icon>
+                  <p class="text-sm text-gray-500 italic">No hay respuestas predefinidas disponibles.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </p-overlayPanel>
+        <p-button
+          severity="secondary"
+          size="large"
+          [outlined]="true"
+          [disabled]="['whatsapp', 'chatsat'].includes(chatDetail.channel) ? chatDetail.botStatus == 'active' : false"
+          (onClick)="predefinedOp.toggle($event)"
+          pTooltip="Respuestas predefinidas"
+          tooltipPosition="top"
+          #trigger
+        >
+          <iconify-icon
+            [icon]="'heroicons-outline:chat-bubble-left-right'"
+            class="text-xl"
+          ></iconify-icon>
+        </p-button>
+        <p-button
+          severity="contrast"
+          size="large"
+          [disabled]="
+            emptyMessage ||
+            (['whatsapp', 'chatsat'].includes(chatDetail.channel)
+              ? chatDetail.botStatus == 'active'
+              : false)
+          "
+          [loading]="false"
+          (onClick)="sendMessage()"
+          pTooltip="Enviar mensaje"
+          tooltipPosition="top"
+          [ngClass]="{ 'opacity-50': emptyMessage }"
+        >
+          <iconify-icon
+            [icon]="'icon-park-outline:send'"
+            class="text-xl"
+          ></iconify-icon>
+        </p-button>
+      </div>
+    </div>
+  </footer>
+</div>
+} @if(chatDetail?.channel == 'chatsat') {
+<input
+  #fileInput
+  type="file"
+  multiple
+  class="hidden"
+  (change)="onFileSelected($event)"
+  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt"
+/>
+<!-- Dialog para gestión de archivos -->
+<p-dialog
+  header="Archivos Adjuntos"
+  [(visible)]="showAttachmentsDialog"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="mb-4 p-4">
+    <!-- Dropzone -->
+    <div
+      class="dropzone"
+      [ngClass]="{ dragover: isDragOver }"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="openFileDialog()"
+    >
+      <iconify-icon
+        icon="pi pi-cloud-upload"
+        class="text-4xl text-gray-400 mb-2"
+      ></iconify-icon>
+      <p class="text-gray-600 mb-1">
+        Arrastra archivos aquí o haz clic para seleccionar
+      </p>
+      <p class="text-sm text-gray-500">Máximo 20MB por archivo</p>
+    </div>
+  </div>
+  @if (attachments.length > 0) {
+  <div class="max-h-60 overflow-y-auto p-4">
+    <h4 class="text-sm font-medium text-gray-700 mb-3">
+      Archivos seleccionados:
+    </h4>
+    @for (attachment of attachments; track attachment.id) {
+    <div class="attachment-item">
+      <div class="flex items-start flex-1 gap-2">
+        @if (attachment.loading) {
+        <div class="file-icon default">
+          <iconify-icon icon="pi pi-spin pi-spinner"></iconify-icon>
+        </div>
+        } @else {
+        <div
+          class="file-icon"
+          [ngClass]="getFileIconClass(attachment.extension || '')"
+        >
+          <iconify-icon
+            [icon]="getFileIcon(attachment.extension || '')"
+          ></iconify-icon>
+        </div>
+        }
+        <div class="flex-1">
+          <div class="font-medium text-sm text-gray-800">
+            {{ attachment.file.name }}
+          </div>
+          <div class="text-xs text-gray-500 flex items-center gap-2">
+            <span>{{ attachment.extension?.toUpperCase() || "FILE" }}</span>
+            <span>•</span>
+            <span>{{ formatFileSize(attachment.file.size) }}</span>
+            @if (attachment.loading) {
+            <span>•</span>
+            <span class="text-blue-500">Procesando...</span>
+            }
+          </div>
+        </div>
+      </div>
+      <p-button
+        [text]="true"
+        severity="danger"
+        size="small"
+        (onClick)="removeAttachment(attachment.id)"
+        pTooltip="Eliminar archivo"
+      >
+        <iconify-icon icon="pi pi-trash"></iconify-icon>
+      </p-button>
+    </div>
+    }
+  </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center">
+      <span class="text-sm text-gray-500">
+        {{ attachments.length }} archivo(s) seleccionado(s)
+      </span>
+      <div>
+        <p-button
+          label="Cancelar"
+          [text]="true"
+          severity="secondary"
+          (onClick)="showAttachmentsDialog = false"
+        >
+        </p-button>
+        <p-button
+          label="Listo"
+          severity="primary"
+          (onClick)="showAttachmentsDialog = false"
+        >
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Vista Previa"
+  [(visible)]="showImageModal"
+  [modal]="true"
+  [style]="{ width: '85vw', height: '80vh' }"
+  [maximizable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="image-preview-modal"
+>
+  <ng-template pTemplate="content">
+    @if (selectedImage) {
+    <div
+      class="flex items-center justify-center w-full h-full min-h-[400px] bg-gray-50"
+    >
+      <div class="flex items-center justify-center max-w-full max-h-full p-4">
+        <img
+          [src]="
+            'data:image/' +
+            (selectedImage.extension || 'jpeg') +
+            ';base64,' +
+            selectedImage.content
+          "
+          [alt]="selectedImage.fileName || 'Imagen'"
+          class="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+          #previewImg
+          (load)="onImageLoad($event)"
+        />
+      </div>
+    </div>
+    }
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center w-full">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700 font-medium">
+          {{ selectedImage?.fileName || "Imagen sin nombre" }}
+        </span>
+        @if (selectedImage?.extension) {
+        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          {{ selectedImage.extension.toUpperCase() }}
+        </span>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <p-button
+          label="Descargar"
+          severity="secondary"
+          size="small"
+          [outlined]="true"
+          (onClick)="downloadAttachment(selectedImage!)"
+          pTooltip="Descargar imagen"
+          tooltipPosition="top"
+        >
+          <iconify-icon
+            icon="material-symbols:download"
+            class="text-lg mr-1"
+          ></iconify-icon>
+        </p-button>
+
+        <p-button
+          label="Cerrar"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          (onClick)="closeImageModal()"
+        >
+          <iconify-icon
+            icon="material-symbols:close"
+            class="text-lg mr-1"
+          ></iconify-icon>
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+}
+
+<p-dialog
+  header="Establecer Estado del Chat"
+  [(visible)]="showChaneStatusModal"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [blockScroll]="true"
+>
+  <div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-3"
+        >Seleccionar nuevo estado:</label
+      >
+      <p-dropdown
+        [(ngModel)]="selectedNewStatus"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecciona un estado"
+        appendTo="body"
+        [style]="{ width: '100%' }"
+      >
+      </p-dropdown>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-3">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="closeStatusModal()"
+      >
+      </p-button>
+      <p-button
+        label="Cambiar Estado"
+        severity="primary"
+        size="small"
+        [disabled]="!selectedNewStatus"
+        [loading]="updatingStatus"
+        (onClick)="updateChatStatus()"
+      >
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<app-assistances-history-modal
+  [visible]="showHistorial"
+  [channelRoomId]="chatDetail?.channelRoomId"
+  (visibleChange)="handleEvent($event)"
+>
+</app-assistances-history-modal>

@@ -1,0 +1,105 @@
+<div *ngIf="option" class="grid grid-cols-1 gap-1">
+
+  <!-- Si el sidebar NO está colapsado -->
+  <ng-container *ngIf="!collapsed; else collapsedView">
+    <a
+      class="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer transition-all duration-300 group-hover:translate-x-1"
+      [ngClass]="{
+        'bg-white text-[#365f95] font-semibold': option.active,
+        'text-white hover:bg-white hover:text-[#365f95] active:bg-slate-200 active:text-[#365f95]': !option.active
+      }"
+      (click)="toggleOption()"
+      [routerLink]="!option.active ? option.link : null"
+      [routerLinkActive]="!option.active ? 'bg-white text-[#365f95] font-semibold' : ''"
+      [routerLinkActiveOptions]="{ exact: false }"
+      [pTooltip]="option.label"
+      tooltipPosition="right"
+      tooltipStyleClass="!text-xs !font-normal !p-0"
+    >
+      <div class="grow-0">
+        <div *ngIf="option.icon" class="w-5 h-5 flex items-center justify-center">
+          <iconify-icon [icon]="option.icon" class="text-xl" />
+        </div>
+      </div>
+      <div class="grow">
+        <div class="flex items-center gap-0.5">
+          <div class="grow grid grid-cols-1">
+            <p class="text-sm truncate capitalize" [class.hidden]="collapsed">{{ option.label }}</p>
+          </div>
+          <div
+            *ngIf="option.items?.length"
+            class="grow-0 w-3 h-3 flex items-center justify-center"
+          >
+            <iconify-icon
+              [icon]="option.expand ? 'lucide:chevron-up' : 'lucide:chevron-down'"
+              class="text-xs"
+            />
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Subitems -->
+    <div *ngIf="option.items?.length && option.active" class="px-2 flex gap-0.5">
+      <div class="flex-0">
+        <div class="w-4 h-full flex justify-center">
+          <div class="w-[1px] bg-slate-200 h-full"></div>
+        </div>
+      </div>
+      <div class="w-full grid grid-cols-1 gap-1">
+        @for (item of option.items; track $index) {
+        <div
+          *ngIf="option.expand || isChildRouteActive(item.link)"
+          class="grid grid-cols-1 gap-1"
+        >
+          <a
+            class="flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer transition-all duration-300"
+            [routerLink]="item.link"
+            [routerLinkActive]="
+              'bg-white text-[#365f95] font-medium'
+            "
+            [routerLinkActiveOptions]="{ exact: false }"
+            [pTooltip]="item.label"
+            tooltipPosition="right"
+            tooltipStyleClass="!text-xs !font-normal !p-0"
+            [ngClass]="{
+              'text-[#365f95]': isChildRouteActive(item.link),
+              'text-white hover:bg-white hover:text-[#365f95] active:bg-slate-200 active:text-[#365f95]':
+                !isChildRouteActive(item.link)
+            }"
+          >
+            <div *ngIf="item.icon" class="grow-0">
+              <div class="w-5 h-5 flex items-center justify-center">
+                <iconify-icon
+                  [icon]="item.icon"
+                  class="text-lg text-inherit"
+                />
+              </div>
+            </div>
+            <div class="grow">
+              <div class="grid grid-cols-1">
+                <p class="text-sm truncate capitalize">{{ item.label }}</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        }
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Vista colapsada -->
+  <ng-template #collapsedView>
+    <a
+      class="w-12 h-12 flex items-center justify-center rounded-full text-white hover:bg-white hover:text-[#365f95] transition-all duration-300 mx-auto"
+      [routerLink]="option.link"
+      [routerLinkActive]="'bg-white text-[#365f95]'"
+      [pTooltip]="option.label"
+      tooltipPosition="right"
+      tooltipStyleClass="!text-xs !font-normal !p-0"
+    >
+      <!-- ¡AQUÍ va directamente el icono centrado! -->
+      <iconify-icon [icon]="option.icon" class="text-xl" />
+    </a>
+  </ng-template>
+</div>

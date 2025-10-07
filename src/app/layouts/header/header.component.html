@@ -1,0 +1,362 @@
+<!-- HEADER FINAL AJUSTADO -->
+<header
+  class="w-full h-16 bg-primary text-white flex items-center justify-between px-4 shadow fixed top-0 left-0 z-50"
+>
+  <div class="flex items-center w-fit">
+    <!-- Logo texto SAT -->
+    <div class="font-extrabold text-2xl tracking-wider ml-1">SAT</div>
+
+    <!-- Botones separados más a la derecha -->
+    <div class="flex items-center gap-4 ml-8">
+      <!-- Botón abrir/cerrar sidebar -->
+      <button class="text-white text-lg">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Grupo de botones redondos -->
+      <div class="flex items-center gap-4 ml-8">
+        <!-- Botón Side-Bar -->
+        <button
+          (click)="toggleSidebar()"
+          class="w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-white/10 active:bg-white/20 transition duration-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="35"
+            height="35"
+            viewBox="-5 -7 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M1 0h5a1 1 0 1 1 0 2H1a1 1 0 1 1 0-2m7 8h5a1 1 0 0 1 0 2H8a1 1 0 1 1 0-2M1 4h12a1 1 0 0 1 0 2H1a1 1 0 1 1 0-2"
+            />
+          </svg>
+        </button>
+
+        <!-- CALENDARIO -->
+        <!-- <div class="relative">
+          <button
+            (click)="toggleCalendar()"
+            class="w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-white/10 active:bg-white/20 transition duration-200"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isCalendarOpen"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M7.5 2.25a.75.75 0 0 1 .75.75v.253q.515-.004 1.119-.003h5.262q.604 0 1.119.003V3a.75.75 0 0 1 1.5 0v.301q.018 0 .035.003c.71.054 1.309.169 1.856.432a4.65 4.65 0 0 1 2.083 1.97c.287.532.41 1.113.469 1.793c.057.662.057 1.482.057 2.51v4.981c0 1.029 0 1.85-.057 2.511c-.06.68-.182 1.261-.469 1.792a4.65 4.65 0 0 1-2.083 1.971c-.547.263-1.146.378-1.856.432c-.696.054-1.56.054-2.654.054H9.37c-1.094 0-1.958 0-2.654-.054c-.71-.055-1.309-.169-1.856-.432a4.65 4.65 0 0 1-2.083-1.97c-.287-.532-.41-1.113-.469-1.793c-.057-.662-.057-1.482-.057-2.51V10.01c0-1.029 0-1.85.057-2.511c.06-.68.182-1.261.469-1.792A4.65 4.65 0 0 1 4.86 3.736c.547-.263 1.146-.378 1.856-.432L6.75 3.3V3a.75.75 0 0 1 .75-.75m-.75 2.556c-.577.05-.946.14-1.24.282a3.15 3.15 0 0 0-1.414 1.33c-.114.212-.196.466-.25.832h16.309c-.055-.366-.137-.62-.251-.831a3.15 3.15 0 0 0-1.413-1.331c-.295-.142-.664-.232-1.241-.282V5a.75.75 0 0 1-1.5 0v-.247q-.511-.004-1.15-.003H9.4q-.639 0-1.15.003V5a.75.75 0 0 1-1.5 0z"
+              />
+            </svg>
+          </button>
+
+          <div
+            *ngIf="hasCalendarNotification"
+            class="absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"
+          ></div>
+
+          <div
+            *ngIf="isCalendarOpen"
+            @dropdownAnimation
+            class="absolute left-0 mt-2 w-72 bg-white shadow-lg rounded-md z-50 text-gray-800 overflow-hidden"
+            style="
+              border-bottom: 2px solid #375f95;
+              box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+            "
+            (click)="$event.stopPropagation()"
+          >
+            <div class="px-4 py-2 border-b border-gray-200">
+              <strong class="text-[#375f95]">Fechas importantes</strong>
+            </div>
+
+            <div class="max-h-56 overflow-auto">
+              <ng-container *ngIf="calendarEvents?.length; else noEvents">
+                <div
+                  *ngFor="let ev of calendarEvents"
+                  class="px-4 py-3 border-b last:border-b-0 border-gray-200"
+                >
+                  <div class="text-sm font-medium">{{ ev.title }}</div>
+                  <div class="text-xs text-gray-500">
+                    {{ formatDate(ev.date) }} — {{ ev.description }}
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #noEvents>
+                <div class="p-4 text-sm text-gray-500">
+                  No hay eventos programados.
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- <div class="relative">
+          <button
+            (click)="toggleNotifications()"
+            class="w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-white/10 active:bg-white/20 transition duration-200"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isNotificationsOpen"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 512 512"
+            >
+              <path
+                fill="currentColor"
+                d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480"
+              />
+            </svg>
+          </button>
+
+          <div
+            *ngIf="unreadCount > 0"
+            class="absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"
+          ></div>
+
+          <div
+            *ngIf="isNotificationsOpen"
+            @dropdownAnimation
+            class="absolute left-0 mt-2 w-80 bg-white shadow-lg rounded-md z-50 text-gray-800 overflow-hidden"
+            style="
+              border-bottom: 2px solid #375f95;
+              box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+            "
+            (click)="$event.stopPropagation()"
+          >
+            <div
+              class="px-4 py-2 flex items-center justify-between border-b border-gray-200"
+            >
+              <strong class="text-[#375f95]">Notificaciones</strong>
+              <button
+                class="text-xs text-gray-500 hover:underline"
+                (click)="markAllAsRead()"
+              >
+                Marcar todas
+              </button>
+            </div>
+
+            <div class="max-h-56 overflow-auto">
+              <ng-container *ngIf="notifications?.length; else noNotes">
+                <div
+                  *ngFor="let n of notifications"
+                  class="px-3 py-2 flex items-start gap-3 border-b last:border-b-0 border-gray-200"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="n.checked"
+                    (change)="toggleNotificationChecked(n)"
+                    class="mt-1"
+                  />
+                  <div class="flex-1">
+                    <div class="text-sm" [class.line-through]="n.checked">
+                      {{ n.text }}
+                    </div>
+                    <div class="text-xs text-gray-400">
+                      {{ n.date | date : "short" }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #noNotes>
+                <div class="p-4 text-sm text-gray-500">
+                  No hay notificaciones.
+                </div>
+              </ng-template>
+            </div>
+
+            <div class="px-3 py-2 border-t text-xs text-gray-500">
+              {{ unreadCount }} sin leer
+            </div>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- <div
+    class="hidden md:flex flex-1 items-center justify-center overflow-hidden mx-4 mr-20"
+  >
+    <div class="animate-marquee whitespace-nowrap text-base tracking-wide pr-6">
+      Notificación enviada, esperando... &nbsp; - &nbsp; Tienes 7 Mensajes
+      Nuevos... &nbsp; - &nbsp; Tienes 3 Chats Pospuestos &nbsp; - &nbsp;
+      Notificación enviada, esperando...
+    </div>
+  </div> -->
+
+  
+  <div class="flex items-center gap-4 w-fit pr-4">
+
+    <button mat-raised-button class="nav-button">
+      <i class="fas fa-bell" matBadgeOverlap="false"></i>
+    </button>
+
+    <div class="relative flex items-center gap-3">
+      <div class="flex flex-col text-right">
+        <span class="font-semibold text-white">{{ displayName }}</span>
+        <span class="text-xs text-gray-300 capitalize">{{ role }}</span>
+      </div>
+
+      <button
+        (click)="toggleDropdown()"
+        class="w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-white/10 active:bg-white/20 transition duration-200"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="30"
+          height="30"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="#fff"
+            d="M6.25 7a5.75 5.75 0 1 1 11.5 0a5.75 5.75 0 0 1-11.5 0m5.548 7.261a1 1 0 0 1 .13-.011h.144q.066 0 .13.011l7.295 1.283l.038.008c1.344.31 2.788 1.163 3.069 2.82l.004.029l.114.877v.002c.264 2.009-1.329 3.47-3.21 3.47a1 1 0 0 1-.124-.01h-14.9c-1.881 0-3.475-1.462-3.21-3.472l.114-.869l.005-.03c.28-1.627 1.736-2.528 3.077-2.819l.029-.006z"
+          />
+        </svg>
+      </button>
+
+      <!-- Menú desplegable -->
+      <div
+        *ngIf="isDropdownOpen"
+        @dropdownAnimation
+        class="absolute right-0 top-full mt-2 w-64 bg-white shadow-lg rounded-md z-50 text-gray-800 overflow-hidden"
+        style="
+          border-bottom: 2px solid #375f95;
+          box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+        "
+      >
+        <button
+          class="flex items-center gap-3 px-4 py-2 w-full text-left hover:bg-gray-100 transition rounded-none"
+          (click)="toggleDropdown()"
+        >
+          <span class="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="#375f95"
+                fill-rule="evenodd"
+                d="M11.675 2.015a1 1 0 0 0-.403.011C6.09 2.4 2 6.722 2 12c0 5.523 4.477 10 10 10c4.356 0 8.058-2.784 9.43-6.667a1 1 0 0 0-1.02-1.33c-.08.006-.105.005-.127.005h-.001l-.028-.002A5 5 0 0 0 20 14a8 8 0 0 1-8-8c0-.952.121-1.752.404-2.558a1 1 0 0 0 .096-.428V3a1 1 0 0 0-.825-.985"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </span>
+          <span>Modo Oscuro</span>
+        </button>
+        <hr class="border-t border-gray-200" />
+
+        <button
+          class="flex items-center gap-3 px-4 py-2 w-full text-left hover:bg-gray-100 transition rounded-none"
+          (click)="toggleDropdown()"
+        >
+          <span class="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="#375f95"
+                fill-rule="evenodd"
+                d="M4 19q-.825 0-1.412-.587T2 17V7q0-.825.588-1.412T4 5h16q.825 0 1.413.588T22 7v10q0 .825-.587 1.413T20 19zm5-3h6q.425 0 .713-.288T16 15t-.288-.712T15 14H9q-.425 0-.712.288T8 15t.288.713T9 16m-3-6q.425 0 .713-.288T7 9t-.288-.712T6 8t-.712.288T5 9t.288.713T6 10m3 0q.425 0 .713-.288T10 9t-.288-.712T9 8t-.712.288T8 9t.288.713T9 10m3 0q.425 0 .713-.288T13 9t-.288-.712T12 8t-.712.288T11 9t.288.713T12 10m3 0q.425 0 .713-.288T16 9t-.288-.712T15 8t-.712.288T14 9t.288.713T15 10m3 0q.425 0 .713-.288T19 9t-.288-.712T18 8t-.712.288T17 9t.288.713T18 10M6 13q.425 0 .713-.288T7 12t-.288-.712T6 11t-.712.288T5 12t.288.713T6 13m3 0q.425 0 .713-.288T10 12t-.288-.712T9 11t-.712.288T8 12t.288.713T9 13m3 0q.425 0 .713-.288T13 12t-.288-.712T12 11t-.712.288T11 12t.288.713T12 13m3 0q.425 0 .713-.288T16 12t-.288-.712T15 11t-.712.288T14 12t.288.713T15 13m3 0q.425 0 .713-.288T19 12t-.288-.712T18 11t-.712.288T17 12t.288.713T18 13"
+              />
+            </svg>
+          </span>
+          <span>Atajos de teclado</span>
+        </button>
+        <hr class="border-t border-gray-200" />
+
+        <button
+          class="flex items-center gap-3 px-4 py-2 w-full text-left hover:bg-gray-100 transition rounded-none"
+          (click)="toggleDropdown()"
+        >
+          <span class="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="#375f95"
+                fill-rule="evenodd"
+                d="M21.5 5.134a1 1 0 0 1 .493.748L22 6v13a1 1 0 0 1-1.5.866A8 8 0 0 0 13 19.6V4.426a10 10 0 0 1 8.5.708M11 4.427l.001 15.174a8 8 0 0 0-7.234.117l-.327.18l-.103.044l-.049.016l-.11.026l-.061.01L3 20h-.042l-.11-.012l-.077-.014l-.108-.032l-.126-.056l-.095-.056l-.089-.067l-.06-.056l-.073-.082l-.064-.089l-.022-.036l-.032-.06l-.044-.103l-.016-.049l-.026-.11l-.01-.061l-.004-.049L2 6a1 1 0 0 1 .5-.866a10 10 0 0 1 8.5-.707"
+              />
+            </svg>
+          </span>
+          <span>Guía de Usuario</span>
+        </button>
+        <hr class="border-t border-gray-200" />
+
+        <button
+          class="flex items-center gap-3 px-4 py-2 w-full text-left hover:bg-gray-100 transition rounded-none"
+          (click)="toggleDropdown()"
+        >
+          <span class="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 48 48"
+            >
+              <defs>
+                <mask id="ipSConfig0">
+                  <g fill="none" stroke-linejoin="round" stroke-width="4">
+                    <path
+                      fill="#fff"
+                      stroke="#fff"
+                      d="m24 4l-6 6h-8v8l-6 6l6 6v8h8l6 6l6-6h8v-8l6-6l-6-6v-8h-8z"
+                    />
+                    <path
+                      fill="#000"
+                      stroke="#000"
+                      d="M24 30a6 6 0 1 0 0-12a6 6 0 0 0 0 12Z"
+                    />
+                  </g>
+                </mask>
+              </defs>
+              <path fill="#375f95" d="M0 0h48v48H0z" mask="url(#ipSConfig0)" />
+            </svg>
+          </span>
+          <span>Configuración</span>
+        </button>
+        <hr class="border-t border-gray-200" />
+
+        <button
+          class="flex items-center gap-3 px-4 py-2 w-full text-left hover:bg-gray-100 text-red-600 font-semibold transition rounded-none"
+          (click)="logout()"
+        >
+          <span class="w-5 h-5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <g fill="none">
+                <path
+                  d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+                />
+                <path
+                  fill="#375f95"
+                  fill-rule="evenodd"
+                  d="M12 2.5a1.5 1.5 0 0 1 0 3H7a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h4.5a1.5 1.5 0 0 1 0 3H7A3.5 3.5 0 0 1 3.5 18V6A3.5 3.5 0 0 1 7 2.5Zm6.06 5.61l2.829 2.83a1.5 1.5 0 0 1 0 2.12l-2.828 2.83a1.5 1.5 0 1 1-2.122-2.122l.268-.268H12a1.5 1.5 0 0 1 0-3h4.207l-.268-.268a1.5 1.5 0 1 1 2.122-2.121Z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

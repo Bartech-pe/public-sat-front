@@ -1,0 +1,53 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-4">
+  <p class="font-medium text-base text-center">Canal de Telegram</p>
+  <p class="font-normal text-sm">
+    Integre con el canal de Telegram y comience a apoyar a sus clientes.
+  </p>
+  <div class="grid grid-cols-1 gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium"> Nombre del canal </label>
+      <input id="nameTelegram" pInputText formControlName="name" />
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium"> Número de Teléfono </label>
+      <div class="flex items-center gap-2">
+        <p-inputmask
+          [disabled]="codeSended()"
+          mask="+51 999999999"
+          placeholder="+51 999999999"
+          (onInput)="onPhoneChange($event)"
+          formControlName="phoneNumber"
+        />
+        <p-button [disabled]="codeSended()" (click)="confirmModal()" label="Validar" [outlined]="true" />
+      </div>
+    </div>
+    @if(phone() != "" && codeSended())
+    {
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium"> Codigo de inicio de Sesión: </label>
+          <div class="flex items-center gap-2">
+            <p-inputmask
+              mask="99999"
+              placeholder="12345"
+              (onInput)="onCodeChange($event)"
+            />
+          </div>
+        </div>
+    }
+
+    <small class="text-gray-500">
+      Configura el número de teléfono que usarás para autenticarte.
+    </small>
+  </div>
+  <div class="flex justify-end gap-4">
+    <div class="flex gap-2">
+      <button-save
+        [label]="'canal de Telegram'"
+        [loading]="loading"
+        [disabled]="formData.invalid || code().length != 5"
+        (click)="createNewSession()"
+      />
+    </div>
+  </div>
+
+</form>

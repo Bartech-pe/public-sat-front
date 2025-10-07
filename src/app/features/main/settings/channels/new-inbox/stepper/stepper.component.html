@@ -1,0 +1,33 @@
+<div class="relative">
+  <div class="flex w-full h-auto py-2">
+    <div class="relative basis-1/4 pl-6">
+      @for (step of steps; track $index) {
+        <a
+          class="stepper cursor-pointer flex items-start space-x-4 relative mb-6"
+          (click)="onStepChange(step.id)"
+          [routerLink]="enabledSteps().includes(step.id) ? step.route : null"
+          routerLinkActive=""
+          [routerLinkActiveOptions]="{ exact: true }"
+          [ngClass]="{ active: enabledSteps().includes(step.id), completed: completedSteps().includes(step.id), current: currentStep() === step.id}"
+        >
+        <span
+          class="step p-2 flex items-center justify-center rounded-full bg-sky-300 text-white text-xs font-bold w-6 h-6 z-10"
+          >{{ step.id }}</span
+        >
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">{{ step.title }}</h3>
+          <p class="text-xs text-gray-500">{{ step.description }}</p>
+        </div>
+      </a>
+      }
+
+    </div>
+
+    <!-- Columna derecha: contenido dinámico -->
+    <div class="flex basis-3/4 h-full mx-4">
+      <p-card class="w-full">
+        <router-outlet></router-outlet>
+      </p-card>
+    </div>
+  </div>
+</div>

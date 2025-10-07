@@ -1,0 +1,306 @@
+<div class="flex flex-col gap-4 px-3">
+  <!-- Encabezado -->
+  <div class="shadow-lg rounded-xl p-4 bg-gray-50">
+    <div class="flex justify-between">
+      <h5 class="text-2xl font-semibold mb-1">Estados Personalizados</h5>
+    </div>
+
+    <div class="flex flex-col w-full gap-3 text-n-slate-11">
+      <p
+        class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+      >
+        Configura y perzonaliza todos los estados de los asesores
+      </p>
+    </div>
+  </div>
+  <div>
+    <p-tabs lazy [value]="viewValue()">
+      <p-tablist>
+        <p-tab
+          [value]="'channels'"
+          (click)="changeView('channels')"
+          class="flex items-center"
+          ><iconify-icon
+            [icon]="'fluent:channel-share-12-regular'"
+            class="text-xl"
+          />
+          <span>Canales</span>
+        </p-tab>
+        <p-tab
+          [value]="'assistances'"
+          (click)="changeView('assistances')"
+          class="flex items-center"
+        >
+          <iconify-icon
+            [icon]="'fluent:document-bullet-list-24-regular'"
+            class="text-xl"
+          />
+          <span>Atenciones</span>
+        </p-tab>
+        <p-tab
+          [value]="'campaigns'"
+          (click)="changeView('campaigns')"
+          class="flex items-center"
+          ><iconify-icon
+            [icon]="'fluent:target-arrow-16-regular'"
+            class="text-xl"
+          />
+          <span>Campañas</span>
+        </p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <!-- Canales -->
+        <p-tabpanel [value]="'channels'">
+          <p-tabs [value]="value">
+            <p-tablist class="flex items-center justify-around">
+              @for (category of listCategoryChannels; track $index) {
+              <p-tab [value]="$index" class="flex items-center">
+                <iconify-icon [icon]="category.icon" class="text-xl" />
+                <span>{{ category.name }}</span>
+              </p-tab>
+              }
+            </p-tablist>
+            <p-tabpanels>
+              @for (category of listCategoryChannels; track $index) {
+              <p-tabpanel [value]="$index">
+                <div class="grid grid-cols-1 gap-4">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl">
+                      Estados {{ category.name }}
+                    </h3>
+                    <button-save
+                      label="Nuevo estado"
+                      [icon]="'mdi:plus-circle-outline'"
+                      (click)="newChannelState()"
+                    />
+                  </div>
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+                  >
+                    <div
+                      *ngFor="let item of getChannelState(category.id)"
+                      class="border border-gray-400 rounded-lg p-4 shadow-lg"
+                    >
+                      <div class="space-y-1">
+                        <h3 class="font-bold text-lg">
+                          <span
+                            class="w-3 h-3 rounded-full inline-block mr-1"
+                            [style.backgroundColor]="item.color"
+                          ></span>
+                          {{ item.name }}
+                        </h3>
+                        <p class="font-normal text-sm">
+                          {{ item.description }}
+                        </p>
+                        <p class="font-normal text-sm flex items-center gap-1">
+                          <iconify-icon
+                            [icon]="'stash:data-date'"
+                            class="text-lg"
+                          />
+                          Creado:
+                          <span class="font-semibold">{{
+                            item.createdAt | date : "dd/MM/yyyy"
+                          }}</span>
+                        </p>
+                      </div>
+                      <div class="flex justify-between pt-4">
+                        <div>
+                          <p-tag
+                            class="text-xs"
+                            [value]="
+                              item.type == true ? 'Base' : 'Perzonalizado'
+                            "
+                            [severity]="
+                              item.type == true ? 'secondary' : 'primary'
+                            "
+                            ><iconify-icon
+                              *ngIf="item.type == true"
+                              [icon]="'mdi:secure-outline'"
+                              class="text-base"
+                            />
+                            <iconify-icon
+                              *ngIf="item.type != true"
+                              [icon]="'akar-icons:pencil'"
+                              class="text-base"
+                            />
+                          </p-tag>
+                        </div>
+                        <div class="flex gap-2">
+                          <btn-edit-square
+                            (onClick)="editAssistanceState(item)"
+                          />
+                          <btn-delete
+                            [text]="false"
+                            (onClick)="deleteAssistanceState(item)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </p-tabpanel>
+              }
+            </p-tabpanels>
+          </p-tabs>
+        </p-tabpanel>
+        <!-- Atención -->
+        <p-tabpanel [value]="'assistances'">
+          <p-tabs [value]="value">
+            <p-tablist class="flex items-center justify-around">
+              @for (category of listCategoryChannels; track $index) {
+              <p-tab [value]="$index" class="flex items-center">
+                <iconify-icon [icon]="category.icon" class="text-xl" />
+                <span>{{ category.name }}</span>
+              </p-tab>
+              }
+            </p-tablist>
+            <p-tabpanels>
+              @for (category of listCategoryChannels; track $index) {
+              <p-tabpanel [value]="$index">
+                <div class="grid grid-cols-1 gap-4">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl">
+                      Estados {{ category.name }}
+                    </h3>
+                    <button-save
+                      label="Nuevo estado de atención"
+                      [icon]="'mdi:plus-circle-outline'"
+                      (click)="newAssistanceState(category.id)"
+                    />
+                  </div>
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+                  >
+                    <div
+                      *ngFor="let item of getAssistanceState(category.id)"
+                      class="border border-gray-400 rounded-lg p-4 shadow-lg"
+                    >
+                      <div class="space-y-1">
+                        <h3 class="font-bold text-lg">
+                          <span
+                            class="w-3 h-3 rounded-full inline-block mr-1"
+                            [style.backgroundColor]="item.color"
+                          ></span>
+                          {{ item.name }}
+                        </h3>
+                        <p class="font-normal text-sm">
+                          {{ item.description }}
+                        </p>
+                        <p class="font-normal text-sm flex items-center gap-1">
+                          <iconify-icon
+                            [icon]="'stash:data-date'"
+                            class="text-lg"
+                          />
+                          Creado:
+                          <span class="font-semibold">{{
+                            item.createdAt | date : "dd/MM/yyyy"
+                          }}</span>
+                        </p>
+                      </div>
+                      <div class="flex justify-between pt-4">
+                        <div>
+                          <p-tag
+                            class="text-xs"
+                            [value]="
+                              item.type == true ? 'Base' : 'Perzonalizado'
+                            "
+                            [severity]="
+                              item.type == true ? 'secondary' : 'primary'
+                            "
+                            ><iconify-icon
+                              *ngIf="item.type == true"
+                              [icon]="'mdi:secure-outline'"
+                              class="text-base"
+                            />
+                            <iconify-icon
+                              *ngIf="item.type != true"
+                              [icon]="'akar-icons:pencil'"
+                              class="text-base"
+                            />
+                          </p-tag>
+                        </div>
+                        <div class="flex gap-2">
+                          <btn-edit-square
+                            (onClick)="editAssistanceState(item)"
+                          />
+                          <btn-delete
+                            [text]="false"
+                            (onClick)="eliminarChannelState(item)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </p-tabpanel>
+              }
+            </p-tabpanels>
+          </p-tabs>
+        </p-tabpanel>
+        <!-- Campaña -->
+        <p-tabpanel [value]="'campaigns'">
+          <div class="grid grid-cols-1 gap-4">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-xl">Estados de Campaña</h3>
+              <button-save
+                label="Nuevo estado de campaña"
+                [icon]="'mdi:plus-circle-outline'"
+                (click)="nuevoCampaignState()"
+              />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div
+                *ngFor="let item of campaignStateList"
+                class="border border-gray-400 rounded-lg p-4 shadow-lg"
+              >
+                <div class="space-y-1">
+                  <h3 class="font-bold text-lg">
+                    <span
+                      class="w-3 h-3 rounded-full inline-block mr-1"
+                      [style.backgroundColor]="item.color"
+                    ></span>
+                    {{ item.name }}
+                  </h3>
+                  <p class="font-normal text-sm">{{ item.description }}</p>
+                  <p class="font-normal text-sm flex items-center gap-1">
+                    <iconify-icon [icon]="'stash:data-date'" class="text-lg" />
+                    Creado:
+                    <span class="font-semibold">{{
+                      item.createdAt | date : "dd/MM/yyyy"
+                    }}</span>
+                  </p>
+                </div>
+                <div class="flex justify-between pt-4">
+                  <div>
+                    <p-tag
+                      class="text-xs"
+                      [value]="item.type == true ? 'Base' : 'Perzonalizado'"
+                      [severity]="item.type == true ? 'secondary' : 'primary'"
+                      ><iconify-icon
+                        *ngIf="item.type == true"
+                        [icon]="'mdi:secure-outline'"
+                        class="text-base"
+                      />
+                      <iconify-icon
+                        *ngIf="item.type != true"
+                        [icon]="'akar-icons:pencil'"
+                        class="text-base"
+                      />
+                    </p-tag>
+                  </div>
+                  <div class="flex gap-2">
+                    <btn-edit-square (click)="EditarCampaignState(item)" />
+                    <btn-delete
+                      [text]="false"
+                      (click)="eliminarCampaignState(item)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+</div>

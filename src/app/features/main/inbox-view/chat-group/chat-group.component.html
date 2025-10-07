@@ -1,0 +1,77 @@
+<div class="grid grid-cols-1 gap-6">
+  <!-- Filtro de búsqueda -->
+  <div class="relative">
+    <input
+      type="text"
+      pInputText
+      placeholder="Buscar usuario..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="applyFilter()"
+      class="w-full pr-10"
+    />
+    <iconify-icon
+      icon="lucide:search"
+      class="absolute right-3 top-2.5 text-gray-400"
+    ></iconify-icon>
+  </div>
+
+  <!-- Tabla de selección -->
+  <p-table
+    [value]="filteredList"
+    selectionMode="multiple"
+    [(selection)]="selectedUsers"
+    dataKey="id"
+    class="p-datatable-sm w-full"
+  >
+    <ng-template pTemplate="body" let-contact>
+      <tr [pSelectableRow]="contact">
+        <td>
+          <div class="flex items-center gap-2">
+            <p-tableCheckbox [value]="contact"></p-tableCheckbox>
+            <img [src]="'https://i.pravatar.cc/100?img=1'" class="w-8 h-8 rounded-full" />
+            <span>{{ contact.displayName }}</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+
+<form
+  [formGroup]="formData"
+  class="grid grid-cols-1 gap-6 mt-4"
+>
+ <!-- Input para nombre del grupo -->
+  <div *ngIf="selectedUsers.length > 0" class="transition-all mt-4">
+    <label class="block text-sm font-medium mb-1">Nombre del grupo:</label>
+    <input
+      type="text"
+      pInputText
+      placeholder="Ej. Equipo de Soporte"
+      formControlName="name"
+      class="w-full"
+    />
+    <div
+        *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+      >
+        <small *ngIf="formData.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
+      </div>
+  </div>
+  <div class="flex justify-between gap-4">
+
+    <div class="flex gap-2">
+      <button-cancel (click)="onCancel()" />
+      <button-save
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      />
+    </div>
+  </div>
+</form>
+
+

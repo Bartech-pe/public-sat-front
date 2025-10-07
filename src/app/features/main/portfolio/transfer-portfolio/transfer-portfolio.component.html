@@ -1,0 +1,46 @@
+<div class="text-sm text-gray-700">
+    <p>Confirma la transferencia de casos.</p>
+
+    <p><strong>Origen:</strong> MEPESCOS → <strong>Destino:</strong> PRICOS</p>
+
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mt-4 text-sm rounded">
+      <p class="font-semibold">⚠️ Los casos transferidos:</p>
+      <ul class="list-disc ml-5 mt-2">
+        <li>Se quitarán de esta cartera (MEPECOS)</li>
+        <li>Irán a PRICOS como “Sin Asignar”</li>
+        <li>El supervisor PRICOS deberá asignarlos</li>
+      </ul>
+    </div>
+
+    <div class="mt-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1"
+        >Motivo (requerido):</label
+      >
+      <textarea
+        rows="3"
+        [(ngModel)]="motivoTransferencia"
+        class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-300"
+        placeholder="Escribe un motivo para la transferencia..."
+      ></textarea>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-5">
+      <button
+        pButton
+        type="button"
+        class="p-button-secondary"
+        (click)="cancelarTransferencia()"
+      >
+        Cancelar
+      </button>
+      <button
+        pButton
+        type="button"
+        class="p-button-primary"
+        [disabled]="!motivoTransferencia"
+        (click)="confirmarTransferencia()"
+      >
+        Confirmar Transferencia
+      </button>
+    </div>
+  </div>

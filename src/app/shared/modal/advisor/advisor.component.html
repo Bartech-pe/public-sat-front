@@ -1,0 +1,53 @@
+<p-dialog
+  [(visible)]="visible"
+  (visibleChange)="closeModal()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '400px' }"
+  [appendTo]="'body'"
+  header="Reasignar Asesor"
+>
+  <div class="space-y-4">
+    <!-- DEBUG -->
+    <!-- <div class="text-xs bg-yellow-100 p-2 rounded">
+      DEBUG: Advisors length = {{ advisors?.length || 0 }}
+    </div> -->
+
+    <label class="block text-sm font-medium">Selecciona el asesor:</label>
+
+    <p-dropdown
+      [options]="advisors"
+      [(ngModel)]="advisorSelected"
+      optionLabel="name"
+      appendTo="body"
+      placeholder="Seleccionar asesor"
+      [showClear]="true"
+      styleClass="w-full"
+    >
+      <ng-template let-advisor pTemplate="item">
+        <div class="flex items-center gap-2 p-2">
+          <span>{{ advisor.name }}</span>
+          <small class="text-gray-500">({{ advisor.email }})</small>
+        </div>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="closeModal()"
+      ></p-button>
+      <p-button
+        label="Reasignar"
+        [disabled]="!advisorSelected"
+        (onClick)="onReasignar()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,156 @@
+<div class="w-full flex justify-center">
+  <div class="w-full px-3">
+    <div class="flex flex-col gap-4">
+      <!-- Encabezado -->
+      <div class="bg-gray-50 shadow rounded-xl p-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h5 class="text-2xl font-semibold mb-1">Campañas - SMS</h5>
+            <div class="flex flex-col w-full gap-3 text-n-slate-11">
+              <p
+                class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+              >
+                Las campañas por SMS te permiten enviar mensajes masivos y
+                personalizados a los ciudadanos de forma rápida y eficiente.
+              </p>
+            </div>
+          </div>
+          <button-save
+            label="Nueva Campaña - SMS"
+            [icon]="'mdi:plus-circle-outline'"
+            (click)="openNew()"
+          />
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
+        <p-table
+          [value]="smsCampanias()"
+          [paginator]="true"
+          [rows]="10"
+          [responsiveLayout]="'scroll'"
+          sortMode="multiple"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Fecha de Creación <p-sortIcon field="name" />
+                </div>
+              </th>
+              <th pSortableColumn="description">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Nombre <p-sortIcon field="description" />
+                </div>
+              </th>
+              <!-- <th pSortableColumn="fecha_creacion">Fecha de creación <p-sortIcon field="fecha_creacion" /></th> -->
+              <th pSortableColumn="createdByUser.name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  ID del Remitente <p-sortIcon field="createdByUser.name" />
+                </div>
+              </th>
+              <th pSortableColumn="dateStart">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Mensaje <p-sortIcon field="dateStart" />
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Estado
+                </div>
+              </th>
+
+              <th class="items-center">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Acciones
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <p class="text-sm font-light">{{ item.createdAt }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ item.nombre }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">
+                  {{ item.senderId }}
+                </p>
+              </td>
+              <td class="w-70">
+                <p class="text-sm font-light text-center">
+                  {{ item.message }}
+                </p>
+              </td>
+              <td>
+                <div class="flex justify-center items-center">
+                  <p-tag
+                    [value]="item.estado === true ? ' Finalizado' : 'Activo'"
+                    [severity]="item.estado === true ? 'warn' : 'success'"
+                  />
+                </div>
+              </td>
+
+              <td class="w-28">
+                <div class="flex justify-center items-center gap-1">
+                  <button-count (click)="count(item)" />
+                  <button-edit (click)="edit(item.id)" />
+                  <button-download (click)="downloadReport(item)" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    </div>
+  </div>
+</div>
+
+<p-popover #op>
+  <div class="flex flex-col gap-4 p-4">
+    <div>
+      <span class="font-bold block my-1 text-sm uppercase"
+        >Recuento de Mensajes</span
+      >
+    </div>
+    <div class="flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">Enviados:</p>
+        <p class="text-sm">203059</p>
+      </div>
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">Entregados:</p>
+        <p class="text-sm">15000</p>
+      </div>
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">No Entregados:</p>
+        <p class="text-sm">0</p>
+      </div>
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">Rechazados:</p>
+        <p class="text-sm">0</p>
+      </div>
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">Caducados</p>
+        <p class="text-sm">0</p>
+      </div>
+      <div class="flex justify-between items-center">
+        <p class="font-light text-blue-700 text-sm">Desconocidos:</p>
+        <p class="text-sm">0</p>
+      </div>
+    </div>
+  </div>
+</p-popover>

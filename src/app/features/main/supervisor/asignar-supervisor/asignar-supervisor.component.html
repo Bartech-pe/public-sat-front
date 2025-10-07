@@ -1,0 +1,34 @@
+<div>
+    <div class="text-sm space-y-4 p-2">
+      <div class="flex justify-between" *ngFor="let item of listInboxes">
+        <span class="font-medium"> 
+            <h5 class="font-semibold text-base capitalize">{{ item.name }}</h5>
+            <p class="text-sm font-light capitalize">
+              {{ item.channel?.name }}
+            </p>
+       </span>
+       <p-toggleswitch [(ngModel)]="item.checked" />
+      </div>
+      
+    </div>
+    <div class="flex justify-self-end pt-4 gap-4">
+      <p-button
+        size="small"
+        label="Cerrar"
+        styleClass="w-full !rounded-full !shadow-none"
+        severity="contrast"
+        (click)="onCancel()"
+      >
+        <iconify-icon [icon]="'ix:cancel'" class="text-xl" />
+      </p-button>
+      <p-button
+        size="small"
+        label="Guardar"
+        styleClass="w-full !rounded-full !shadow-none"
+        severity="info"
+        (click)="btnAsignarCanal()"
+      >
+        <iconify-icon [icon]="'ci:save'" class="text-xl" />
+      </p-button>
+    </div>
+  </div>
