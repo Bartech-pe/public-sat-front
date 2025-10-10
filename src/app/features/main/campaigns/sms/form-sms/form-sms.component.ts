@@ -30,7 +30,6 @@ import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-canc
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
 import { NgxFileDropModule } from 'ngx-file-drop';
-import { Checkbox } from 'primeng/checkbox';
 import { Dialog } from 'primeng/dialog';
 import { User } from '@models/user.model';
 import { AuthStore } from '@stores/auth.store';
@@ -58,7 +57,6 @@ import { Department } from '@models/department.model';
     TableModule,
     Select,
     NgxFileDropModule,
-    Checkbox,
     Dialog,
   ],
   templateUrl: './form-sms.component.html',
@@ -69,6 +67,7 @@ export class FormSmsComponent implements OnInit {
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
   private readonly msg = inject(MessageGlobalService);
   editarCampania: boolean = true;
+  charCount = 0;
 
   constructor(public config: DynamicDialogConfig) {
     if (this.config.data) {
@@ -93,7 +92,7 @@ export class FormSmsComponent implements OnInit {
   // Opciones de contactos
   contactos: ShowHeader[] = [];
 
-  listaVistaPrevia = [];
+  listaVistaPrevia:any[] = [];
 
   columnas: string[] = [];
   previewData: any[] = [];
@@ -107,7 +106,8 @@ export class FormSmsComponent implements OnInit {
     this.formData = this.fb.group({
       name: [undefined, Validators.required],
       senderId: [undefined, Validators.required],
-      ccontact: [{ value: undefined, disabled: true }, Validators.required],
+      contact: [{ value: undefined, disabled: true },Validators.required],
+      variable: [{ value: undefined, disabled: true }],
       message: [undefined, Validators.required],
       countryCode: [this.countryCode],
       id_area_campania: [null, Validators.required],
@@ -126,9 +126,7 @@ export class FormSmsComponent implements OnInit {
           countryCode: res.countryCode,
           id_estado_campania: res.id_estado_campania,
           id_area_campania: res.id_area_campania,
-          contact:
-            this.contactos.find((item) => item.label == res.contact)?.value ??
-            '',
+          contact:this.contactos.find((item) => item.label == res.contact)?.value ?? '',
         });
       });
     }
@@ -143,10 +141,12 @@ export class FormSmsComponent implements OnInit {
 
         // ✅ Habilitar el select de contacto
         this.formData.get('contact')?.enable();
+        this.formData.get('variable')?.enable();
         this.msg.success('¡Archivo cargado correctamente!');
 
         // (opcional) Resetear el valor anterior
         this.formData.get('contact')?.reset();
+        this.formData.get('variable')?.reset();
       },
       error: (err) => {
         console.error('Error al leer el archivo', err);
@@ -178,10 +178,32 @@ export class FormSmsComponent implements OnInit {
     const contactControl = this.formData.get('contact');
     contactControl?.reset(); // limpia el valor seleccionado
     contactControl?.disable(); // lo deshabilita nuevamente
+
+    const variableControl = this.formData.get('variable');
+    variableControl?.reset(); // limpia el valor seleccionado
+    variableControl?.disable(); // lo deshabilita nuevamente
   }
 
   previewMessage() {
     const values = this.formData.getRawValue();
+
+      if (!values.message || !Array.isArray(this.rows)) return;
+
+      // const mensajes = this.rows.map((contacto) => ({
+      //   message: this.renderTemplate(values.message, contacto),
+      //   contact: this.contactos.find((item) => item.value == values.contact)?.label ?? ''
+      // }));
+
+      // console.log('Mensajes personalizados:', mensajes);
+
+      // let quees= this.contactos.find((item) => item.value == values.contact)?.label ??  '';
+
+
+      // console.log(quees);
+      // //     '',)
+      // this.listaVistaPrevia = mensajes;
+
+
     const request: MessagePreview = {
       rows: this.rows,
       message: values.message,
@@ -189,18 +211,28 @@ export class FormSmsComponent implements OnInit {
         this.contactos.find((item) => item.value == values.contact)?.label ??
         '',
     };
+
+
     this.smsCampaingService.getMessagePreview(request).subscribe((res) => {
       this.listaVistaPrevia = res;
     });
   }
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
   onDropZoneClick() {
     this.fileInput.nativeElement.click();
   }
 
-  get estadoCampanias(): CampaignState[] {
+  private renderTemplate(template: string, contacto: any): string {
+    // Buscar todas las variables entre corchetes como [NOMBRE], [CORREO], [CELULAR], etc.
+    return template.replace(/\[([^\]]+)\]/g, (_, variable) => {
+      const key = variable.trim().toUpperCase();
+      // Si el contacto tiene una propiedad con ese nombre, la reemplaza, si no deja vacío
+      return contacto[key] ?? '';
+    });
+  }
+
+  get CampaignList(): CampaignState[] {
     return this.campaignStateStore.items()!;
   }
 
@@ -238,13 +270,11 @@ export class FormSmsComponent implements OnInit {
     if (this.editarCampania) {
       const update = {
         senderId: request.senderId,
-        nombre: request.name,
-        contact:
-          this.contactos.find((item) => item.value == request.contact)?.label ??
-          '',
+        name: request.name,
+        contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
         message: request.message,
-        id_area_campania: request.id_area_campania,
-        id_estado_campania: request.id_estado_campania,
+        departmentId: request.id_area_campania,
+        campaignStateId: request.id_estado_campania,
         countryCode: request.countryCode,
       };
 
@@ -254,7 +284,7 @@ export class FormSmsComponent implements OnInit {
           this.ref.close(true); // ✅ Se ejecuta correctamente
         },
         error: (err) => {
-          this.msg.error('Error al actualizar la campaña');
+          this.msg.error('Error al actualizar la campaña SMS');
           console.error(err);
         },
       });
@@ -264,13 +294,11 @@ export class FormSmsComponent implements OnInit {
 
     const createBody = {
       senderId: request.senderId,
-      nombre: request.name,
-      contact:
-        this.contactos.find((item) => item.value == request.contact)?.label ??
-        '',
+      name: request.name,
+      contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
       message: request.message,
-      id_area_campania: request.id_area_campania,
-      id_estado_campania: request.id_estado_campania,
+      departmentId: request.id_area_campania,
+      campaignStateId: request.id_estado_campania,
       countryCode: false,
       createUser: this.userCurrent.id,
       rows: this.rows,
@@ -278,14 +306,45 @@ export class FormSmsComponent implements OnInit {
 
     this.smsCampaingService.create(createBody).subscribe({
       next: (res) => {
-        this.msg.success('Campaña SMS creada exitosamente');
-        this.ref.close(true); // ✅ ahora sí cierra el modal
+        this.msg.success('Campaña SMS enviada exitosamente');
+        this.ref.close(true);
       },
       error: (err) => {
-        this.msg.error('Error al crear la campaña');
+        this.msg.error('Error al enviar la campaña');
         console.error(err);
       },
     });
+  }
+
+  @ViewChild('mensajeInput') mensajeInput!: ElementRef<HTMLTextAreaElement>
+  insertVariable(event: any) {
+    const variable = event.value;
+    if (!variable || !this.mensajeInput) return;
+
+    const textarea = this.mensajeInput.nativeElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentMessage = this.formData.get('message')?.value || '';
+
+    // Inserta la variable donde está el cursor
+    const newMessage =
+      currentMessage.substring(0, start) +
+     `[${variable}]`
+      currentMessage.substring(end);
+
+    // Actualiza el formControl
+    this.formData.patchValue({ message: newMessage });
+
+    console.log( newMessage)
+    // Vuelve a enfocar y coloca el cursor al final del texto insertado
+    setTimeout(() => {
+      textarea.focus();
+      const cursorPosition = start + variable.length + 2;
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    });
+
+    // Limpia el select
+    //this.selectedVariable = null;
   }
 
   showDialog() {

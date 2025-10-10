@@ -44,6 +44,15 @@ import { CitizenAssistanceService } from '@services/citizen-assistance.service';
 import { CitizenAssistance } from '@models/citizen-assistance.model';
 import { AloSatStore } from '@stores/alo-sat.store';
 import { ChannelState } from '@models/channel-state.model';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import {
+  ChannelPhoneState,
+  pauseCodeAgent,
+  VicidialPauseCode,
+} from '@constants/pause-code-agent.constant';
+import { CardModule } from 'primeng/card';
+import { SocketService } from '@services/socket.service';
+import { User } from '@models/user.model';
 
 @Component({
   selector: 'app-phone',
@@ -63,7 +72,9 @@ import { ChannelState } from '@models/channel-state.model';
     IconFieldModule,
     InputIconModule,
     ButtonModule,
+    CardModule,
     ButtonSaveComponent,
+    BtnCustomComponent,
   ],
   templateUrl: './phone.component.html',
   styles: ``,
@@ -94,6 +105,8 @@ export class PhoneComponent implements OnInit {
   private readonly omnicanalidadService = inject(OmnicanalidadService);
 
   private readonly saldomaticoService = inject(SaldomaticoService);
+
+  private readonly socketService = inject(SocketService);
 
   motivo: any;
 
@@ -144,60 +157,73 @@ export class PhoneComponent implements OnInit {
   ];
 
   get isLogged(): boolean {
-    return !!this.agentStatus;
+    return !!this.userState && this.userState?.id !== ChannelPhoneState.OFFLINE;
   }
 
-  get agentStatus(): any {
-    return this.aloSatService.status;
+  get agentStatus(): string | undefined {
+    return this.userState?.name;
   }
 
-  get isPaused(): boolean {
-    return true;
-    // return this.agentStatus.status === 'PAUSED';
+  get isInPaused(): boolean {
+    return this.userState?.id === ChannelPhoneState.PAUSED;
   }
 
-  get isInCall(): boolean {
-    return false;
-    // return this.agentStatus.status === 'INCALL';
+  get isInCall(): boolean | undefined {
+    return this.userState?.id === ChannelPhoneState.INCALL;
   }
 
-  get callInfo(): any {
-    return this.aloSatService.callInfo;
+  get isInQueue(): boolean | undefined {
+    return this.userState?.id === ChannelPhoneState.QUEUE;
+  }
+
+  get isInWrap(): boolean | undefined {
+    return this.isInPaused && this.pauseCode === VicidialPauseCode.WRAP;
+  }
+
+  getPauseCodeValue(code: string): string {
+    return pauseCodeAgent.find((p) => p.code === code)?.name!;
   }
 
   get estado(): any {
     let icon = 'heroicons-outline:pause';
     let label = 'PAUSADO';
     let textColor = 'text-red-600';
-    // switch (this.agentStatus.status) {
-    //   case 'PAUSED':
-    //     icon = 'heroicons-outline:pause';
-    //     label = this.agentStatus.pauseCode
-    //       ? `PAUSADO - ${this.agentStatus.pauseCode}`
-    //       : 'PAUSADO';
-    //     textColor = 'text-sky-600';
-    //     break;
-    //   case 'CLOSER':
-    //     icon = 'icon-park-outline:check-one';
-    //     label = 'DISPONIBLE PARA LLAMADAS';
-    //     textColor = 'text-teal-600';
-    //     break;
-    //   case 'QUEUE':
-    //     icon = 'line-md:loading-alt-loop';
-    //     label = 'LLAMADA ENTRANTE';
-    //     textColor = 'text-orange-600';
-    //     break;
-    //   case 'INCALL':
-    //     icon = 'line-md:loading-alt-loop';
-    //     label = 'EN LLAMADA';
-    //     textColor = 'text-green-600';
-    //     break;
-    //   default:
-    //     icon = 'line-md:loading-alt-loop';
-    //     label = 'DESCONECTADO';
-    //     textColor = 'text-red-600';
-    //     break;
-    // }
+    switch (this.userState?.id) {
+      case ChannelPhoneState.PAUSED:
+        icon = 'heroicons-outline:pause';
+        label =
+          this.userState?.name +
+          (this.pauseCode
+            ? ` - ${this.getPauseCodeValue(this.pauseCode)}`
+            : ' - Inicial');
+        textColor = 'text-sky-600';
+        break;
+      case ChannelPhoneState.CLOSER:
+        icon = 'icon-park-outline:check-one';
+        label = this.userState?.name;
+        textColor = 'text-teal-600';
+        break;
+      case ChannelPhoneState.QUEUE:
+        icon = 'lsvg-spinners:12-dots-scale-rotate';
+        label = this.userState?.name;
+        textColor = 'text-orange-600';
+        break;
+      case ChannelPhoneState.INCALL:
+        icon = 'svg-spinners:bars-scale';
+        label = this.userState?.name;
+        textColor = 'text-green-600';
+        break;
+      case ChannelPhoneState.READY:
+        icon = 'svg-spinners:gooey-balls-1';
+        label = this.userState?.name;
+        textColor = 'text-green-600';
+        break;
+      default:
+        icon = 'line-md:loading-alt-loop';
+        label = 'DESCONECTADO';
+        textColor = 'text-red-600';
+        break;
+    }
     return {
       icon,
       label,
@@ -207,6 +233,10 @@ export class PhoneComponent implements OnInit {
 
   get isAloSat(): boolean {
     return this.authStore.user()?.officeId === 1;
+  }
+
+  get user(): User {
+    return this.authStore.user()!;
   }
 
   private callTimerService = inject(CallTimerService);
@@ -261,6 +291,36 @@ export class PhoneComponent implements OnInit {
     return this.aloSatStore.state();
   }
 
+  get pauseCode(): string | undefined {
+    return this.aloSatStore.pauseCode();
+  }
+
+  get callInfo(): any | undefined {
+    return this.aloSatStore.callInfo();
+  }
+
+  get lastCallInfo(): any | undefined {
+    return this.aloSatStore.lastCallInfo();
+  }
+
+  private callInfoEffect = effect(() => {
+    const callInfo = this.aloSatStore.callInfo();
+    if (this.isInCall && callInfo) {
+      this.callTimerService.start(callInfo.entryDate);
+    } else {
+      this.callTimerService.reset(0);
+    }
+  });
+
+  private lastCallInfoEffect = effect(() => {
+    const lastCallInfo = this.aloSatStore.lastCallInfo();
+    if (this.isInWrap) {
+      this.callTimerService.reset(lastCallInfo?.seconds);
+    } else {
+      this.callTimerService.reset(0);
+    }
+  });
+
   private resetOnSuccessEffect = effect(() => {
     const item = this.store.selectedItem();
     const error = this.store.error();
@@ -293,13 +353,32 @@ export class PhoneComponent implements OnInit {
   ngOnInit(): void {
     if (this.isAloSat) {
       // this.aloSatService.startKeepalive();
-      this.aloSatService.agentStatus();
+      // this.aloSatService.agentStatus();
       this.aloSatStore.getState();
+      this.aloSatService.getCallInfo();
       this.getCampaigns();
       this.sub = this.callTimerService.time$.subscribe((time) => {
         this.callTimer = time;
       });
     }
+
+    this.socketService.onUserPhoneStateRequest().subscribe({
+      next: (data: { userId: number }) => {
+        console.log('onUserPhoneStateRequest', data);
+        if (data.userId === this.user.id) {
+          this.aloSatStore.getState();
+        }
+      },
+    });
+
+    this.socketService.onRequestPhoneCallSubject().subscribe({
+      next: (data: { userId: number }) => {
+        console.log('onRequestPhoneCallSubject', data);
+        if (data.userId === this.user.id) {
+          this.aloSatStore.getState();
+        }
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -410,13 +489,24 @@ export class PhoneComponent implements OnInit {
       this.msg.error('El id de la campaña es obligatorio');
       return;
     }
-    this.aloSatService.agentLogin(idCampaign as string);
+    this.aloSatService.agentLogin(idCampaign as string).subscribe({
+      next: (data) => {
+        this.aloSatStore.getState();
+      },
+    });
+  }
+
+  agentRelogin() {
+    this.aloSatService.agentRelogin().subscribe({
+      next: (data) => {
+        this.aloSatStore.getState();
+      },
+    });
   }
 
   getStatus() {
     this.aloSatService.agentStatus().subscribe({
       next: (data) => {
-        console.log('data', data);
         this.aloSatService.status = data;
       },
     });
@@ -429,7 +519,14 @@ export class PhoneComponent implements OnInit {
         <p class='text-center'> ¿Está seguro de cerrar la conexión del agente? </p>
       </div>
       `,
-      () => this.aloSatService.agentLogout(),
+      () => {
+        this.aloSatService.agentLogout().subscribe({
+          next: (data) => {
+            console.log('data', data);
+            this.aloSatStore.getState();
+          },
+        });
+      },
       undefined,
       'Desconectar agente'
     );
@@ -443,7 +540,7 @@ export class PhoneComponent implements OnInit {
     });
   }
 
-  solicitarPausa() {
+  requestPause() {
     this.openModal = true;
     const ref = this.dialogService.open(BreakComponent, {
       header: 'Solicitar Pausa',
@@ -456,13 +553,14 @@ export class PhoneComponent implements OnInit {
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
+      this.aloSatStore.getState();
     });
   }
 
   transferCall() {
     this.openModal = true;
     const ref = this.dialogService.open(TransferCallComponent, {
-      header: `Transferir llamada | ${this.callInfo?.phone_number}`,
+      header: `Transferir llamada | ${this.callInfo?.phoneNumber}`,
       styleClass: 'modal-sm',
       modal: true,
       focusOnShow: false,
@@ -475,8 +573,12 @@ export class PhoneComponent implements OnInit {
     });
   }
 
-  activarDisponible() {
-    this.aloSatService.resumeAgent();
+  changeAvailable() {
+    this.aloSatService.resumeAgent().subscribe({
+      next: (data) => {
+        this.aloSatStore.getState();
+      },
+    });
   }
 
   addNew() {}
@@ -493,7 +595,6 @@ export class PhoneComponent implements OnInit {
 
   volverEstado() {
     this.vistaActual = 'estado';
-    this.enPausa = false;
   }
 
   mostrarTodoHistorial = false;
@@ -566,15 +667,22 @@ export class PhoneComponent implements OnInit {
 
   selectedItem: any = null;
   mostrarModal: boolean = false;
-  enPausa: boolean = false;
 
   abrirModal(item: any) {
     this.selectedItem = item;
     this.mostrarModal = true;
   }
 
-  finalizarAtencion() {
+  endCall() {
     this.aloSatService.endCall().subscribe({
+      next: (data) => {
+        this.msg.success('¡Atención Finalizada!');
+      },
+    });
+  }
+
+  endAssistance() {
+    this.aloSatService.pauseAgent(VicidialPauseCode.WRAPUP).subscribe({
       next: (data) => {
         this.msg.success('¡Atención Finalizada!');
       },
@@ -583,10 +691,6 @@ export class PhoneComponent implements OnInit {
 
   cerrarModal() {
     this.mostrarModal = false;
-  }
-
-  solicitarPausa1() {
-    this.enPausa = true;
   }
 
   busqueda: string = '';
@@ -621,6 +725,16 @@ export class PhoneComponent implements OnInit {
 
   get existCitizen(): boolean {
     return this.aloSatService.existCitizen;
+  }
+
+  get labelCall(): string {
+    return this.loadingCitizen
+      ? 'Reconociendo número entrante'
+      : this.isInWrap
+      ? 'Última llamada hace 2 minutos...'
+      : !this.existCitizen
+      ? 'Número no registrado en el sistema'
+      : 'Número registrado en el sistema';
   }
 
   buscarContribuyente() {
@@ -661,7 +775,7 @@ export class PhoneComponent implements OnInit {
 
     this.store.create({
       ...form,
-      contacto: this.callInfo?.phone_number,
+      contacto: this.callInfo?.phoneNumber,
       tipDoc: this.citizen?.vtipDoc,
       docIde: this.citizen?.vdocIde,
     } as CitizenAssistance);

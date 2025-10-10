@@ -80,8 +80,8 @@ export class DepartmentFormComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Área creado exitosamente!'
-          : '¡Área actualizado exitosamente!'
+          ? '¡Área creada exitosamente!'
+          : '¡Área actualizada exitosamente!'
       );
 
       this.formData.reset({

@@ -55,7 +55,7 @@ export class UsersComponent implements OnInit {
   descripcion: string =
     'Un usuario es miembro de su equipo de atención al cliente, quién puede ver y responder a los mensajes del ciudadano.';
 
-  createButtonLabel: string = 'Nuevo usuario';
+  createButtonLabel: string = 'Nuevo Usuario';
 
   openModal: boolean = false;
 

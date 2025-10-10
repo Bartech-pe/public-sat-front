@@ -8,6 +8,7 @@ import { environment } from '@envs/environments';
 import { Observable, tap } from 'rxjs';
 import { CallTimerService } from './call-timer.service';
 import { CitizenInfo, ExternalCitizenService } from './externalCitizen.service';
+import { ChannelState } from '@models/channel-state.model';
 
 @Injectable({
   providedIn: 'root',
@@ -101,9 +102,11 @@ export class AloSatService {
   }
 
   agentLogin(idCampaign: string) {
-    return this.http
-      .post<any>(`${this.basePath}/agent-login`, { idCampaign })
-      .subscribe();
+    return this.http.post<any>(`${this.basePath}/agent-login`, { idCampaign });
+  }
+
+  agentRelogin() {
+    return this.http.get<any>(`${this.basePath}/agent-relogin`);
   }
 
   startKeepalive() {
@@ -120,32 +123,20 @@ export class AloSatService {
 
   private _loadCitizens = false;
 
-  agentStatus() {
-    return this.http
-      .get<any>(`${this.basePath}/agent-status`)
-      /* .pipe(
-        tap((res) => {
-          this.status = res;
-          this.isLogged = res.status !== 'LOGGED_OUT';
-          this.callInfo = res.callInfo;
-          if (['QUEUE', 'INCALL'].includes(res.status)) {
-            if (!this._loadCitizens) {
-              this._loadCitizens = true;
-              this.callInit(res.callInfo);
-            }
-          } else if (['PAUSE'].includes(res.status)) {
-            this.resetCall();
-          }
-        })
-      )
-      .subscribe() */ /* of({
-      status: 'INCALL',
-      callInfo: {
-        phone_number: '957586572',
-        entryDate: new Date()
-      }
-    }) */;
+  agentStatus(): Observable<{ state: ChannelState; pauseCode: string }> {
+    return this.http.get<{ state: ChannelState; pauseCode: string }>(
+      `${this.basePath}/agent-status`
+    );
   }
+
+  getCallInfo(): Observable<any[]> {
+    return this.http.get<any>(`${this.basePath}/call-info`);
+  }
+
+  getLastCallInfo(): Observable<any[]> {
+    return this.http.get<any>(`${this.basePath}/last-call-info`);
+  }
+
   loadingCitizen: boolean = false;
 
   existCitizen: boolean = false;
@@ -153,11 +144,11 @@ export class AloSatService {
   private callInit(callInfo: any) {
     this.handleIncomingCall(new Date(callInfo?.entryDate));
     this.loadingCitizen = true;
-    if (callInfo?.phone_number) {
+    if (callInfo?.phoneNumber) {
       this.externalCitizenService
         .getCitizenInformation({
           psiTipConsulta: 1,
-          piValPar1: callInfo?.phone_number,
+          piValPar1: callInfo?.phoneNumber,
           pvValPar2: 'empty',
         })
         .subscribe((res) => {
@@ -169,7 +160,7 @@ export class AloSatService {
   }
 
   agentLogout() {
-    return this.http.get<any>(`${this.basePath}/agent-logout`).subscribe();
+    return this.http.get<any>(`${this.basePath}/agent-logout`);
   }
 
   endCall() {
@@ -186,13 +177,6 @@ export class AloSatService {
   }
 
   resumeAgent() {
-    return this.http
-      .get<any>(`${this.basePath}/resume-agent`)
-      .pipe(
-        tap((res) => {
-          this.agentStatus();
-        })
-      )
-      .subscribe();
+    return this.http.get<any>(`${this.basePath}/resume-agent`);
   }
 }

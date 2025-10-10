@@ -224,8 +224,8 @@ export class ManageEmailComponent {
         if(respose){
               const campaignEmails = this.previewData.map((contacto: any) => ({
                 idCampaignEmailConfig:respose.id,
-                processCode: 1, // Ejemplo, puedes hacerlo dinámico
-                senderCode: 1, // Ejemplo, puedes hacerlo dinámico
+                processCode: 2, // Ejemplo, puedes hacerlo dinámico
+                senderCode: 2, // Ejemplo, puedes hacerlo dinámico
                 to: contacto.CORREO,
                 cc: contacto.CORREO,
                 bcc: '',

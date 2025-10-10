@@ -46,10 +46,17 @@ export class CallTimerService {
   }
 
   /** Reinicia el timer */
-  reset(): void {
+  reset(seconds: number = 0): void {
     this.pause();
-    this.elapsedMs = 0;
-    this.timeSubject.next('00:00:00');
+    this.timeSubject.next(this.secondsToTime(seconds));
+  }
+
+  private secondsToTime(seconds: number): string {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return [hrs, mins, secs].map((v) => String(v).padStart(2, '0')).join(':');
   }
 
   private formatElapsedTime(ms: number): string {

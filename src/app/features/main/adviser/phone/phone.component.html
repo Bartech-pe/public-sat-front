@@ -1,52 +1,9 @@
-{{ userState | json }}
-<button-save
-        [label]="'Estado'"
-        [showIcon]="false"
-        (click)="getStatus()"
-      />
-  {{isLogged}}
-  {{isInCall}}
-<ng-container *ngIf="isLogged; else elseTemplate">
-  <!-- <div class="flex justify-end gap-2 mb-4">
-    <div *ngIf="vistaActual !== 'estado'" class="mb-4">
-      <p-button
-        label="VOLVER"
-        icon="pi pi-cog"
-        size="small"
-        styleClass="p-button-sm !rounded-full"
-        (click)="volverEstado()"
-      ></p-button>
-    </div>
-
-    <p-button
-      label="Llamada reconocida"
-      icon="pi pi-cog"
-      size="small"
-      styleClass="p-button-sm !rounded-full"
-      (click)="abrirLlamadaNueva()"
-    ></p-button>
-
-    <p-button
-      label="Llamda no Reconocida"
-      icon="pi pi-info-circle"
-      size="small"
-      styleClass="p-button-sm !rounded-full"
-      (click)="abrirLlamadaReconocida()"
-    ></p-button>
-  </div> -->
-  <!-- <p-button
-    size="small"
-    label="Desconectar"
-    severity="danger"
-    [raised]="true"
-    (click)="onLogout()"
-    styleClass="!rounded-full !shadow-none"
-  >
-    <iconify-icon [icon]="'lucide:phone-off'" class="text-xl" />
-  </p-button> -->
-  <div *ngIf="!isInCall">
-    <!-- Estado Disponible -->
-    <div class="w-full bg-white rounded-md shadow-xl p-4">
+<div class="flex flex-col gap-6 px-3 pb-2">
+  <ng-container *ngIf="isLogged; else elseTemplate">
+    <p-card
+      *ngIf="!isInCall && !isInWrap"
+      class="w-full rounded-md shadow-xl p-4"
+    >
       <h2 class="text-lg font-semibold border-b pb-2 text-sky-700">
         Estado Actual
       </h2>
@@ -61,41 +18,41 @@
         </h3>
         <div class="flex items-center justify-center gap-12 mb-6">
           <div class="text-center">
-            <p class="text-2xl font-semibold">
+            <p class="text-xl font-mono">
               {{
-                agentStatus.lastChange
-                  ? (agentStatus.lastChange | date : "hh:mm")
+                lastCallInfo
+                  ? (lastCallInfo.updatedAt | date : "hh:mm:ss .a")
                   : "--:--"
               }}
             </p>
             <p class="text-sm text-gray-500">Última actividad</p>
           </div>
           <div class="text-center">
-            <p class="text-2xl font-semibold">
-              {{ agentStatus.callsToday ?? "0" }}
+            <p class="text-xl font-mono">
+              {{ lastCallInfo.callsToday ?? "0" }}
             </p>
             <p class="text-sm text-gray-500">Llamadas hoy</p>
           </div>
         </div>
         <div class="flex gap-4">
           <p-button
-            *ngIf="isPaused"
+            *ngIf="isInPaused"
             size="small"
             label="Cambiar a Disponible"
             severity="success"
             [raised]="true"
-            (click)="activarDisponible()"
+            (click)="changeAvailable()"
             styleClass="!rounded-full !shadow-none"
           >
             <iconify-icon [icon]="'heroicons-outline:pause'" class="text-xl" />
           </p-button>
           <p-button
-            *ngIf="!isPaused"
+            *ngIf="!isInPaused"
             size="small"
             label="Solicitar Pausa"
             severity="warn"
             [raised]="true"
-            (click)="solicitarPausa()"
+            (click)="requestPause()"
             styleClass="!rounded-full !shadow-none"
           >
             <iconify-icon [icon]="'heroicons-outline:pause'" class="text-xl" />
@@ -112,239 +69,177 @@
           </p-button>
         </div>
       </div>
-    </div>
-  </div>
+    </p-card>
 
-  <ng-container *ngIf="isInCall">
-    <div>
-      <div class="max-h-[90vh] overflow-y-auto px-4 py-6 space-y-6 bg-gray-50">
-        <!-- Encabezado: Título y botones de llamada -->
-        <div class="flex justify-between items-center">
-          <!-- Título -->
-          <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-              Sistema de Consulta Unificada
-            </h1>
-            <p class="text-sm text-gray-600">
-              Consulta toda la información de contribuyentes de manera
-              centralizada
-            </p>
+    <ng-container *ngIf="isInCall || isInWrap || isInQueue">
+      <div class="grid grid-cols-1 gap-4">
+        <!-- Reconocimiento de llamada -->
+
+        <p-card
+          [styleClass]="
+            loadingCitizen
+              ? '!bg-sky-200 text-sky-700'
+              : isInWrap
+              ? '!bg-yellow-200 text-yellow-800'
+              : !existCitizen
+              ? '!bg-red-200 text-red-800'
+              : '!bg-green-20 text-green-700'
+          "
+        >
+          <div class="flex flex-col space-y-4">
+            <div
+              class="w-full rounded-lg p-3 text-center shadow transition-colors"
+            >
+              <p class="text-lg font-medium mb-2 text-gray-600">
+                {{ labelCall }}
+              </p>
+              <div
+                class="text-2xl font-bold flex justify-center items-center gap-2"
+              >
+                <iconify-icon
+                  [icon]="
+                    loadingCitizen
+                      ? 'svg-spinners:bars-rotate-fade'
+                      : isInWrap
+                      ? 'mdi:phone-close'
+                      : !existCitizen
+                      ? 'gg:danger'
+                      : 'gg:check-o'
+                  "
+                  class="text-2xl"
+                ></iconify-icon>
+
+                {{ callInfo?.phoneNumber }}
+              </div>
+            </div>
+            <div *ngIf="existCitizen" class="grid grid-cols-1">
+              <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-800">
+                    {{ citizen?.vcontacto }}
+                  </h2>
+                  <p class="text-sm text-gray-500">
+                    {{ citizen?.vtipDoc }} {{ citizen?.vdocIde }}
+                  </p>
+                </div>
+                <span
+                  class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full"
+                >
+                  Activo
+                </span>
+              </div>
+              <div
+                class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600"
+              >
+                <div>
+                  <p class="font-medium text-gray-800">
+                    N° Documento de identidad
+                  </p>
+                  <p>{{ citizen?.vdocIde }}</p>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">Tipo de persona</p>
+                  <p>Natural</p>
+                </div>
+                <div class="sm:col-span-2">
+                  <p class="font-medium text-gray-800">Dirección</p>
+                  <p><strong>Calle 123 #45-67, Barrio Centro</strong></p>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">Teléfono</p>
+                  <p>{{ citizen?.vnumTel }}</p>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">Correo electrónico</p>
+                  <p>juan.perez&#64;.com</p>
+                </div>
+              </div>
+            </div>
           </div>
+        </p-card>
 
-          <!-- Botones de llamada -->
-          <!-- <div class="flex gap-2">
+        <p-card>
+          <div class="flex justify-between items-center">
+            <!-- Título -->
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">
+                Sistema de Consulta Unificada
+              </h1>
+              <p class="text-sm text-gray-600">
+                Consulta toda la información de contribuyentes de manera
+                centralizada
+              </p>
+            </div>
+
+            <!-- Botones de llamada -->
+            <!-- <div class="flex gap-2">
             <button
-              *ngIf="!enPausa"
-              (click)="solicitarPausa1()"
+              *ngIf="!isInPaused"
+              (click)="requestPause1()"
               class="px-4 py-2 text-sm font-medium bg-red-300 text-red-900 hover:bg-red-400 transition-colors !rounded-full"
             >
               Solicitar Pausa
             </button>
           </div> -->
-        </div>
-
-        <!-- Reconocimiento de llamada -->
-
-        <div
-          *ngIf="loadingCitizen"
-          [ngClass]="{
-            'bg-yellow-100 text-yellow-800': enPausa,
-            'bg-sky-50 text-sky-700': !enPausa
-          }"
-          class="w-full rounded-lg p-6 text-center shadow transition-colors"
-        >
-          <p class="text-lg font-medium mb-2 text-gray-600">
-            {{
-              enPausa
-                ? "Última llamada hace 2 minutos..."
-                : "Reconociendo número entrante"
-            }}
-          </p>
-          <div
-            class="text-2xl font-bold flex justify-center items-center gap-2"
-          >
-            <iconify-icon
-              [icon]="enPausa ? 'mdi:phone-close' : 'mdi:phone-incoming'"
-              class="text-2xl"
-            ></iconify-icon>
-            {{ callInfo?.phone_number }}
           </div>
-        </div>
+        </p-card>
 
-        <!-- 🔄 CONTENEDOR FLEX QUE AGRUPA LOS TRES BLOQUES -->
-        <div class="grid grid-cols-3 gap-8">
-          <!-- Información del Contribuyente -->
-          <div class="flex flex-col">
-            <div class="bg-white rounded-lg shadow p-6 space-y-4">
-              <div
-                *ngIf="!existCitizen"
-                [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': enPausa,
-                  'bg-red-100 text-red-800': !loadingCitizen && !existCitizen,
-                  'bg-green-50 text-green-700': !loadingCitizen && existCitizen
-                }"
-                class="w-full rounded-lg p-6 text-center shadow transition-colors"
-              >
-                <p class="text-lg font-medium mb-2 text-gray-600">
-                  {{
-                    enPausa
-                      ? "Última llamada hace 2 minutos..."
-                      : !existCitizen
-                      ? "Número no registrado en el sistema"
-                      : "Número registrado en el sistema"
-                  }}
-                </p>
-                <div
-                  class="text-2xl font-bold flex justify-center items-center gap-2"
-                >
-                  <iconify-icon
-                    [icon]="
-                      enPausa
-                        ? 'gg:phone'
-                        : !existCitizen
-                        ? 'gg:danger'
-                        : 'gg:check-o'
-                    "
-                    class="text-2xl"
-                  ></iconify-icon>
-
-                  {{ callInfo?.phone_number }}
-                </div>
-              </div>
-              <div *ngIf="existCitizen" class="grid grid-cols-1">
-                <div class="flex justify-between items-center border-b pb-3">
-                  <div>
-                    <h2 class="text-lg font-semibold text-gray-800">
-                      {{ citizen?.vcontacto }}
-                    </h2>
-                    <p class="text-sm text-gray-500">
-                      Contribuyente N° {{ citizen?.vdocIde }}
-                    </p>
-                  </div>
-                  <span
-                    class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full"
-                  >
-                    Activo
-                  </span>
-                </div>
-                <div
-                  class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600"
-                >
-                  <div>
-                    <p class="font-medium text-gray-800">
-                      N° Documento de identidad
-                    </p>
-                    <p>{{ citizen?.vdocIde }}</p>
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-800">Tipo de persona</p>
-                    <p>Natural</p>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <p class="font-medium text-gray-800">Dirección</p>
-                    <p><strong>Calle 123 #45-67, Barrio Centro</strong></p>
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-800">Teléfono</p>
-                    <p>{{ citizen?.vnumTel }}</p>
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-800">Correo electrónico</p>
-                    <p>juan.perez&#64;.com</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div class="grid grid-cols-2 gap-8">
           <!-- Control de Llamada -->
-          <div class="flex flex-col">
-            <div
-              *ngIf="!enPausa; else pausaActiva"
-              class="bg-white rounded-lg shadow p-4 w-full"
-            >
-              <h3 class="text-sm font-semibold mb-2 text-gray-700">
-                Control de Llamada
-              </h3>
-              <div class="text-sm text-gray-600 space-y-1">
+          <p-card
+            [styleClass]="
+              isInPaused
+                ? '!bg-white'
+                : '!bg-orange-50 border border-yellow-300'
+            "
+          >
+            <div class="grid grid-cols-1 gap-2">
+              <h2 class="text-lg font-semibold mb-2">
+                {{ isInCall ? "Control de Llamada" : "Llamada finalizada" }}
+              </h2>
+              <div class="grid grid-cols-1 gap-1">
                 <p>
-                  <span class="font-medium">Número:</span>
-                  {{ callInfo?.phone_number }}
+                  Tiempo transcurrido: <strong>{{ this.callTimer }}</strong>
                 </p>
                 <p>
-                  <span class="font-medium">Duración:</span>
-                  <span class="font-mono font-semibold"> {{ callTimer }} </span>
+                  Hora de inicio:
+                  <strong>{{ callInfo?.entryDate | date : "hh:mm:ss" }}</strong>
                 </p>
-                <p><span class="font-medium">Estado:</span> Conectado</p>
               </div>
-              <div class="flex gap-2 mt-4 justify-end">
+              <div class="flex gap-2 justify-end">
                 <!-- <button
                   class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300"
                 >
                   Silenciar
                 </button> -->
-                <button
-                  class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300"
+                <btn-custom
+                  label="Transferir"
+                  severity="primary"
+                  icon="fluent:call-transfer-16-filled"
+                  [text]="false"
                   (click)="transferCall()"
-                >
-                  Transferir
-                </button>
-                <!-- <button
-                  class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300"
-                >
-                  Escalar
-                </button> -->
-                <button
-                  class="flex items-center gap-2 rounded-full bg-red-500 px-4 py-2 hover:bg-red-300 text-white"
-                  (click)="finalizarAtencion()"
-                >
-                  Finalizar
-                </button>
+                />
+                <btn-custom
+                  *ngIf="isInCall"
+                  label="Finalizar"
+                  severity="danger"
+                  icon="tdesign:call-off-filled"
+                  [text]="false"
+                  (click)="endCall()"
+                />
+                <btn-custom
+                  *ngIf="isInWrap"
+                  label="Finalizar atención"
+                  severity="danger"
+                  icon="tdesign:call-off-filled"
+                  [text]="false"
+                  (click)="endAssistance()"
+                />
               </div>
             </div>
+          </p-card>
 
-            <ng-template #pausaActiva>
-              <div
-                class="bg-yellow-100 border border-yellow-300 rounded-lg shadow p-4 w-full"
-              >
-                <h2 class="text-sm font-semibold mb-2 text-yellow-800">
-                  Estado de Pausa
-                </h2>
-                <div class="text-gray-700">
-                  Tiempo transcurrido: <strong>00:08:45</strong>
-                </div>
-                <div class="text-gray-700">
-                  Hora de inicio: <strong>15:47</strong>
-                </div>
-                <div class="flex gap-1 mt-3 flex-wrap">
-                  <button
-                    class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm"
-                  >
-                    Silenciar
-                  </button>
-                  <button
-                    class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm"
-                  >
-                    Transferir
-                  </button>
-                  <button
-                    class="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 hover:bg-gray-300 text-sm"
-                  >
-                    Escalar
-                  </button>
-                  <button
-                    *ngIf="enPausa"
-                    (click)="volverEstado()"
-                    class="flex items-center gap-2 rounded-full bg-green-500 px-3 py-1.5 hover:bg-green-300 text-white text-sm"
-                  >
-                    Finalizar Pausa
-                  </button>
-                </div>
-              </div>
-            </ng-template>
-          </div>
-
-          <div class="grid grid-cols-1">
+          <p-card class="grid grid-cols-1">
             <form [formGroup]="formDataAtencion" novalidate>
               <div class="grid grid-cols-1 gap-2">
                 <!-- Solo se muestra si NO está pago verificado -->
@@ -421,62 +316,69 @@
                 </div>
               </div>
             </form>
-          </div>
+          </p-card>
         </div>
 
-        <ng-container *ngIf="!loadingCitizen">
-          <!-- Card de búsqueda -->
-          <div class="bg-white rounded-lg shadow-md p-6 space-y-4">
-            <!-- Título del card -->
-            <div>
-              <h2 class="text-lg font-bold text-gray-800">
-                Búsqueda del Contribuyente
-              </h2>
-              <p class="text-sm text-gray-600">
-                Ingresa el número de documento de identidad, RUC o nombre del
-                administrado para consultar su información
-              </p>
-            </div>
+        <div class="max-h-[90vh] overflow-y-auto">
+          <!-- Información del Contribuyente -->
 
-            <div class="grid grid-cols-1 gap-2">
-              <div class="flex justify-end items-center gap-2">
-                <p-iconfield>
-                  <p-inputicon>
-                    <iconify-icon [icon]="'lucide:search'" />
-                  </p-inputicon>
-                  <input
-                    type="text"
-                    pInputText
-                    placeholder="Buscar por DNI o RUC"
-                    pSize="small"
-                    [(ngModel)]="searchText"
-                  />
-                </p-iconfield>
+          <!-- Encabezado: Título y botones de llamada -->
 
-                <p-button
-                  severity="contrast"
-                  size="small"
-                  (click)="search()"
-                  label="Filtrar"
-                />
+          <!-- 🔄 CONTENEDOR FLEX QUE AGRUPA LOS TRES BLOQUES -->
 
-                <p-button
-                  severity="secondary"
-                  variant="outlined"
-                  size="small"
-                  (click)="clear()"
-                  label="Limpiar"
-                />
+          <ng-container *ngIf="!loadingCitizen">
+            <!-- Card de búsqueda -->
+            <div class="bg-white rounded-lg shadow-md p-6 space-y-4">
+              <!-- Título del card -->
+              <div>
+                <h2 class="text-lg font-bold text-gray-800">
+                  Búsqueda del Contribuyente
+                </h2>
+                <p class="text-sm text-gray-600">
+                  Ingresa el número de documento de identidad, RUC o nombre del
+                  administrado para consultar su información
+                </p>
               </div>
-              <p-tabs [value]="tabSelected">
-                <p-tablist>
-                  <p-tab [value]="0" class="flex items-center">
-                    <span>Deudas</span></p-tab
-                  >
-                  <p-tab [value]="1" class="flex items-center">
-                    <span>Trámites y solicitudes</span>
-                  </p-tab>
-                  <!-- <p-tab [value]="2" class="flex items-center">
+
+              <div class="grid grid-cols-1 gap-2">
+                <div class="flex justify-end items-center gap-2">
+                  <p-iconfield>
+                    <p-inputicon>
+                      <iconify-icon [icon]="'lucide:search'" />
+                    </p-inputicon>
+                    <input
+                      type="text"
+                      pInputText
+                      placeholder="Buscar por DNI o RUC"
+                      pSize="small"
+                      [(ngModel)]="searchText"
+                    />
+                  </p-iconfield>
+
+                  <p-button
+                    severity="contrast"
+                    size="small"
+                    (click)="search()"
+                    label="Filtrar"
+                  />
+
+                  <p-button
+                    severity="secondary"
+                    variant="outlined"
+                    size="small"
+                    (click)="clear()"
+                    label="Limpiar"
+                  />
+                </div>
+                <p-tabs [value]="tabSelected">
+                  <p-tablist>
+                    <p-tab [value]="0" class="flex items-center">
+                      <span>Deudas</span></p-tab
+                    >
+                    <p-tab [value]="1" class="flex items-center">
+                      <span>Trámites y solicitudes</span>
+                    </p-tab>
+                    <!-- <p-tab [value]="2" class="flex items-center">
                 <span>Medidas</span>
               </p-tab>
               <p-tab [value]="3" class="flex items-center">
@@ -485,37 +387,189 @@
               <p-tab [value]="4" class="flex items-center">
                 <span>Notificaciones</span>
               </p-tab> -->
-                  <p-tab [value]="5" class="flex items-center">
-                    <span>Comunicaciones</span>
-                  </p-tab>
-                </p-tablist>
-                <p-tabpanels>
-                  <p-tabpanel [value]="0">
-                    <div class="grid grid-cols-1 gap-2">
-                      <div class="grid grid-cols-3 gap-2">
-                        <p-select
-                          id="idResultado"
-                          [options]="listTipoDeuda"
-                          optionLabel="label"
-                          optionValue="code"
-                          [(ngModel)]="tipoDeuda"
-                          appendTo="body"
-                        />
-                        <p-select
-                          *ngIf="tipoDeuda == 1"
-                          id="idResultado"
-                          [options]="listTipoTributo"
-                          optionLabel="label"
-                          optionValue="code"
-                          [(ngModel)]="tipoTributo"
-                          appendTo="body"
-                        />
-                      </div>
+                    <p-tab [value]="5" class="flex items-center">
+                      <span>Comunicaciones</span>
+                    </p-tab>
+                  </p-tablist>
+                  <p-tabpanels>
+                    <p-tabpanel [value]="0">
+                      <div class="grid grid-cols-1 gap-2">
+                        <div class="grid grid-cols-3 gap-2">
+                          <p-select
+                            id="idResultado"
+                            [options]="listTipoDeuda"
+                            optionLabel="label"
+                            optionValue="code"
+                            [(ngModel)]="tipoDeuda"
+                            appendTo="body"
+                          />
+                          <p-select
+                            *ngIf="tipoDeuda == 1"
+                            id="idResultado"
+                            [options]="listTipoTributo"
+                            optionLabel="label"
+                            optionValue="code"
+                            [(ngModel)]="tipoTributo"
+                            appendTo="body"
+                          />
+                        </div>
 
-                      <ng-container *ngIf="tipoDeuda == 1">
+                        <ng-container *ngIf="tipoDeuda == 1">
+                          <p-table
+                            *ngIf="tipoTributo == 1"
+                            [value]="tableImpuestoPredial"
+                            [responsiveLayout]="'scroll'"
+                          >
+                            <ng-template pTemplate="header">
+                              <tr>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    N° documento
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Fecha vencimiento
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Estado de la deuda
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Monto de la deuda
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Cuota doc de deuda
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Fecha_venc insoluto
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Reajuste Der. emisión
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Interés moras costas
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Gastos total dscto pagado
+                                  </div>
+                                </th>
+                                <th>
+                                  <div
+                                    class="flex justify-center items-center text-xs uppercase gap-4"
+                                  >
+                                    Salgo vencimiento
+                                  </div>
+                                </th>
+                              </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-item>
+                              <tr>
+                                <td>
+                                  <p class="text-sm font-light">
+                                    {{ item?.documento }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light">
+                                    {{ item?.fechavencimiento }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light">
+                                    {{ item?.estado }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.monto | currency }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.cuota }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.fechavencimiento }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.reajuste }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.interes }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.gastoTotal }}
+                                  </p>
+                                </td>
+                                <td>
+                                  <p class="text-sm font-light text-center">
+                                    {{ item?.saldo }}
+                                  </p>
+                                </td>
+                              </tr>
+                            </ng-template>
+                            <ng-template pTemplate="emptymessage">
+                              <tr>
+                                <td colspan="100" class="text-center p-6">
+                                  <div
+                                    class="flex flex-col items-center text-gray-500"
+                                  >
+                                    <i
+                                      class="pi pi-folder-open text-6xl text-gray-400"
+                                    ></i>
+                                    <p class="text-sm font-medium mt-3">
+                                      Sin registro de deudas
+                                    </p>
+                                  </div>
+                                </td>
+                              </tr>
+                            </ng-template>
+                          </p-table>
+                        </ng-container>
+
                         <p-table
-                          *ngIf="tipoTributo == 1"
-                          [value]="tableImpuestoPredial"
+                          *ngIf="tipoDeuda == 2"
+                          [value]="tablePapeletas"
                           [responsiveLayout]="'scroll'"
                         >
                           <ng-template pTemplate="header">
@@ -531,14 +585,14 @@
                                 <div
                                   class="flex justify-center items-center text-xs uppercase gap-4"
                                 >
-                                  Fecha vencimiento
+                                  Placa
                                 </div>
                               </th>
                               <th>
                                 <div
                                   class="flex justify-center items-center text-xs uppercase gap-4"
                                 >
-                                  Estado de la deuda
+                                  Fecha de infracción
                                 </div>
                               </th>
                               <th>
@@ -552,42 +606,14 @@
                                 <div
                                   class="flex justify-center items-center text-xs uppercase gap-4"
                                 >
-                                  Cuota doc de deuda
+                                  Estado de la deuda
                                 </div>
                               </th>
                               <th>
                                 <div
                                   class="flex justify-center items-center text-xs uppercase gap-4"
                                 >
-                                  Fecha_venc insoluto
-                                </div>
-                              </th>
-                              <th>
-                                <div
-                                  class="flex justify-center items-center text-xs uppercase gap-4"
-                                >
-                                  Reajuste Der. emisión
-                                </div>
-                              </th>
-                              <th>
-                                <div
-                                  class="flex justify-center items-center text-xs uppercase gap-4"
-                                >
-                                  Interés moras costas
-                                </div>
-                              </th>
-                              <th>
-                                <div
-                                  class="flex justify-center items-center text-xs uppercase gap-4"
-                                >
-                                  Gastos total dscto pagado
-                                </div>
-                              </th>
-                              <th>
-                                <div
-                                  class="flex justify-center items-center text-xs uppercase gap-4"
-                                >
-                                  Salgo vencimiento
+                                  Fecha de vencimiento
                                 </div>
                               </th>
                             </tr>
@@ -596,17 +622,17 @@
                             <tr>
                               <td>
                                 <p class="text-sm font-light">
-                                  {{ item?.documento }}
+                                  {{ item?.cnumDoc }}
                                 </p>
                               </td>
                               <td>
                                 <p class="text-sm font-light">
-                                  {{ item?.fechavencimiento }}
+                                  {{ item?.cplaca }}
                                 </p>
                               </td>
                               <td>
                                 <p class="text-sm font-light">
-                                  {{ item?.estado }}
+                                  {{ item?.cfecInf.trim() }}
                                 </p>
                               </td>
                               <td>
@@ -616,32 +642,12 @@
                               </td>
                               <td>
                                 <p class="text-sm font-light text-center">
-                                  {{ item?.cuota }}
+                                  {{ item?.estado }}
                                 </p>
                               </td>
                               <td>
                                 <p class="text-sm font-light text-center">
-                                  {{ item?.fechavencimiento }}
-                                </p>
-                              </td>
-                              <td>
-                                <p class="text-sm font-light text-center">
-                                  {{ item?.reajuste }}
-                                </p>
-                              </td>
-                              <td>
-                                <p class="text-sm font-light text-center">
-                                  {{ item?.interes }}
-                                </p>
-                              </td>
-                              <td>
-                                <p class="text-sm font-light text-center">
-                                  {{ item?.gastoTotal }}
-                                </p>
-                              </td>
-                              <td>
-                                <p class="text-sm font-light text-center">
-                                  {{ item?.saldo }}
+                                  {{ item?.cfecVen.trim() }}
                                 </p>
                               </td>
                             </tr>
@@ -663,11 +669,150 @@
                             </tr>
                           </ng-template>
                         </p-table>
-                      </ng-container>
 
+                        <p-table
+                          *ngIf="tipoDeuda == 3"
+                          [value]="tableDeudas"
+                          [responsiveLayout]="'scroll'"
+                        >
+                          <ng-template pTemplate="header">
+                            <tr>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Docum. de deuda
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Fecha de notificación
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Monto de deuda
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Estado de la deuda
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Gastos administrativos
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Costos
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Descuentos
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Abonos realizados
+                                </div>
+                              </th>
+                              <th>
+                                <div
+                                  class="flex justify-center items-center text-xs uppercase gap-4"
+                                >
+                                  Total
+                                </div>
+                              </th>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="body" let-item>
+                            <tr>
+                              <td>
+                                <p class="text-sm font-light">
+                                  {{ item?.cnumDoc }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light">
+                                  {{ item?.sdFecInf }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light">
+                                  {{ item?.monto }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.estado }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.gasto }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.costo }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.abonos }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.etapa_Cobranza }}
+                                </p>
+                              </td>
+                              <td>
+                                <p class="text-sm font-light text-center">
+                                  {{ item?.compromiso_pago }}
+                                </p>
+                              </td>
+                            </tr>
+                          </ng-template>
+                          <ng-template pTemplate="emptymessage">
+                            <tr>
+                              <td colspan="100" class="text-center p-6">
+                                <div
+                                  class="flex flex-col items-center text-gray-500"
+                                >
+                                  <i
+                                    class="pi pi-folder-open text-6xl text-gray-400"
+                                  ></i>
+                                  <p class="text-sm font-medium mt-3">
+                                    Sin registro de deudas
+                                  </p>
+                                </div>
+                              </td>
+                            </tr>
+                          </ng-template>
+                        </p-table>
+                      </div>
+                    </p-tabpanel>
+                    <p-tabpanel [value]="1">
                       <p-table
-                        *ngIf="tipoDeuda == 2"
-                        [value]="tablePapeletas"
+                        [value]="tableTramites"
                         [responsiveLayout]="'scroll'"
                       >
                         <ng-template pTemplate="header">
@@ -676,76 +821,113 @@
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                N° documento
+                                N° trámite
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Placa
+                                Fecha de presentación
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Fecha de infracción
+                                Tipo de trámite
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Monto de la deuda
+                                Estado del trámite
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Estado de la deuda
+                                Ubicación del trámite
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Fecha de vencimiento
+                                Fecha de doc. de respuesta
                               </div>
                             </th>
+                            <th>
+                              <div
+                                class="flex justify-center items-center text-xs uppercase gap-4"
+                              >
+                                Documento de respuesta
+                              </div>
+                            </th>
+                            <th>
+                              <div
+                                class="flex justify-center items-center text-xs uppercase gap-4"
+                              >
+                                Materia
+                              </div>
+                            </th>
+                            <th>
+                              <div
+                                class="flex justify-center items-center text-xs uppercase gap-4"
+                              >
+                                Tipo de canal
+                              </div>
+                            </th>
+                            <th></th>
                           </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-item>
                           <tr>
                             <td>
                               <p class="text-sm font-light">
-                                {{ item?.cnumDoc }}
+                                {{ item?.numTramite }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light">
-                                {{ item?.cplaca }}
+                                {{ item?.fecha_Tramite }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light">
-                                {{ item?.cfecInf.trim() }}
+                                {{ item?.tipo_Tramite }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.monto | currency }}
+                                {{ item?.estado_Tramite }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.estado }}
+                                {{ item?.agencia }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.cfecVen.trim() }}
+                                {{ item?.fecha_Resolucion }}
+                              </p>
+                            </td>
+                            <td>
+                              <p class="text-sm font-light text-center">
+                                {{ item?.resultado_Resolucion }}
+                              </p>
+                            </td>
+                            <td>
+                              <p class="text-sm font-light text-center">
+                                {{ item?.concepto_Deuda }}
+                              </p>
+                            </td>
+                            <td>
+                              <p class="text-sm font-light text-center">
+                                {{ item?.procedimiento }}
                               </p>
                             </td>
                           </tr>
@@ -760,17 +942,20 @@
                                   class="pi pi-folder-open text-6xl text-gray-400"
                                 ></i>
                                 <p class="text-sm font-medium mt-3">
-                                  Sin registro de deudas
+                                  Sin registro de trámites o solicitudes
                                 </p>
                               </div>
                             </td>
                           </tr>
                         </ng-template>
                       </p-table>
-
+                    </p-tabpanel>
+                    <p-tabpanel [value]="2"> </p-tabpanel>
+                    <p-tabpanel [value]="3"> </p-tabpanel>
+                    <p-tabpanel [value]="4"> </p-tabpanel>
+                    <p-tabpanel [value]="5">
                       <p-table
-                        *ngIf="tipoDeuda == 3"
-                        [value]="tableDeudas"
+                        [value]="tableComunicaciones"
                         [responsiveLayout]="'scroll'"
                       >
                         <ng-template pTemplate="header">
@@ -779,113 +964,104 @@
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Docum. de deuda
+                                Fecha/Hora
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Fecha de notificación
+                                Tipo
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Monto de deuda
+                                Canal
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Estado de la deuda
+                                Método
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Gastos administrativos
+                                Contacto Usado
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Costos
+                                Resultado
                               </div>
                             </th>
                             <th>
                               <div
                                 class="flex justify-center items-center text-xs uppercase gap-4"
                               >
-                                Descuentos
+                                Usuario
                               </div>
                             </th>
-                            <th>
-                              <div
-                                class="flex justify-center items-center text-xs uppercase gap-4"
-                              >
-                                Abonos realizados
-                              </div>
-                            </th>
-                            <th>
-                              <div
-                                class="flex justify-center items-center text-xs uppercase gap-4"
-                              >
-                                Total
-                              </div>
-                            </th>
+
+                            <th></th>
                           </tr>
                         </ng-template>
                         <ng-template pTemplate="body" let-item>
                           <tr>
                             <td>
-                              <p class="text-sm font-light">
-                                {{ item?.cnumDoc }}
+                              <p class="text-sm text-center font-light">
+                                {{
+                                  item?.createdAt | date : "dd/MM/yyyy hh:ss a"
+                                }}
                               </p>
                             </td>
                             <td>
-                              <p class="text-sm font-light">
-                                {{ item?.sdFecInf }}
+                              <p class="text-sm text-center font-light">
+                                {{ item?.tipo }}
                               </p>
                             </td>
                             <td>
-                              <p class="text-sm font-light">
-                                {{ item?.monto }}
-                              </p>
-                            </td>
-                            <td>
-                              <p class="text-sm font-light text-center">
-                                {{ item?.estado }}
+                              <p class="text-sm text-center font-light">
+                                {{ item?.canal }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.gasto }}
+                                {{ item?.metodo }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.costo }}
+                                {{ item?.contacto }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.abonos }}
+                                {{ item?.resultado }}
                               </p>
                             </td>
                             <td>
                               <p class="text-sm font-light text-center">
-                                {{ item?.etapa_Cobranza }}
+                                {{ item?.createdByUser?.name }}
                               </p>
                             </td>
                             <td>
-                              <p class="text-sm font-light text-center">
-                                {{ item?.compromiso_pago }}
-                              </p>
+                              <div class="flex justify-center">
+                                <btn-custom
+                                  severity="success"
+                                  icon="lucide:eye"
+                                  tooltip="Mostrar información del caso"
+                                  [disabled]="!item.informacionCaso"
+                                  (click)="showInfoCaso(item)"
+                                />
+                              </div>
                             </td>
                           </tr>
                         </ng-template>
@@ -899,298 +1075,26 @@
                                   class="pi pi-folder-open text-6xl text-gray-400"
                                 ></i>
                                 <p class="text-sm font-medium mt-3">
-                                  Sin registro de deudas
+                                  Sin comunicaciones
                                 </p>
                               </div>
                             </td>
                           </tr>
                         </ng-template>
                       </p-table>
-                    </div>
-                  </p-tabpanel>
-                  <p-tabpanel [value]="1">
-                    <p-table
-                      [value]="tableTramites"
-                      [responsiveLayout]="'scroll'"
-                    >
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              N° trámite
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Fecha de presentación
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Tipo de trámite
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Estado del trámite
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Ubicación del trámite
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Fecha de doc. de respuesta
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Documento de respuesta
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Materia
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Tipo de canal
-                            </div>
-                          </th>
-                          <th></th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-item>
-                        <tr>
-                          <td>
-                            <p class="text-sm font-light">
-                              {{ item?.numTramite }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light">
-                              {{ item?.fecha_Tramite }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light">
-                              {{ item?.tipo_Tramite }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.estado_Tramite }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.agencia }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.fecha_Resolucion }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.resultado_Resolucion }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.concepto_Deuda }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.procedimiento }}
-                            </p>
-                          </td>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="emptymessage">
-                        <tr>
-                          <td colspan="100" class="text-center p-6">
-                            <div
-                              class="flex flex-col items-center text-gray-500"
-                            >
-                              <i
-                                class="pi pi-folder-open text-6xl text-gray-400"
-                              ></i>
-                              <p class="text-sm font-medium mt-3">
-                                Sin registro de trámites o solicitudes
-                              </p>
-                            </div>
-                          </td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-tabpanel>
-                  <p-tabpanel [value]="2"> </p-tabpanel>
-                  <p-tabpanel [value]="3"> </p-tabpanel>
-                  <p-tabpanel [value]="4"> </p-tabpanel>
-                  <p-tabpanel [value]="5">
-                    <p-table
-                      [value]="tableComunicaciones"
-                      [responsiveLayout]="'scroll'"
-                    >
-                      <ng-template pTemplate="header">
-                        <tr>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Fecha/Hora
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Tipo
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Canal
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Método
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Contacto Usado
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Resultado
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Usuario
-                            </div>
-                          </th>
+                    </p-tabpanel>
+                  </p-tabpanels>
+                </p-tabs>
+              </div>
 
-                          <th></th>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="body" let-item>
-                        <tr>
-                          <td>
-                            <p class="text-sm text-center font-light">
-                              {{
-                                item?.createdAt | date : "dd/MM/yyyy hh:ss a"
-                              }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm text-center font-light">
-                              {{ item?.tipo }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm text-center font-light">
-                              {{ item?.canal }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.metodo }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.contacto }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.resultado }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.createdByUser?.name }}
-                            </p>
-                          </td>
-                          <td>
-                            <div class="flex justify-center">
-                              <btn-custom
-                                severity="success"
-                                icon="lucide:eye"
-                                tooltip="Mostrar información del caso"
-                                [disabled]="!item.informacionCaso"
-                                (click)="showInfoCaso(item)"
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      </ng-template>
-                      <ng-template pTemplate="emptymessage">
-                        <tr>
-                          <td colspan="100" class="text-center p-6">
-                            <div
-                              class="flex flex-col items-center text-gray-500"
-                            >
-                              <i
-                                class="pi pi-folder-open text-6xl text-gray-400"
-                              ></i>
-                              <p class="text-sm font-medium mt-3">
-                                Sin comunicaciones
-                              </p>
-                            </div>
-                          </td>
-                        </tr>
-                      </ng-template>
-                    </p-table>
-                  </p-tabpanel>
-                </p-tabpanels>
-              </p-tabs>
-            </div>
+              <!-- Input + botón (estilo actualizado) -->
+              <div
+                class="w-full flex flex-col sm:flex-row sm:items-center gap-4"
+              >
+                <!-- Input personalizado -->
 
-            <!-- Input + botón (estilo actualizado) -->
-            <div class="w-full flex flex-col sm:flex-row sm:items-center gap-4">
-              <!-- Input personalizado -->
-
-              <!-- Botón alineado -->
-              <!-- <div class="flex items-center">
+                <!-- Botón alineado -->
+                <!-- <div class="flex items-center">
                 <button
                   (click)="buscarContribuyente()"
                   class="flex items-center gap-2 rounded-full bg-blue-200 p-2 hover:bg-blue-300"
@@ -1247,107 +1151,107 @@
                   <span>Buscar</span>
                 </button>
               </div> -->
-            </div>
-          </div>
-
-          <!-- 👤 Panel Derecho: Info de Ciudadano + Navegación + Tabla -->
-          <div
-            *ngIf="citizen"
-            class="bg-white rounded-lg shadow-md p-6 space-y-6"
-          >
-            <!-- Info del ciudadano -->
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <iconify-icon
-                  icon="mdi:account-circle"
-                  class="text-3xl text-sky-600"
-                ></iconify-icon>
-                <h2 class="text-lg font-bold text-gray-800">
-                  {{ citizen?.vcontacto }}
-                </h2>
-              </div>
-              <div
-                class="flex flex-wrap items-center gap-4 text-sm text-gray-600"
-              >
-                <p>
-                  <span class="font-medium">{{ citizen?.vtipDoc }}</span>
-                  {{ citizen?.vdocIde }}
-                </p>
-                <p>
-                  <iconify-icon
-                    icon="mdi:phone"
-                    class="text-base"
-                  ></iconify-icon>
-                  {{ callInfo?.phone_number }}
-                </p>
-                <p>
-                  <iconify-icon
-                    icon="mdi:email"
-                    class="text-base"
-                  ></iconify-icon>
-                  juan&#64;mail.com
-                </p>
-                <p>
-                  <iconify-icon
-                    icon="mdi:map-marker"
-                    class="text-base"
-                  ></iconify-icon>
-                  Lima, Perú
-                </p>
               </div>
             </div>
 
-            <!-- Navegación de vistas -->
-            <div class="flex items-center gap-2 pl-2 mb-3">
-              <ng-container
-                *ngFor="
-                  let vista of [
-                    'Deudas',
-                    'Trámites',
-                    'Medidas',
-                    'Declaraciones',
-                    'Notificaciones',
-                    'Comunicaciones'
-                  ]
-                "
-              >
+            <!-- 👤 Panel Derecho: Info de Ciudadano + Navegación + Tabla -->
+            <div
+              *ngIf="citizen"
+              class="bg-white rounded-lg shadow-md p-6 space-y-6"
+            >
+              <!-- Info del ciudadano -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <iconify-icon
+                    icon="mdi:account-circle"
+                    class="text-3xl text-sky-600"
+                  ></iconify-icon>
+                  <h2 class="text-lg font-bold text-gray-800">
+                    {{ citizen?.vcontacto }}
+                  </h2>
+                </div>
+                <div
+                  class="flex flex-wrap items-center gap-4 text-sm text-gray-600"
+                >
+                  <p>
+                    <span class="font-medium">{{ citizen?.vtipDoc }}</span>
+                    {{ citizen?.vdocIde }}
+                  </p>
+                  <p>
+                    <iconify-icon
+                      icon="mdi:phone"
+                      class="text-base"
+                    ></iconify-icon>
+                    {{ callInfo?.phoneNumber }}
+                  </p>
+                  <p>
+                    <iconify-icon
+                      icon="mdi:email"
+                      class="text-base"
+                    ></iconify-icon>
+                    juan&#64;mail.com
+                  </p>
+                  <p>
+                    <iconify-icon
+                      icon="mdi:map-marker"
+                      class="text-base"
+                    ></iconify-icon>
+                    Lima, Perú
+                  </p>
+                </div>
+              </div>
+
+              <!-- Navegación de vistas -->
+              <div class="flex items-center gap-2 pl-2 mb-3">
+                <ng-container
+                  *ngFor="
+                    let vista of [
+                      'Deudas',
+                      'Trámites',
+                      'Medidas',
+                      'Declaraciones',
+                      'Notificaciones',
+                      'Comunicaciones'
+                    ]
+                  "
+                >
+                  <button
+                    (click)="vistaSeleccionada = vista"
+                    [ngClass]="{
+                      'rounded-full px-4 py-2 transition-colors duration-200 border-none': true,
+                      'bg-gray-200 text-black': vistaSeleccionada !== vista,
+                      'bg-green-100 text-green-600 font-semibold':
+                        vistaSeleccionada === vista
+                    }"
+                  >
+                    {{ vista }}
+                  </button>
+                </ng-container>
+              </div>
+
+              <!-- Exportar y actualizar -->
+              <div class="flex justify-end gap-2">
                 <button
-                  (click)="vistaSeleccionada = vista"
-                  [ngClass]="{
-                    'rounded-full px-4 py-2 transition-colors duration-200 border-none': true,
-                    'bg-gray-200 text-black': vistaSeleccionada !== vista,
-                    'bg-green-100 text-green-600 font-semibold':
-                      vistaSeleccionada === vista
-                  }"
+                  class="flex items-center gap-2 rounded-full bg-blue-200 px-4 py-2 hover:bg-blue-300"
+                  (click)="getAtenciones()"
                 >
-                  {{ vista }}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 48 48"
+                  >
+                    <path
+                      fill="#373737"
+                      d="M4 24C4 12.954 12.954 4 24 4s20 8.954 20 20s-8.954 20-20 20S4 35.046 4 24m31-7.75a1.25 1.25 0 1 0-2.5 0v2.48A9.99 9.99 0 0 0 24 14a9.99 9.99 0 0 0-8 3.998a1.25 1.25 0 0 0 2 1.502a7.503 7.503 0 0 1 13.074 2H27.25a1.25 1.25 0 1 0 0 2.5h6.5c.69 0 1.25-.56 1.25-1.25zM14.25 33c.69 0 1.25-.56 1.25-1.25v-2.48A9.99 9.99 0 0 0 24 34a9.99 9.99 0 0 0 8-3.998a1.25 1.25 0 0 0-2-1.502a7.503 7.503 0 0 1-13.074-2h3.824a1.25 1.25 0 1 0 0-2.5h-6.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25"
+                    />
+                  </svg>
+                  <span>Actualizar</span>
                 </button>
-              </ng-container>
-            </div>
+              </div>
 
-            <!-- Exportar y actualizar -->
-            <div class="flex justify-end gap-2">
-              <button
-                class="flex items-center gap-2 rounded-full bg-blue-200 px-4 py-2 hover:bg-blue-300"
-                (click)="getAtenciones()"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 48 48"
-                >
-                  <path
-                    fill="#373737"
-                    d="M4 24C4 12.954 12.954 4 24 4s20 8.954 20 20s-8.954 20-20 20S4 35.046 4 24m31-7.75a1.25 1.25 0 1 0-2.5 0v2.48A9.99 9.99 0 0 0 24 14a9.99 9.99 0 0 0-8 3.998a1.25 1.25 0 0 0 2 1.502a7.503 7.503 0 0 1 13.074 2H27.25a1.25 1.25 0 1 0 0 2.5h6.5c.69 0 1.25-.56 1.25-1.25zM14.25 33c.69 0 1.25-.56 1.25-1.25v-2.48A9.99 9.99 0 0 0 24 34a9.99 9.99 0 0 0 8-3.998a1.25 1.25 0 0 0-2-1.502a7.503 7.503 0 0 1-13.074-2h3.824a1.25 1.25 0 1 0 0-2.5h-6.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25"
-                  />
-                </svg>
-                <span>Actualizar</span>
-              </button>
-            </div>
-
-            <!-- Filtros -->
-            <!-- <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
+              <!-- Filtros -->
+              <!-- <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
               <select
                 class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0"
               >
@@ -1378,9 +1282,9 @@
               </div>
             </div> -->
 
-            <!-- Tabla -->
-            <div class="overflow-x-auto bg-white rounded-lg shadow">
-              <!-- <table class="w-full text-sm text-gray-700">
+              <!-- Tabla -->
+              <div class="overflow-x-auto bg-white rounded-lg shadow">
+                <!-- <table class="w-full text-sm text-gray-700">
                 <thead class="bg-gray-100 text-left">
                   <tr>
                     <th class="px-4 py-2">Fecha/Hora</th>
@@ -1454,188 +1358,234 @@
                 </tbody>
               </table> -->
 
-              <p-table
-                [value]="tableComunicaciones"
-                [responsiveLayout]="'scroll'"
-              >
-                <ng-template pTemplate="header">
-                  <tr>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Fecha/Hora
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Tipo
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Canal
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Método
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Contacto Usado
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Resultado
-                      </div>
-                    </th>
-                    <th>
-                      <div
-                        class="flex justify-center items-center text-xs uppercase gap-4"
-                      >
-                        Usuario
-                      </div>
-                    </th>
-
-                    <th></th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-item>
-                  <tr>
-                    <td>
-                      <p class="text-sm text-center font-light">
-                        {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm text-center font-light">
-                        {{ item?.tipo }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm text-center font-light">
-                        {{ item?.canal }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.metodo }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.contacto }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.resultado }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.createdByUser?.name }}
-                      </p>
-                    </td>
-                    <td>
-                      <div class="flex justify-center">
-                        <button
-                          (click)="abrirModal(item)"
-                          class="flex items-center gap-2 rounded-full px-4 py-2 transition-colors bg-blue-200 text-black hover:bg-blue-300"
+                <p-table
+                  [value]="tableComunicaciones"
+                  [responsiveLayout]="'scroll'"
+                >
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
                         >
-                          Ver detalles
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td colspan="100" class="text-center p-6">
-                      <div class="flex flex-col items-center text-gray-500">
-                        <i class="pi pi-folder-open text-6xl text-gray-400"></i>
-                        <p class="text-sm font-medium mt-3">
-                          Sin comunicaciones
+                          Fecha/Hora
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Tipo
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Canal
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Método
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Contacto Usado
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Resultado
+                        </div>
+                      </th>
+                      <th>
+                        <div
+                          class="flex justify-center items-center text-xs uppercase gap-4"
+                        >
+                          Usuario
+                        </div>
+                      </th>
+
+                      <th></th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-item>
+                    <tr>
+                      <td>
+                        <p class="text-sm text-center font-light">
+                          {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
                         </p>
-                      </div>
-                    </td>
-                  </tr>
-                </ng-template>
-              </p-table>
+                      </td>
+                      <td>
+                        <p class="text-sm text-center font-light">
+                          {{ item?.tipo }}
+                        </p>
+                      </td>
+                      <td>
+                        <p class="text-sm text-center font-light">
+                          {{ item?.canal }}
+                        </p>
+                      </td>
+                      <td>
+                        <p class="text-sm font-light text-center">
+                          {{ item?.metodo }}
+                        </p>
+                      </td>
+                      <td>
+                        <p class="text-sm font-light text-center">
+                          {{ item?.contacto }}
+                        </p>
+                      </td>
+                      <td>
+                        <p class="text-sm font-light text-center">
+                          {{ item?.resultado }}
+                        </p>
+                      </td>
+                      <td>
+                        <p class="text-sm font-light text-center">
+                          {{ item?.createdByUser?.name }}
+                        </p>
+                      </td>
+                      <td>
+                        <div class="flex justify-center">
+                          <button
+                            (click)="abrirModal(item)"
+                            class="flex items-center gap-2 rounded-full px-4 py-2 transition-colors bg-blue-200 text-black hover:bg-blue-300"
+                          >
+                            Ver detalles
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="100" class="text-center p-6">
+                        <div class="flex flex-col items-center text-gray-500">
+                          <i
+                            class="pi pi-folder-open text-6xl text-gray-400"
+                          ></i>
+                          <p class="text-sm font-medium mt-3">
+                            Sin comunicaciones
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </div>
-          </div>
-        </ng-container>
-      </div>
+          </ng-container>
+        </div>
 
-      <!-- Modal -->
-      <div
-        *ngIf="mostrarModal"
-        class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
-      >
+        <!-- Modal -->
         <div
-          class="border bg-white shadow-2xl rounded-lg p-6 w-full max-w-md pointer-events-auto"
+          *ngIf="mostrarModal"
+          class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
         >
-          <button
-            (click)="cerrarModal()"
-            class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          <div
+            class="border bg-white shadow-2xl rounded-lg p-6 w-full max-w-md pointer-events-auto"
           >
-            ✕
-          </button>
-
-          <h2 class="text-lg font-bold text-gray-800 mb-4">
-            Detalles de la atención
-          </h2>
-
-          <div class="space-y-2 text-sm text-gray-700">
-            <p>
-              <strong>Fecha:</strong>
-              {{ selectedItem?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
-            </p>
-            <p><strong>Tipo:</strong> {{ selectedItem?.tipo }}</p>
-            <p><strong>Canal:</strong> {{ selectedItem?.canal }}</p>
-            <p><strong>Método:</strong> {{ selectedItem?.metodo }}</p>
-            <p><strong>Contacto:</strong> {{ selectedItem?.contacto }}</p>
-            <p><strong>Resultado:</strong> {{ selectedItem?.resultado }}</p>
-            <p>
-              <strong>Usuario:</strong> {{ selectedItem?.createdByUser?.name }}
-            </p>
-          </div>
-
-          <div class="mt-4 text-right">
             <button
               (click)="cerrarModal()"
-              class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+              class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
             >
-              Cerrar
+              ✕
             </button>
+
+            <h2 class="text-lg font-bold text-gray-800 mb-4">
+              Detalles de la atención
+            </h2>
+
+            <div class="space-y-2 text-sm text-gray-700">
+              <p>
+                <strong>Fecha:</strong>
+                {{ selectedItem?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
+              </p>
+              <p><strong>Tipo:</strong> {{ selectedItem?.tipo }}</p>
+              <p><strong>Canal:</strong> {{ selectedItem?.canal }}</p>
+              <p><strong>Método:</strong> {{ selectedItem?.metodo }}</p>
+              <p><strong>Contacto:</strong> {{ selectedItem?.contacto }}</p>
+              <p><strong>Resultado:</strong> {{ selectedItem?.resultado }}</p>
+              <p>
+                <strong>Usuario:</strong>
+                {{ selectedItem?.createdByUser?.name }}
+              </p>
+            </div>
+
+            <div class="mt-4 text-right">
+              <button
+                (click)="cerrarModal()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- SECCION - SECCION - SECCION - SECCION -SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - -->
+      <!-- SECCION - SECCION - SECCION - SECCION -SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - -->
+    </ng-container>
   </ng-container>
+  <ng-template #elseTemplate>
+    <div class="flex items-center justify-center">
+      <h4 *ngIf="!isAloSat">Modulo exclusivo de AlóSAT</h4>
+      <form
+        *ngIf="isAloSat"
+        [formGroup]="formData"
+        class="grid grid-cols-2 gap-4"
+      >
+        <div class="w-full flex items-center gap-2">
+          <label class="text-sm font-medium" for="idCampaign"> Campaña </label>
+          <p-select
+            id="idCampaign"
+            [options]="listCampaigns"
+            optionValue="campaign_id"
+            optionLabel="campaign_name"
+            formControlName="idCampaign"
+            placeholder="Seleccione..."
+            styleClass="w-42 text-sm"
+            appendTo="body"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <btn-custom
+            [text]="false"
+            icon="lucide:refresh-ccw"
+            severity="primary"
+            tooltip="Recargar campañas"
+            (click)="this.getCampaigns()"
+          />
+          <btn-custom
+            [label]="'Conectar'"
+            [text]="false"
+            severity="primary"
+            [showIcon]="false"
+            [loading]="loading"
+            [disabled]="formData.invalid"
+            (click)="onSubmit()"
+          />
+        </div>
+      </form>
+    </div>
+  </ng-template>
 
   <!-- Enlaces Directos SAT -->
-  <div class="w-full bg-white rounded-md shadow-xl p-4 mt-6">
+  <div class="w-full bg-white rounded-md shadow-xl p-4">
     <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-sky-700">
       Enlaces Directos SAT
     </h2>
 
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
       <p-button
         size="small"
         label="Intranet SAT"
@@ -1693,35 +1643,4 @@
       </p-button>
     </div>
   </div>
-</ng-container>
-<ng-template #elseTemplate>
-  <div class="flex items-center justify-center">
-    <h4 *ngIf="!isAloSat">Modulo exclusivo de AlóSAT</h4>
-    <form
-      *ngIf="isAloSat"
-      [formGroup]="formData"
-      class="grid grid-cols-2 gap-4"
-    >
-      <div class="w-full flex items-center gap-2">
-        <label class="text-sm font-medium" for="idCampaign"> Campaña </label>
-        <p-select
-          id="idCampaign"
-          [options]="listCampaigns"
-          optionValue="campaign_id"
-          optionLabel="campaign_name"
-          formControlName="idCampaign"
-          placeholder="Seleccione..."
-          styleClass="w-42 text-sm"
-          appendTo="body"
-        />
-      </div>
-      <button-save
-        [label]="'Conectar'"
-        [showIcon]="false"
-        [loading]="loading"
-        [disabled]="formData.invalid"
-        (click)="onSubmit()"
-      />
-    </form>
-  </div>
-</ng-template>
+</div>

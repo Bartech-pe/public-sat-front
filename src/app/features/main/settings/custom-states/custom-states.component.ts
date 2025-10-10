@@ -34,6 +34,7 @@ import { CategoryChannel } from '@models/category-channel.model';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AssistanceStateFormComponent } from './assistance-state-form/assistance-state-form.component';
+import { ChannelStateFormComponent } from './channel-state-form/channel-state-form.component';
 
 type ViewType = 'channels' | 'assistances' | 'campaigns';
 
@@ -254,7 +255,7 @@ export class CustomStatesComponent {
     this.openModal = true;
     this.assistanceStateStore.clearSelected();
     const ref = this.dialogService.open(AssistanceStateFormComponent, {
-      header: 'Nuevo estado de atención',
+      header: 'Nuevo Estado de atención',
       styleClass: 'modal-md',
       modal: true,
       dismissableMask: false,
@@ -271,7 +272,6 @@ export class CustomStatesComponent {
   }
 
   editAssistanceState(state: AssistanceState) {
-    console.log('state', state);
     this.assistanceStateStore.loadById(state.id);
     this.openModal = true;
     const ref = this.dialogService.open(AssistanceStateFormComponent, {
@@ -280,7 +280,7 @@ export class CustomStatesComponent {
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: 1,
+      data: { categoryId: state.categoryId },
     });
 
     ref.onClose.subscribe((res) => {
@@ -303,16 +303,17 @@ export class CustomStatesComponent {
     );
   }
 
-  newChannelState() {
+  newChannelState(categoryId: number) {
     this.openModal = true;
     this.channelStateStore.clearSelected();
-    const ref = this.dialogService.open(StateFormComponent, {
-      header: 'Nuevo Estado - Canal',
+    this.assistanceStateStore.clearSelected();
+    const ref = this.dialogService.open(ChannelStateFormComponent, {
+      header: 'Nuevo estado de canal',
       styleClass: 'modal-md',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: 0,
+      data: { categoryId },
     });
 
     ref.onClose.subscribe((res) => {
@@ -323,16 +324,16 @@ export class CustomStatesComponent {
     });
   }
 
-  EditarChannelState(state: any) {
+  editChannelState(state: ChannelState) {
     this.channelStateStore.loadById(state.id);
     this.openModal = true;
-    const ref = this.dialogService.open(StateFormComponent, {
-      header: 'Editar estado - Canal: ' + state.nombre,
+    const ref = this.dialogService.open(ChannelStateFormComponent, {
+      header: `Editar estado de canal | ${state.name}`,
       styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: 0,
+      data: { categoryId: state.categoryId },
     });
 
     ref.onClose.subscribe((res) => {
@@ -343,10 +344,10 @@ export class CustomStatesComponent {
     });
   }
 
-  eliminarChannelState(state: any) {
+  deleteChannelState(state: ChannelState) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.nombre}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {

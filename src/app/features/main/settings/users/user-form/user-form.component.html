@@ -97,7 +97,7 @@
         </div>
         <div class="grid grid-cols-1 gap-2">
           <label class="text-sm font-medium" for="officeId">
-            Office <span class="text-xs">*</span>
+            Oficina <span class="text-xs">*</span>
           </label>
           <p-select
             id="officeId"
@@ -125,6 +125,7 @@
             id="vicidialUser"
             pInputText
             formControlName="username"
+            pKeyFilter="alphanum"
             (input)="cleanUsername()"
           />
         </div>
@@ -132,7 +133,12 @@
           <label class="text-sm font-medium" for="vicidialUserPass">
             Password de usuario en VICIdial <span class="text-xs">*</span>
           </label>
-          <input id="vicidialUserPass" pInputText formControlName="userPass" />
+          <input
+            id="vicidialUserPass"
+            pInputText
+            formControlName="userPass"
+            pKeyFilter="alphanum"
+          />
         </div>
         <div class="grid grid-cols-1 gap-2">
           <label class="text-sm font-medium" for="vicidialPhoneLogin">
@@ -142,6 +148,7 @@
             id="vicidialPhoneLogin"
             pInputText
             formControlName="phoneLogin"
+            pKeyFilter="num"
           />
         </div>
         <div class="grid grid-cols-1 gap-2">
@@ -152,6 +159,7 @@
             id="vicidialPhonePass"
             pInputText
             formControlName="phonePass"
+            pKeyFilter="alphanum"
           />
         </div>
         <div class="grid grid-cols-1 gap-2">

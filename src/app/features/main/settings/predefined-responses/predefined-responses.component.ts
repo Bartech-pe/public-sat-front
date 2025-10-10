@@ -43,7 +43,7 @@ export class PredefinedResponsesComponent {
   descripcion: string =
     "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación. Los agentes pueden escribir el carácter '/' seguido por el código corto para insertar una respuesta predefinida durante una conversación.";
 
-  createButtonLabel: string = 'Nueva respuesta';
+  createButtonLabel: string = 'Nueva Respuesta';
 
   openModal: boolean = false;
 

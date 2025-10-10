@@ -277,7 +277,7 @@ export class CompleteManagementComponent implements OnInit {
       .map((r) => r.label);
   }
 
-  listTipos = ['Consulta', 'Trámite', 'Queja', 'Otros'];
+  listTipos = ['Gestión', 'Trámite', 'Queja', 'Otros'];
 
   listObservacion = [
     'Malcriado',

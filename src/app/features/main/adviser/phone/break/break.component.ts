@@ -56,7 +56,9 @@ export class BreakComponent implements OnInit {
 
   private readonly aloSatService = inject(AloSatService);
 
-  listaMotivos = pauseCodeAgent;
+  listaMotivos = pauseCodeAgent.filter(
+    (p) => p.code !== VicidialPauseCode.WRAPUP
+  );
 
   submited: boolean = false;
 

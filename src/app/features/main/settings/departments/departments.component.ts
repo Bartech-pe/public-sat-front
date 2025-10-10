@@ -86,7 +86,7 @@ export class DepartmentsComponent {
 
     // Si se ha creado o actualizado correctamente
     if (action === 'deleted') {
-      this.msg.success('¡Área eliminado exitosamente!');
+      this.msg.success('¡Área eliminada exitosamente!');
       this.store.clearAll();
       this.loadData();
       return;

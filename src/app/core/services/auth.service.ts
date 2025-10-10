@@ -34,7 +34,11 @@ export class AuthService {
 
   logout(): void {
     if (this.isBrowser) {
-      localStorage.clear();
+      this.http.get<User>(`${this.url}/logout`).subscribe({
+        next: (data) => {
+          localStorage.clear();
+        },
+      });
     }
   }
 

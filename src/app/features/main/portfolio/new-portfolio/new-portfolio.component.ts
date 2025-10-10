@@ -149,8 +149,8 @@ export class NewPortfolioComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Cartera creado exitosamente!'
-          : '¡Cartera actualizado exitosamente!'
+          ? '¡Cartera creada exitosamente!'
+          : '¡Cartera actualizada exitosamente!'
       );
 
       this.portfolioStore.clearSelected();

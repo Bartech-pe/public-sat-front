@@ -1,4 +1,9 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  inject,
+  OnInit,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -16,9 +21,9 @@ import { TextareaModule } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { Router } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
-import { MessageGlobalService } from '@services/generic/message-global.service';
 import { EditorModule } from 'primeng/editor';
 import { MessageModule } from 'primeng/message';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 
 @Component({
   selector: 'app-my-templates',
@@ -34,16 +39,27 @@ import { MessageModule } from 'primeng/message';
     FileUpload,
     TextareaModule,
     Select,
+    Dialog,
+    EditorModule,
+    MessageModule,
   ],
   templateUrl: './my-templates.component.html',
-  styles: ``,
+  styles: [
+    `
+      .p-editor .p-editor-toolbar {
+        background: #104275 !important;
+        color: white;
+      }
+    `,
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MyTemplatesComponent implements OnInit {
-
   fechaEnvio = new Date();
   horaEnvio = new Date();
   uploadedFiles: any[] = [];
+  openEditor: boolean = false;
+  text: string = '';
 
   remitentes = [
     { label: 'Prov: #01 - SAT CONTRIBUYENTES@SAT.GOB.PE', value: 'sat1' },
@@ -87,6 +103,8 @@ export class MyTemplatesComponent implements OnInit {
     }),
   });
 
+  private readonly msg = inject(MessageGlobalService);
+
   constructor(private router: Router) {}
 
   value!: string;
@@ -100,7 +118,17 @@ export class MyTemplatesComponent implements OnInit {
   }
 
   abrirEditor() {
-    window.open('/editor', '_blank');
+    // window.open('/editor', '_blank');
     // this.router.navigate(['/editor']);
+    this.openEditor = true;
+  }
+
+  onSubmit(form: any) {
+    if (form.valid) {
+      this.value = this.text;
+      this.msg.success('Plantilla guardada con éxito');
+      form.resetForm();
+      this.openEditor = false;
+    }
   }
 }

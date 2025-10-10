@@ -25,7 +25,8 @@ import { TextareaModule } from 'primeng/textarea';
 export class EmailComponent {
   name: string = 'SAT - Mail';
   email: string = 'demo.correo.sat@gmail.com';
-  clientId: string = '';
+  clientId: string =
+    '';
   clientSecret: string = '';
   topicName: string = 'email-notifications';
   projectId: string = 'giusen-lab';

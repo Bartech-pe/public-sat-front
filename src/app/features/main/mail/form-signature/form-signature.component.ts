@@ -56,8 +56,8 @@ export class FormSignatureComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Rol creado exitosamente!'
-          : '¡Rol actualizado exitosamente!'
+          ? '¡Firma creada exitosamente!'
+          : '¡Firma actualizada exitosamente!'
       );
 
       this.store.clearSelected();

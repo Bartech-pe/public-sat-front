@@ -7,10 +7,15 @@ import { EmailTemplateComponent } from './email-template/email-template.componen
 import { ManageEmailComponent } from './manage-email/manage-email.component';
 import { CampaignEmailConfigService } from '@services/campaign-email-config.service';
 import { CampaignEmailConfigStore } from '@stores/campaign-email-config.store';
+import { TagModule } from 'primeng/tag';
+import { EditorModule } from 'primeng/editor';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
+import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 
 @Component({
   selector: 'app-mail',
-  imports: [TableModule, ButtonSaveComponent],
+  imports: [TableModule, ButtonSaveComponent,TagModule,ButtonEditComponent, BtnDeleteComponent,ButtonDetailComponent],
   templateUrl: './mail.component.html',
   styles: ``,
 })
@@ -62,6 +67,42 @@ export class MailComponent implements OnInit {
     ref.onClose.subscribe((res) => {
       this.openModal = false;
     });
+  }
+
+  getStatusLabel(status: number): string {
+    switch (status) {
+      case 1:
+        return 'Aprobado';
+      case 2:
+        return 'Cancelado';
+      case 3:
+        return 'Finalizado';
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  getStatusSeverity(status: number): string {
+    switch (status) {
+      case 1:
+        return 'success'; // Verde (Aprobado)
+      case 2:
+        return 'danger'; // Rojo (Cancelado)
+      case 3:
+        return 'info'; // Azul (Finalizado)
+      default:
+        return 'secondary';
+    }
+  }
+
+  edit(registro: any) {
+
+  }
+  remove(registro: any) {
+    
+  }
+  verResultados(registro: any) {
+    
   }
 
   

@@ -142,28 +142,31 @@
               </td>
               <td>
                 <div class="flex justify-center items-center">
-                  <p-tag
-                    [value]="item.estado === true ? ' Finalizado' : 'Activo'"
-                    [severity]="item.estado === true ? 'warn' : 'success'"
-                  />
+                 <p class="text-sm font-light text-center">
+                  {{ item.totalRegistration }} / {{ item.totalRegistration }}
+                </p>
                 </div>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-                  {{ item.totalRegistration }}
+                   {{ item.createdAt}} 
                 </p>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-                  <p-tag
-                    [value]="
-                      item.campaignStatus == 1 ? ' Finalizado' : 'Activo'
-                    "
-                  />
+               
+                     <p-tag [value]="item.campaignStatus == 1 ? ' Finalizado' : 'Activo'"/>
                 </p>
               </td>
 
-              <td class="w-28"></td>
+              <td class="w-28">
+               <div class="flex justify-center items-center gap-1">
+                  <button-edit (click)="edit(item)" />
+                  <btn-delete (click)="remove(item)" />
+                  <button-detail (click)="verResultados(item)" />
+               
+                </div>
+              </td>
             </tr>
           </ng-template>
         </p-table>

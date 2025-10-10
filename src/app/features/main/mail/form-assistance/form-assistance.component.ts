@@ -127,8 +127,8 @@ export class FormAssistanceComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Rol creado exitosamente!'
-          : '¡Rol actualizado exitosamente!'
+          ? '¡Atención cerrada exitosamente!'
+          : '¡Atención cerrada exitosamente!'
       );
 
       this.formData.reset({

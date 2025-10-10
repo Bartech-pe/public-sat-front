@@ -11,6 +11,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { EditorModule } from 'primeng/editor';
+
 @Component({
   selector: 'app-email-template',
   imports: [

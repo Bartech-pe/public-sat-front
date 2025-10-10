@@ -31,6 +31,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { KeyFilterModule } from 'primeng/keyfilter';
 
 @Component({
   selector: 'app-user-form',
@@ -44,6 +45,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
     FieldsetModule,
     ButtonModule,
     SelectModule,
+    KeyFilterModule,
     ButtonCancelComponent,
     ButtonSaveComponent,
   ],
@@ -63,7 +65,7 @@ export class UserFormComponent implements OnInit {
   readonly officeStore = inject(OfficeStore);
 
   formData = new FormGroup({
-    name: new FormControl<string>('', {
+    name: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -93,11 +95,15 @@ export class UserFormComponent implements OnInit {
     vicidial: new FormGroup({
       username: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [Validators.required, Validators.maxLength(20)],
       }),
       userPass: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(100),
+        ],
       }),
       phoneLogin: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
@@ -105,7 +111,11 @@ export class UserFormComponent implements OnInit {
       }),
       phonePass: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(100),
+        ],
       }),
       userLevel: new FormControl<number | undefined>(undefined, {
         nonNullable: true,
@@ -216,6 +226,34 @@ export class UserFormComponent implements OnInit {
     this.roleStore.loadAll();
     this.departmentStore.loadAll();
     this.officeStore.loadAll();
+
+    this.formData.get('roleId')!.valueChanges.subscribe((roleId) => {
+      const departmentControl = this.formData.get('departmentId')!;
+      const officeControl = this.formData.get('officeId')!;
+
+      if (roleId === 1) {
+        // 🔒 Deshabilitar y quitar validadores
+        departmentControl.setValue(undefined);
+        departmentControl.disable();
+        departmentControl.clearValidators();
+        departmentControl.updateValueAndValidity();
+
+        officeControl.setValue(undefined);
+        officeControl.disable();
+        officeControl.clearValidators();
+        officeControl.updateValueAndValidity();
+      } else {
+        // 🔓 Habilitar y volver a agregar validadores
+
+        departmentControl.enable();
+        departmentControl.setValidators([Validators.required]);
+        departmentControl.updateValueAndValidity();
+
+        officeControl.enable();
+        officeControl.setValidators([Validators.required]);
+        officeControl.updateValueAndValidity();
+      }
+    });
   }
 
   resetForm() {

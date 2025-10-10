@@ -11,6 +11,10 @@ export class SocketService {
 
   private requestAdvisorSubject = new Subject<{ userId: number }>();
 
+  private requestUserPhoneStateSubject = new Subject<{ userId: number }>();
+
+  private requestPhoneCallSubject = new Subject<{ userId: number }>();
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
       this.initializeSocketConnection();
@@ -39,6 +43,11 @@ export class SocketService {
 
     this.socket.on('email.request', (paload: { userId: number }) => {
       this.requestAdvisorSubject.next(paload);
+    });
+
+    this.socket.on('user.phone.state.request', (paload: { userId: number }) => {
+      console.log('user.phone.state.request');
+      this.requestUserPhoneStateSubject.next(paload);
     });
   }
 
@@ -96,5 +105,13 @@ export class SocketService {
 
   onEmailRequest(): Observable<{ userId: number }> {
     return this.requestAdvisorSubject.asObservable();
+  }
+
+  onUserPhoneStateRequest(): Observable<{ userId: number }> {
+    return this.requestUserPhoneStateSubject.asObservable();
+  }
+  
+  onRequestPhoneCallSubject(): Observable<{ userId: number }> {
+    return this.requestPhoneCallSubject.asObservable();
   }
 }

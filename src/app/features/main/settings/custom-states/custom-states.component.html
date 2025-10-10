@@ -69,9 +69,9 @@
                       Estados {{ category.name }}
                     </h3>
                     <button-save
-                      label="Nuevo estado"
+                      label="Nuevo Estado"
                       [icon]="'mdi:plus-circle-outline'"
-                      (click)="newChannelState()"
+                      (click)="newChannelState(category.id)"
                     />
                   </div>
                   <div
@@ -107,31 +107,28 @@
                         <div>
                           <p-tag
                             class="text-xs"
-                            [value]="
-                              item.type == true ? 'Base' : 'Perzonalizado'
-                            "
+                            [value]="item.inmutable ? 'Base' : 'Perzonalizado'"
                             [severity]="
-                              item.type == true ? 'secondary' : 'primary'
+                              item.inmutable ? 'secondary' : 'primary'
                             "
                             ><iconify-icon
-                              *ngIf="item.type == true"
-                              [icon]="'mdi:secure-outline'"
-                              class="text-base"
-                            />
-                            <iconify-icon
-                              *ngIf="item.type != true"
-                              [icon]="'akar-icons:pencil'"
+                              [icon]="
+                                item.inmutable
+                                  ? 'mdi:secure-outline'
+                                  : 'akar-icons:pencil'
+                              "
                               class="text-base"
                             />
                           </p-tag>
                         </div>
                         <div class="flex gap-2">
                           <btn-edit-square
-                            (onClick)="editAssistanceState(item)"
+                            (onClick)="editChannelState(item)"
                           />
                           <btn-delete
                             [text]="false"
-                            (onClick)="deleteAssistanceState(item)"
+                            [disabled]="item.inmutable"
+                            (onClick)="deleteChannelState(item)"
                           />
                         </div>
                       </div>
@@ -201,20 +198,16 @@
                         <div>
                           <p-tag
                             class="text-xs"
-                            [value]="
-                              item.type == true ? 'Base' : 'Perzonalizado'
-                            "
+                            [value]="item.inmutable ? 'Base' : 'Perzonalizado'"
                             [severity]="
-                              item.type == true ? 'secondary' : 'primary'
+                              item.inmutable ? 'secondary' : 'primary'
                             "
                             ><iconify-icon
-                              *ngIf="item.type == true"
-                              [icon]="'mdi:secure-outline'"
-                              class="text-base"
-                            />
-                            <iconify-icon
-                              *ngIf="item.type != true"
-                              [icon]="'akar-icons:pencil'"
+                              [icon]="
+                                item.inmutable
+                                  ? 'mdi:secure-outline'
+                                  : 'akar-icons:pencil'
+                              "
                               class="text-base"
                             />
                           </p-tag>

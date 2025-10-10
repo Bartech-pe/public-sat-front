@@ -70,9 +70,7 @@
               <th class="items-center">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
-                >
-                  Acciones
-                </div>
+                ></div>
               </th>
             </tr>
           </ng-template>
@@ -83,15 +81,15 @@
                 <p class="text-sm font-light">{{ item.createdAt }}</p>
               </td>
               <td>
-                <p class="text-sm font-light">{{ item.nombre }}</p>
+                <p class="text-sm font-light">{{ item.name }}</p>
               </td>
               <td>
                 <p class="text-sm font-light">
                   {{ item.senderId }}
                 </p>
               </td>
-              <td class="w-70">
-                <p class="text-sm font-light text-center">
+              <td class="w-120">
+                <p class="text-sm font-light">
                   {{ item.message }}
                 </p>
               </td>
@@ -106,9 +104,10 @@
 
               <td class="w-28">
                 <div class="flex justify-center items-center gap-1">
-                  <button-count (click)="count(item)" />
-                  <button-edit (click)="edit(item.id)" />
-                  <button-download (click)="downloadReport(item)" />
+                  <!-- <button-download (click)="downloadReport(item)" /> -->
+                  <button-progress (click)="count(item)" />
+                  <button-count (click)="downloadReport(item)" />
+                  <!-- <button-edit (click)="edit(item.id)" /> -->
                 </div>
               </td>
             </tr>
@@ -129,28 +128,90 @@
     <div class="flex flex-col gap-4">
       <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">Enviados:</p>
-        <p class="text-sm">203059</p>
+        <p class="text-sm">{{ listPreview.length }}</p>
       </div>
-      <div class="flex justify-between items-center">
+      <!-- <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">Entregados:</p>
-        <p class="text-sm">15000</p>
+        <p class="text-sm">{{ listPreview.length }}</p>
       </div>
       <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">No Entregados:</p>
         <p class="text-sm">0</p>
-      </div>
+      </div> -->
       <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">Rechazados:</p>
         <p class="text-sm">0</p>
       </div>
-      <div class="flex justify-between items-center">
+      <!-- <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">Caducados</p>
         <p class="text-sm">0</p>
       </div>
       <div class="flex justify-between items-center">
         <p class="font-light text-blue-700 text-sm">Desconocidos:</p>
         <p class="text-sm">0</p>
-      </div>
+      </div> -->
     </div>
   </div>
 </p-popover>
+
+<p-dialog header="Mensajes Enviados" [(visible)]="visible" [modal]="true">
+  <ng-template #header>
+    <div class="inline-flex items-center justify-center gap-2">
+      <span class="font-bold whitespace-nowrap"
+        >Mensajes Enviados</span
+      >
+    </div>
+  </ng-template>
+  <div>
+    <p-table
+      [value]="listPreview"
+      [paginator]="true"
+      [rows]="10"
+      [responsiveLayout]="'scroll'"
+      sortMode="multiple"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="w-30">
+            <div class="flex items-center text-xs uppercase gap-4 text-center">
+              Número de celular
+            </div>
+          </th>
+          <th class="w-150">
+            <div class="flex items-center justify-center text-xs uppercase gap-4">Mensaje</div>
+          </th>
+          <th class="w-30">
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4 text-center"
+            >
+              Número de letras
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <p class="text-sm font-light text-center">{{ item.contact }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light">{{ item.message }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light text-center">
+              {{ item.message.length }}
+            </p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <ng-template #footer>
+    <div>
+      <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
+    </div>
+  </ng-template>
+</p-dialog>

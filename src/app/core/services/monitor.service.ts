@@ -93,7 +93,7 @@ export class MonitorService {
 
 
 
-   /**
+  /**
    * 🧾 Detalles de estados por asesor
    * @param agent ID del agente
    * @param start Fecha inicio (YYYY-MM-DD)
@@ -104,10 +104,11 @@ export class MonitorService {
     start: string,
     finish: string
   ): Observable<StateDetailsByAdvisor[]> {
-    return this.http.get<StateDetailsByAdvisor[]>(
-      `${this.baseUrl}/stateDetailsByAdvisor/${agent}/${start}/${finish}`
-    );
+    const url = `${this.baseUrl}/stateDetailsByAdvisor/${agent}/${start}/${finish}`;
+    console.log('📡 Llamando a:', url); // te mostrará la URL final en consola
+    return this.http.get<StateDetailsByAdvisor[]>(url);
   }
+
 
   /**
    * 📊 Conteo para dashboard Vicidial

@@ -42,6 +42,14 @@
     </div>
   </form>
 
+   <!-- Editor de Plantilla -->
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <!-- <p-editor [(ngModel)]="emailForm.value.plantilla.template" (ngModelChange)="updatePlantillaHtml($event)"
+      [style]="{height:'320px'}" class="w-full border border-gray-200 rounded-md overflow-hidden bg-white"></p-editor> -->
+       <div [innerHTML]="emailForm.value.plantilla.template"></div>
+  </div>
+
+
   <div class="bg-white shadow rounded-xl  mb-4" >
 
     <p-fieldset legend="Carga de Excel">
@@ -147,13 +155,7 @@
     </div>
   </div>
 
-  <!-- Editor de Plantilla -->
-  <!-- <div class="bg-gray-50 p-4 rounded-lg">
-    <h3 class="text-lg font-semibold text-gray-800 mb-3">Editar Plantilla</h3>
-    <p-editor [(ngModel)]="emailForm.value.plantilla.template" (ngModelChange)="updatePlantillaHtml($event)"
-      [style]="{height:'320px'}" class="w-full border border-gray-200 rounded-md overflow-hidden bg-white"></p-editor>
-  </div> -->
-
+ 
    <div class="pt-4 flex justify-end space-x-2" *ngIf="previewData.length">
       <button-cancel (click)="onCancel()" />
       <p-button
