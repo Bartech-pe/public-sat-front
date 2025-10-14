@@ -1,7 +1,7 @@
 <p-card class="grid grid-cols-1 gap-4">
   <p-fieldset legend="Información básica del caso">
     <div class="grid grid-cols-1 gap-4">
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-6">
         <div class="grid grid-cols-1">
           <p class="font-light text-sm">
             <strong>Contribuyente:</strong> {{ portfolioDetail?.taxpayerName }}
@@ -31,51 +31,72 @@
           </p>
         </div>
       </div>
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-6">
         <div class="gap-1">
           @for (contact of phoneContacts; track $index) {
-          <p class="font-light text-sm">
-            <strong>{{ contact.label }}:</strong>
-            {{ contact.value }}
-            @if(contact.isAdditional){
-            <small>(Adicional)</small>
-            }
-          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="h-full flex items-center font-light text-sm">
+              <strong>{{ contact.label }}:</strong>
+              {{ contact.value }}
+              @if(contact.isAdditional){
+              <small>(Adicional)</small>
+              }
+            </div>
+            <btn-delete
+              icon="mdi:times"
+              tooltip="Eliminar contacto"
+              (click)="removeContact(contact)"
+            />
+          </div>
+
           }
         </div>
         <div class="flex flex-col gap-1">
           @for (contact of whatsappContacts; track $index) {
-          <p class="font-light text-sm">
-            <strong>{{ contact.label }}:</strong>
-            <a
-              [href]="'https://wa.me/' + cleanWhatsapp(contact?.value)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-blue-500 hover:underline"
-            >
-              {{ cleanWhatsapp(contact?.value) | phoneFormat }}
-            </a>
-            @if(contact.isAdditional){
-            <small>(Adicional)</small>
-            }
-          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="h-full flex items-center font-light text-sm">
+              <strong>{{ contact.label }}:</strong>
+              <a
+                [href]="'https://wa.me/' + cleanWhatsapp(contact?.value)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-blue-500 hover:underline"
+              >
+                {{ cleanWhatsapp(contact?.value) | phoneFormat }}
+              </a>
+              @if(contact.isAdditional){
+              <small>(Adicional)</small>
+              }
+            </div>
+            <btn-delete
+              icon="mdi:times"
+              tooltip="Eliminar contacto"
+              (click)="removeContact(contact)"
+            />
+          </div>
+
           }
         </div>
-        <div class="flex flex-col gap-1">
+        <div class="w-full flex flex-col gap-1">
           @for (contact of emailContacts; track $index) {
-          <p class="font-light text-sm">
-            <strong>{{ contact.label }}:</strong>
-            <span
-              class="flex items-center gap-1"
-              (click)="copyEmail(contact?.value)"
-            >
-              {{ contact?.value }}
-              <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
-            </span>
-            @if(contact.isAdditional){
-            <small>(Adicional)</small>
-            }
-          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="h-full flex items-center font-light text-sm">
+              <strong>{{ contact.label }}:</strong>
+              <a (click)="copyEmail(contact?.value)">
+                {{ contact?.value }}
+                <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
+              </a>
+              @if(contact.isAdditional){
+              <small>(Adicional)</small>
+              }
+            </div>
+            <btn-delete
+              icon="mdi:times"
+              tooltip="Eliminar contacto"
+              (click)="removeContact(contact)"
+            />
+          </div>
+
           }
         </div>
       </div>
@@ -173,6 +194,7 @@
                   formControlName="observation"
                   placeholder="Seleccione..."
                   appendTo="body"
+                  [showClear]="true"
                 />
               </div>
             </div>
@@ -476,41 +498,6 @@
                               Cuota doc de deuda
                             </div>
                           </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Fecha_venc insoluto
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Reajuste Der. emisión
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Interés moras costas
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Gastos total dscto pagado
-                            </div>
-                          </th>
-                          <th>
-                            <div
-                              class="flex justify-center items-center text-xs uppercase gap-4"
-                            >
-                              Salgo vencimiento
-                            </div>
-                          </th>
                         </tr>
                       </ng-template>
                       <ng-template pTemplate="body" let-item>
@@ -540,29 +527,94 @@
                               {{ item?.cuota }}
                             </p>
                           </td>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="emptymessage">
+                        <tr>
+                          <td colspan="100" class="text-center p-6">
+                            <div
+                              class="flex flex-col items-center text-gray-500"
+                            >
+                              <i
+                                class="pi pi-folder-open text-6xl text-gray-400"
+                              ></i>
+                              <p class="text-sm font-medium mt-3">
+                                Sin registro de deudas
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                    <p-table
+                      *ngIf="typeTributo == 2"
+                      [value]="tableImpuestoVehicular"
+                      [responsiveLayout]="'scroll'"
+                    >
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th>
+                            <div
+                              class="flex justify-center items-center text-xs uppercase gap-4"
+                            >
+                              N° documento
+                            </div>
+                          </th>
+                          <th>
+                            <div
+                              class="flex justify-center items-center text-xs uppercase gap-4"
+                            >
+                              Fecha vencimiento
+                            </div>
+                          </th>
+                          <th>
+                            <div
+                              class="flex justify-center items-center text-xs uppercase gap-4"
+                            >
+                              Estado de la deuda
+                            </div>
+                          </th>
+                          <th>
+                            <div
+                              class="flex justify-center items-center text-xs uppercase gap-4"
+                            >
+                              Monto de la deuda
+                            </div>
+                          </th>
+                          <th>
+                            <div
+                              class="flex justify-center items-center text-xs uppercase gap-4"
+                            >
+                              Cuota doc de deuda
+                            </div>
+                          </th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-item>
+                        <tr>
                           <td>
-                            <p class="text-sm font-light text-center">
+                            <p class="text-sm font-light">
+                              {{ item?.documento }}
+                            </p>
+                          </td>
+                          <td>
+                            <p class="text-sm font-light">
                               {{ item?.fechavencimiento }}
                             </p>
                           </td>
                           <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.reajuste }}
+                            <p class="text-sm font-light">
+                              {{ item?.estado }}
                             </p>
                           </td>
                           <td>
                             <p class="text-sm font-light text-center">
-                              {{ item?.interes }}
+                              {{ item?.monto | currency }}
                             </p>
                           </td>
                           <td>
                             <p class="text-sm font-light text-center">
-                              {{ item?.gastoTotal }}
-                            </p>
-                          </td>
-                          <td>
-                            <p class="text-sm font-light text-center">
-                              {{ item?.saldo }}
+                              {{ item?.cuota }}
                             </p>
                           </td>
                         </tr>
@@ -964,129 +1016,145 @@
               <p-tabpanel [value]="3"> </p-tabpanel>
               <p-tabpanel [value]="4"> </p-tabpanel>
               <p-tabpanel [value]="5">
-                <p-table
-                  [value]="tableComunicaciones"
-                  [responsiveLayout]="'scroll'"
-                >
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Fecha/Hora
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Tipo
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Canal
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Método
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Contacto Usado
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Resultado
-                        </div>
-                      </th>
-                      <th>
-                        <div
-                          class="flex justify-center items-center text-xs uppercase gap-4"
-                        >
-                          Usuario
-                        </div>
-                      </th>
+                <div class="grid grid-cols-1 gap-2">
+                  <div class="flex justify-start items-center gap-2">
+                    <p-select
+                      id="channelCommunication"
+                      [options]="listCanalesComunicacion"
+                      optionLabel="label"
+                      optionValue="code"
+                      [(ngModel)]="channelSelected"
+                      placeholder="Seleccionar canal"
+                      appendTo="body"
+                      [style]="{ 'min-width': '200px' }"
+                      (onChange)="filterCommunications()"
+                    />
+                  </div>
 
-                      <th></th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-item>
-                    <tr>
-                      <td>
-                        <p class="text-sm text-center font-light">
-                          {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm text-center font-light">
-                          {{ item?.type }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm text-center font-light">
-                          {{ item?.channel }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm font-light text-center">
-                          {{ item?.method }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm font-light text-center">
-                          {{ item?.contact }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm font-light text-center">
-                          {{ item?.result }}
-                        </p>
-                      </td>
-                      <td>
-                        <p class="text-sm font-light text-center">
-                          {{ item?.createdByUser?.name }}
-                        </p>
-                      </td>
-                      <td>
-                        <div class="flex justify-center">
-                          <btn-custom
-                            severity="danger"
-                            icon="lucide:trash-2"
-                            tooltip="Eliminar atención"
-                            (click)="deleteItemAtencion(item)"
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="emptymessage">
-                    <tr>
-                      <td colspan="100" class="text-center p-6">
-                        <div class="flex flex-col items-center text-gray-500">
-                          <i
-                            class="pi pi-folder-open text-6xl text-gray-400"
-                          ></i>
-                          <p class="text-sm font-medium mt-3">
-                            Sin comunicaciones
+                  <p-table
+                    [value]="tableComunicaciones"
+                    [responsiveLayout]="'scroll'"
+                  >
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Fecha/Hora
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Tipo
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Canal
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Método
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Contacto Usado
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Resultado
+                          </div>
+                        </th>
+                        <th>
+                          <div
+                            class="flex justify-center items-center text-xs uppercase gap-4"
+                          >
+                            Usuario
+                          </div>
+                        </th>
+
+                        <th></th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                      <tr>
+                        <td>
+                          <p class="text-sm text-center font-light">
+                            {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
                           </p>
-                        </div>
-                      </td>
-                    </tr>
-                  </ng-template>
-                </p-table>
+                        </td>
+                        <td>
+                          <p class="text-sm text-center font-light">
+                            {{ item?.type }}
+                          </p>
+                        </td>
+                        <td>
+                          <p class="text-sm text-center font-light">
+                            {{ item?.channel }}
+                          </p>
+                        </td>
+                        <td>
+                          <p class="text-sm font-light text-center">
+                            {{ item?.method }}
+                          </p>
+                        </td>
+                        <td>
+                          <p class="text-sm font-light text-center">
+                            {{ item?.contact }}
+                          </p>
+                        </td>
+                        <td>
+                          <p class="text-sm font-light text-center">
+                            {{ item?.result }}
+                          </p>
+                        </td>
+                        <td>
+                          <p class="text-sm font-light text-center">
+                            {{ item?.createdByUser?.name ?? item?.user }}
+                          </p>
+                        </td>
+                        <td>
+                          <div class="flex justify-center">
+                            <btn-custom
+                              severity="danger"
+                              icon="lucide:trash-2"
+                              tooltip="Eliminar atención"
+                              (click)="deleteItemAtencion(item)"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="100" class="text-center p-6">
+                          <div class="flex flex-col items-center text-gray-500">
+                            <i
+                              class="pi pi-folder-open text-6xl text-gray-400"
+                            ></i>
+                            <p class="text-sm font-medium mt-3">
+                              Sin comunicaciones
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
               </p-tabpanel>
               <p-tabpanel [value]="6">
                 <p-table

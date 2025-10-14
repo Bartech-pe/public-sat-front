@@ -15,7 +15,7 @@ export class VicidialService {
   
   private readonly baseUrl!: string;
   constructor(private http: HttpClient) {
-    this.baseUrl = `${environment.apiUrl}`;
+    this.baseUrl = `${environment.apiUrl}v1/`;
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -48,16 +48,16 @@ export class VicidialService {
 
   create(data: any, endpoint: string): Observable<any> {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-      return this.http.post<any>(`${this.baseUrl}/${endpoint}`, data, { headers }).pipe(catchError(this.handleError));
+      return this.http.post<any>(`${this.baseUrl}${endpoint}`, data, { headers }).pipe(catchError(this.handleError));
   }
 
   editarCampania(campaign_id: string, data: Partial<any>): Observable<any> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.patch(`${this.baseUrl}/central/campanias/${campaign_id}`, data, { headers });
+    return this.http.patch(`${this.baseUrl}central/campanias/${campaign_id}`, data, { headers });
   }
 
   eliminarCampania(campaign_id: string): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/central/campanias/${campaign_id}`);
+    return this.http.delete(`${this.baseUrl}central/campanias/${campaign_id}`);
   }
 
 

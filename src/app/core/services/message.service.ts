@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '@envs/environments';
-import { BehaviorSubject, catchError, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
 import { ChatMessage } from '@models/chat-message.model';
@@ -42,11 +42,21 @@ export class ChatMessageService {
       'Content-Type': 'application/json',
     });
 
-    return this.http.get<ChatMessage[]>(
-      `${this.apiUrl}/chat/room/${channelRoomId}/messages`,
-      { headers }
-    );
+    return this.http
+      .get<ChatMessage[]>(`${this.apiUrl}/chat/room/${channelRoomId}/messages`, {
+        headers,
+      })
+      .pipe(
+        map((messages) =>
+          messages.map((msg) => ({
+            ...msg,
+            // 🔧 Normalizamos el senderId siempre
+            senderId: msg.senderId ?? msg.sender?.id ?? 0,
+          }))
+        )
+      );
   }
+
 
   registerMessage(body: ChatMessage): Observable<ChatMessage[]> {
     const { isSender, ...dto } = body;

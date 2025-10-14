@@ -110,8 +110,8 @@ export class FormSmsComponent implements OnInit {
       variable: [{ value: undefined, disabled: true }],
       message: [undefined, Validators.required],
       countryCode: [this.countryCode],
-      id_area_campania: [null, Validators.required],
-      id_estado_campania: [null, Validators.required],
+      id_area_campania: [null],
+      id_estado_campania: [null],
     });
     this.loadData();
     if (this.editarCampania) {
@@ -273,8 +273,8 @@ export class FormSmsComponent implements OnInit {
         name: request.name,
         contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
         message: request.message,
-        departmentId: request.id_area_campania,
-        campaignStateId: request.id_estado_campania,
+        // departmentId: request.id_area_campania,
+        // campaignStateId: request.id_estado_campania,
         countryCode: request.countryCode,
       };
 
@@ -297,8 +297,8 @@ export class FormSmsComponent implements OnInit {
       name: request.name,
       contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
       message: request.message,
-      departmentId: request.id_area_campania,
-      campaignStateId: request.id_estado_campania,
+      // departmentId: request.id_area_campania,
+      // campaignStateId: request.id_estado_campania,
       countryCode: false,
       createUser: this.userCurrent.id,
       rows: this.rows,

@@ -76,7 +76,7 @@ export class FormAssistanceComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    communicationId: new FormControl<number | undefined>(2, {
+    communicationId: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),

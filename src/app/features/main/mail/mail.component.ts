@@ -232,7 +232,10 @@ export class MailComponent implements OnInit {
   get userList(): User[] {
     return this.filteredMails
       .filter((mail) => !!mail.advisor)
-      .map((mail) => mail.advisor as User);
+      .map((mail) => mail.advisor as User)
+      .filter(
+        (user, index, self) => index === self.findIndex((u) => u.id === user.id)
+      );
   }
 
   selectedUsers: number[] = [];
@@ -392,7 +395,7 @@ export class MailComponent implements OnInit {
   loadSignature() {
     this.emailSignatureService.findOneByTokenUserId().subscribe({
       next: (data) => {
-        this.signature = data.content;
+        this.signature = data?.content ?? '';
       },
     });
   }
@@ -775,6 +778,7 @@ export class MailComponent implements OnInit {
         this.attachments = [];
         this.isReplying = false;
         this.replyTarget = null;
+        this.cancelReply();
       },
       error: (err) => {
         console.error('❌ Error enviando reply', err);

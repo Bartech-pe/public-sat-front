@@ -10,7 +10,7 @@
       <span>Mi bandeja de entrada</span>
       <button
         (click)="emojiPopoverNewMessage?.toggle($event)"
-        class="flex items-center gap-1 p-1.5 text-sm bg-white/10 hover:bg-white/20 rounded-full transition"
+        class="flex items-center gap-1 p-1.5 text-sm bg-white/10 hover:bg-white/20 rounded-full transition cursor-pointer"
       >
         <iconify-icon icon="mdi:plus" width="20"></iconify-icon>
       </button>
@@ -123,32 +123,6 @@
   <div class="w-3/4 flex flex-col bg-white h-full">
     <!-- Toolbar superior -->
     <ng-container *ngIf="selectedChatId">
-      <!--<div class="px-4 py-2 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
-        <div class="flex items-center gap-2 text-sm text-gray-700">
-          <button class="p-1 bg-gray-100 hover:bg-gray-200 rounded transition">
-            <iconify-icon icon="ci:caret-down-md" width="16"></iconify-icon>
-          </button>
-          <button class="p-1 bg-gray-100 hover:bg-gray-200 rounded transition">
-            <iconify-icon icon="ci:caret-up-md" width="16"></iconify-icon>
-          </button>
-          <small><strong>1</strong>/{{ listChatRoom.length }}</small>
-        </div>
-        <div class="flex items-center gap-2 text-sm">
-          <button
-            (click)="enviarNotificacionesUser()"
-            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
-          >
-            <iconify-icon icon="mdi:bell-outline" width="16"></iconify-icon>
-            Enviar notificaciones
-          </button>
-          <button
-            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
-          >
-            <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
-            Borrar notificaciones
-          </button>
-        </div>
-      </div>-->
 
       <!-- Encabezado conversación -->
       <div
@@ -178,7 +152,7 @@
         <div class="flex items-center gap-2">
           <button
             (click)="enviarNotificacionesUser()"
-            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 !rounded-full transition"
+            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 !rounded-full transition cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -191,7 +165,7 @@
                 d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480"
               />
             </svg>
-            Enviar notificaciones
+            Enviar notificación al supervisor
           </button>
           <!--<button
                 class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition">
@@ -207,12 +181,12 @@
             class="p-button-sm text-xs"
           ></p-splitButton>
 
-          <button
+          <!-- <button
             (click)="emojiPopoverButones.toggle($event)"
             class="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
           >
             <iconify-icon icon="ci:more-vertical" width="16"> </iconify-icon>
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -226,6 +200,14 @@
           <ng-container
             *ngIf="listMessageChatRoom.length > 0; else emptyMessage"
           >
+          <!-- 👇 Vista previa de la imagen seleccionada -->
+              <div *ngIf="previewImage" class="mt-3 flex justify-center">
+                <img
+                  [src]="previewImage"
+                  alt="Vista previa"
+                  class="max-h-40 rounded-lg shadow-md border border-gray-200"
+                />
+              </div>
             <chat-message-list
               [messages]="listMessageChatRoom"
               (deleteMessage)="borrarMensaje($event)"
@@ -289,7 +271,7 @@
             <ng-template pTemplate="body" let-contact>
               <tr (click)="viewMessage(contact)">
                 <td>
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 cursor-pointer">
                     <img
                       [alt]="contact.name"
                       [src]="'https://i.pravatar.cc/100?img=1'"
@@ -304,9 +286,9 @@
         </div>
       </p-popover>
 
-      <p-popover #emojiPopoverButones>
-        <div class="flex flex-col gap-2 w-full p-2">
-          <!-- Botón: Bloquear contacto -->
+      <!-- <p-popover #emojiPopoverButones> -->
+        <!-- <div class="flex flex-col gap-2 w-full p-2"> -->
+          <!-- Botón: Bloquear contacto
           <button
             class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
           >
@@ -317,9 +299,10 @@
             ></iconify-icon>
             Bloquear contacto
           </button>
+          -->
 
           <!-- Botón: Enviar Transcripción -->
-          <button
+          <!-- <button
             class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
           >
             <iconify-icon
@@ -328,9 +311,9 @@
               width="16"
             ></iconify-icon>
             Enviar Transcripción
-          </button>
-        </div>
-      </p-popover>
+          </button> -->
+        <!-- </div> -->
+      <!-- </p-popover> -->
 
       <p-popover
         #popoverButonesNotificaciones

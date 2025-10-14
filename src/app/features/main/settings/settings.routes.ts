@@ -128,12 +128,4 @@ export const settingsRoutes: Routes = [
         '@features/main/settings/channel-schedule/channel-schedule.component'
       ).then((c) => c.ChannelScheduleComponent),
   },
-  {
-    path: 'monitoring-panel',
-    title: 'SAT | Panel',
-    loadComponent: () =>
-      import(
-        '@features/main/settings/monitoring-panel/monitoring-panel.component'
-      ).then((c) => c.MonitoringPanelComponent),
-  },
 ];

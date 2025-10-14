@@ -242,7 +242,7 @@ export class CustomStatesComponent {
   eliminarCampaignState(state: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.nombre}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {
@@ -292,6 +292,7 @@ export class CustomStatesComponent {
   }
 
   deleteAssistanceState(state: AssistanceState) {
+    console.log(state);
     this.msg.confirm(
       `<div class='px-4 py-2'>
         <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>

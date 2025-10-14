@@ -98,7 +98,7 @@ export class SmsComponent implements OnInit {
 
   viewdata(item: any) {
     const request: MessagePreview = {
-      rows: item.excel_data,
+      rows: JSON.parse(item.excel_data),
       message: item.message,
       contact: item.contact ?? '',
     };

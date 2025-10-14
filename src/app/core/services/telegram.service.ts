@@ -13,6 +13,7 @@ interface TelegramAuthRequest
 {
   phoneNumber: string;
   code?: string;
+  force?: boolean;
 }
 
 @Injectable({
@@ -24,7 +25,7 @@ export class TelegramService {
   constructor(private http: HttpClient) { }
 
   sendCodeAuth(request: TelegramAuthRequest): Observable<TelegramAuthResponse> {
-    return this.http.post<TelegramAuthResponse>(`${this.url}/telegram/init`, request)
+    return this.http.post<TelegramAuthResponse>(`${this.url}telegram/init`, {...request, force: true})
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);
@@ -35,7 +36,7 @@ export class TelegramService {
 
   createAuthSession(request: TelegramAuthRequest): Observable<TelegramAuthResponse>
   {
-    return this.http.post<TelegramAuthResponse>(`${this.url}/telegram/confirm-code`, request)
+    return this.http.post<TelegramAuthResponse>(`${this.url}telegram/confirm-code`, request)
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);

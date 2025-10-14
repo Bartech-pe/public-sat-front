@@ -224,12 +224,12 @@
             </svg>
           </button> -->
 
-          <button
+          <!-- <button
             class="p-2 rounded-full hover:bg-gray-200"
             (click)="attentionSelected()"
           >
-            <!-- Icono en atención -->
-            <!-- <iconify-icon [icon]="'uil:user-exclamation'" class="text-2xl"/> -->
+             Icono en atención 
+             <iconify-icon [icon]="'uil:user-exclamation'" class="text-2xl"/> 
 
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -246,14 +246,19 @@
                 />
               </g>
             </svg>
-          </button>
+          </button> -->
 
-          <button
+          <btn-custom
+                severity="secondary"
+                tooltip="cambiar a En atención"
+                icon="bi:person-fill-exclamation"
+                (click)="attentionSelected()"
+              />
+
+          <!-- <button
             class="p-2 rounded-full hover:bg-gray-200"
             (click)="noWishSelected()"
           >
-            <!-- Icono en atención -->
-            <!-- <iconify-icon [icon]="'uil:user-exclamation'" class="text-2xl"/> -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -265,13 +270,26 @@
                 d="M17.5 2.5L23 12l-5.5 9.5h-11L1 12l5.5-9.5zM11 15v2h2v-2zm0-8v6h2V7z"
               />
             </svg>
-          </button>
+          </button> -->
 
-          <button
+          <btn-custom
+            severity="secondary"
+            tooltip="Cambiar a No deseado"
+            icon="ri:spam-fill"
+            (click)="noWishSelected()"
+          />
+
+          <btn-custom
+            severity="secondary"
+            tooltip="Eliminar"
+            icon="bxs:trash"
+            (click)="deleteSelected()"
+          />
+
+          <!-- <button
             class="p-2 rounded-full hover:bg-gray-200"
             (click)="deleteSelected()"
           >
-            <!-- 🗑 Borrar -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="23"
@@ -283,7 +301,8 @@
                 d="M6 7H5v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zm4 12H8v-9h2zm6 0h-2v-9h2zm.618-15L15 2H9L7.382 4H3v2h18V4z"
               />
             </svg>
-          </button>
+            bxs:trash
+          </button> -->
 
           <!--
             <button class="p-2 rounded-full hover:bg-gray-200" (click)="markAsReadSelected()">
@@ -566,7 +585,7 @@
               <p-editor
                 [(ngModel)]="replyText"
                 placeholder="Escribe un mensaje para acompañar el reenvío..."
-                [style]="{ height: '100px' }"
+                [style]="{ height: '150px' }"
               />
 
               <div
@@ -769,7 +788,7 @@
               <p-editor
                 [(ngModel)]="replyText"
                 placeholder="Escribe un mensaje para acompañar el reenvío..."
-                [style]="{ height: '100px' }"
+                [style]="{ height: '150px' }"
               />
             </div>
 
@@ -1039,7 +1058,7 @@
                 <p-editor
                   [(ngModel)]="forwardBody"
                   placeholder="Escribe un mensaje para acompañar el reenvío..."
-                  [style]="{ height: '100px' }"
+                  [style]="{ height: '150px' }"
                 />
                 <label class="block text-sm font-medium">
                   Mensaje adjunto:
@@ -1140,7 +1159,7 @@
           <div class="flex items-center gap-3 text-xs text-gray-500">
             <!-- Asesor -->
             <span class="font-medium text-gray-700">
-              {{ mail.advisor }}
+              {{ mail.advisor?.name }}
             </span>
 
             <div class="w-28 flex justify-center items-center">

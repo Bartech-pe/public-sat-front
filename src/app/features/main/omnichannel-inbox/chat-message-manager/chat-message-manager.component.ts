@@ -22,6 +22,7 @@ import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import {
+  AdvisorChangedDto,
   ChannelCitizen,
   ChannelLogo,
   ChannelMessage,
@@ -229,6 +230,13 @@ export class ChatMessageManagerComponent implements OnDestroy {
         }
       });
 
+    this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
+      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId;
+      if(hasChannelRoomWithAdvisorChanged)
+      {
+
+      }
+    });
     this.channelRoomSocketService.onNewMessage().subscribe((message) => {
       let messageIncoming = message.message;
 
@@ -257,7 +265,9 @@ export class ChatMessageManagerComponent implements OnDestroy {
         if (!this.isNearBottom) {
           this.unreadMessagesCount++;
         } else {
-          this.scrollToBottomSmooth();
+          requestAnimationFrame(() => {
+            this.handleScrollDown();
+          });
         }
         this.channelRoomSocketService.onChatViewed(this.channelRoomId);
       }
@@ -929,10 +939,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
     return file.type.startsWith('image/') ? 'image' : 'file';
   }
 
-  private getFileExtension(file: Attachment): string {
-    return (file?.extension ?? '').split('.').pop()?.toLowerCase() || '';
-  }
-
   private getBlobFileExtension(file: File): string {
     return file.name.split('.').pop()?.toLowerCase() || '';
   }
@@ -1134,6 +1140,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
         detail: message,
         life: 5000,
       });
+      this.clearChatParams()
       this.chatDetail = null;
     }
   }
@@ -1175,7 +1182,19 @@ export class ChatMessageManagerComponent implements OnDestroy {
         });
     }
   }
+  clearChatParams() {
+    // Obtener parámetros actuales
+    const queryParams = { ...this.router.routerState.snapshot.root.queryParams };
 
+    delete queryParams['channelRoomId'];
+    delete queryParams['assistanceId'];
+
+    // Navegar sin recargar la página
+    this.router.navigate([], {
+      queryParams,
+      replaceUrl: true, // no agrega una entrada al historial
+    });
+  }
   showOptions() {
     console.log('Mostrar opciones');
   }

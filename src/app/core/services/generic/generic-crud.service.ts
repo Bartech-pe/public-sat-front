@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@envs/environments';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
-import { CitizenContact } from '@models/portfolio-detail.model';
 import { Observable } from 'rxjs';
 
 export class GenericCrudService<T> {
@@ -64,23 +63,5 @@ export class GenericCrudService<T> {
     return this.http.get(`${this.url}/getFile/${id}`, {
       responseType: 'blob',
     });
-  }
-
-  getCitizenContactsByTipDocAndDocId(
-    tipDoc: string,
-    docIde: string
-  ): Observable<CitizenContact[]> {
-    // const formData = toFormData(dto);
-    return this.http.get<CitizenContact[]>(
-      `${this.url}/citizen-contacts/${tipDoc}/${docIde}`
-    );
-  }
-
-  citizenContacts(dto: CitizenContact[]): Observable<CitizenContact[]> {
-    // const formData = toFormData(dto);
-    return this.http.post<CitizenContact[]>(
-      `${this.url}/citizen-contacts/multiple`,
-      dto
-    );
   }
 }

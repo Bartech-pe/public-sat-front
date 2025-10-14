@@ -3,13 +3,22 @@ import { inject } from '@angular/core';
 import { AloSatService } from '@services/alo-sat.service';
 import { ChannelState } from '@models/channel-state.model';
 import { tap } from 'rxjs';
-import { ChannelPhoneState } from '@constants/pause-code-agent.constant';
+import {
+  ChannelPhoneState,
+  VicidialPauseCode,
+} from '@constants/pause-code-agent.constant';
+import {
+  CitizenInfo,
+  ExternalCitizenService,
+} from '@services/externalCitizen.service';
 
 export interface AloSat {
   state: ChannelState | undefined;
   pauseCode: string | undefined;
   callInfo: any | undefined;
   lastCallInfo: any | undefined;
+  citizen: CitizenInfo | undefined;
+  loadingCitizen: boolean;
   error: string | null;
 }
 
@@ -18,6 +27,8 @@ const initialState: AloSat = {
   pauseCode: undefined,
   callInfo: undefined,
   lastCallInfo: undefined,
+  citizen: undefined,
+  loadingCitizen: false,
   error: null,
 };
 
@@ -26,6 +37,8 @@ export const AloSatStore = signalStore(
   withState(initialState),
   withMethods((store) => {
     const service = inject(AloSatService);
+
+    const externalCitizenService = inject(ExternalCitizenService);
 
     return {
       getState() {
@@ -62,6 +75,29 @@ export const AloSatStore = signalStore(
                 patchState(store, {
                   callInfo: res,
                 });
+
+                if (res) {
+                  externalCitizenService
+                    .getCitizenInformation({
+                      psiTipConsulta: 1,
+                      piValPar1: res?.phoneNumber,
+                      pvValPar2: 'empty',
+                    })
+                    .subscribe({
+                      next: (res) => {
+                        patchState(store, {
+                          citizen: res[0],
+                          loadingCitizen: false,
+                        });
+                      },
+                      error: (e) => {
+                        patchState(store, {
+                          citizen: undefined,
+                          loadingCitizen: false,
+                        });
+                      },
+                    });
+                }
               },
               error: (err) =>
                 patchState(store, {
@@ -80,6 +116,32 @@ export const AloSatStore = signalStore(
                 patchState(store, {
                   lastCallInfo: res,
                 });
+                patchState(store, {
+                  citizen: undefined,
+                  loadingCitizen: true,
+                });
+                if (store.pauseCode() === VicidialPauseCode.WRAP) {
+                  externalCitizenService
+                    .getCitizenInformation({
+                      psiTipConsulta: 1,
+                      piValPar1: res?.phoneNumber,
+                      pvValPar2: 'empty',
+                    })
+                    .subscribe({
+                      next: (res) => {
+                        patchState(store, {
+                          citizen: res[0],
+                          loadingCitizen: false,
+                        });
+                      },
+                      error: (e) => {
+                        patchState(store, {
+                          citizen: undefined,
+                          loadingCitizen: false,
+                        });
+                      },
+                    });
+                }
               },
               error: (err) =>
                 patchState(store, {

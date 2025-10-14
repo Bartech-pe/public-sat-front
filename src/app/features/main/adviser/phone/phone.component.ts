@@ -53,6 +53,14 @@ import {
 import { CardModule } from 'primeng/card';
 import { SocketService } from '@services/socket.service';
 import { User } from '@models/user.model';
+import { TimeAgoPipe } from '@pipes/time-ago.pipe';
+import { ConsultTypeStore } from '@stores/consult-type.store';
+import { TypeIdeDocStore } from '@stores/type-ide-doc.store';
+import { ConsultType } from '@models/consult-type.modal';
+import { TypeIdeDoc } from '@models/type-ide-doc.model';
+import { ChannelAssistanceStore } from '@stores/channel-assistance.store';
+import { ChannelAssistance } from '@models/channel-assistance.model';
+import { ChannelAssistanceService } from '@services/channel-assistance.service';
 
 @Component({
   selector: 'app-phone',
@@ -73,6 +81,7 @@ import { User } from '@models/user.model';
     InputIconModule,
     ButtonModule,
     CardModule,
+    TimeAgoPipe,
     ButtonSaveComponent,
     BtnCustomComponent,
   ],
@@ -96,17 +105,23 @@ export class PhoneComponent implements OnInit {
 
   private readonly authStore = inject(AuthStore);
 
-  private readonly store = inject(CitizenAssistanceStore);
+  private readonly store = inject(ChannelAssistanceStore);
 
   private readonly aloSatStore = inject(AloSatStore);
 
   private readonly citizenAssistanceService = inject(CitizenAssistanceService);
+
+  private readonly channelAssistanceService = inject(ChannelAssistanceService);
 
   private readonly omnicanalidadService = inject(OmnicanalidadService);
 
   private readonly saldomaticoService = inject(SaldomaticoService);
 
   private readonly socketService = inject(SocketService);
+
+  readonly consultTypeStore = inject(ConsultTypeStore);
+
+  readonly typeIdeDocStore = inject(TypeIdeDocStore);
 
   motivo: any;
 
@@ -118,43 +133,45 @@ export class PhoneComponent implements OnInit {
   });
 
   formDataAtencion = new FormGroup({
-    metodo: new FormControl<string | undefined>('Teléfono', {
+    name: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    tipo: new FormControl<string | undefined>(undefined, {
+    detail: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    canal: new FormControl<string | undefined>('Telefónico'),
-    resultado: new FormControl<string | undefined>(undefined, {
+    consultTypeId: new FormControl<number | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    observacion: new FormControl<string | undefined>(undefined, {
+    categoryId: new FormControl<number | undefined>(1, {
       nonNullable: true,
+      validators: [Validators.required],
+    }),
+    communicationId: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    docIde: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    tipDoc: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
     }),
   });
 
   listCampaigns: any[] = [];
 
-  listMetodos: MetodoContacto[] = [
-    {
-      tipo: 'Teléfono',
-      canal: 'Telefónico',
-      label: 'Telefónico',
-      contacto: '',
-    },
-  ];
+  get consultTypeList(): ConsultType[] {
+    return this.consultTypeStore.items();
+  }
 
-  listTipos = ['Consulta', 'Tramite', 'Queja', 'Otros'];
-
-  listResultados = [
-    'No contesta',
-    'Contacto exitoso',
-    'Número equivocado',
-    'Otro',
-  ];
+  get typeIdeDocList(): TypeIdeDoc[] {
+    return this.typeIdeDocStore.items();
+  }
 
   get isLogged(): boolean {
     return !!this.userState && this.userState?.id !== ChannelPhoneState.OFFLINE;
@@ -168,16 +185,20 @@ export class PhoneComponent implements OnInit {
     return this.userState?.id === ChannelPhoneState.PAUSED;
   }
 
-  get isInCall(): boolean | undefined {
+  get isInCall(): boolean {
     return this.userState?.id === ChannelPhoneState.INCALL;
   }
 
-  get isInQueue(): boolean | undefined {
+  get isInQueue(): boolean {
     return this.userState?.id === ChannelPhoneState.QUEUE;
   }
 
-  get isInWrap(): boolean | undefined {
+  get isInWrap(): boolean {
     return this.isInPaused && this.pauseCode === VicidialPauseCode.WRAP;
+  }
+
+  get isInPark(): boolean {
+    return this.isInCall && this.pauseCode === VicidialPauseCode.PARK;
   }
 
   getPauseCodeValue(code: string): string {
@@ -246,7 +267,11 @@ export class PhoneComponent implements OnInit {
 
   tabSelected = 0;
 
-  listTipoDeuda = [
+  listtypeDeuda = [
+    {
+      code: 3,
+      label: 'Multas administrativas',
+    },
     {
       code: 1,
       label: 'Deudas tributarias',
@@ -255,13 +280,9 @@ export class PhoneComponent implements OnInit {
       code: 2,
       label: 'Deudas no tributarias',
     },
-    {
-      code: 3,
-      label: 'Multas administrativas',
-    },
   ];
 
-  listTipoTributo = [
+  listtypeTributo = [
     {
       code: 1,
       label: 'Impuesto predial',
@@ -272,12 +293,14 @@ export class PhoneComponent implements OnInit {
     },
   ];
 
-  tipoDeuda = 3;
-  tipoTributo = 1;
+  typeDeuda = 3;
+  typeTributo = 1;
 
   tableDeudas: any[] = [];
 
   tableImpuestoPredial: any[] = [];
+
+  tableImpuestoVehicular: any[] = [];
 
   tablePapeletas: any[] = [];
 
@@ -286,6 +309,8 @@ export class PhoneComponent implements OnInit {
   searchText = signal('');
 
   tableComunicaciones: CitizenAssistance[] = [];
+
+  tableChannelAssistances: ChannelAssistance[] = [];
 
   get userState(): ChannelState | undefined {
     return this.aloSatStore.state();
@@ -307,6 +332,9 @@ export class PhoneComponent implements OnInit {
     const callInfo = this.aloSatStore.callInfo();
     if (this.isInCall && callInfo) {
       this.callTimerService.start(callInfo.entryDate);
+      this.formDataAtencion
+        .get('communicationId')
+        ?.setValue(callInfo?.leadId as string);
     } else {
       this.callTimerService.reset(0);
     }
@@ -316,8 +344,22 @@ export class PhoneComponent implements OnInit {
     const lastCallInfo = this.aloSatStore.lastCallInfo();
     if (this.isInWrap) {
       this.callTimerService.reset(lastCallInfo?.seconds);
+      this.formDataAtencion
+        .get('communicationId')
+        ?.setValue(lastCallInfo?.leadId as string);
     } else {
       this.callTimerService.reset(0);
+    }
+  });
+
+  private citizenEffect = effect(() => {
+    const citizen = this.aloSatStore.citizen();
+    if (citizen) {
+      this.formDataAtencion.get('tipDoc')?.setValue(citizen.vtipDoc);
+      this.formDataAtencion.get('docIde')?.setValue(citizen.vdocIde);
+      this.searchText.set(citizen.vdocIde);
+      this.formDataAtencion.get('name')?.setValue(citizen.vcontacto);
+      this.search();
     }
   });
 
@@ -346,14 +388,17 @@ export class PhoneComponent implements OnInit {
       this.store.clearSelected();
       this.resetForm();
       this.getAtenciones();
+      if (this.isInWrap) {
+        this.endAssistance();
+      }
       return;
     }
   });
 
   ngOnInit(): void {
+    this.consultTypeStore.loadAll();
+    this.typeIdeDocStore.loadAll();
     if (this.isAloSat) {
-      // this.aloSatService.startKeepalive();
-      // this.aloSatService.agentStatus();
       this.aloSatStore.getState();
       this.aloSatService.getCallInfo();
       this.getCampaigns();
@@ -388,23 +433,37 @@ export class PhoneComponent implements OnInit {
 
   resetForm() {
     this.formDataAtencion.reset({
-      metodo: 'Teléfono',
-      tipo: undefined,
-      canal: 'Telefónico',
-      resultado: undefined,
-      observacion: undefined,
+      name: undefined,
+      detail: undefined,
+      consultTypeId: undefined,
+      categoryId: 2,
+      tipDoc: undefined,
+      docIde: undefined,
     });
   }
 
   getAtenciones() {
-    if (this.citizen?.vdocIde) {
-      this.citizenAssistanceService
-        .findByDocIde(this.citizen?.vdocIde)
-        .subscribe({
-          next: (data) => {
-            this.tableComunicaciones = data;
-          },
-        });
+    if (this.searchText()) {
+      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
+        next: (data) => {
+          this.tableComunicaciones = data;
+        },
+      });
+      this.channelAssistanceService.findByDocIde(this.searchText()).subscribe({
+        next: (data) => {
+          this.tableChannelAssistances = data;
+        },
+      });
+    }
+  }
+
+  getChannelAssistances() {
+    if (this.searchText()) {
+      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
+        next: (data) => {
+          this.tableComunicaciones = data;
+        },
+      });
     }
   }
 
@@ -414,12 +473,32 @@ export class PhoneComponent implements OnInit {
         !isNaN(Number.parseInt(this.searchText())) &&
           this.searchText().length == 8
           ? 2
+          : this.searchText().length == 7
+          ? 5
           : 1,
         this.searchText()
       )
       .subscribe({
         next: (data) => {
           this.tableImpuestoPredial = data;
+        },
+      });
+  }
+
+  getImpuestoVehicular(code?: string) {
+    this.saldomaticoService
+      .impuestoVehicularInfo(
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
+          ? 2
+          : this.searchText().length == 7
+          ? 5
+          : 1,
+        this.searchText()
+      )
+      .subscribe({
+        next: (data) => {
+          this.tableImpuestoVehicular = data;
         },
       });
   }
@@ -475,12 +554,20 @@ export class PhoneComponent implements OnInit {
   search() {
     this.getDeuda();
     this.getImpuestoPredial();
+    this.getImpuestoVehicular();
     this.getPapeletaInfo();
     this.getTramites();
+    this.getAtenciones();
   }
 
   clear() {
     this.searchText.set('');
+    this.tableDeudas = [];
+    this.tableImpuestoPredial = [];
+    this.tablePapeletas = [];
+    this.tableTramites = [];
+    this.tableComunicaciones = [];
+    this.tableChannelAssistances = [];
   }
 
   onSubmit() {
@@ -605,66 +692,6 @@ export class PhoneComponent implements OnInit {
 
   botonSeleccionado = false;
 
-  datosPorVista: { [key: string]: any[] } = {
-    Deudas: [],
-    Trámites: [],
-    Medidas: [],
-    Declaraciones: [],
-    Notificaciones: [],
-    Comunicaciones: [
-      {
-        fecha: '06/08/2025 14:30',
-        tipo: 'consulta',
-        canal: 'Teléfono',
-        metodo: 'Tel1',
-        contacto: 'juan@mail.com',
-        resultado: 'compromiso de pago',
-        usuario: 'Ana',
-        acciones: '',
-      },
-      {
-        fecha: '15/07/2025 17:46',
-        tipo: 'cobranza',
-        canal: 'Teléfono',
-        metodo: 'Tel2',
-        contacto: 'juan@mail.com',
-        resultado: 'no contesta',
-        usuario: 'Pedro',
-        acciones: '',
-      },
-      {
-        fecha: '11/05/2025 11:08',
-        tipo: 'consulta',
-        canal: 'Teléfono',
-        metodo: 'Tel1',
-        contacto: 'juan@mail.com',
-        resultado: 'contacto exitoso',
-        usuario: 'Miguel',
-        acciones: '',
-      },
-      {
-        fecha: '11/05/2025 16:20',
-        tipo: 'consulta',
-        canal: 'Teléfono',
-        metodo: 'Tel2',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Martín',
-        acciones: '',
-      },
-      {
-        fecha: '20/04/2025 09:17',
-        tipo: 'cobranza',
-        canal: 'Teléfono',
-        metodo: 'Tel2',
-        contacto: 'juan@mail.com',
-        resultado: 'en proceso',
-        usuario: 'Alva',
-        acciones: '',
-      },
-    ],
-  };
-
   selectedItem: any = null;
   mostrarModal: boolean = false;
 
@@ -676,7 +703,17 @@ export class PhoneComponent implements OnInit {
   endCall() {
     this.aloSatService.endCall().subscribe({
       next: (data) => {
-        this.msg.success('¡Atención Finalizada!');
+        this.msg.success('¡Llamada finalizada!');
+      },
+    });
+  }
+
+  parkCall() {
+    this.aloSatService.parkCall(!this.isInPark!).subscribe({
+      next: (data) => {
+        this.msg.success(
+          !this.isInPark ? '¡Ciudadano en espera!' : '¡Llamada Reanudada!'
+        );
       },
     });
   }
@@ -684,7 +721,7 @@ export class PhoneComponent implements OnInit {
   endAssistance() {
     this.aloSatService.pauseAgent(VicidialPauseCode.WRAPUP).subscribe({
       next: (data) => {
-        this.msg.success('¡Atención Finalizada!');
+        this.msg.success('¡Atención finalizada!');
       },
     });
   }
@@ -716,22 +753,20 @@ export class PhoneComponent implements OnInit {
   }
 
   get loadingCitizen(): boolean {
-    return this.aloSatService.loadingCitizen;
+    return this.aloSatStore.loadingCitizen();
   }
 
-  get citizen(): CitizenInfo {
-    return this.aloSatService.citizen;
+  get citizen(): CitizenInfo | undefined {
+    return this.aloSatStore.citizen();
   }
 
   get existCitizen(): boolean {
-    return this.aloSatService.existCitizen;
+    return !!this.citizen;
   }
 
   get labelCall(): string {
     return this.loadingCitizen
       ? 'Reconociendo número entrante'
-      : this.isInWrap
-      ? 'Última llamada hace 2 minutos...'
       : !this.existCitizen
       ? 'Número no registrado en el sistema'
       : 'Número registrado en el sistema';
@@ -743,8 +778,6 @@ export class PhoneComponent implements OnInit {
       return;
     }
 
-    console.log('this.busqueda', this.busqueda);
-
     this.externalCitizenService
       .getCitizenInformation({
         psiTipConsulta: 2,
@@ -755,16 +788,7 @@ export class PhoneComponent implements OnInit {
         pvValPar2: this.busqueda,
       })
       .subscribe((response) => {
-        console.log(response);
-        let reponseHardCoded = [
-          {
-            vcontacto: 'A. CRISANTO Z. S.A.C. CONTRATISTAS GENERALES',
-            vnumTel: '999935494',
-            vtipDoc: 'RUC',
-            vdocIde: '20101279554 ',
-          },
-        ];
-        this.aloSatService.citizen = response[0] ?? reponseHardCoded[0];
+        this.aloSatService.citizen = response[0];
       });
 
     // Aquí podrías invocar un servicio real para la búsqueda
@@ -775,10 +799,7 @@ export class PhoneComponent implements OnInit {
 
     this.store.create({
       ...form,
-      contacto: this.callInfo?.phoneNumber,
-      tipDoc: this.citizen?.vtipDoc,
-      docIde: this.citizen?.vdocIde,
-    } as CitizenAssistance);
+    } as ChannelAssistance);
   }
 }
 

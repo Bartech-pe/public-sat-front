@@ -121,7 +121,8 @@ export class InboxUserFormComponent implements OnInit {
   remove(item: InboxUser): void {
     const list = this.assignmentList
       .flat()
-      .filter((i) => i.inboxId !== item.inboxId);
+      .filter((i) => i.userId !== item.userId);
+
     this.assignmentList = splitBlocks<InboxUser>(list, 10);
   }
 

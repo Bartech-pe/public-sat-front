@@ -3,12 +3,12 @@
   <div
     class="flex items-start"
     [ngClass]="{
-      'justify-start': !msg.senderId,
-      'justify-end': msg.senderId
+      'justify-start': !msg.isSender,
+      'justify-end': msg.isSender
     }"
   >
-    <!-- Botón ⋮, fuera pero alineado con la burbuja -->
-    <div *ngIf="msg.senderId" class="flex relative">
+    <!-- Botón ⋮ -->
+    <div *ngIf="msg.isSender" class="flex relative">
       <button
         type="button"
         class="absolute -left-6 top-5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -22,17 +22,15 @@
       </button>
     </div>
 
-    <!-- Burbuja del mensaje -->
+    <!-- Burbuja -->
     <div
       class="rounded-2xl px-4 py-2 max-w-[70%] shadow-md break-words"
       [ngClass]="{
-        'bg-gray-100 text-gray-800': !msg.senderId,
-        'bg-blue-500 text-white': msg.senderId
+        'bg-gray-100 text-gray-800': !msg.isSender,
+        'bg-blue-500 text-white': msg.isSender
       }"
     >
-      <!-- Tipo de mensaje -->
       <ng-container [ngSwitch]="msg.type">
-        <!-- Texto -->
         <div *ngSwitchCase="'text'" class="whitespace-pre-wrap">
           {{ msg.content }}
         </div>
@@ -48,8 +46,8 @@
             *ngIf="msg.content"
             class="text-xs"
             [ngClass]="{
-              'text-gray-700': !msg.senderId,
-              'text-gray-100': msg.senderId
+              'text-gray-700': !msg.isSender,
+              'text-gray-100': msg.isSender
             }"
           >
             {{ msg.content }}
@@ -69,15 +67,14 @@
             *ngIf="msg.content"
             class="text-xs"
             [ngClass]="{
-              'text-gray-700': !msg.senderId,
-              'text-gray-100': msg.senderId
+              'text-gray-700': !msg.isSender,
+              'text-gray-100': msg.isSender
             }"
           >
             {{ msg.content }}
           </div>
         </div>
 
-        <!-- Default -->
         <div *ngSwitchDefault class="italic text-sm text-gray-500">
           Mensaje no soportado.
         </div>
@@ -87,13 +84,13 @@
       <div
         class="text-[10px] mt-1 flex items-center gap-1 justify-end"
         [ngClass]="{
-          'text-gray-200': msg.senderId,
-          'text-gray-500': !msg.senderId
+          'text-gray-200': msg.isSender,
+          'text-gray-500': !msg.isSender
         }"
       >
         {{ msg.createdAt | date : "shortTime" }}
 
-        <ng-container *ngIf="msg.senderId">
+        <ng-container *ngIf="msg.isSender">
           <iconify-icon
             *ngIf="!msg.isRead"
             icon="mdi:check"

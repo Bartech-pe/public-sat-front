@@ -15,6 +15,12 @@ export class SaldomaticoService {
     );
   }
 
+  impuestoVehicularInfo(piValPar1: 1 | 2 | 5, pvValPar2: string) {
+    return this.http.get<any[]>(
+      `${this.url}/impuestoVehicular/${piValPar1}/${pvValPar2}`
+    );
+  }
+
   papeletaInfo(piValPar1: 1 | 2, pvValPar2: number) {
     return this.http.get<any[]>(
       `${this.url}/papeletaInfo/${piValPar1}/${pvValPar2}`

@@ -51,9 +51,9 @@ export class PortfolioDetailService extends GenericCrudService<PortfolioDetail> 
     );
   }
 
-  getByIdDetalleAsignar(id: number): Observable<any[]> {
+  getByIdDetalleAsignar(id: number, portfolioId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.url}/portfolio-assignments/details/${id}`
+      `${this.url}/portfolio-assignments/details/${id}/${portfolioId}`
     );
   }
 

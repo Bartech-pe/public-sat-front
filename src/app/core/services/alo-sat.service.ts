@@ -141,8 +141,8 @@ export class AloSatService {
 
   existCitizen: boolean = false;
 
-  private callInit(callInfo: any) {
-    this.handleIncomingCall(new Date(callInfo?.entryDate));
+  callInit(callInfo: any) {
+    // this.handleIncomingCall(new Date(callInfo?.entryDate));
     this.loadingCitizen = true;
     if (callInfo?.phoneNumber) {
       this.externalCitizenService
@@ -151,10 +151,17 @@ export class AloSatService {
           piValPar1: callInfo?.phoneNumber,
           pvValPar2: 'empty',
         })
-        .subscribe((res) => {
-          this.citizen = res[0];
-          this.existCitizen = res.length != 0;
-          this.loadingCitizen = false;
+        .subscribe({
+          next: (res) => {
+            this.citizen = res[0];
+            this.existCitizen = res.length != 0;
+            this.loadingCitizen = false;
+          },
+          error: (e) => {
+            this.citizen = undefined;
+            this.existCitizen = false;
+            this.loadingCitizen = false;
+          },
         });
     }
   }
@@ -174,6 +181,10 @@ export class AloSatService {
 
   transferCall(userId: number) {
     return this.http.post<any>(`${this.basePath}/transfer-call`, { userId });
+  }
+
+  parkCall(putOn: boolean) {
+    return this.http.post<any>(`${this.basePath}/park-call`, { putOn });
   }
 
   resumeAgent() {

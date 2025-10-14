@@ -15,7 +15,7 @@ import { TabsModule } from 'primeng/tabs';
 import { SupervisionComponent } from './supervision/supervision.component';
 
 @Component({
-  selector: 'app-llamadas',
+  selector: 'app-call-management',
   imports: [
     TableModule,
     InputTextModule,
@@ -28,16 +28,16 @@ import { SupervisionComponent } from './supervision/supervision.component';
     TabsModule,
     SupervisionComponent,
   ],
-  templateUrl: './llamadas.component.html',
+  templateUrl: './call-management.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``,
 })
-export class LlamadasComponent {
+export class CallManagementComponent {
   openModal: boolean = false;
 
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
-  
+
   openNew() {
     this.openModal = true;
     const ref = this.dialogService.open(FormLlamadasComponent, {

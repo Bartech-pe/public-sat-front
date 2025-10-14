@@ -160,7 +160,7 @@
                       Estados {{ category.name }}
                     </h3>
                     <button-save
-                      label="Nuevo estado de atención"
+                      label="Nuevo Estado"
                       [icon]="'mdi:plus-circle-outline'"
                       (click)="newAssistanceState(category.id)"
                     />
@@ -218,7 +218,7 @@
                           />
                           <btn-delete
                             [text]="false"
-                            (onClick)="eliminarChannelState(item)"
+                            (onClick)="deleteAssistanceState(item)"
                           />
                         </div>
                       </div>
@@ -236,9 +236,9 @@
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-xl">Estados de Campaña</h3>
               <button-save
-                label="Nuevo estado de campaña"
+                label="Nuevo Estado"
                 [icon]="'mdi:plus-circle-outline'"
-                (click)="nuevoCampaignState()"
+                (onClick)="nuevoCampaignState()"
               />
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -282,10 +282,10 @@
                     </p-tag>
                   </div>
                   <div class="flex gap-2">
-                    <btn-edit-square (click)="EditarCampaignState(item)" />
+                    <btn-edit-square (onClick)="EditarCampaignState(item)" />
                     <btn-delete
                       [text]="false"
-                      (click)="eliminarCampaignState(item)"
+                      (onClick)="eliminarCampaignState(item)"
                     />
                   </div>
                 </div>

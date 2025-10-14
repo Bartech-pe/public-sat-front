@@ -85,7 +85,7 @@ export class OfficeFormComponent implements OnInit {
     if (error) {
       console.log('error', error);
       this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al guardar la office!'
+        error ?? '¡Ups, ocurrió un error inesperado al guardar la Oficina!'
       );
       return; // Salimos si hay un error
     }
@@ -94,8 +94,8 @@ export class OfficeFormComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡office creado exitosamente!'
-          : '¡office actualizado exitosamente!'
+          ? '¡Oficina creada exitosamente!'
+          : '¡Oficina actualizada exitosamente!'
       );
 
       this.formData.reset({

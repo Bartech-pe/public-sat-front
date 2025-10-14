@@ -154,6 +154,7 @@ export class ManageMampaignComponent {
   }
 
   edit(registro: any) {
+    console.log(registro);
     this.campaignStore.loadById(registro.id);
     this.openModal = true;
     const ref = this.dialogService.open(CreateCampaignComponent, {
@@ -227,7 +228,7 @@ export class ManageMampaignComponent {
   }
 
   verResultadosProgreso(registro: any) {
-    if (registro.id_tipo_campania) {
+ 
       const modal_item = this.dialogService.open(ProgresoCampaniaComponent, {
         data: registro,
         header: 'Progreso de Campaña ' + registro.nombre,
@@ -241,11 +242,11 @@ export class ManageMampaignComponent {
           this.loadData();
         }
       });
-    }
+   
   }
 
   verResultados(registro: any) {
-    if (registro.id_tipo_campania) {
+   
       const modal_item = this.dialogService.open(AudioSettingsComponent, {
         data: registro,
         header: 'Configurar Campaña ' + registro.nombre,
@@ -259,7 +260,7 @@ export class ManageMampaignComponent {
           this.loadData();
         }
       });
-    }
+   
   }
 
   configurar(registro: any) {}

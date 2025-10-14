@@ -28,8 +28,13 @@
         >✔</span
       >
     </div>
-    <p class="mt-1">Casos actuales: {{ selectedRowsAsignados.length }}</p>
-    <p>Nuevos: +{{ selectedRows.length }} = {{ nuevaCarga }}</p>
+    <p class="mt-1">
+      Casos actuales de esta cartera:
+      <strong>{{ selectedRowsAsignados.length }}</strong>
+    </p>
+    <p>
+      Nuevos: + {{ selectedRows.length }} = <strong>{{ nuevaCarga }}</strong>
+    </p>
     <!-- <p>
         Carga: {{ selectedUser.carga }}%
         →

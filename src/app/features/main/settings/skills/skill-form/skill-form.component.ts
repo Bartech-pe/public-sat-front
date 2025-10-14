@@ -71,7 +71,6 @@ export class SkillFormComponent implements OnInit {
   });
 
   listCategorias = [
-    'Todas las categorías',
     'Tributaria',
     'No tributaria',
     'Administrativa',

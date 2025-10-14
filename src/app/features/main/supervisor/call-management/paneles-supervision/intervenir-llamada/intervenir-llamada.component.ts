@@ -1,4 +1,4 @@
-import { EndDTO, InterferCallDTO, RecordingDTO, SpyDTO } from './../../../../../../core/models/supervise';
+import { EndDTO, InterferCallDTO, RecordingDTO, SpyDTO } from '../../../../../../core/models/supervise';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActualCall, SuperviseItem } from '@models/supervise';
 import { AmiService } from '@services/ami.service';

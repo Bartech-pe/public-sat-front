@@ -20,6 +20,8 @@ export enum VicidialPauseCode {
   ADMIN = 'ADMIN', // Tareas administrativas
   COACH = 'COACH', // Escucha o coaching
   QA = 'QA', // Control de calidad
+
+  PARK = 'PARK',
 }
 
 export enum ChannelPhoneState {

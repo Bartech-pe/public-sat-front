@@ -257,15 +257,17 @@ export class ChatListComponent implements OnInit {
     });
 
     this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        advisor: {
-          id: message.id,
-          name: message.displayName ?? "Unknown"
+      const hasChannelRoomWithAdvisorChanged = this.chatListInbox.some(x => x.channelRoomId == message.channelRoomId)
+      if(hasChannelRoomWithAdvisorChanged)
+      {
+        this.loadChatList()
+      }else{
+        if(message.id == this.authStore.user()?.id)
+        {
+            this.msg.info("Se te ha asignado un nuevo chat.", "¡Tienes un nuevo chat!", 8000);
+            this.loadChatList();
         }
-      };
-      this.loadChatList()
+      }
     });
 
     this.channelRoomSocketService.onBotRepliesStatusChanged().subscribe((message: BotStatusChangedDto) => {
@@ -302,20 +304,29 @@ export class ChatListComponent implements OnInit {
       this.filters$.next();
   }
 
-  onChangeFilter(): GetChannelSummaryDto
-  {
-    let filters: GetChannelSummaryDto = {
-      channel: this.channel,
-      messageStatus: null,
-      chatStatus: null,
-      search: this.search
+  onChangeFilter(): GetChannelSummaryDto {
+  const filters: GetChannelSummaryDto = {
+    channel: this.channel,
+    messageStatus: null,
+    chatStatus: 'pendiente',
+    search: this.search,
+  };
+
+  if (this.selectedFilter) {
+    const value = this.selectedFilter.value as string;
+
+    if (['pendiente', 'completado', 'prioridad'].includes(value)) {
+      filters.chatStatus = value as ChatStatus;
+      filters.messageStatus = null; // ignorar messageStatus si chatStatus existe
+    } else if (['unread', 'read'].includes(value)) {
+      filters.messageStatus = value as MessageStatus;
+      filters.chatStatus = null;
     }
-    if(this.selectedFilter){
-      if(['unread','read'].includes(this.selectedFilter.value as string)) filters.messageStatus = this.selectedFilter.value as MessageStatus;
-      if(['pendiente','completado', 'prioridad'].includes(this.selectedFilter.value as string)) filters.chatStatus = this.selectedFilter.value as ChatStatus;
-    }
-    return filters
   }
+
+  return filters;
+}
+
 
   updateChatList(message: ChannelRoomNewMessageDto) {
     try {

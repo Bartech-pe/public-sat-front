@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
 import { adviserRoutes } from '@features/main/adviser/adviser.routes';
 import { campaignsRoutes } from '@features/main/campaigns/campaigns.routes';
+import { reportsRoutes } from '@features/main/reports/reports.routes';
 import { settingsRoutes } from '@features/main/settings/settings.routes';
+import { supervisorRoutes } from '@features/main/supervisor/supervisor.routes';
 import { authGuard } from '@guards/auth.guard';
 import { redirectIfLoggedInGuard } from '@guards/redirect-if-logged-in.guard';
 import { verifyScreenGuard } from '@guards/verify-screen.guard';
@@ -91,16 +93,7 @@ export const routes: Routes = [
           import('@features/main/reports/reports.component').then(
             (c) => c.ReportsComponent
           ),
-        children: [
-          {
-            path: 'general',
-            title: 'SAT | Configuración de la cuenta',
-            loadComponent: () =>
-              import('@features/main/reports/overview/overview.component').then(
-                (c) => c.OverviewComponent
-              ),
-          },
-        ],
+        children: reportsRoutes,
       },
       {
         path: 'campaigns',
@@ -119,14 +112,7 @@ export const routes: Routes = [
             (c) => c.PortfoliosComponent
           ),
       },
-      {
-        path: 'calls',
-        title: 'SAT | LLamadas',
-        loadComponent: () =>
-          import('@features/main/campaigns/llamadas/llamadas.component').then(
-            (c) => c.LlamadasComponent
-          ),
-      },
+
       {
         path: 'assignments',
         title: 'SAT | Mis Asignaciones',
@@ -154,6 +140,15 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'supervisor',
+        title: 'SAT | Supervisor',
+        loadComponent: () =>
+          import('@features/main/supervisor/supervisor.component').then(
+            (c) => c.SupervisorComponent
+          ),
+        children: supervisorRoutes,
+      },
+      {
         path: 'adviser',
         title: 'SAT | Asesor Telefónico',
         loadComponent: () =>
@@ -163,6 +158,14 @@ export const routes: Routes = [
         children: adviserRoutes,
       },
       {
+        path: 'monitoring-panel',
+        title: 'SAT | Panel',
+        loadComponent: () =>
+          import(
+            '@features/main/settings/monitoring-panel/monitoring-panel.component'
+          ).then((c) => c.MonitoringPanelComponent),
+      },
+      {
         path: 'settings',
         title: 'SAT | Ajustes',
         loadComponent: () =>
@@ -170,15 +173,6 @@ export const routes: Routes = [
             (c) => c.SettingsComponent
           ),
         children: settingsRoutes,
-      },
-      {
-        path: 'supervisor',
-        title: 'SAT | Supervisor',
-        loadComponent: () =>
-          import('@features/main/supervisor/supervisor.component').then(
-            (c) => c.SupervisorComponent
-          ),
-        // children: settingsRoutes,
       },
     ],
   },

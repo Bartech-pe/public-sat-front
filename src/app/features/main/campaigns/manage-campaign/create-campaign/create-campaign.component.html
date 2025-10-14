@@ -20,7 +20,7 @@
                 pInputText
                 formControlName="name"
                 placeholder="Ingrese nombre"
-                class="w-full p-inputtext-sm"
+                class="w-full"
               />
             </div>
 
@@ -118,7 +118,7 @@
                 appendTo="body"
               ></p-dropdown>
             </div>
-
+            <!--
             <div>
               <label for="campaignTypeId" class="block text-sm font-medium mb-1"
                 >Tipo de Campaña <span class="text-xs">*</span></label
@@ -138,37 +138,33 @@
                   }}</label>
                 </div>
               </div>
+              *ngIf="formData.value.campaignTypeId == 3"
+            </div>
+            -->
+
+            <!-- ID VICIDIAL -->
+            <div>
+              <label for="vdCampaignId" class="block text-sm font-medium mb-1">
+                Id Campaña VICIDIAL
+              </label>
+              <input
+                id="vdCampaignId"
+                pKeyFilter="int"
+                pInputText
+                formControlName="vdCampaignId"
+                [disabled]="editarCampania"
+                placeholder="Ingrese un Id"
+                class="w-full"
+              />
             </div>
 
-            <div
-              *ngIf="formData.value.campaignTypeId == 3"
-              class="grid grid-cols-1 md:grid-cols-3 gap-4"
-            >
-              <!-- ID VICIDIAL -->
+            <!-- Horario inicio -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label
-                  for="vdCampaignId"
-                  class="block text-sm font-medium mb-1"
-                >
-                  Id Campaña VICIDIAL
-                </label>
-                <input
-                  id="vdCampaignId"
-                  type="text"
-                  pInputText
-                  formControlName="vdCampaignId"
-                  [disabled]="editarCampania"
-                  placeholder="Ingrese un Id"
-                  class="w-full p-inputtext-sm"
-                />
-              </div>
-
-              <!-- Horario inicio -->
-              <div>
-                <label for="startTime" class="block text-sm font-medium mb-1">
+                <label for="startTime" class="block text-sm font-medium mb-2">
                   Horario de inicio
                 </label>
-                <p-calendar
+                <p-datepicker
                   id="startTime"
                   formControlName="startTime"
                   [timeOnly]="true"
@@ -176,15 +172,15 @@
                   [showIcon]="true"
                   appendTo="body"
                   inputStyleClass="p-inputtext-sm custom-calendar-input"
-                ></p-calendar>
+                ></p-datepicker>
               </div>
 
               <!-- Horario fin -->
               <div>
-                <label for="endTime" class="block text-sm font-medium mb-1">
+                <label for="endTime" class="block text-sm font-medium mb-2">
                   Horario de fin
                 </label>
-                <p-calendar
+                <p-datepicker
                   id="endTime"
                   formControlName="endTime"
                   [timeOnly]="true"
@@ -192,68 +188,65 @@
                   [showIcon]="true"
                   appendTo="body"
                   inputStyleClass="p-inputtext-sm custom-calendar-input"
-                ></p-calendar>
+                ></p-datepicker>
               </div>
+            </div>
 
-              <div class="flex flex-col gap-1 -mt-3">
-                <!-- Etiqueta arriba -->
-                <label
-                  for="applyHolidays"
-                  class="block text-sm font-medium mb-1"
+            <!-- Día de inicio -->
+            <div>
+              <label for="startDay" class="block text-sm font-medium mb-1">
+                Día de inicio
+              </label>
+              <p-dropdown
+                inputId="startDay"
+                formControlName="startDay"
+                [options]="daysWeek()"
+                optionLabel="name"
+                optionValue="number"
+                placeholder="Seleccionar día de inicio"
+                class="w-full"
+                appendTo="body"
+              >
+              </p-dropdown>
+            </div>
+
+            <!-- Día de fin -->
+            <div>
+              <label for="endDay" class="block text-sm font-medium mb-1">
+                Día de fin
+              </label>
+              <p-dropdown
+                inputId="endDay"
+                formControlName="endDay"
+                [options]="daysWeek()"
+                optionLabel="name"
+                optionValue="number"
+                placeholder="Seleccionar día de fin"
+                class="w-full"
+                appendTo="body"
+              >
+              </p-dropdown>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <!-- Etiqueta arriba -->
+              <label for="applyHolidays" class="block text-sm font-medium mb-1">
+                Feriados
+              </label>
+
+              <!-- Checkbox + descripción -->
+              <div class="flex items-center gap-2">
+                <p-checkbox
+                  formControlName="applyHoliday"
+                  inputId="applyHolidays"
+                  binary="true"
                 >
-                  Feriados
-                </label>
+                </p-checkbox>
 
-                <!-- Checkbox + descripción -->
-                <div class="flex items-center gap-2">
-                  <p-checkbox
-                    formControlName="applyHoliday"
-                    inputId="applyHolidays"
-                    binary="true"
-                  >
-                  </p-checkbox>
-
-                  <span class="text-xs text-gray-600 italic">
-                    (los feriados declarados en el módulo de ajustes se
-                    aplicarán a esta campaña)
-                  </span>
-                </div>
-              </div>
-
-              <!-- Día de inicio -->
-              <div class="mt-2">
-                <label for="startDay" class="block text-sm font-medium mb-1">
-                  Día de inicio
-                </label>
-                <p-dropdown
-                  inputId="startDay"
-                  formControlName="startDay"
-                  [options]="daysWeek()"
-                  optionLabel="name"
-                  optionValue="number"
-                  placeholder="Seleccionar día de inicio"
-                  class="w-full"
-                  appendTo="body"
-                >
-                </p-dropdown>
-              </div>
-
-              <!-- Día de fin -->
-              <div class="mt-2">
-                <label for="endDay" class="block text-sm font-medium mb-1">
-                  Día de fin
-                </label>
-                <p-dropdown
-                  inputId="endDay"
-                  formControlName="endDay"
-                  [options]="daysWeek()"
-                  optionLabel="name"
-                  optionValue="number"
-                  placeholder="Seleccionar día de fin"
-                  class="w-full"
-                  appendTo="body"
-                >
-                </p-dropdown>
+                <span class="text-xs text-gray-600 italic">
+                  (los feriados declarados en el módulo de ajustes se aplicarán
+                  a esta campaña)
+                </span>
               </div>
             </div>
           </div>

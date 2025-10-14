@@ -72,7 +72,7 @@ export class GlobalService {
     const formData = new FormData();
     formData.append('file', file); // "file" debe coincidir con el nombre usado en FileInterceptor('file')
 
-    return this.http.post(`${this.baseUrl}/central/upload`, formData);
+    return this.http.post(`${this.baseUrl}v1/central/upload`, formData);
   }
 
   // createTextoAudio(data: any): Observable<any> {

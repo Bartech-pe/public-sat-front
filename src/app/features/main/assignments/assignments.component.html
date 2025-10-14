@@ -93,7 +93,7 @@
                 <h4 class="font-medium">Resumen Diario</h4>
                 <div class="flex justify-between items-center gap-0.5">
                   <p class="text-sm font-light">Casos sin Gestionar:</p>
-                  <p class="text-sm font-medium">2</p>
+                  <p class="text-sm font-medium">-</p>
                 </div>
                 <!-- <div class="flex justify-between items-center gap-0.5">
               <p class="text-sm font-light">Meta Diaria:</p>
@@ -157,14 +157,14 @@
               <input
                 pInputText
                 [(ngModel)]="searchText"
-                placeholder="Buscar por contribuyente, código..."
+                placeholder="Buscar por contribuyente, código, celular..."
                 class="placeholder:text-sm !rounded-full"
               />
               <p-select
                 [options]="taxpayerTypes"
                 [(ngModel)]="tipoContribSelected"
                 placeholder="Filtrar por tipo de contribuyente"
-                class="!rounded-full placeholder:!text-sm"
+                class="!rounded-full placeholder:text-sm"
                 [showClear]="true"
               ></p-select>
               <p-select
@@ -224,27 +224,41 @@
           >
             <ng-template pTemplate="header">
               <tr>
-                <th><div class="text-center">Código</div></th>
                 <th>
-                  <div class="flex items-center text-xs text-center">
-                    Tipo Doc. Ide.
-                  </div>
+                  <div class="text-center text-xs">Código</div>
                 </th>
                 <th>
-                  <div class="flex items-center text-xs text-center">
-                    N° Doc. Ide.
-                  </div>
+                  <div class="text-center text-xs">Tipo Doc. Ide.</div>
                 </th>
-                <th>Contribuyente</th>
-                <th>Tipo de contribuyente</th>
-                <th><div class="text-center">Segmento</div></th>
-                <th><div class="text-center">Perfil</div></th>
-                <th>Deuda Inicial</th>
-                <th>Deuda Actual</th>
-                <th>Email</th>
-                <th><div class="text-center">Whatsapp</div></th>
                 <th>
-                  <div class="flex items-center justify-center">Estado</div>
+                  <div class="text-center text-xs">N° Doc. Ide.</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Contribuyente</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Tipo de contribuyente</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Segmento</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Perfil</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Deuda Inicial</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Deuda Actual</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Email</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Whatsapp</div>
+                </th>
+                <th>
+                  <div class="text-center text-xs">Estado</div>
                 </th>
                 <th></th>
               </tr>
@@ -260,24 +274,24 @@
                   </div>
                 </td>
                 <td>
-                  <p class="text-sm font-normal">{{ item?.tipDoc }}</p>
+                  <p class="text-center text-xs font-normal">{{ item?.tipDoc }}</p>
                 </td>
                 <td>
-                  <p class="text-sm font-normal">{{ item?.docIde }}</p>
+                  <p class="text-center text-sm font-normal">{{ item?.docIde }}</p>
                 </td>
                 <td>
                   <div
                     class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
                     tooltipPosition="top"
                     tooltipStyleClass="text-xs !p-0.5"
-                    pTooltip="{{ item?.taxpayerName }}"
+                    [pTooltip]="item?.taxpayerName"
                   >
                     {{ item?.taxpayerName }}
                   </div>
                 </td>
                 <td>
                   <div
-                    class="w-32 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                    class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
                   >
                     {{ item?.taxpayerType }}
                   </div>
@@ -302,7 +316,7 @@
                 </td>
                 <td>
                   <div
-                    class="flex cursor-pointer items-center justify-center gap-2 text-sm"
+                    class="flex cursor-pointer items-center justify-center gap-2 text-xs"
                   >
                     @if (getEmailContacts(item.citizenContacts)?.[0]?.value) {
                     <span
@@ -316,7 +330,7 @@
                   </div>
                 </td>
                 <td>
-                  <div class="text-sm text-center w-30">
+                  <div class="text-xs text-center w-28">
                     @if(getWhatsappContacts(item.citizenContacts)?.[0]?.value){
                     <a
                       [href]="'https://wa.me/' + cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value)"
@@ -332,7 +346,7 @@
                 <td>
                   <div class="flex justify-center items-center">
                     <p-chip
-                      class="text-xs text-center !px-0.5"
+                      class="!text-xs text-center !px-0.5"
                       [ngClass]="{
                         '!bg-[#d1f7d6] !text-[#2e7d32]': item?.status,
                         '!bg-[#fff4cd] !text-[#c49000]': !item?.status
@@ -347,7 +361,7 @@
                 <td>
                   <div class="flex items-center justify-center gap-2">
                     <btn-custom-square
-                      severity="info"
+                      severity="primary"
                       label="Gestionar"
                       [type]="undefined"
                       (onClick)="completeManagement(item)"

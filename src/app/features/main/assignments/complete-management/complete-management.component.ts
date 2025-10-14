@@ -3,12 +3,11 @@ import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   effect,
-  EventEmitter,
   inject,
   Input,
   OnInit,
-  Output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -45,13 +44,22 @@ import { CitizenAssistanceService } from '@services/citizen-assistance.service';
 import { CitizenAssistance } from '@models/citizen-assistance.model';
 import {
   CaseInformation,
-  CitizenContact,
   PortfolioDetail,
 } from '@models/portfolio-detail.model';
 import { OmnicanalidadService } from '@services/api-sat/omnicanalidad.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { ContactDetailsComponent } from './contact-details/contact-details.component';
 import { DebtsComponent } from './debts/debts.component';
+import {
+  ChannelCitizenService,
+  IGetAttentionsOfCitizen,
+} from '@services/channel-citizen.service';
+import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { ChannelAssistanceService } from '@services/channel-assistance.service';
+import { ChannelAssistance } from '@models/channel-assistance.model';
+import { CitizenContact } from '@models/citizen.model';
+import { CitizenService } from '@services/citizen.service';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 
 @Component({
   selector: 'app-complete-management',
@@ -82,12 +90,15 @@ import { DebtsComponent } from './debts/debts.component';
     BtnCustomComponent,
     DatePipe,
     PhoneFormatPipe,
+    BtnDeleteComponent,
   ],
   templateUrl: './complete-management.component.html',
   styles: ``,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CompleteManagementComponent implements OnInit {
+  @ViewChild('channelCommunication') canalSelect: any;
+
   private readonly msg = inject(MessageGlobalService);
 
   private readonly dialogService = inject(DialogService);
@@ -98,19 +109,33 @@ export class CompleteManagementComponent implements OnInit {
 
   private readonly citizenAssistanceService = inject(CitizenAssistanceService);
 
+  private readonly channelCitizenService = inject(ChannelCitizenService);
+
+  private readonly channelAssistanceService = inject(ChannelAssistanceService);
+
   private readonly omnichannelidadService = inject(OmnicanalidadService);
 
   private readonly saldomaticoService = inject(SaldomaticoService);
 
+  private readonly citizenService = inject(CitizenService);
+
   _portfolioDetail?: PortfolioDetail;
 
   debtList: any[] = [];
+  vnomAdm?: string;
   totalDebt: number = 0;
 
   @Input() set portfolioDetail(val: PortfolioDetail) {
     this._portfolioDetail = val;
     this.precargarDatos();
   }
+  channelSelected: string = '';
+
+  listCanalesComunicacion = [
+    { label: 'CORREO', code: 'email' },
+    { label: 'CHATSAT', code: 'chatsat' },
+    { label: 'WHATSAPP', code: 'whatsapp' },
+  ];
 
   tabSelected = 0;
 
@@ -326,13 +351,21 @@ export class CompleteManagementComponent implements OnInit {
 
   tableImpuestoPredial: any[] = [];
 
+  tableImpuestoVehicular: any[] = [];
+
   tablePapeletas: any[] = [];
 
   tableTramites: any[] = [];
 
+  allAttentions: IGetAttentionsOfCitizen[] = [];
+
+  attentionsOfChannelSelected: IGetAttentionsOfCitizen[] = [];
+
   searchText = signal('');
 
   tableComunicaciones: CitizenAssistance[] = [];
+
+  tableChannelAssistances: ChannelAssistance[] = [];
 
   tableVerificaciones: CitizenAssistance[] = [];
 
@@ -403,26 +436,54 @@ export class CompleteManagementComponent implements OnInit {
 
       this.formData.get('recordatorio')?.disable();
       this.getAtenciones();
+      this.getAttentions(this.portfolioDetail.docIde);
       this.getDeudasInfo(this.portfolioDetail.code);
       this.getImpuestoPredial(this.portfolioDetail.code);
+      this.getImpuestoVehicular(this.portfolioDetail.code);
       this.getDeuda(this.portfolioDetail.code);
       this.getPapeletaInfo(this.portfolioDetail.code);
       this.getTramites(this.portfolioDetail.code);
     }
   }
 
+  getAttentions(dni: string) {
+    const response = this.channelCitizenService
+      .getAssistancesByDocumentNumber(dni)
+      .subscribe((response: IBaseResponseDto<IGetAttentionsOfCitizen[]>) => {
+        if (response.success) {
+          this.allAttentions = response?.data ?? [];
+        }
+      });
+  }
+
+  filterCommunications() {
+    const filteredTable = this.allAttentions.filter(
+      (x) => x.channel == this.channelSelected
+    );
+    console.log(filteredTable);
+    const newData: CitizenAssistance[] = filteredTable.map((attention) => {
+      return {
+        channel: attention?.channel,
+        type: attention?.type,
+        method: 'CHAT',
+        user: attention?.advisorIntervention ? attention.user : 'BOT',
+        createdAt: attention?.startDate,
+        result: 'Contacto',
+      };
+    });
+    this.tableComunicaciones = [...newData];
+  }
   getDeudasInfo(code: string) {
     this.saldomaticoService.deudasInfo(5, code).subscribe({
       next: (data) => {
-        this.totalDebt = data
-          .filter((item) => item.cuota === '0')
-          .reduce((acc, debt) => acc + debt.monto, 0);
-        this.debtList = data.reduce((acc, obj) => {
-          const clave = obj['concepto'];
-          acc[clave] = acc[clave] || [];
-          acc[clave].push(obj);
-          return acc;
-        }, {});
+        this.vnomAdm = data[0]?.vnomAdm;
+        this.debtList = this.agruparDatos(data);
+        console.log('this.debtList', this.debtList);
+        this.totalDebt = this.debtList.reduce(
+          (acc, debt) => acc + debt.totalConcepto,
+          0
+        );
+        console.log(' this.totalDebt', this.totalDebt);
         if (this.portfolioDetail?.currentDebt !== this.totalDebt) {
           this.portfolioDetailService
             .update(this.portfolioDetail?.id!, {
@@ -442,8 +503,13 @@ export class CompleteManagementComponent implements OnInit {
   showDebts() {
     const ref = this.dialogService.open(DebtsComponent, {
       header: 'Detalle de la deuda',
-      styleClass: 'modal-2xl',
-      data: { items: this.debtList, total: this.totalDebt },
+      styleClass: 'modal-4xl',
+      data: {
+        items: this.debtList,
+        total: this.totalDebt,
+        name: this.vnomAdm ?? this.portfolioDetail?.taxpayerName,
+        code: this.portfolioDetail?.code,
+      },
       modal: false,
       position: 'bottom-right',
       focusOnShow: false,
@@ -538,6 +604,15 @@ export class CompleteManagementComponent implements OnInit {
           },
         });
     }
+    if (this.portfolioDetail?.docIde) {
+      this.channelAssistanceService
+        .findByDocIde(this.portfolioDetail?.docIde)
+        .subscribe({
+          next: (data) => {
+            this.tableChannelAssistances = data;
+          },
+        });
+    }
   }
 
   deleteItemAtencion(item: CitizenAssistance, verif: boolean = false) {
@@ -576,6 +651,24 @@ export class CompleteManagementComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.tableImpuestoPredial = data;
+        },
+      });
+  }
+
+  getImpuestoVehicular(code?: string) {
+    this.saldomaticoService
+      .impuestoVehicularInfo(
+        code
+          ? 5
+          : !isNaN(Number.parseInt(this.searchText())) &&
+            this.searchText().length == 8
+          ? 2
+          : 1,
+        code ?? this.searchText()
+      )
+      .subscribe({
+        next: (data) => {
+          this.tableImpuestoVehicular = data;
         },
       });
   }
@@ -637,6 +730,7 @@ export class CompleteManagementComponent implements OnInit {
   search() {
     this.getDeuda();
     this.getImpuestoPredial();
+    this.getImpuestoVehicular();
     this.getPapeletaInfo();
     this.getTramites();
   }
@@ -687,7 +781,7 @@ export class CompleteManagementComponent implements OnInit {
   }
 
   updateContacts() {
-    this.portfolioDetailService
+    this.citizenService
       .getCitizenContactsByTipDocAndDocId(
         this.portfolioDetail?.tipDoc!,
         this.portfolioDetail?.docIde!
@@ -722,6 +816,111 @@ export class CompleteManagementComponent implements OnInit {
       }
     });
   }
+
+  removeContact(contact: CitizenContact) {
+    this.msg.confirm(
+      `<div class='px-4 py-0.5'>
+        <p class='text-center'> ¿Está seguro de eliminar el contacto <span class='uppercase font-bold'>${contact.value}</span>? </p>
+        <p class='text-center'> Esta acción no se puede deshacer. </p>
+      </div>`,
+      () => {
+        this.citizenService.deleteContact(contact?.id!).subscribe({
+          next: (data) => {
+            this.msg.success('¡Contacto eliminado exitosamente!');
+            this.updateContacts();
+          },
+        });
+      }
+    );
+  }
+
+  agruparDatos(data: Registro[]): EstructuraSalida[] {
+    const resultado: Record<string, any> = {};
+
+    for (const item of data) {
+      const {
+        concepto,
+        referencia,
+        ano,
+        cuota,
+        monto,
+        documento,
+        fechavencimiento,
+        estado,
+      } = item;
+
+      if (!resultado[concepto]) resultado[concepto] = {};
+      if (!resultado[concepto][referencia])
+        resultado[concepto][referencia] = {};
+      if (!resultado[concepto][referencia][ano]) {
+        resultado[concepto][referencia][ano] = {
+          total: 0,
+          zero: false,
+          cuotas: [],
+        };
+      }
+
+      if (cuota === '0') {
+        resultado[concepto][referencia][ano].total = monto;
+        resultado[concepto][referencia][ano].documento = documento;
+        resultado[concepto][referencia][ano].zero = true;
+      } else {
+        resultado[concepto][referencia][ano].cuotas.push({
+          ano,
+          cuota,
+          monto,
+          documento,
+          fechavencimiento,
+          estado,
+        });
+      }
+    }
+
+    // Transformar el objeto en una estructura jerárquica con totales
+    return Object.entries(resultado as Record<string, any>).map(
+      ([concepto, refs]) => {
+        const referencias = Object.entries(refs as Record<string, any>).map(
+          ([referencia, anos]) => {
+            const anosArr = Object.entries(anos as Record<string, any>).map(
+              ([ano, info]: any) => {
+                const cuotas = info.cuotas;
+                const totalAno = info.zero
+                  ? info.total
+                  : (info.cuotas as any[]).reduce(
+                      (acc, debt) => acc + debt.monto,
+                      0
+                    );
+                return {
+                  ano: ano,
+                  cuota: info.zero ? '0' : undefined,
+                  documento: info.documento,
+                  total: totalAno,
+                  zero: info.zero,
+                  cuotas: cuotas.sort((a: any, b: any) => a.cuota - b.cuota),
+                };
+              }
+            );
+
+            // Total por referencia = suma de los totales anuales
+            const totalReferencia = anosArr.reduce(
+              (sum, a) => sum + a.total,
+              0
+            );
+
+            return { referencia, totalReferencia, anos: anosArr };
+          }
+        );
+
+        // Total por concepto = suma de los totales por referencia
+        const totalConcepto = referencias.reduce(
+          (sum, r) => sum + r.totalReferencia,
+          0
+        );
+
+        return { concepto, totalConcepto, referencias };
+      }
+    );
+  }
 }
 
 interface MetodoContacto {
@@ -729,4 +928,38 @@ interface MetodoContacto {
   contact: string;
   channel: string;
   label: string;
+}
+
+interface Registro {
+  ano: string;
+  cuota: string;
+  concepto: string;
+  referencia: string;
+  monto: number;
+  documento: string;
+  fechavencimiento: string;
+  estado: string;
+}
+
+interface EstructuraSalida {
+  concepto: string;
+  totalConcepto: number;
+  referencias: {
+    referencia: string;
+    totalReferencia: number;
+    anos: {
+      ano: string;
+      cuota?: string;
+      documento: string;
+      total: number;
+      cuotas: {
+        ano: string;
+        cuota: string;
+        monto: number;
+        documento: string;
+        fechavencimiento: string;
+        estado: string;
+      }[];
+    }[];
+  }[];
 }

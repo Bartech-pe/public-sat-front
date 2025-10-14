@@ -6,7 +6,7 @@
         <div class="flex justify-between items-center">
           <!-- Texto a la izquierda -->
           <div>
-            <h5 class="text-2xl font-semibold mb-1">Campañas - Correo</h5>
+            <h5 class="text-2xl font-semibold mb-1">Campañas de Correo</h5>
             <div class="flex flex-col w-full gap-3 text-n-slate-11">
               <p
                 class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
@@ -20,7 +20,7 @@
           <!-- Botones a la derecha -->
           <div class="flex gap-2">
             <button-save
-              label="Campañas de Correo"
+              label="Nueva Campaña - Correo"
               [icon]="'mdi:plus-circle-outline'"
               (click)="openNew()"
             />
@@ -149,12 +149,12 @@
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-                   {{ item.createdAt}} 
+                   {{ item.createdAt}}
                 </p>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-               
+
                      <p-tag [value]="item.campaignStatus == 1 ? ' Finalizado' : 'Activo'"/>
                 </p>
               </td>
@@ -164,7 +164,7 @@
                   <button-edit (click)="edit(item)" />
                   <btn-delete (click)="remove(item)" />
                   <button-detail (click)="verResultados(item)" />
-               
+
                 </div>
               </td>
             </tr>

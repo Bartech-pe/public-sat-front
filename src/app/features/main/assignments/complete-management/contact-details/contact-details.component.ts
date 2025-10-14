@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -10,20 +10,15 @@ import {
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
-import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { UserStore } from '@stores/user.store';
-import { Office } from '@models/office.model';
-import { OfficeStore } from '@stores/office.store';
 import { SelectModule } from 'primeng/select';
-import { User } from '@models/user.model';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { CitizenContact } from '@models/portfolio-detail.model';
-import { PortfolioDetailService } from '@services/portfolio-detail.service';
+import { CitizenContact } from '@models/citizen.model';
+import { CitizenService } from '@services/citizen.service';
 
 @Component({
   selector: 'app-contact-details',
@@ -48,9 +43,9 @@ export class ContactDetailsComponent implements OnInit {
 
   private readonly dialogService: DialogService = inject(DialogService);
 
-  private readonly service = inject(PortfolioDetailService);
-
   private readonly msg = inject(MessageGlobalService);
+
+  private readonly service = inject(CitizenService);
 
   formData = new FormGroup({
     phone: new FormControl<string | undefined>(undefined, {

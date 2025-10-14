@@ -59,9 +59,6 @@ export class AssignPortfolioComponent implements OnInit {
   selectedRows: any[] = [];
   selectedRowsAsignados: any[] = [];
 
-  get listUsers(): User[] {
-    return this.storeUser.items().filter((user) => user.roleId === 3);
-  }
   ngOnInit(): void {
     const instance = this.dialogService.getInstance(this.ref);
 
@@ -71,6 +68,19 @@ export class AssignPortfolioComponent implements OnInit {
       this.selectedRows = data.asignaciones;
     }
     this.loadData();
+  }
+
+  get listUsers(): User[] {
+    const users = this.storeUser.items().filter((user) => user.roleId === 3);
+
+    // Obtener los IDs de usuarios ya seleccionados
+    const selectedUserIds = this.selectedRows.map((row) => row.user.id);
+
+    // Filtrar los que no están en la lista seleccionada
+    const filteredUsers = users.filter(
+      (user) => !selectedUserIds.includes(user.id)
+    );
+    return filteredUsers;
   }
 
   loadData() {
@@ -83,18 +93,17 @@ export class AssignPortfolioComponent implements OnInit {
   motivoAsignacion: string = '';
 
   calcularCarga(user: User) {
-    console.log(user);
-
-    this.portfolioDetailService.getByIdDetalleAsignar(user.id).subscribe({
-      next: (res) => {
-        console.log(res);
-        this.selectedRowsAsignados = res;
-        const nuevosCasos = this.selectedRows.length;
-        const totalCasos = res.length + nuevosCasos;
-        this.nuevaCarga = totalCasos;
-        this.esAsignable = true;
-      },
-    });
+    this.portfolioDetailService
+      .getByIdDetalleAsignar(user.id, this.portfolioId)
+      .subscribe({
+        next: (res) => {
+          this.selectedRowsAsignados = res;
+          const nuevosCasos = this.selectedRows.length;
+          const totalCasos = res.length + nuevosCasos;
+          this.nuevaCarga = totalCasos;
+          this.esAsignable = true;
+        },
+      });
   }
 
   cerrarModal() {

@@ -29,7 +29,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
-import { RadioButton } from 'primeng/radiobutton';
 import { TableModule } from 'primeng/table';
 import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -41,6 +40,7 @@ import { CampaignTypeStore } from '@stores/campaign-type.store';
 import { CampaignState } from '@models/campaign-state.model';
 import { CampaignType } from '@models/campaign-type.model';
 import { CampaignStore } from '@stores/campaign.store';
+import { KeyFilterModule } from 'primeng/keyfilter';
 
 @Component({
   selector: 'app-create-campaign',
@@ -54,10 +54,10 @@ import { CampaignStore } from '@stores/campaign.store';
     BreadcrumbModule,
     DatePicker,
     DropdownModule,
-    RadioButton,
     FieldsetModule,
     ButtonCancelComponent,
     CalendarModule,
+    KeyFilterModule,
     CheckboxModule,
   ],
   templateUrl: './create-campaign.component.html',
@@ -95,7 +95,7 @@ export class CreateCampaignComponent {
     description: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
     }),
-    campaignTypeId: new FormControl<number | undefined>(undefined, {
+    campaignTypeId: new FormControl<number | undefined>(3, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -121,6 +121,7 @@ export class CreateCampaignComponent {
     }),
     vdCampaignId: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
+      validators: [Validators.required]
     }),
     startTime: new FormControl<Date | undefined>(undefined, {
       nonNullable: true,
@@ -230,13 +231,18 @@ export class CreateCampaignComponent {
     if (item) {
       this.id = item.id;
       this.editarCampania = true;
+         console.log(item)
       this.scheduleService.getByCampain(this.id).subscribe((res) => {
-        this.idCampain = res.id;
-        item.startTime = res.startTime;
-        item.endTime = res.endTime;
-        item.startDay = res.startDay;
-        item.endDay = res.endDay;
-        item.applyHoliday = res.applyHoliday;
+
+        const startDate = item.startTime ? new Date(item.startTime) : undefined;
+        const endDate = item.endTime ? new Date(item.endTime) : undefined;
+
+        // this.idCampain = res.id;
+        // item.startTime = res.startTime;
+        // item.endTime = res.endTime;
+        // item.startDay = res.startDay;
+        // item.endDay = res.endDay;
+        // item.applyHoliday = res.applyHoliday;
         this.formData.setValue({
           name: item.name,
           description: item.description,
@@ -247,8 +253,12 @@ export class CreateCampaignComponent {
           campaignStateId: item.campaignStateId,
           departmentId: item.departmentId,
           vdCampaignId: item.vdCampaignId,
-          startTime: new Date(`1970-01-01T${item.startTime}`),
-          endTime: new Date(`1970-01-01T${item.endTime}`),
+          startTime: startDate
+            ? new Date(1970, 0, 1, startDate.getHours(), startDate.getMinutes())
+            : undefined,
+          endTime: endDate
+            ? new Date(1970, 0, 1, endDate.getHours(), endDate.getMinutes())
+            : undefined,
           applyHoliday: item.applyHoliday ?? false,
           startDay: item.startDay ?? 0,
           endDay: item.endDay ?? 0,
@@ -268,6 +278,8 @@ export class CreateCampaignComponent {
 
     if (this.formData.valid) {
       const request = this.formData.getRawValue();
+      //request.vdCampaignId = request.vdCampaignId?.toString() ?? '';
+
 
       if (this.id) {
         if (request.campaignTypeId == 3) {
@@ -275,8 +287,7 @@ export class CreateCampaignComponent {
             campaign_name: request.name,
           };
 
-          this.vicidialService
-            .editarCampania(request.vdCampaignId!, requestVicidialEdit)
+          this.vicidialService.editarCampania(request.vdCampaignId!, requestVicidialEdit)
             .subscribe((res) => {
               if (res) {
                 if (res.status == 'not_found') {

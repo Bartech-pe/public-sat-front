@@ -42,11 +42,9 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
 import { PortfolioDetailService } from '@services/portfolio-detail.service';
-import {
-  CitizenContact,
-  PortfolioDetail,
-} from '@models/portfolio-detail.model';
+import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { PortfolioStore } from '@stores/portfolio.store';
+import { CitizenContact } from '@models/citizen.model';
 
 @Component({
   selector: 'app-new-portfolio',

@@ -1,11 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { AccordionModule } from 'primeng/accordion';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-debts',
-  imports: [CommonModule],
+  imports: [CommonModule, AccordionModule],
   templateUrl: './debts.component.html',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``,
 })
 export class DebtsComponent implements OnInit {
@@ -15,26 +22,21 @@ export class DebtsComponent implements OnInit {
 
   debts: any[] = [];
   total: number = 0;
+  name?: string;
+  code?: string;
+  currentDate = new Date();
+  debtActive: number[] = [];
 
   ngOnInit(): void {
     const instance = this.dialogService.getInstance(this.ref);
     const data = instance.data;
     if (data) {
-      this.debts = data.items;
+      this.name = data.name;
+      this.code = data.code;
       this.total = data.total;
+      this.debts = data.items;
+      this.debtActive = this.debts.map((_, i) => i);
+      console.log('this.debts', this.debts);
     }
-  }
-
-  groupByref(data: any[]) {
-    return data.reduce((acc, obj) => {
-      const clave = obj['referencia'];
-      acc[clave] = acc[clave] || [];
-      acc[clave].push(obj);
-      return acc;
-    }, {});
-  }
-
-  getCuotaZero(array: any[]) {
-    return array.find((item) => item.cuota === '0');
   }
 }

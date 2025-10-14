@@ -5,17 +5,17 @@
       <div class="bg-gray-50 shadow rounded-xl p-4">
         <div class="flex justify-between items-center">
           <div>
-            <h5 class="text-2xl font-semibold mb-1">Gestión de Campañas</h5>
+            <h5 class="text-2xl font-semibold mb-1">Campañas de Audio</h5>
             <div class="flex flex-col w-full gap-3 text-n-slate-11">
               <p
                 class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
               >
-                Administra campañas de notificación SMS, Correo y Audio
+                Administra campañas de Audio
               </p>
             </div>
           </div>
           <button-save
-            label="Gestión de Campaña"
+            label="Nueva Campaña - Audio"
             [icon]="'mdi:plus-circle-outline'"
             (click)="addNew()"
           />
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Buscador -->
-      <div class="bg-white shadow rounded-xl p-4">
+      <!-- <div class="bg-white shadow rounded-xl p-4">
         <h2 class="text-lg font-semibold mb-2">Buscar Campañas</h2>
         <div class="w-full md:w-1/4 mb-4">
           <p-iconfield>
@@ -38,7 +38,7 @@
             />
           </p-iconfield>
         </div>
-      </div>
+      </div> -->
 
       <!-- Tabla -->
       <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
@@ -114,8 +114,8 @@
               </td>
              <td class="flex items-center gap-2">
                 <p class="text-sm font-light">
-                  {{ registro.campaignType?.id === 3 
-                      ? registro.campaignType?.name + ' ID VICIDIAL: ' + registro.vdCampaignId 
+                  {{ registro.campaignType?.id === 3
+                      ? registro.campaignType?.name + ' ID VICIDIAL: ' + registro.vdCampaignId
                       : registro.campaignType?.name }}
                 </p>
 

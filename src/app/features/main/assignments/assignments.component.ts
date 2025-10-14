@@ -11,7 +11,6 @@ import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { Menu } from 'primeng/menu';
 import { TableModule } from 'primeng/table';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
 import { MessageGlobalService } from '@services/generic/message-global.service';
@@ -21,14 +20,11 @@ import { CompleteManagementComponent } from './complete-management/complete-mana
 import { SelectModule } from 'primeng/select';
 import { PortfolioDetailService } from '@services/portfolio-detail.service';
 import { Office } from '@models/office.model';
-import {
-  CitizenContact,
-  PortfolioDetail,
-} from '@models/portfolio-detail.model';
+import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { Portfolio } from '@models/portfolio.model';
 import { PortfolioStore } from '@stores/portfolio.store';
 import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { CitizenContact } from '@models/citizen.model';
 @Component({
   selector: 'app-assignments',
   imports: [
@@ -186,7 +182,8 @@ export class AssignmentsComponent implements OnInit {
       filtered = filtered.filter(
         (item) =>
           item.code?.toLowerCase().includes(searchTerm) ||
-          item.taxpayerName?.toLowerCase().includes(searchTerm)
+          item.taxpayerName?.toLowerCase().includes(searchTerm) ||
+          item.citizenContacts.some((co) => co.value.includes(searchTerm))
       );
     }
 
@@ -244,8 +241,6 @@ export class AssignmentsComponent implements OnInit {
       const portfolio = params['portfolio'];
       this.type = params['type'];
       this.idSelected = params['id'];
-
-      console.log('portfolio', portfolio, !isNaN(portfolio));
 
       if (portfolio && !isNaN(portfolio)) {
         this.portfolioId = Number(portfolio);

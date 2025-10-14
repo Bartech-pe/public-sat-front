@@ -65,7 +65,7 @@ import { NotificationSupervisesComponent } from '@shared/notification-supervises
 })
 export class InboxViewComponent implements OnInit, OnDestroy {
   openGroup = false;
-
+  previewImage?: string;
   visible: boolean = false;
 
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
@@ -127,15 +127,20 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     }
 
     this.socketService.onMessage((msg) => {
-      if (msg.senderId != this.userCurrent.id) {
-        msg.senderId = false;
-      }
+      // Normalizar senderId (si viene sender como objeto)
+      msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
+
+      // Calcular correctamente isSender (sin tocar senderId)
+      msg.isSender = msg.senderId === this.userCurrent.id;
+
+      // Push del mensaje normalizado al array
       this.listMessageChatRoom.push(msg);
 
       if (this.userIsAtBottom) {
         this.forceScrollToBottom = true;
       }
     });
+
 
     // this.loadUnreadMessages();
     // setInterval(() => this.loadUnreadMessages(), 10000);
@@ -187,31 +192,40 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     }
 
     const reader = new FileReader();
+
     reader.onload = () => {
       const previewUrl = reader.result as string;
 
+      // Mostramos la imagen localmente (si lo usas en tu UI)
+      this.previewImage = previewUrl;
+
+      // Armamos el FormData para el backend
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('isSender', 'true');
       formData.append('type', 'image');
-      formData.append('content', '');
-      formData.append('resourceUrl', previewUrl);
+      formData.append('content', ''); // requerido aunque vacío
       formData.append('chatRoomId', this.selectedChatId.toString());
       formData.append('isRead', 'false');
-      formData.append('createdAt', new Date().toISOString());
+      formData.append('isSender', 'true');
 
-      this.chatMessageService
-        .registerMessageImagen(formData)
-        .subscribe((response: any) => {
+      this.chatMessageService.registerMessageImagen(formData).subscribe({
+        next: (response: any) => {
+          // el backend devuelve el mensaje completo con resourceUrl asignado
           if (response?.resourceUrl) {
             response.isSender = true;
             this.socketService.sendMessage(response);
           }
-        });
+        },
+        error: (error) => {
+          console.error('Error al subir imagen:', error);
+          this.msg.error('Error al enviar la imagen.');
+        },
+      });
     };
 
     reader.readAsDataURL(file);
   }
+
 
   ngAfterViewInit(): void {
     this.scrollContainer?.nativeElement?.addEventListener('scroll', () => {
@@ -308,39 +322,63 @@ export class InboxViewComponent implements OnInit, OnDestroy {
   infoUsers?: UserSender;
 
   viewMessages(chat: any) {
-    console.log('causin', chat);
+    // Reiniciamos estados anteriores
     this.infoUserGroup = null;
     this.infoUsers = undefined;
     this.selectedChatId = chat.id;
 
+    // Identificamos si es grupo o chat directo
     if (chat.isGroup) {
       this.infoUserGroup = chat;
     } else {
       this.infoUsers = this.getMessageUser(chat);
     }
 
-    this.chatMessageService.getRoomMessages(chat.id).subscribe((response) => {
-      this.listMessageChatRoom = response;
+    // Verificamos usuario actual antes de continuar
+    const currentUserId = this.userCurrent?.id;
+    if (!currentUserId) {
+      console.warn('⚠️ No se encontró el usuario actual al cargar mensajes.');
+      return;
+    }
 
-      const exists = this.openedChats.find((c) => c.id === chat.id);
-      if (!exists) {
-        const nuevoChat = {
-          ...chat,
-          mensajesflotante: response,
-          minimized: false,
-          newMessage: '',
-        };
-        this.openedChats.push(nuevoChat);
-        localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
-        this.chatMessageService.setSelectedChat(this.openedChats);
-      }
+      // Obtenemos los mensajes y procesamos correctamente el "isSender"
+      this.chatMessageService.getRoomMessages(chat.id).subscribe({
+      next: (response) => {
+        const currentUserId = this.userCurrent?.id ?? 0;
 
-      // Hacer scroll incluso si no hay mensajes
-      setTimeout(() => {
-        this.forceScrollToBottom = true;
-      }, 100);
+        this.listMessageChatRoom = response.map((msg: any) => ({
+          ...msg,
+          // normalizamos senderId si hace falta
+          senderId: msg.senderId ?? msg.sender?.id ?? 0,
+          // calculamos isSender basándonos en la id normalizada
+          isSender: (msg.senderId ?? msg.sender?.id ?? 0) === currentUserId,
+        }));
+
+        // resto: openedChats, scroll, etc.
+        const exists = this.openedChats.find((c) => c.id === chat.id);
+        if (!exists) {
+          const nuevoChat = {
+            ...chat,
+            mensajesflotante: this.listMessageChatRoom,
+            minimized: false,
+            newMessage: '',
+          };
+          this.openedChats.push(nuevoChat);
+          localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
+          this.chatMessageService.setSelectedChat(this.openedChats);
+        }
+
+        setTimeout(() => {
+          this.forceScrollToBottom = true;
+        }, 100);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar mensajes:', err);
+        this.msg.error('Error al obtener los mensajes de la sala');
+      },
     });
   }
+
 
   viewMessage(contact: any) {
     const body = {
@@ -509,4 +547,5 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     this.messageService.clear('confirm');
     this.visible = false;
   }
+  
 }
