@@ -1,17 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
+import { ChannelAttentionService } from '@services/channel-attention.service';
+import { ChannelCitizenService, IChannelCitizen } from '@services/channel-citizen.service';
+import { CitizenInfo, ExternalCitizenService } from '@services/externalCitizen.service';
 
 // Interface para el tipo de datos del contacto
-interface ContactData {
-  vcontacto: string;
-  vnumTel: string;
-  vtipDoc: string;
-  vdocIde: string;
-}
 
 @Component({
   selector: 'app-citizen-information',
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    PhoneFormatPipe
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './citizen-information.component.html',
   styles: `
@@ -22,34 +25,63 @@ interface ContactData {
   `
 })
 export class CitizenInformationComponent implements OnInit {
+  contactData: CitizenInfo | null = null;
+  isLoading: boolean = false;
+  channelCitizen: IChannelCitizen | null = null;
+  channelRoomId: number | null = null;
 
-  // Datos del contacto
-  @Input() contactData: ContactData | null = null;
-
-  // Estado de carga
-  @Input() isLoading: boolean = false;
-
-  constructor() {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private readonly externalCitizenService: ExternalCitizenService,
+    private readonly channelCitizenService: ChannelCitizenService
+  ) {}
 
   ngOnInit(): void {
-    console.log('Contact data loaded:', this.contactData);
+    this.route.queryParamMap.subscribe((params) => {
+      if (!params.get('channelRoomId') || !params.get('assistanceId')) {
+        this.contactData = null
+        return;
+      }
+      const channelRoomId = params.get('channelRoomId');
+      this.channelRoomId = Number(channelRoomId);
+      this.channelCitizenService.getCitizenInformationByChannelRoomAssigned(Number(channelRoomId)).subscribe((response: IBaseResponseDto<IChannelCitizen>) =>{
+        if(response.success && response?.data)
+        {
+          this.channelCitizen = response.data
+          this.getContactData()
+        }
+      })
+    });
+
   }
 
-  // Métodos simplificados
-  getShortName(fullName: string): string {
-    if (!fullName) return 'Empresa';
-    const words = fullName.split(' ');
-    return words.length <= 3 ? fullName : words.slice(0, 3).join(' ');
-  }
-
-  getSubtitle(fullName: string): string {
-    if (!fullName) return 'Sin información';
-    const words = fullName.split(' ');
-    return words.length <= 3 ? 'EMPRESA' : words.slice(3).join(' ');
+  getContactData()
+  {
+    if(this.channelCitizen?.documentNumber)
+    {
+      this.externalCitizenService.getCitizenInformation({
+        piValPar1: 2,
+        psiTipConsulta: 2,
+        pvValPar2: this.channelCitizen?.documentNumber
+      }).subscribe((response : CitizenInfo[]) => {
+        if(response.length)
+        {
+          this.contactData = response[0];
+        }else{
+          this.contactData = {
+            vdocIde: this.channelCitizen?.documentNumber?? '',
+            vcontacto: this.channelCitizen?.fullName?? '',
+            vnumTel: this.channelCitizen?.phoneNumber?? '',
+            vtipDoc: this.channelCitizen?.documentType?? ''
+          }
+        }
+      })
+    }
   }
 
   getFormattedPhone(): string {
-    return this.contactData?.vnumTel ? `+51 ${this.contactData.vnumTel}` : '';
+    return this.contactData?.vnumTel ? `${this.contactData.vnumTel}` : '';
   }
 
   getContactType(): string {

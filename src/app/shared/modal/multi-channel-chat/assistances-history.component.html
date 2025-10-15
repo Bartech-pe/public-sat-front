@@ -142,15 +142,15 @@
                       </span>
                       @if (asistencia.status) {
                         <p-tag
-                          [value]="asistencia.status | titlecase"
-                          [severity]="obtenerSeveridadEstado(asistencia.status)"
+                          [value]="getChannelStatusTag(asistencia.status) "
+                          [severity]="getChannelStatusTag(asistencia.status)"
                           styleClass="text-xs">
                         </p-tag>
                       }
                     </div>
                     @if (asistencia.channel) {
                       <iconify-icon
-                        [icon]="obtenerIconoCanal(asistencia.channel)"
+                        [icon]="getChannelIcon(asistencia.channel)"
                         class="text-gray-500"
                         [pTooltip]="asistencia.channel | titlecase">
                       </iconify-icon>
@@ -162,7 +162,7 @@
                     @if (asistencia.startDate) {
                       <div class="flex items-center text-xs text-gray-600">
                         <iconify-icon icon="mdi:calendar" class="mr-2"></iconify-icon>
-                        <span>{{ formatearFechaCompleta(asistencia.startDate) }}</span>
+                        <span>{{ asistencia.startDate }}</span>
                       </div>
                     }
                     @if (asistencia.user) {
@@ -235,7 +235,7 @@
                 <div class="flex items-center space-x-4 text-sm text-gray-600">
                   <span>{{ asistenciaSeleccionada.messages?.length || 0 }} mensajes</span>
                   @if (asistenciaSeleccionada.startDate) {
-                    <span>{{ formatearFechaCompleta(asistenciaSeleccionada.startDate) }}</span>
+                    <span>{{ asistenciaSeleccionada.startDate }}</span>
                   }
                 </div>
               </div>
@@ -246,14 +246,17 @@
                 <p-tag
                   [value]="asistenciaSeleccionada.channel | titlecase"
                   severity="info"
-                  [icon]="obtenerIconoCanal(asistenciaSeleccionada.channel)"
                   styleClass="bg-blue-100 text-blue-700">
+                  <iconify-icon
+                    icon="{{ getChannelIcon(asistenciaSeleccionada.channel) }}"
+                    class="w-4 h-4"
+                  ></iconify-icon>
                 </p-tag>
               }
               @if (asistenciaSeleccionada.status) {
                 <p-tag
-                  [value]="asistenciaSeleccionada.status | titlecase"
-                  [severity]="obtenerSeveridadEstado(asistenciaSeleccionada.status)">
+                  [value]="getChannelStatusTag(asistenciaSeleccionada.status)"
+                  [severity]="getChannelStatusTagSeverity(asistenciaSeleccionada.status)">
                 </p-tag>
               }
             </div>

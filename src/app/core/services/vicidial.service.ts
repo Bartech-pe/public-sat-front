@@ -42,7 +42,7 @@ export class VicidialService {
   }
 
   getByIdProgreso(id: any): Observable<ProgresoCampania> {
-    return this.http.get<ProgresoCampania>(`${this.baseUrl}/central/campanias/progreso/${id}`)
+    return this.http.get<ProgresoCampania>(`${this.baseUrl}central/campanias/progreso/${id}`)
       .pipe(catchError(this.handleError));
   }
 

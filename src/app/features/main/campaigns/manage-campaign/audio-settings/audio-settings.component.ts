@@ -65,7 +65,7 @@ export class AudioSettingsComponent {
     if (this.config.data) {
       if (this.config.data.vdCampaignId) {
         this.campania = this.config.data;
-        this.formlist.campaign_id = this.config.data.vdCampaignId;
+        this.formlist.campaign_id = Number(this.config.data.vdCampaignId);
       }
 
       // this.vicidialService.getAll('central/listas').subscribe(res=>{

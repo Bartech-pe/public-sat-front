@@ -97,10 +97,11 @@ export class WhatsappComponent implements OnInit, OnDestroy {
   constructor(){}
 
   ngOnDestroy(): void {
-    throw new Error('Method not implemented.');
+    // throw new Error('Method not implemented.');
   }
   ngOnInit(): void {
     if(this.data){
+      console.log(this.data)
       this.id = this.data.id,
       this.formData.patchValue({
         name: this.data.name,
@@ -151,11 +152,13 @@ export class WhatsappComponent implements OnInit, OnDestroy {
         businessId: undefined,
         phoneNumberId: undefined,
       });
+      console.log("entra a un effect")
 
       if (action === 'created') {
         this.inboxChange.emit(false);
         // this.messageLoader = ""
       } else {
+        console.log("entra a un effect else")
         this.store.clearSelected();
         this.inboxChange.emit(false);
       }
@@ -168,7 +171,7 @@ export class WhatsappComponent implements OnInit, OnDestroy {
       this.id = item.id ?? null;
       this.formData.patchValue({
         name: item.name,
-        phoneNumber: item.phoneNumber,
+        phoneNumber: item.phoneNumber ? item.phoneNumber.replace(/\D/g, '').trim() : undefined,
         accessToken: item.accessToken,
         businessId: item.businessId,
         phoneNumberId: item.phoneNumberId,
@@ -225,7 +228,8 @@ export class WhatsappComponent implements OnInit, OnDestroy {
     };
     if (this.id) {
       this.store.update(this.id, {
-        ...form
+        ...form,
+        phoneNumber: this.phone() ? this.phone().replace(/\D/g, '').trim() : undefined,
       });
     } else {
       this.store.create({ ...cleanedForm, channelId: this.channelSelected.id });

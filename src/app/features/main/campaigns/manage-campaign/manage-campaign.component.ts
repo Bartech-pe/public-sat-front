@@ -175,7 +175,7 @@ export class ManageMampaignComponent {
   remove(registro: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-            <p class='text-center'> ¿Está seguro de eliminar la campaña <span class='uppercase font-bold'>${registro.nombre}</span>? </p>
+            <p class='text-center'> ¿Está seguro de eliminar la campaña <span class='uppercase font-bold'>${registro.name}</span>? </p>
             <p class='text-center'> Esta acción no se puede deshacer. </p>
           </div>`,
       () => {
@@ -192,7 +192,7 @@ export class ManageMampaignComponent {
               } else {
                 this.msg.success(
                   'La Campaña fue eliminado correctamente en Vicidial, ' +
-                    registro.nombre
+                    registro.name
                 );
                 this.scheduleService.deleteByCampain(registro.id).subscribe(
                   (res) => {
@@ -231,7 +231,7 @@ export class ManageMampaignComponent {
  
       const modal_item = this.dialogService.open(ProgresoCampaniaComponent, {
         data: registro,
-        header: 'Progreso de Campaña ' + registro.nombre,
+        header: 'Progreso de Campaña ' + registro.name,
         styleClass: 'modal-lg',
         modal: true,
         dismissableMask: false,
@@ -249,7 +249,7 @@ export class ManageMampaignComponent {
    
       const modal_item = this.dialogService.open(AudioSettingsComponent, {
         data: registro,
-        header: 'Configurar Campaña ' + registro.nombre,
+        header: 'Configurar Campaña ' + registro.name,
         styleClass: 'modal-8xl',
         modal: true,
         dismissableMask: false,

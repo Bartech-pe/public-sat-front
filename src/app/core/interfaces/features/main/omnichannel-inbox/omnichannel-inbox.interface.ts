@@ -23,8 +23,22 @@ export enum ChannelStatusTag  {
     completado = 'success'
 }
 
+export enum ChannelAttentionStatusTag  {
+    identity_verification = 'Identificación',
+    closed = 'Cerrado',
+    in_progress = 'En proceso'
+}
+
+
+export enum ChannelAttentionStatusTagType  {
+    identity_verification = 'info',
+    closed = 'success',
+    in_progress = 'warning'
+}
+
 
 export type ChatStatus = 'pendiente' | 'prioridad' | 'completado';
+export type ChannelAttentionStatus = 'identity_verification' | 'closed' | 'in_progress';
 export type MessageStatus = 'read' | 'unread';
 export type Channels = 'all' | 'telegram' | 'whatsapp' | 'instagram' | 'messenger' | 'email' | 'sms' | 'chatsat';
 export type BotStatus = 'paused' | 'active' | 'out'
@@ -44,18 +58,18 @@ export enum CHANNELS {
 export interface ChatDetail
 {
   channelRoomId: number;
-  assistanceId: number;
+  attention: ChannelAttentionSummariesDTO;
   externalRoomId: string;
   channel: Channels;
   status: ChatStatus
-  citizen: ChannelCitizen;
+  citizen: ChannelCitizenSummariesDto;
   botStatus: BotStatus;
   agentAssigned?: ChannelAgent;
   messages: ChannelMessage[];
   hasMore?: boolean
 }
 
-export interface ChannelCitizen
+export interface ChannelCitizenSummariesDto
 {
     id: number;
     fullName: string;
@@ -103,7 +117,7 @@ export interface LastMessageReceived
 {
     id : number;
     channelRoomId?: number;
-    assistanceId?: number;
+    attention?: ChannelAttentionSummariesDTO;
     externalMessageId : string;
     hasAttachment?: boolean;
     message: string;
@@ -122,7 +136,7 @@ export interface channelCitizen{
 
 export interface ChatListInbox{
     channelRoomId: number;
-    assistanceId: number;
+    attention: ChannelAttentionSummariesDTO;
     externalRoomId: string;
     channel: Channels;
     status: ChatStatus;
@@ -130,6 +144,13 @@ export interface ChatListInbox{
     lastMessage: LastMessageReceived;
     unreadCount: number;
     botStatus: BotStatus;
+}
+
+export interface ChannelAttentionSummariesDTO{
+  id: number;
+  endDate?: Date | null;
+  consultTypeId?: number | null;
+  attentionDetail?: string |  null;
 }
 
 export interface getAdvisorsResponseDto {
@@ -142,7 +163,7 @@ export interface getAdvisorsResponseDto {
 
 export interface ChannelRoomNewMessageDto{
     channelRoomId: number;
-    assistanceId: number;
+    attention: ChannelAttentionSummariesDTO;
     externalRoomId: string;
     channel: Channels;
     advisor: AdvisorAssigned;

@@ -4,7 +4,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <p-select
           [options]="listSectorista"
-          [(ngModel)]="selectestados"
+          [(ngModel)]="selectSectorista"
           optionLabel="name"
           optionValue="name"
           (onChange)="filtrar()"
@@ -91,13 +91,14 @@
               [value]="item.value"
               [(ngModel)]="tipoAsignacion"
               [inputId]="'tipoAsignacion' + item.value"
-              (onClick)="selectTipoAsignacion()"
+              (onChange)="toggleSeleccion(item.value)"
             />
             <label
               [for]="'tipoAsignacion' + item.value"
               class="pt-1 pl-2 cursor-pointer"
-              >{{ item.label }}</label
             >
+              {{ item.label }}
+            </label>
           </div>
         </div>
 
@@ -196,7 +197,6 @@
           </th>
         </tr>
       </ng-template>
-
       <ng-template pTemplate="body" let-row>
         <tr [pSelectableRow]="row">
           <td>
@@ -245,6 +245,18 @@
           </td>
           <td>
             <p class="text-sm font-light">{{ row.phone3 || "-" }}</p>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="15" class="py-6">
+            <div class="flex flex-col items-center justify-center text-center">
+              <i class="pi pi-search text-gray-400 text-2xl mb-2"></i>
+              <span class="text-gray-500 text-base font-medium">
+                No se encontraron resultados para los filtros seleccionados.
+              </span>
+            </div>
           </td>
         </tr>
       </ng-template>

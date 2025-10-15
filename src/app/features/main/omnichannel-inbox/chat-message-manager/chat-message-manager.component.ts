@@ -23,7 +23,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import {
   AdvisorChangedDto,
-  ChannelCitizen,
+  ChannelCitizenSummariesDto,
   ChannelLogo,
   ChannelMessage,
   Channels,
@@ -58,6 +58,9 @@ import { ChannelAttentionService } from '@services/channel-attention.service';
 import { PredefinedResponses } from '@models/predefined-response.model';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { PredefinedResponsesService } from '@services/predefined.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { FormAssistanceComponent } from '@features/main/mail/form-assistance/form-assistance.component';
+import { FormAttentionComponent } from '../form-attention/form-attention.component';
 
 export interface Attachment {
   type: 'file' | 'image';
@@ -101,10 +104,11 @@ interface AttachmentPreview extends Attachment {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styleUrl: './chat-message-manager.component.scss',
 })
-export class ChatMessageManagerComponent implements OnDestroy {
+export class ChatMessageManagerComponent {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   @ViewChild('fileInput') private fileInput!: ElementRef;
   private readonly msg = inject(MessageGlobalService);
+  private readonly dialogService = inject(DialogService);
 
   chatDetail: ChatDetail | null = null;
   advisors: getAdvisorsResponseDto[] = [];
@@ -154,18 +158,13 @@ export class ChatMessageManagerComponent implements OnDestroy {
     private router: Router,
     private messageService: MessageService,
     private channelRoomService: ChannelRoomService,
-    private userService: UserService,
     private channelRoomMessageService: ChannelRoomMessageService,
-    private channelMessage: ChannelRoomService,
     private channelAttentionService: ChannelAttentionService,
     private channelRoomSocketService: ChannelRoomSocketService,
     private predefinedResponsesService: PredefinedResponsesService,
     private ngZone: NgZone
   ) {}
 
-  ngOnDestroy(): void {
-    console.log('asdasdds');
-  }
 
   items: MenuItem[] | undefined;
 
@@ -199,8 +198,9 @@ export class ChatMessageManagerComponent implements OnDestroy {
       .subscribe((payload) => {
         if (
           payload &&
+          this.chatDetail &&
           this.chatDetail?.channelRoomId === payload.channelRoomId &&
-          this.chatDetail.assistanceId === payload.assistanceId
+          this.chatDetail.attention.id === payload.assistanceId
         ) {
           this.chatDetail.status = payload.status;
           if (payload.status === 'completado') {
@@ -242,7 +242,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
       if (
         this.channelRoomId === message.channelRoomId &&
-        this.assintanceId === message.assistanceId
+        this.assintanceId === message.attention.id
       ) {
         this.chatDetail?.messages.push({
           id: messageIncoming.id,
@@ -296,6 +296,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
             separator: true,
           },
           {
+            label: 'Detalle de atención',
+            icon: 'pi pi-refresh',
+            command: () => this.showFormDetail(),
+          },
+          {
             label: 'Enviar al correo',
             icon: 'pi pi-refresh',
             command: () => this.sendEmailWithConversation(),
@@ -311,9 +316,9 @@ export class ChatMessageManagerComponent implements OnDestroy {
   }
 
   sendEmailWithConversation() {
-    if (this.chatDetail?.assistanceId) {
+    if (this.chatDetail?.attention.id) {
       this.channelAttentionService
-        .sendEmailWithConversation(this.chatDetail?.assistanceId)
+        .sendEmailWithConversation(this.chatDetail?.attention.id)
         .subscribe((response: IBaseResponseDto) => {
           if (response.success) {
             this.msg.success(
@@ -510,7 +515,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
   private emitTypingIndicator() {
     this.channelRoomSocketService.enableTypingIndicator({
       channelRoomId: this.chatDetail?.channelRoomId as number,
-      assistanceId: this.chatDetail?.assistanceId as number,
+      assistanceId: this.chatDetail?.attention.id as number,
       citizenId: this.chatDetail?.citizen?.id as number,
       userId: this.chatDetail?.agentAssigned?.id,
     });
@@ -684,8 +689,15 @@ export class ChatMessageManagerComponent implements OnDestroy {
   }
 
   private getItemsByStatus(status: ChatStatus) {
+
+
     if (status === 'completado') {
       return [
+        {
+          label: 'Detalle de atención',
+          icon: 'pi pi-refresh',
+          command: () => this.showFormDetail(),
+        },
         {
           label: 'Enviar al correo',
           icon: 'pi pi-refresh',
@@ -699,7 +711,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
       ];
     }
 
-    // Si no es "completado", devuelve todo el menú original
     return [
       {
         label: 'Acciones del Chat',
@@ -721,6 +732,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
           },
           {
             separator: true,
+          },
+          {
+            label: 'Detalle de atención',
+            icon: 'pi pi-refresh',
+            command: () => this.showFormDetail(),
           },
           {
             label: 'Enviar al correo',
@@ -784,7 +800,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
     const messageDto: CreateChannelAgentMessageDto = {
       channel: this.chatDetail?.channel!,
-      assistanceId: this.chatDetail?.assistanceId!,
+      assistanceId: this.chatDetail?.attention.id!,
       channelRoomId: this.chatDetail?.channelRoomId!,
       message: messageToSend,
       phoneNumberReceiver: this.chatDetail?.citizen?.phone!,
@@ -909,18 +925,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
     }
   }
 
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'completado':
-        return 'Completado';
-      case 'pendiente':
-        return 'Pendiente';
-      case 'prioridad':
-        return 'Prioridad';
-      default:
-        return '';
-    }
-  }
 
   private fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -1001,49 +1005,97 @@ export class ChatMessageManagerComponent implements OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
+  showFormDetail(reintentFinalization: boolean = false)
+  {
+    const ref = this.dialogService.open(FormAttentionComponent, {
+      header: 'Registro de Atención',
+      styleClass: 'modal-lg',
+      modal: true,
+      data:{
+        attentionDetail: this.chatDetail?.attention?.attentionDetail,
+        consultTypeId: this.chatDetail?.attention?.consultTypeId
+      },
+      focusOnShow: false,
+      dismissableMask: false,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res: {consultTypeId: number, attentionDetail: string}) => {
+      if (res) {
+        if(this.chatDetail)
+        {
+          this.chatDetail.attention = {
+              ...this.chatDetail?.attention,
+              attentionDetail: res.attentionDetail,
+              consultTypeId: res.consultTypeId
+          }
+          this.channelAttentionService.assignAttentionDetail(
+            {
+              attentionId : this.chatDetail.attention.id,
+              consultTypeId : res.consultTypeId,
+              attentionDetail: res.attentionDetail
+            }
+          ).subscribe((response: IBaseResponseDto) =>{
+            if(response.success){
+              this.msg.success('El detalle de atención fue registrado correctamente.','Registro de detalle de atención.',3000)
+              if(reintentFinalization){
+                this.finalizeConversation()
+              }
+            }
+          })
+        }
+      }
+    });
+  }
+
   finalizeConversation() {
-    this.msg.confirm(
-      '¿Desea finalizar la conversación?',
-      () => {
-        if (this.chatDetail?.channelRoomId && this.chatDetail?.assistanceId) {
-          this.channelRoomService
-            .closeAssistance(
-              this.chatDetail?.channelRoomId,
-              this.chatDetail?.assistanceId
-            )
-            .subscribe({
-              next: (response) => {
-                if (!response.success) {
+    if(this.chatDetail && this.chatDetail.attention?.attentionDetail && this.chatDetail.attention?.consultTypeId)
+    {
+      this.msg.confirm(
+        '¿Desea finalizar la conversación?',
+        () => {
+          if (this.chatDetail?.channelRoomId && this.chatDetail?.attention.id) {
+            this.channelRoomService
+              .closeAssistance(
+                this.chatDetail?.channelRoomId,
+                this.chatDetail?.attention.id
+              )
+              .subscribe({
+                next: (response) => {
+                  if (!response.success) {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Ha ocurrido un error.',
+                      detail: response?.error ?? response?.message,
+                      life: 5000,
+                    });
+                    return;
+                  }
+                  this.router.navigate([], {
+                    relativeTo: this.route,
+                    queryParams: {
+                      channel: this.route.snapshot.queryParams['channel'],
+                    },
+                    queryParamsHandling: '',
+                  });
+                },
+                error: (error) => {
                   this.messageService.add({
                     severity: 'error',
-                    summary: 'Ha ocurrido un error.',
-                    detail: response?.error ?? response?.message,
+                    summary: 'Error del servidor',
+                    detail: error.error,
                     life: 5000,
                   });
-                  return;
-                }
-                this.router.navigate([], {
-                  relativeTo: this.route,
-                  queryParams: {
-                    channel: this.route.snapshot.queryParams['channel'],
-                  },
-                  queryParamsHandling: '',
-                });
-              },
-              error: (error) => {
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error del servidor',
-                  detail: error.error,
-                  life: 5000,
-                });
-              },
-            });
-        }
-      },
-      () => {},
-      'Finalizar asistencia'
-    );
+                },
+              });
+          }
+        },
+        () => {},
+        'Finalizar asistencia'
+      );
+    }else{
+      this.showFormDetail(true)
+    }
   }
 
   openTransferModal() {
@@ -1087,7 +1139,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
     this.updatingStatus = true;
 
     let payload: changeChannelRoomStatusDto = {
-      assistanceId: this.chatDetail.assistanceId,
+      assistanceId: this.chatDetail.attention.id,
       channelRoomId: this.chatDetail.channelRoomId,
       status: this.selectedNewStatus,
     };
@@ -1145,10 +1197,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
     }
   }
 
-  setPriority(prioridad: 'alta' | 'media' | 'baja') {
-    console.log('Establecer prioridad:', prioridad);
-  }
-
   toggleBotService(active: boolean) {
     if (this.chatDetail != null) {
       if (this.chatDetail.botStatus === 'out') {
@@ -1168,11 +1216,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
           const updatedChatDetail: ChatDetail = {
             channelRoomId: this.chatDetail?.channelRoomId as number,
-            assistanceId: this.chatDetail?.assistanceId as number,
+            attention: this.chatDetail?.attention!,
             externalRoomId: this.chatDetail?.externalRoomId as string,
             channel: this.chatDetail?.channel as Channels,
             status: this.chatDetail?.status as ChatStatus,
-            citizen: this.chatDetail?.citizen as ChannelCitizen,
+            citizen: this.chatDetail?.citizen as ChannelCitizenSummariesDto,
             agentAssigned: this.chatDetail?.agentAssigned,
             messages: this.chatDetail?.messages as ChannelMessage[],
             botStatus: payload.active ? 'active' : 'paused',
@@ -1194,9 +1242,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
       queryParams,
       replaceUrl: true, // no agrega una entrada al historial
     });
-  }
-  showOptions() {
-    console.log('Mostrar opciones');
   }
 
   getMessageStatusIcon(status: string): string {

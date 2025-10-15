@@ -19,6 +19,7 @@ import { MessageGlobalService } from '@services/generic/message-global.service';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { timeStamp } from 'console';
+import { TooltipModule } from 'primeng/tooltip';
 
 
 interface SummaryFilters{
@@ -45,6 +46,7 @@ interface FilterOptions{
     ToastModule,
     DividerModule,
     SelectButtonModule,
+    TooltipModule,
     AvatarModule,
     OverlayBadgeModule
   ],
@@ -57,21 +59,30 @@ interface FilterOptions{
         overflow: hidden;
 
     }
-    :host ::ng-deep .p-toast .p-toast-message {
-  margin: 0 0 1rem 0 !important;   /* separación entre toasts */
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
+    :host ::ng-deep .p-selectbutton	.p-togglebutton{
+        padding: 4px !important;
+    }
+    :host ::ng-deep .p-selectbutton .p-togglebutton-checked .p-togglebutton-content{
+        background: var(--sat-principal);
+        color: white !important;
+    }
 
-:host ::ng-deep .p-toast .p-toast-message-content {
-  padding: 0 !important;
-  background: transparent !important;
-}
-:host ::ng-deep .p-toast .p-toast-close-button {
-  display: none !important;
-}
+
+    :host ::ng-deep .p-toast .p-toast-message {
+      margin: 0 0 1rem 0 !important;   /* separación entre toasts */
+      padding: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    :host ::ng-deep .p-toast .p-toast-message-content {
+      padding: 0 !important;
+      background: transparent !important;
+    }
+    :host ::ng-deep .p-toast .p-toast-close-button {
+      display: none !important;
+    }
     .card-custom::before {
         content: '';
         position: absolute;
@@ -158,8 +169,9 @@ export class ChatListComponent implements OnInit {
   scrollStart = 0;
   search: string = "";
   isLoading: boolean = false;
-  selectedFilter: FilterOptions | null = null;
+  selectedFilter: FilterOptions | null = { label: 'Todos', value: 'all', icon: 'pi pi-envelope' };
   filterOptions: FilterOptions[] = [
+    { label: 'Todos', value: 'all', icon: 'pi pi-envelope' },
     { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' },
     { label: 'Leídos', value: 'read', icon: 'pi pi-check' },
     { label: 'No resueltos', value: 'pendiente', icon: 'pi pi-exclamation-circle' },
@@ -224,13 +236,13 @@ export class ChatListComponent implements OnInit {
 
       this.chatListInbox = this.chatListInbox
         .map((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.assistanceId === payload.assistanceId) {
+          if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
             return { ...x, status: payload.status };
           }
           return x;
         })
         .filter((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.assistanceId === payload.assistanceId) {
+          if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
             return false; // se quita
           }
           return true;
@@ -256,6 +268,14 @@ export class ChatListComponent implements OnInit {
         this.updateChatList(message);
     });
 
+    this.channelRoomSocketService.onAttentionDetailModified().subscribe((message: ChannelRoomAssistance) => {
+      const index = this.chatListInbox.findIndex(c => c.attention.id === message.assistanceId);
+      this.chatListInbox[index] = {
+        ...this.chatListInbox[index],
+        attention: {...this.chatListInbox[index].attention, attentionDetail: 'Value', consultTypeId: 0}
+      };
+    });
+
     this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
       const hasChannelRoomWithAdvisorChanged = this.chatListInbox.some(x => x.channelRoomId == message.channelRoomId)
       if(hasChannelRoomWithAdvisorChanged)
@@ -279,7 +299,7 @@ export class ChatListComponent implements OnInit {
     });
 
     this.channelRoomSocketService.onAdvisorRequest().subscribe((payload: ChannelRoomAssistance) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.assistanceId === payload.assistanceId);
+      const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
       if(this.authStore.user()?.id === payload.userId)
       {
 
@@ -334,20 +354,20 @@ export class ChatListComponent implements OnInit {
 
       let hasAttachment = false;
       const index = this.chatListInbox.findIndex(c => c.channelRoomId == message.channelRoomId
-        && c.assistanceId == message.assistanceId
+        && c.attention.id == message.attention.id
       );
       if(message?.attachments)
       {
         hasAttachment = message.attachments.length > 0
       }
 
-      if (index > -1) {
+      if (index > -1 ) {
         const chat = this.chatListInbox[index];
         chat.unreadCount += 1;
         chat.channel = message.channel,
         chat.botStatus = message.botStatus,
         chat.status = message.status,
-        chat.assistanceId = message.assistanceId,
+        chat.attention.id = message.attention.id,
         chat.lastMessage = {
           citizen: {
             id: message.message.sender.id,
@@ -356,7 +376,7 @@ export class ChatListComponent implements OnInit {
             name: message.message.sender.fullName || message.message.sender.alias || message.message.sender.phone,
             avatar: message.message.sender.avatar,
           },
-          assistanceId: message.assistanceId,
+          attention: message.attention,
           channelRoomId: message.channelRoomId,
           hasAttachment: hasAttachment,
           id: message.message.id,
@@ -374,7 +394,7 @@ export class ChatListComponent implements OnInit {
         if((
             ['supervisor', 'administrador']
               .includes(this.authStore.user()?.role?.name??'') || this.authStore.user()?.id == message.advisor.id)
-            && message.status !== 'completado')
+            && message.status !== 'completado' && (['unread', 'all'].includes(this.selectedFilter?.value?? '') || this.selectedFilter?.value == message.status))
         {
           console.log("paso exitosamente", message)
           let model : ChatListInbox = {
@@ -385,7 +405,7 @@ export class ChatListComponent implements OnInit {
             botStatus : message.botStatus,
             status : message.status,
             advisor: message.advisor,
-            assistanceId : message.assistanceId,
+            attention : message.attention,
             lastMessage : {
               citizen: {
                 id: message.message.sender.id,
@@ -439,7 +459,7 @@ export class ChatListComponent implements OnInit {
   }
 
   trackByChat(index: number, chat: ChatListInbox): string {
-    return String(chat.assistanceId);
+    return String(chat.attention.id);
   }
   ngAfterViewInit() {
     this.checkScroll();
@@ -452,7 +472,6 @@ export class ChatListComponent implements OnInit {
   getChannelStatusIcon(channel: ChatListInbox['status']): string {
     return ChannelStatusIcon[channel] || 'fxemoji:question';
   }
-
 
   @HostListener('window:resize')
   onResize() {

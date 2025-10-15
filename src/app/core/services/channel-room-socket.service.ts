@@ -11,7 +11,7 @@ import { Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 
 export interface ChannelRoomAssistance {
-  channelRoomId: number;
+  channelRoomId?: number;
   assistanceId: number;
   citizenId?: number;
   userId?: number;
@@ -32,6 +32,7 @@ export class ChannelRoomSocketService implements OnDestroy {
   private newChannelRoomStatusChangeSubject =
     new Subject<changeChannelRoomStatusDto>();
   private requestAdvisorSubject = new Subject<ChannelRoomAssistance>();
+  private attentionDetailModifiedSubject = new Subject<ChannelRoomAssistance>();
 
   constructor() {
     this.socket = io(environment.apiUrl);
@@ -64,6 +65,10 @@ export class ChannelRoomSocketService implements OnDestroy {
 
     this.socket.on('chat.advisor.request', (paload: ChannelRoomAssistance) => {
       this.requestAdvisorSubject.next(paload);
+    });
+
+    this.socket.on('chat.attention.detail.modified', (payload: ChannelRoomAssistance) => {
+      this.attentionDetailModifiedSubject.next(payload);
     });
 
     this.socket.on('chat.botStatus.change', (payload: BotStatusChangedDto) => {
@@ -102,6 +107,10 @@ export class ChannelRoomSocketService implements OnDestroy {
 
   onAdvisorChanged(): Observable<AdvisorChangedDto> {
     return this.newAdvisorSubject.asObservable();
+  }
+
+  onAttentionDetailModified(): Observable<ChannelRoomAssistance> {
+    return this.attentionDetailModifiedSubject.asObservable();
   }
 
   onChannelRoomStatusChanged(): Observable<changeChannelRoomStatusDto> {

@@ -1,0 +1,42 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-6">
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="nameRole">
+        Tipo de Consulta: <span class="text-xs">*</span>
+      </label>
+      <p-select
+        id="roleuserId"
+        [options]="consultTypeList"
+        optionLabel="name"
+        optionValue="id"
+        formControlName="consultTypeId"
+        placeholder="Seleccione..."
+        styleClass="capitalize"
+        panelStyleClass="capitalize"
+        appendTo="body"
+      />
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="detail">
+        Detalle de la atención:
+      </label>
+      <textarea
+        id="attentionDetail"
+        rows="2"
+        cols="30"
+        pTextarea
+        formControlName="attentionDetail"
+      ></textarea>
+    </div>
+  </div>
+  <div class="flex justify-end gap-4">
+    <div class="flex gap-2">
+      <button-cancel (click)="onCancel()" />
+      <button-save
+        [label]="'Guardar'"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      />
+    </div>
+  </div>
+</form>

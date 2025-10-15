@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { MetabaseReportsService } from '@services/metabase-reports.service';
 
 @Component({
   selector: 'app-survey-chat',
@@ -7,6 +9,26 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     CommonModule
   ],
   templateUrl: './survey-chat.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SurveyChatComponent { }
+export class SurveyChatComponent { 
+
+  iframeUrl!: SafeResourceUrl;
+  private dashboardId = '44'; 
+
+  constructor(
+    private metabaseReportsService: MetabaseReportsService,
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnInit(): void {
+    this.metabaseReportsService.getDashboardAlosat(this.dashboardId).subscribe(res => {
+      const rawUrl = res?.url;
+      if (rawUrl?.startsWith('http')) {
+    this.iframeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+      } else {
+        console.warn('URL insegura o malformada:', rawUrl);
+      }
+    });
+  }
+
+}

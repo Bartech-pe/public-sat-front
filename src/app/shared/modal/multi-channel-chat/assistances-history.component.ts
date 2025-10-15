@@ -11,7 +11,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { ChannelAttentionService } from '@services/channel-attention.service';
-import { ChannelMessage } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import { ChannelAttentionStatus, ChannelAttentionStatusTag, ChannelAttentionStatusTagType, ChannelLogo, ChannelMessage, ChannelStatusTag, ChatDetail } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 
 export interface MessagesResponseDto {
   channelRoomId: number;
@@ -26,7 +26,7 @@ export interface ChannelAssistanceDto {
   channel?: string;
   startDate?: string;
   endDate?: string;
-  status?: string;
+  status?: ChannelAttentionStatus;
   user?: string;
   citizen?: string;
   messages?: ChannelMessage[];
@@ -149,7 +149,6 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
   }
 
   onHide(): void {
-    console.log('onHide called');
     this.visible = false;
     this.visibleChange.emit(false);
     this.limpiarEstado();
@@ -157,7 +156,6 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
 
   onShow(): void {
     this.inicializarDatos();
-    console.log("asdasd")
   }
 
   onSearchChange(): void {
@@ -275,28 +273,19 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
     }
   }
 
-  obtenerSeveridadEstado(estado: string): "success" | "info" | "warning" | "danger" | "secondary" {
-    const severityMap: { [key: string]: "success" | "info" | "warning" | "danger" | "secondary" } = {
-      'completado': 'success',
-      'activo': 'info',
-      'pendiente': 'warning',
-      'closed': 'secondary',
-      'cancelado': 'danger'
-    };
-    return severityMap[estado?.toLowerCase()] || 'secondary';
+  getChannelStatusTagSeverity(status?: ChannelAssistanceDto['status']): string {
+    if (!status) return 'secondary';
+    return ChannelAttentionStatusTagType[status];
   }
 
-  obtenerIconoCanal(canal: string): string {
-    const iconMap: { [key: string]: string } = {
-      'whatsapp': 'mdi:whatsapp',
-      'telegram': 'mdi:telegram',
-      'facebook': 'mdi:facebook',
-      'web': 'mdi:web',
-      'email': 'mdi:email',
-      'phone': 'mdi:phone',
-      'chatsat': 'mdi:chat'
-    };
-    return iconMap[canal?.toLowerCase()] || 'mdi:chat';
+  getChannelStatusTag(status?: ChannelAssistanceDto['status']): string {
+    if (!status) return 'En proceso';
+    return ChannelAttentionStatusTag[status];
+  }
+
+  getChannelIcon(channel?: ChatDetail['channel']): string {
+    if (!channel) return 'fxemoji:question';
+    return ChannelLogo[channel];
   }
 
   onScroll(event: Event): void {

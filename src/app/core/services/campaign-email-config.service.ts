@@ -17,6 +17,12 @@ export class CampaignEmailConfigService extends GenericCrudService<CampaignEmail
   sendCampaignEmail(formData: any): Observable<any> {
       return this.http.post<any>(`${this.baseUrl}/bulk`, formData);
   }
+  
+
+  getEmailTemplate(id: number): Observable<any> {
+     return this.http.get<any>(`${this.baseUrl}/progress/${id}`);
+  }
+
 
  
   

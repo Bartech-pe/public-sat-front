@@ -22,10 +22,12 @@ export class ProgresoCampaniaComponent {
     }
 
     ngOnInit(): void {
+
+      console.log(this.config.data)
      
       if(this.config.data){
-            if(this.config.data.campaniaId){ 
-              this.vicidialService.getByIdProgreso(this.config.data.campaniaId).subscribe(data=>{
+            if(this.config.data.vdCampaignId){ 
+              this.vicidialService.getByIdProgreso(this.config.data.vdCampaignId).subscribe(data=>{
                   console.log(data)
                      this.progreso = data;
               })

@@ -177,7 +177,7 @@ completionEventReceived){
               icon="mdi:ticket-confirmation-outline"
               class="w-3 h-3 mr-1"
             ></iconify-icon>
-            <span>#{{ formatId(chatDetail?.assistanceId) || "N/A" }}</span>
+            <span>#{{ formatId(chatDetail?.attention.id) || "N/A" }}</span>
           </div>
         </div>
       </div>
@@ -347,7 +347,7 @@ completionEventReceived){
               icon="mdi:ticket-confirmation-outline"
               class="w-3 h-3 mr-1"
             ></iconify-icon>
-            <span>#{{ formatId(chatDetail?.assistanceId) || "N/A" }}</span>
+            <span>#{{ formatId(chatDetail?.attention.id) || "N/A" }}</span>
           </div>
         </div>
       </div>

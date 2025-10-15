@@ -157,9 +157,7 @@
 <p-dialog header="Mensajes Enviados" [(visible)]="visible" [modal]="true">
   <ng-template #header>
     <div class="inline-flex items-center justify-center gap-2">
-      <span class="font-bold whitespace-nowrap"
-        >Mensajes Enviados</span
-      >
+      <span class="font-bold whitespace-nowrap">Mensajes Enviados</span>
     </div>
   </ng-template>
   <div>
@@ -180,7 +178,11 @@
             </div>
           </th>
           <th class="w-150">
-            <div class="flex items-center justify-center text-xs uppercase gap-4">Mensaje</div>
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4"
+            >
+              Mensaje
+            </div>
           </th>
           <th class="w-30">
             <div
@@ -209,9 +211,15 @@
       </ng-template>
     </p-table>
   </div>
-  <ng-template #footer>
+  <!-- <ng-template #footer>
     <div>
       <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
     </div>
-  </ng-template>
+  </ng-template> -->
 </p-dialog>
+
+<style>
+  ::ng-deep .p-dialog-content {
+    padding-bottom: 0rem;
+  }
+</style>

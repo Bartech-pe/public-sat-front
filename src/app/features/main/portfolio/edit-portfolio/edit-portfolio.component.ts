@@ -65,18 +65,15 @@ export class EditPortfolioComponent implements OnInit {
   portfolioId: number = 0;
 
   filtroNombre: string = '';
-  tipoAsignacion: '1' | '2' | '3' = '1';
+  tipoAsignacion: '1' | '2' | null = null;
+
   tipoList: { value: string; label: string }[] = [
-    // {
-    //   value: '1',
-    //   label: 'Visualización',
-    // },
     {
-      value: '2',
+      value: '1',
       label: 'Asignación',
     },
     {
-      value: '3',
+      value: '2',
       label: 'Transferencia',
     },
   ];
@@ -93,6 +90,7 @@ export class EditPortfolioComponent implements OnInit {
   listSegmentos: any[] = [];
   listPerfil: any[] = [];
   listSectorista: any[] = [];
+  selectSectorista: string = '';
   constructor(
     public config: DynamicDialogConfig,
     private dialogService: DialogService,
@@ -124,50 +122,59 @@ export class EditPortfolioComponent implements OnInit {
     // Aquí puedes cargar la cartera con ese ID si es necesario
   }
 
+  toggleSeleccion(value: '1' | '2') {
+    this.tipoAsignacion = this.tipoAsignacion === value ? null : value;
+  }
+
   loadAll() {
-    this.portfolioDetailService.getByIdDetalle(this.portfolioId).subscribe((res) => {
-      console.log(res);
-      this.detalleCartera = res;
+    this.portfolioDetailService
+      .getByIdDetalle(this.portfolioId)
+      .subscribe((res) => {
+        console.log(res);
+        this.detalleCartera = res;
 
-      this.detalleCarteraFiltrado = [...res];
+        this.detalleCarteraFiltrado = [...res];
 
-      const uniqueSegmentos = [
-        ...new Set(res.map((item: any) => item.segmento)),
-      ];
-      this.listSegmentos = uniqueSegmentos.map((segmento) => ({
-        name: segmento,
-      }));
+        const uniqueSegmentos = [
+          ...new Set(res.map((item: any) => item.segment)),
+        ];
 
-      const uniquePerfilS = [...new Set(res.map((item: any) => item.perfil))];
-      this.listPerfil = uniquePerfilS.map((perfil) => ({
-        name: perfil,
-      }));
+        this.listSegmentos = uniqueSegmentos.map((segmento) => ({
+          name: segmento,
+        }));
 
-      const uniqueSectorista = [
-        ...new Set(res.map((item: any) => item.user.name)),
-      ];
-      this.listSectorista = uniqueSectorista.map((perfil) => ({
-        name: perfil,
-      }));
+        const uniquePerfilS = [
+          ...new Set(res.map((item: any) => item.profile)),
+        ];
+        this.listPerfil = uniquePerfilS.map((perfil) => ({
+          name: perfil,
+        }));
 
-      console.log(this.listSegmentos);
-    });
+        const uniqueSectorista = [
+          ...new Set(res.map((item: any) => item.user.name)),
+        ];
+        this.listSectorista = uniqueSectorista.map((perfil) => ({
+          name: perfil,
+        }));
+      });
   }
 
   filtrar() {
     const filtroNombre = this.filtroNombre?.toLowerCase() || '';
 
     this.detalleCarteraFiltrado = this.detalleCartera.filter((item) => {
+      const coincideSectorista =
+        !this.selectSectorista || item.user?.name === this.selectSectorista;
+
       const coincideSegmento =
-        !this.selectSegmento || item.segmento === this.selectSegmento;
+        !this.selectSegmento || item.segment === this.selectSegmento;
 
       const coincidePerfil =
-        !this.selectPerfil || item.perfil === this.selectPerfil;
+        !this.selectPerfil || item.profile === this.selectPerfil;
 
       const coincidePrecio =
         !this.rangoPrecio?.length ||
-        (item.deuda >= this.rangoPrecio[0] &&
-          item.deuda <= this.rangoPrecio[1]);
+        (item.debt >= this.rangoPrecio[0] && item.debt <= this.rangoPrecio[1]);
 
       const coincideFecha =
         !this.filtroRangoFecha ||
@@ -180,10 +187,11 @@ export class EditPortfolioComponent implements OnInit {
 
       const coincideNombre =
         !filtroNombre ||
-        item.contribuyente?.toLowerCase().includes(filtroNombre) ||
-        item.codigo?.toLowerCase().includes(filtroNombre);
+        item.taxpayerName?.toLowerCase().includes(filtroNombre) ||
+        item.code?.toLowerCase().includes(filtroNombre);
 
       return (
+        coincideSectorista &&
         coincideSegmento &&
         coincidePerfil &&
         coincidePrecio &&
@@ -199,7 +207,7 @@ export class EditPortfolioComponent implements OnInit {
   }
 
   limpiarFiltro() {
-    this.selectestados = '';
+    this.selectSectorista = '';
     this.selectSegmento = '';
     this.selectPerfil = '';
     this.rangoPrecio = [0, 1000000];
@@ -208,17 +216,13 @@ export class EditPortfolioComponent implements OnInit {
     this.detalleCarteraFiltrado = [...this.detalleCartera];
   }
 
-  selectTipoAsignacion() {
-    console.log('Seleccionaste:', this.tipoAsignacion);
-  }
-
   mostrarRegistro() {
     console.log(this.selectedRows);
     if (!this.selectedRows || this.selectedRows.length === 0) {
       this.msg.error('Debe seleccionar un caso como minimo.');
       return;
     }
-    if (this.tipoAsignacion == '2') {
+    if (this.tipoAsignacion == '1') {
       const ref = this.dialogService.open(AssignPortfolioComponent, {
         data: {
           portfolioId: this.portfolioId,
@@ -237,7 +241,7 @@ export class EditPortfolioComponent implements OnInit {
           this.loadAll();
         }
       });
-    } else if (this.tipoAsignacion == '3') {
+    } else if (this.tipoAsignacion == '2') {
       const ref = this.dialogService.open(TransferPortfolioComponent, {
         header:
           'Trasnferir a PRICOS ' +

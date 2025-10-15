@@ -62,7 +62,7 @@
                   Plantilla<p-sortIcon field="createdByUser.name" />
                 </div>
               </th>
-              <th pSortableColumn="dateStart">
+              <!-- <th pSortableColumn="dateStart">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
                 >
@@ -75,7 +75,7 @@
                 >
                   Formato #3 <p-sortIcon field="dateEnd" />
                 </div>
-              </th>
+              </th> -->
               <th>
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
@@ -123,14 +123,14 @@
                 <p class="text-sm font-light">{{ item.name }}</p>
               </td>
               <td>
-                <p class="text-sm font-light">{{ item.id }}</p>
+                <p class="text-sm font-light">{{ item.template?.name }}</p>
               </td>
               <td>
                 <p class="text-sm font-light">
                   {{ item.idRemitente }}
                 </p>
               </td>
-              <td class="w-70">
+              <!-- <td class="w-70">
                 <p class="text-sm font-light text-center">
                   {{ item.mensaje }}
                 </p>
@@ -139,7 +139,7 @@
                 <p class="text-sm font-light text-center">
                   {{ item.recuentoSMS }}
                 </p>
-              </td>
+              </td> -->
               <td>
                 <div class="flex justify-center items-center">
                  <p class="text-sm font-light text-center">
@@ -154,14 +154,17 @@
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-
-                     <p-tag [value]="item.campaignStatus == 1 ? ' Finalizado' : 'Activo'"/>
+               
+                     <p-tag
+                        [value]="getStatusLabel(item.campaignStatus)"
+                        [severity]="getStatusSeverity(item.campaignStatus)"
+                      ></p-tag>
                 </p>
               </td>
 
               <td class="w-28">
                <div class="flex justify-center items-center gap-1">
-                  <button-edit (click)="edit(item)" />
+                  <!-- <button-edit (click)="edit(item)" /> -->
                   <btn-delete (click)="remove(item)" />
                   <button-detail (click)="verResultados(item)" />
 
@@ -174,3 +177,92 @@
     </div>
   </div>
 </div>
+
+
+<p-dialog header="Mensajes Enviados" [(visible)]="visible" [modal]="true">
+  <ng-template #header>
+    <div class="inline-flex items-center justify-center gap-2">
+      <span class="font-bold whitespace-nowrap"
+        >Mensajes Enviados</span
+      >
+    </div>
+  </ng-template>
+  <div>
+    <p-table
+      [value]="listPreview"
+      [paginator]="true"
+      [rows]="10"
+      [responsiveLayout]="'scroll'"
+      sortMode="multiple"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="w-30">
+            <div class="flex items-center text-xs uppercase gap-4 text-center">
+             Correo Destino
+            </div>
+          </th>
+          <th class="w-150">
+            <div class="flex items-center justify-center text-xs uppercase gap-4">Asunto</div>
+          </th>
+          <th class="w-30">
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4 text-center"
+            >
+              Número de letras
+            </div>
+          </th>
+          <th></th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <p class="text-sm font-light text-center">{{ item.to }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light">{{ item.subject }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light text-center">
+              {{ item.message.length }}
+            </p>
+          </td>
+          <td>
+          <button
+            pButton
+            label="Ver mensaje"
+            icon="pi pi-eye"
+            class="p-button-text p-button-sm"
+            (click)="showTemplate(item)"
+          ></button>
+        </td>
+        <td>
+           <iconify-icon
+            icon="pepicons-pop:checkmark-filled"
+            class="text-green-500 text-xl"
+          ></iconify-icon>
+        </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <ng-template #footer>
+    <div>
+      <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Vista previa del mensaje"
+  [(visible)]="visibleTemplate"
+  [modal]="true"
+  [style]="{ width: '60vw' }"
+>
+  <div [innerHTML]="selectedMessage"></div>
+</p-dialog>
