@@ -1,38 +1,44 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
   <p-card class="text-center">
-    <div class="flex items-center justify-center gap-2 ">
-      <iconify-icon [icon]="'mdi:phone'" class="text-red-600" />
+    <div class="flex items-center justify-center gap-2">
+      <iconify-icon [icon]="'mdi:phone'" class="text-red-600 text-2xl" />
       <p class="text-xl font-bold">En LLamada</p>
     </div>
     <ng-template pTemplate="content">
-      <p class="text-xl font-bold">{{enLlamada()}}</p>
+      <p class="text-xl font-bold">{{ enLlamada() }}</p>
     </ng-template>
   </p-card>
   <p-card class="text-center">
-    <div class="flex items-center justify-center gap-2 ">
-      <iconify-icon [icon]="'mdi:account-check'" class="text-green-600" />
+    <div class="flex items-center justify-center gap-2">
+      <iconify-icon
+        [icon]="'mdi:account-check'"
+        class="text-green-600 text-2xl"
+      />
       <p class="text-xl font-bold">Disponible</p>
     </div>
     <ng-template pTemplate="content">
-      <p class="text-xl font-bold">{{disponible()}}</p>
+      <p class="text-xl font-bold">{{ disponible() }}</p>
     </ng-template>
   </p-card>
   <p-card class="text-center">
-    <div class="flex items-center justify-center gap-2 ">
-      <iconify-icon [icon]="'mdi:pause'" class="text-yellow-600" />
-      <p class="text-xl font-bold">En Pause</p>
+    <div class="flex items-center justify-center gap-2">
+      <iconify-icon [icon]="'mdi:pause'" class="text-yellow-600 text-2xl" />
+      <p class="text-xl font-bold">En Pausa</p>
     </div>
     <ng-template pTemplate="content">
-      <p class="text-xl font-bold">{{pausa()}}</p>
+      <p class="text-xl font-bold">{{ pausa() }}</p>
     </ng-template>
   </p-card>
   <p-card class="text-center">
-    <div class="flex items-center justify-center gap-2 ">
-      <iconify-icon [icon]="'mdi:account-cancel'" class="text-600" />
+    <div class="flex items-center justify-center gap-2">
+      <iconify-icon
+        [icon]="'heroicons-outline:status-offline'"
+        class="text-600 text-2xl"
+      />
       <p class="text-xl font-bold">Fuera de Línea</p>
     </div>
     <ng-template pTemplate="content">
-      <p class="text-xl font-bold">{{fueraLinea()}}</p>
+      <p class="text-xl font-bold">{{ fueraLinea() }}</p>
     </ng-template>
   </p-card>
 </div>
@@ -43,9 +49,21 @@
       <div class="flex items-center gap-x-4 mb-2">
         <iconify-icon [icon]="'mdi:bell'" class="text-xl" />
         <span class="whitespace-nowrap">Configuración de Alertas:</span>
-        <input type="number" pInputText placeholder="Tiempo en minutos" class="!rounded-full"  [(ngModel)]="minutes" min="1"/>
+        <input
+          type="number"
+          pInputText
+          placeholder="Tiempo en minutos"
+          class="!rounded-full"
+          [(ngModel)]="minutes"
+          min="1"
+        />
       </div>
-      <button class="w-auto rounded-full bg-[#375F95] border border-[#375F95] text-white font-semibold py-2 px-4 hover:bg-[#2c4c78] transition flex items-center gap-2" (click)="Alert()">Aplicar</button>
+      <button
+        class="w-auto rounded-full bg-[#375F95] border border-[#375F95] text-white font-semibold py-2 px-4 hover:bg-[#2c4c78] transition flex items-center gap-2"
+        (click)="Alert()"
+      >
+        Aplicar
+      </button>
       <p-toast></p-toast>
     </div>
     <div class="flex items-center gap-x-4 flex-wrap">
@@ -53,11 +71,11 @@
         <span class="whitespace-nowrap">Filtros:</span>
         <p-select
           placeholder="Selecciona un Estado"
-          [options]="estadoOptionns"
+          [options]="estadoOptions"
           optionLabel="name"
           [(ngModel)]="activeStateFilter"
-          optionValue="value"
-          Class="!rounded-full"
+          class="!rounded-full"
+          [showClear]="true"
         ></p-select>
       </div>
 
@@ -73,55 +91,127 @@
       </div>
 
       <div class="flex items-center gap-x-4 mb-2">
-        <p-checkbox [binary]="true" styleClass="!rounded-full" [(ngModel)]="activeAlert"></p-checkbox>
+        <p-checkbox
+          [binary]="true"
+          styleClass="!rounded-full"
+          [(ngModel)]="activeAlert"
+        ></p-checkbox>
         <label class="ml-2">Llamadas en Alerta</label>
       </div>
     </div>
   </div>
 </div>
 <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
-  <p-table [value]="items()" [paginator]="true" [rows]="limit()" [responsiveLayout]="'scroll'" sortMode="multiple"
-    [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}">
+  <p-table
+    [value]="filteredItems"
+    [responsiveLayout]="'scroll'"
+    sortMode="multiple"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="name">Asesor <p-sortIcon field="name" /></th>
-        <th pSortableColumn="description">Estado <p-sortIcon field="description" /></th>
-        <th pSortableColumn="date_created_user">Duración <p-sortIcon field="date_created_user" /></th>
-        <th pSortableColumn="star_date">Teléfono <p-sortIcon field="star_date" /></th>
-        <th pSortableColumn="end_date">Acciones <p-sortIcon field="end_date" /></th>
+        <th pSortableColumn="user.name">
+          Asesor <p-sortIcon field="user.name" />
+        </th>
+        <th pSortableColumn="phoneLogin">
+          <div class="flex items-center justify-center">
+            Extensión/teléfono <p-sortIcon field="phoneLogin" />
+          </div>
+        </th>
+        <th pSortableColumn="channelState.name">
+          <div class="flex items-center justify-center">
+            Estado <p-sortIcon field="channelState?.name" />
+          </div>
+        </th>
+        <th pSortableColumn="duration">
+          <div class="flex items-center justify-center">
+            Tiempo de estado <p-sortIcon field="duration" />
+          </div>
+        </th>
+        <th pSortableColumn="phoneNumber">
+          <div class="flex items-center justify-center">
+            Teléfono <p-sortIcon field="phoneNumber" />
+          </div>
+        </th>
+        <th pSortableColumn="lastCall.updatedAt">
+          <div class="flex items-center justify-center">
+            Última llamada <p-sortIcon field="lastCall.updatedAt" />
+          </div>
+        </th>
+        <!-- <th pSortableColumn="lastCall?.callsToday">
+          <div class="flex items-center justify-center">
+            Llamadas hoy <p-sortIcon field="lastCall?.callsToday" />
+          </div>
+        </th> -->
+        <th></th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-registro>
+    <ng-template pTemplate="body" let-item>
       <tr>
-        <td>{{ registro.advisorName }}</td>
         <td>
-          <div class="flex items-center gap-2">
-            <iconify-icon [icon]="registro.actualState.icon" [class]="registro.actualState.style" />
-            <label class="text-base">{{ registro.actualState.state }}</label>
+          <div class="text-sm">
+            {{ item.user?.name }}
           </div>
         </td>
-        @if (registro.actualState.state=='Fuera de Linea') {
-          <td>-</td>
-        }
-        @else {
-          <td>{{ formatDuration(registro.duration) }}</td>
-        }
-        @if (registro.personal) {
-          <td>{{ registro.phoneNumber }}</td>
-        }
-        @else {
-          <td>-</td>
-        }
+        <td>
+          <div class="text-sm text-center">
+            {{ item.phoneLogin }}
+          </div>
+        </td>
+        <td>
+          <div
+            [ngClass]="[
+              'flex justify-center items-center gap-2 text-sm text-center',
+              item.state.textColor
+            ]"
+          >
+            <iconify-icon [icon]="item.state.icon" class="text-2xl" />
+            <span>{{ item.state.label }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
+            {{ item.isOffline ? "-" : (item.updatedAt | timeElapsed) }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
+            {{ !item.inCall ? "-" : item.phoneNumber }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
+            {{
+              item.lastCall
+                ? (item.lastCall?.updatedAt | date : "hh:mm:ss .a")
+                : "--:--"
+            }}
+          </div>
+        </td>
+        <!-- <td>
+          <div class="flex items-center justify-center text-sm">
+            {{ item.lastCall?.callsToday ?? "0" }}
+          </div>
+        </td> -->
         <td class="w-28">
-         <button-split [options]="menuItems" [context]="registro" [disabled]="!registro.personal"></button-split>
+          <button-split
+            [options]="menuItems"
+            [context]="item"
+          ></button-split>
           @if (itemListen!=null) {
-            <app-escucha-vivo [(visible)]="showListen" [item]="itemListen"></app-escucha-vivo>
-          }
-          @if (itemInterrupt!=null) {
-            <app-intervenir-llamada [(visible)]="showInterupt" [item]="itemInterrupt"></app-intervenir-llamada>
-          }
-          @if (itemControl!=null) {
-            <app-control-grabacion [(visible)]="showControl" [item]="itemControl"></app-control-grabacion>
+          <app-escucha-vivo
+            [(visible)]="showListen"
+            [item]="itemListen"
+          ></app-escucha-vivo>
+          } @if (itemInterrupt!=null) {
+          <app-intervenir-llamada
+            [(visible)]="showInterupt"
+            [item]="itemInterrupt"
+          ></app-intervenir-llamada>
+          } @if (itemControl!=null) {
+          <app-control-grabacion
+            [(visible)]="showControl"
+            [item]="itemControl"
+          ></app-control-grabacion>
           }
         </td>
       </tr>

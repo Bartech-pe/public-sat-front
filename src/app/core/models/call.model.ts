@@ -1,17 +1,19 @@
+import { User } from './user.model';
+
 export interface ICallFilter {
   limit: number;
   offset: number;
   search?: string;
-  advisor?: string | null;  // Cambió de advisorId a advisor
-  startDate?: Date | null;  // Cambió de start_date a startDate
-  endDate?: Date | null;    // Cambió de end_date a endDate
-  stateId?: number;         // Si lo usas más adelante
+  advisor?: string | null; // Cambió de advisorId a advisor
+  startDate?: Date | null; // Cambió de start_date a startDate
+  endDate?: Date | null; // Cambió de end_date a endDate
+  stateId?: number; // Si lo usas más adelante
 }
 export interface ICallStates {
-    name:string;
-    icon:string;
-    total:number;
-    style:string;
+  name: string;
+  icon: string;
+  total: number;
+  style: string;
 }
 
 export interface CallItem {
@@ -28,10 +30,27 @@ export interface CallItem {
 }
 
 export interface ICallStateItem {
-   callStateId:number;
-   name:string;
+  callStateId: number;
+  name: string;
 }
 export interface IAdvisor {
-  id:number,
-  displayName:string;
+  id: number;
+  displayName: string;
+}
+
+export interface CallHistory {
+  id: number;
+  userId: number;
+  user?: User;
+  leadId: number;
+  callerId: string;
+  userCode: string;
+  phoneNumber: string;
+  channel: number;
+  entryDate: Date;
+  seconds: number;
+  callStatus: string;
+  callBasicInfo: string;
+  callsToday: number;
+  updatedAt: Date;
 }

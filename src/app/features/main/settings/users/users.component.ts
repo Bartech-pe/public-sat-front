@@ -27,6 +27,7 @@ import { UserInboxFormComponent } from './user-inbox-form/user-inbox-form.compon
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { VicidialUserComponent } from './user-vicidial/user-vicidial.component';
 import { CardModule } from 'primeng/card';
+import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
 
 @Component({
   selector: 'app-users',
@@ -43,6 +44,7 @@ import { CardModule } from 'primeng/card';
     ButtonSaveComponent,
     BtnCustomComponent,
     ButtonEditComponent,
+    TitleSatComponent,
     BtnDeleteComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -105,6 +107,11 @@ export class UsersComponent implements OnInit {
 
   loadData() {
     this.store.loadAll(this.limit(), this.offset());
+  }
+
+  getInitial(user: User) {
+    const words = user.displayName.split(' ');
+    return words[0][0] + (words[1] ? words[1][0] : '');
   }
 
   addNew() {

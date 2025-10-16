@@ -1,3 +1,5 @@
+import { CallHistory } from './call.model';
+import { ChannelState } from './channel-state.model';
 import { Inbox } from './inbox.model';
 import { Office } from './office.model';
 import { Role } from './role.model';
@@ -22,6 +24,7 @@ export interface User {
   skills: Skill[];
   inboxes: Inbox[];
   vicidial?: VicidialUser;
+  callHistory?: CallHistory[];
 }
 
 export interface UserSender {
@@ -45,4 +48,7 @@ export interface VicidialUser {
   phonePass: string;
   userLevel: number;
   userGroup: string;
+  user: User;
+  channelState?: ChannelState;
+  pauseCode?: string;
 }

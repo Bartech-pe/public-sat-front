@@ -8,7 +8,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
-import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
@@ -24,8 +23,6 @@ import { ProgresoCampaniaComponent } from './progreso-campania/progreso-campania
 import { CampaignStore } from '@stores/campaign.store';
 import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
 import { VicidialService } from '@services/vicidial.service';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { TagModule } from 'primeng/tag';
 import { ScheduleService } from '@services/schedule.service';
 import { CampaignService } from '@services/campaign.service';
@@ -62,7 +59,7 @@ export class ManageMampaignComponent {
 
   private readonly dialogService = inject(DialogService);
   private readonly vicidialService = inject(VicidialService);
-  readonly campaignStore = inject(CampaignStore);
+  private readonly campaignStore = inject(CampaignStore);
   private readonly scheduleService = inject(ScheduleService);
 
   readonly campaignService = inject(CampaignService);
@@ -225,39 +222,35 @@ export class ManageMampaignComponent {
   }
 
   verResultadosProgreso(registro: any) {
-
-      const modal_item = this.dialogService.open(ProgresoCampaniaComponent, {
-        data: registro,
-        header: 'Progreso de Campaña ' + registro.name,
-        styleClass: 'modal-lg',
-        modal: true,
-        dismissableMask: false,
-        closable: true,
-      });
-      modal_item.onClose.subscribe((res) => {
-        if (res) {
-          this.loadData();
-        }
-      });
-
+    const modal_item = this.dialogService.open(ProgresoCampaniaComponent, {
+      data: registro,
+      header: 'Progreso de Campaña ' + registro.name,
+      styleClass: 'modal-lg',
+      modal: true,
+      dismissableMask: false,
+      closable: true,
+    });
+    modal_item.onClose.subscribe((res) => {
+      if (res) {
+        this.loadData();
+      }
+    });
   }
 
   verResultados(registro: any) {
-
-      const modal_item = this.dialogService.open(AudioSettingsComponent, {
-        data: registro,
-        header: 'Configurar Campaña ' + registro.name,
-        styleClass: 'modal-8xl',
-        modal: true,
-        dismissableMask: false,
-        closable: true,
-      });
-      modal_item.onClose.subscribe((res) => {
-        if (res) {
-          this.loadData();
-        }
-      });
-
+    const modal_item = this.dialogService.open(AudioSettingsComponent, {
+      data: registro,
+      header: 'Configurar Campaña ' + registro.name,
+      styleClass: 'modal-8xl',
+      modal: true,
+      dismissableMask: false,
+      closable: true,
+    });
+    modal_item.onClose.subscribe((res) => {
+      if (res) {
+        this.loadData();
+      }
+    });
   }
 
   configurar(registro: any) {}

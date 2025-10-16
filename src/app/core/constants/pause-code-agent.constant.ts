@@ -4,6 +4,7 @@ export const pauseCodeAgent = [
   { code: 'TRAIN', name: 'Capacitación' },
   { code: 'TECH', name: 'Problema técnico' },
   { code: 'ADMIN', name: 'Tarea administrativa' },
+  { code: 'WRAP', name: 'Finalizando llamada' },
   { code: 'WRAPUP', name: 'Tiempo de post-llamada' },
 ];
 

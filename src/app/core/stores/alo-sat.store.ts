@@ -11,8 +11,10 @@ import {
   CitizenInfo,
   ExternalCitizenService,
 } from '@services/externalCitizen.service';
+import { VicidialUser } from '@models/user.model';
 
 export interface AloSat {
+  userStates: VicidialUser[];
   state: ChannelState | undefined;
   pauseCode: string | undefined;
   callInfo: any | undefined;
@@ -23,6 +25,7 @@ export interface AloSat {
 }
 
 const initialState: AloSat = {
+  userStates: [],
   state: undefined,
   pauseCode: undefined,
   callInfo: undefined,
@@ -41,6 +44,22 @@ export const AloSatStore = signalStore(
     const externalCitizenService = inject(ExternalCitizenService);
 
     return {
+      loadAllStates() {
+        service
+          .loadAllStates()
+          .pipe(
+            tap({
+              next: (res: VicidialUser[]) => {
+                patchState(store, { userStates: res });
+              },
+              error: (err) =>
+                patchState(store, {
+                  error: err?.error?.message,
+                }),
+            })
+          )
+          .subscribe();
+      },
       getState() {
         patchState(store, { state: undefined });
         service

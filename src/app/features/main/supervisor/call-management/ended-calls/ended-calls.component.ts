@@ -1,4 +1,10 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
@@ -8,14 +14,22 @@ import { Select } from 'primeng/select';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { CallService } from '@services/call.service';
-import { CallItem, IAdvisor, ICallFilter, ICallStateItem, ICallStates } from '@models/call.model';
+import {
+  CallHistory,
+  CallItem,
+  IAdvisor,
+  ICallFilter,
+  ICallStateItem,
+  ICallStates,
+} from '@models/call.model';
 import { CallStateService } from '@services/call-state.service';
 import { AmiService } from '@services/ami.service';
 import { CommonModule } from '@angular/common';
+import { DurationPipe } from '@pipes/duration.pipe';
 
 @Component({
-  selector: 'app-finalizadas',
-  templateUrl: './finalizadas.component.html',
+  selector: 'app-ended-calls',
+  templateUrl: './ended-calls.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     TableModule,
@@ -24,15 +38,19 @@ import { CommonModule } from '@angular/common';
     FormsModule,
     BreadcrumbModule,
     CommonModule,
-    Select,DatePickerModule,CardModule
+    Select,
+    DatePickerModule,
+    CardModule,
+    DurationPipe,
   ],
 })
-export class FinalizadasComponent implements OnInit {
-
-  constructor(private callService:CallService,private callStateService:CallStateService,
-    private amiService:AmiService
+export class EndedCallsComponent implements OnInit {
+  constructor(
+    private callService: CallService,
+    private callStateService: CallStateService,
+    private amiService: AmiService
   ) {
-     effect(() => {
+    effect(() => {
       const request: ICallFilter = {
         limit: this.limit(),
         offset: this.offset(),
@@ -40,17 +58,17 @@ export class FinalizadasComponent implements OnInit {
         advisor: this.activeAdvisorFilter() || undefined,
         startDate: this.activeStartDateFilter() || undefined,
         endDate: this.activeEndDateFilter() || undefined,
-        stateId: this.activeStateFilter( ) || undefined,
+        stateId: this.activeStateFilter() || undefined,
       };
-      this.getCalls(request)
-      this.getTotals(request)
+      this.getCalls(request);
+      this.getTotals(request);
     });
-   }
-  items =  signal<CallItem[]>([])
+  }
+  items = signal<CallHistory[]>([]);
   itemsTotal = signal<number>(0);
-  states =  signal<ICallStateItem[]>([])
-  advisors =  signal<IAdvisor[]>([])
-  total = signal<ICallStates[]>([])
+  states = signal<ICallStateItem[]>([]);
+  advisors = signal<IAdvisor[]>([]);
+  total = signal<ICallStates[]>([]);
   activeSearch = signal<string>('');
   limit = signal<number>(50);
   offset = signal<number>(0);
@@ -60,40 +78,44 @@ export class FinalizadasComponent implements OnInit {
   activeAdvisorFilter = signal<string | null>(null);
   activeDateFilter = signal<Date | null>(null);
 
-
-
   ngOnInit() {
-    this.getStates()
-    this.getAdvisors()
+    this.getStates();
+    this.getAdvisors();
   }
-  getTotals(request:ICallFilter){
-    this.callService.getStateStatus(request).subscribe((response)=>{
-        // this.total.set(response)
-        console.log(response)
-        this.total.set(response);
-    })
+
+  getTotals(request: ICallFilter) {
+    this.callService.getStateStatus(request).subscribe((response) => {
+      // this.total.set(response)
+      console.log(response);
+      this.total.set(response);
+    });
   }
-  getCalls(request:ICallFilter){
-    this.callService.getQuickResponses(request).subscribe((response)=>{
-      this.items.set(response.items)
-      this.itemsTotal.set(response.total)
-    })
+
+  getCalls(request: ICallFilter) {
+    this.callService.getQuickResponses(request).subscribe((res) => {
+      this.items.set(res.data);
+      // this.itemsTotal.set(res.total);
+    });
   }
-  getStates(){
-    this.callStateService.getCategories().subscribe((response)=>{
-      this.states.set(response)
-    })
+
+  getStates() {
+    this.callStateService.getCategories().subscribe((response) => {
+      this.states.set(response);
+    });
   }
-  getAdvisors(){
-     this.callService.getAdvisors().subscribe((response:any)=>{
-      response.push({"id":null, "displayName":"Todos"})
-      this.advisors.set(response)
-    })
+
+  getAdvisors() {
+    this.callService.getAdvisors().subscribe((response: any) => {
+      response.push({ id: null, displayName: 'Todos' });
+      this.advisors.set(response);
+    });
   }
+
   onPageChange(event: TablePageEvent): void {
-     const change = event.first * this.limit()
-     this.offset.set(change)
+    const change = event.first * this.limit();
+    this.offset.set(change);
   }
+
   download(url: string) {
     const a = document.createElement('a');
     a.href = url;
@@ -105,6 +127,4 @@ export class FinalizadasComponent implements OnInit {
     a.click();
     document.body.removeChild(a);
   }
-
-
 }

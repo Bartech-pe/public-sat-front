@@ -48,23 +48,15 @@ import { ChannelState } from '@models/channel-state.model';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ChannelManagementComponent implements OnInit {
-  private readonly globalService = inject(GlobalService);
-
   private readonly dialogService = inject(DialogService);
 
   private readonly msg = inject(MessageGlobalService);
 
   private readonly userStore = inject(UserStore);
 
-  // get listaAsesores(): User[] {
-  //   return this.userStore.items().map((item) => {
-  //     item.avatarUrl =
-  //       'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png';
-  //     return item;
-  //   });
-  // }
-
-  listaAsesores: User[] = [];
+  get listaAsesores(): User[] {
+    return this.userStore.items();
+  }
 
   listadoInteracciones = [
     {
@@ -146,18 +138,15 @@ export class ChannelManagementComponent implements OnInit {
     this.loadData();
   }
 
-  cargarAsesores() {
-    this.userStore.loadAll();
-    console.log('entroe');
-    setTimeout(() => {
-      this.listaAsesores = this.userStore.items().map((item) => ({
-        ...item,
-        avatarUrl:
-          'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png',
-      }));
-    }, 500);
+  getInitial(user: User) {
+    const words = user.displayName.split(' ');
+    return words[0][0] + (words[1] ? words[1][0] : '');
+  }
 
-    console.log(this.listaAsesores);
+  cargarAsesores() {
+    const query = { officeId: 1 };
+    this.userStore.loadAll(undefined, undefined, query);
+    console.log('entroe');
   }
 
   loadData() {

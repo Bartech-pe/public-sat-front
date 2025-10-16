@@ -164,7 +164,12 @@
                 <div class="grid grid-cols-1 gap-2">
                   <div class="grid grid-cols-1 gap-1">
                     <p>
-                      Tiempo transcurrido: <strong>{{ this.callTimer }}</strong>
+                      Tiempo transcurrido:
+                      <strong>{{
+                        isInCall
+                          ? (callInfo?.entryDate | timeElapsed)
+                          : (lastCallInfo?.seconds | duration)
+                      }}</strong>
                     </p>
                     <p>
                       Hora de inicio:
@@ -337,7 +342,7 @@
       <form
         *ngIf="isAloSat"
         [formGroup]="formData"
-        class="grid grid-cols-2 gap-4"
+        class="flex justify-center items-center gap-2"
       >
         <div class="w-full flex items-center gap-2">
           <label class="text-sm font-medium" for="idCampaign"> Campaña </label>
@@ -348,18 +353,32 @@
             optionLabel="campaign_name"
             formControlName="idCampaign"
             placeholder="Seleccione..."
-            styleClass="w-42 text-sm uppercase"
+            styleClass="w-42 text-sm"
             appendTo="body"
-          />
+          >
+            <ng-template #selectedItem let-selectedOption>
+              <div
+                class="flex items-center gap-2 uppercase"
+                *ngIf="selectedOption"
+              >
+                <div>{{ selectedOption.campaign_name }}</div>
+              </div>
+            </ng-template>
+            <ng-template let-option #item>
+              <div class="flex items-center gap-2 uppercase">
+                <div>{{ option.campaign_name }}</div>
+              </div>
+            </ng-template>
+          </p-select>
         </div>
         <div class="flex items-center gap-2">
-          <btn-custom
+          <!-- <btn-custom
             [text]="false"
             icon="lucide:refresh-ccw"
             severity="primary"
             tooltip="Recargar campañas"
             (click)="this.getCampaigns()"
-          />
+          /> -->
           <btn-custom
             [label]="'Conectar'"
             [text]="false"

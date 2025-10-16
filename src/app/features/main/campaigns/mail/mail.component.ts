@@ -122,6 +122,7 @@ export class MailComponent implements OnInit {
     this.selectedMessage = item.message;
     this.visibleTemplate = true;
   }
+
   remove(registro: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>

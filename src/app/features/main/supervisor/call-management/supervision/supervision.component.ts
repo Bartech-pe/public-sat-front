@@ -1,5 +1,12 @@
-import { filter } from 'rxjs';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit, signal } from '@angular/core';
+import { merge, tap } from 'rxjs';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
@@ -10,8 +17,7 @@ import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MenuModule } from 'primeng/menu';
-import { ActualCall, AMIFilter, SuperviseItem } from '@models/supervise';
-import { ButtonDetailComponent } from "@shared/buttons/button-detail/button-detail.component";
+import { ActualCall, AMIFilter } from '@models/supervise';
 import { ButtonSplitComponent } from '@shared/buttons/button-split/button-split.component';
 import { IButtonSplit } from '@interfaces/button.interface';
 import { EscuchaVivoComponent } from '../paneles-supervision/escucha-vivo/escucha-vivo.component';
@@ -21,157 +27,241 @@ import { AmiService } from '@services/ami.service';
 import { groupBy } from '@utils/array.util';
 import { AmiSocketService } from '@services/ami-socket.service';
 import { MessageService } from 'primeng/api';
+import { SocketService } from '@services/socket.service';
+import { AloSatStore } from '@stores/alo-sat.store';
+import { VicidialUser } from '@models/user.model';
+import {
+  ChannelPhoneState,
+  pauseCodeAgent,
+  VicidialPauseCode,
+} from '@constants/pause-code-agent.constant';
+import { ChannelState } from '@models/channel-state.model';
+import { CommonModule } from '@angular/common';
+import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
+
 @Component({
   selector: 'app-supervision',
   templateUrl: './supervision.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  standalone: true,
-   imports: [
+  imports: [
+    CommonModule,
     TableModule,
     InputTextModule,
     ButtonModule,
-    FormsModule, MenuModule,
-    BreadcrumbModule, CheckboxModule,
-    Select, DatePickerModule, CardModule,ControlGrabacionComponent,
-    ButtonSplitComponent,EscuchaVivoComponent,IntervenirLlamadaComponent
-],
+    FormsModule,
+    MenuModule,
+    BreadcrumbModule,
+    CheckboxModule,
+    Select,
+    DatePickerModule,
+    CardModule,
+    ControlGrabacionComponent,
+    ButtonSplitComponent,
+    EscuchaVivoComponent,
+    IntervenirLlamadaComponent,
+    TimeElapsedPipe,
+  ],
 })
 export class SupervisionComponent implements OnInit {
+  private readonly socketService = inject(SocketService);
+
+  private readonly aloSatStore = inject(AloSatStore);
+
+  userList: VicidialUser[] = [];
+
+  estadoOptions: ChannelState[] = [];
+
   constructor(
-    private AmiService:AmiService,
+    private AmiService: AmiService,
     private amiSocketService: AmiSocketService,
-    private messageService:MessageService 
-  ) {
-     effect(() => {
-      const request:AMIFilter ={
-        limit: this.limit(),
-        offset: this.offset(),
-        state: this.activeStateFilter() || undefined,
-        search: this.activeSearch(),
-        alert: this.activeAlert() ? true : undefined
-      }
-     this.getActiveCall(request)
-});
-   }
-  items =  signal<ActualCall[]>([
-  ])
-    activeStateFilter = signal<string | null>(null);
-    changeEventState(event:any){
-        console.log(event)
-        if(event.value!=''){
-          const itemsFilter = this.items().filter((item)=>item.actualState.state==event.value)
-           this.items.set(itemsFilter)
-        }
+    private messageService: MessageService
+  ) {}
+
+  private callInfoEffect = effect(() => {
+    const userStates = this.aloSatStore.userStates();
+    if (userStates) {
+      this.userList = userStates.map((item) => ({
+        ...item,
+        lastCall: item.user?.callHistory?.[0],
+        duration: item.user?.callHistory?.[0]?.seconds ?? 0,
+        phoneNumber: item.user?.callHistory?.[0]?.phoneNumber,
+        isOffline: item.channelState?.id === ChannelPhoneState.OFFLINE,
+        inCall: item.channelState?.id === ChannelPhoneState.INCALL,
+        state: this.getState(item.channelState, item.pauseCode),
+      }));
+
+      this.estadoOptions = this.userList
+        .map((item) => item.channelState)
+        .filter((item) => !!item);
+
+      this.getActiveCall();
     }
-  estadoOptionns = [
-    { name: 'Todas', value: undefined },
-    { name: 'En Llamada', value: 'En Llamada' },
-    { name: 'Disponible', value: 'Disponible' },
-    { name: 'En Pausa', value: 'En Pausa' },
-  ]
-  showListen=false
-  showInterupt=false
-  showControl=false
+  });
+
+  get filteredItems(): any[] {
+    return this.userList.filter((item) => {
+      const matchesState =
+        !this.activeStateFilter ||
+        this.activeStateFilter.id === item.channelState?.id;
+
+      const matchesSearch =
+        !this.activeSearch() ||
+        item.user.name
+          .toLowerCase()
+          .includes(this.activeSearch().toLowerCase());
+
+      return matchesState && matchesSearch;
+    });
+  }
+
+  getState(userState?: ChannelState, pauseCode?: string): any {
+    let icon = 'heroicons-outline:pause';
+    let label = userState?.name;
+    let textColor = 'text-slate-600';
+    switch (userState?.id) {
+      case ChannelPhoneState.PAUSED:
+        icon = 'heroicons-outline:pause';
+        label =
+          userState?.name +
+          (!!pauseCode
+            ? ` - ${this.getPauseCodeValue(pauseCode)}`
+            : ' - Inicial');
+        textColor = 'text-sky-600';
+        break;
+      case ChannelPhoneState.CLOSER:
+        icon = 'icon-park-outline:check-one';
+        label = userState?.name;
+        textColor = 'text-teal-600';
+        break;
+      case ChannelPhoneState.QUEUE:
+        icon = 'fluent:people-queue-20-regular';
+        label = userState?.name;
+        textColor = 'text-orange-600';
+        break;
+      case ChannelPhoneState.INCALL:
+        icon = 'line-md:phone-call-loop';
+        label = userState?.name;
+        textColor = 'text-green-600';
+        break;
+      case ChannelPhoneState.READY:
+        icon = 'heroicons-outline:check-circle';
+        label = userState?.name;
+        textColor = 'text-green-600';
+        break;
+      case ChannelPhoneState.OFFLINE:
+        icon = 'heroicons-outline:status-offline';
+        break;
+    }
+    return {
+      id: userState?.id,
+      icon,
+      label,
+      textColor,
+    };
+  }
+
+  getPauseCodeValue(code: string): string {
+    return pauseCodeAgent.find((p) => p.code === code)?.name!;
+  }
+
+  items = signal<ActualCall[]>([]);
+
+  activeStateFilter?: ChannelState;
+  activeSearch = signal<string>('');
+
+  showListen = false;
+  showInterupt = false;
+  showControl = false;
   timeoutRef: any;
   limit = signal<number>(50);
   offset = signal<number>(0);
   minutes = signal<number>(0);
-  itemListen !:ActualCall
-  itemInterrupt !:ActualCall
-  itemControl !:ActualCall
+  itemListen!: ActualCall;
+  itemInterrupt!: ActualCall;
+  itemControl!: ActualCall;
   enLlamada = signal<number>(0);
   disponible = signal<number>(0);
   fueraLinea = signal<number>(0);
   pausa = signal<number>(0);
-  activeSearch = signal<string>('');
+
   activeAlert = signal<boolean>(false);
 
-  menuItems:IButtonSplit[]=[
-     {
+  menuItems: IButtonSplit[] = [
+    {
       label: 'Escuchar en vivo',
       icon: 'mdi:headphones',
-      action: (item:ActualCall) => this.onLiveListen(item),
+      action: (item: ActualCall) => this.onLiveListen(item),
     },
     {
       label: 'Interrumpir llamada',
       icon: 'mdi:phone-cancel',
-      action: (item:ActualCall) => this.onInterruptCall(item),
+      action: (item: ActualCall) => this.onInterruptCall(item),
     },
-    {
-      label: 'Control de grabación',
-      icon: 'mdi:record-circle',
-      action: (item:ActualCall) => this.onControlRecording(item),
-    },
-  ]
+    // {
+    //   label: 'Control de grabación',
+    //   icon: 'mdi:record-circle',
+    //   action: (item: ActualCall) => this.onControlRecording(item),
+    // },
+  ];
+
   ngOnInit() {
-    this.amiSocketService.onNewChannelsDetected().subscribe((response:any) =>{
-    this.items.set(response)
-    const grouped = groupBy(this.items(), item => item.actualState.state);
-    this.disponible.set((grouped['Disponible']||[]).length)
-    this.enLlamada.set((grouped['En Llamada']||[]).length)
-    this.fueraLinea.set((grouped['Fuera de Linea']||[]).length)
-    this.pausa.set((grouped['En Pausa']||[]).length)
-    })
-
-    this.AmiService.getActiveChannelsAction().subscribe((response:any)=>{
-      const request:AMIFilter ={
-        limit: this.limit(),
-        offset: this.offset(),
-        state: this.activeStateFilter() || undefined,
-      }
-       this.getActiveCall(request)
-    })
-    setInterval(() => {
-    const items = this.items();
-    for (const item of items) {
-      const newDuration = item.duration + 1;
-      item.duration = newDuration;
-    }
-    this.items.set([...items]);
-    },1000)
+    this.aloSatStore.loadAllStates();
+    merge(
+      this.socketService.onUserPhoneStateRequest(),
+      this.socketService.onRequestPhoneCallSubject()
+    )
+      .pipe(tap((data) => console.log('Socket event', data)))
+      .subscribe(() => this.aloSatStore.loadAllStates());
   }
-  onLiveListen(item:ActualCall) {
-     this.showListen=true
-     this.itemListen=item
-   }
-  formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    const secondsU = remainingSeconds.toFixed(0)
-    return `${String(minutes).padStart(2, "0")}:${String(secondsU).padStart(2, "0")}`
-  }
-onInterruptCall(item:ActualCall) {
-  this.showInterupt=true
-  this.itemInterrupt=item
-}
-onControlRecording(item:ActualCall) {
-  this.showControl=true
-  this.itemControl=item
-}
-getActiveCall(query:AMIFilter){
-  this.AmiService.getActiveChannels(query).subscribe((response)=>{
-    this.items.set(response.items)
-    const grouped = groupBy(this.items(), item => item.actualState.state);
-    this.disponible.set((grouped['Disponible']||[]).length)
-    this.enLlamada.set((grouped['En Llamada']||[]).length)
-    this.fueraLinea.set((grouped['Fuera de Linea']||[]).length)
-    this.pausa.set((grouped['En Pausa']||[]).length)
 
-  })
-}
-Alert(){
-  if (!this.minutes || this.minutes() <= 0) {
-      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Ingrese minutos válidos' });
+  onLiveListen(item: any) {
+    this.showListen = true;
+    this.itemListen = item;
+  }
+
+  onInterruptCall(item: ActualCall) {
+    this.showInterupt = true;
+    this.itemInterrupt = item;
+  }
+
+  onControlRecording(item: ActualCall) {
+    this.showControl = true;
+    this.itemControl = item;
+  }
+
+  getActiveCall() {
+    const grouped = groupBy(this.userList, (item) => item.channelState?.id!);
+    this.disponible.set((grouped[ChannelPhoneState.READY] || []).length);
+    this.enLlamada.set((grouped[ChannelPhoneState.INCALL] || []).length);
+    this.fueraLinea.set((grouped[ChannelPhoneState.OFFLINE] || []).length);
+    this.pausa.set((grouped[ChannelPhoneState.PAUSED] || []).length);
+  }
+
+  Alert() {
+    if (!this.minutes || this.minutes() <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Ingrese minutos válidos',
+      });
       return;
     }
     if (this.timeoutRef) {
       clearTimeout(this.timeoutRef);
     }
     const ms = this.minutes() * 60 * 1000;
-    this.messageService.add({ severity: 'info', summary: 'Alerta programada', detail: `Se activará en ${this.minutes()} minutos` });
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Alerta programada',
+      detail: `Se activará en ${this.minutes()} minutos`,
+    });
 
     this.timeoutRef = setTimeout(() => {
-      this.messageService.add({ severity: 'success', summary: '¡Alerta!', detail: 'Se cumplió el tiempo programado' });
+      this.messageService.add({
+        severity: 'success',
+        summary: '¡Alerta!',
+        detail: 'Se cumplió el tiempo programado',
+      });
     }, ms);
-}
+  }
 }

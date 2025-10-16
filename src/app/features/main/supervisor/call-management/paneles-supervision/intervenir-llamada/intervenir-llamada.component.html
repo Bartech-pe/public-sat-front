@@ -1,28 +1,55 @@
-<p-dialog  [modal]="true" [header]="'Intervenir llamada- ' + item.advisorName" [(visible)]="visible" (onHide)="onClose()">
-      <div class="text-sm text-gray-500 italic mb-4">Selecciona una acción para intervenir la llamada</div>
-        <div class="flex items-center gap-x-4 mb-3">
-       <iconify-icon [icon]="'mdi:phone'" class="text-xl" />
-       <label for="title" class="whitespace-nowrap font-bold">LLamada Activa:</label>
-       <label>{{item.phoneNumber}}</label>
+<p-dialog
+  [modal]="true"
+  [header]="header"
+  [(visible)]="visible"
+  (onHide)="onClose()"
+  styleClass="modal-lg"
+>
+  <div class="">Asesor: {{ this.item.user?.name }}</div>
+  <div class="text-sm text-gray-500 italic mb-4">
+    Selecciona una acción para intervenir la llamada
   </div>
   <div class="flex items-center gap-x-4 mb-3">
-        <iconify-icon [icon]="'mdi:clock'" class="text-xl" />
-       <label for="title" class="whitespace-nowrap font-bold">Duración:</label>
-       <label>{{formatDuration(item.duration)}}</label>
+    <iconify-icon [icon]="'mdi:phone'" class="text-xl" />
+    <label for="title" class="whitespace-nowrap font-bold"
+      >LLamada Activa:</label
+    >
+    <label>{{ item.phoneNumber }}</label>
   </div>
-<label for="title" class="whitespace-nowrap font-bold">Seleccione una acción:</label>
-<button class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left" (click)="entercall()">
-  <div class="text-xl font-bold mb-1">Entrar en llamada</div>
-  <div class="text-sm italic text-gray-500">Te unirás a la conversación</div>
-</button>
-<br/>
-<button class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left" (click)="interferCall()">
+  <div class="flex items-center gap-x-4 mb-3">
+    <iconify-icon [icon]="'mdi:clock'" class="text-xl" />
+    <label for="title" class="whitespace-nowrap font-bold">Duración:</label>
+    <label>{{ item.duration | duration }}</label>
+  </div>
+
+  <div class="grid grid-cols-1 gap-2">
+    <label for="title" class="whitespace-nowrap font-bold"
+      >Seleccione una acción:</label
+    >
+    <!-- <button
+      class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left"
+      (click)="entercall()"
+    >
+      <div class="text-xl font-bold mb-1">Entrar en llamada</div>
+      <div class="text-sm italic text-gray-500">
+        Te unirás a la conversación
+      </div>
+    </button> -->
+    <button
+      class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left"
+      (click)="interferCall()"
+    >
       <div class="text-xl font-bold mb-1">Transferir a mí</div>
-      <div class="text-sm italic text-gray-500">La llamada se transferira a tu extensión</div>
-</button>
-<br/>
-<button  class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left" (click)="hangUp()">
+      <div class="text-sm italic text-gray-500">
+        La llamada se transferira a tu extensión
+      </div>
+    </button>
+    <button
+      class="w-full mt-0 shadow rounded-xl p-4 bg-white border border-black text-left"
+      (click)="hangUp()"
+    >
       <div class="text-xl font-bold mb-1">Finalizar llamada</div>
       <div class="text-sm italic text-gray-500">Terminara la llamada</div>
-</button>
+    </button>
+  </div>
 </p-dialog>

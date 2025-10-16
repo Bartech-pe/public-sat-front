@@ -1,16 +1,20 @@
 <div class="flex flex-col gap-[.5rem]">
-<p-tabs value="0">
-   <p-tablist>
-        <p-tab value="0">Supervisión en Vivo</p-tab>
-        <p-tab value="1">LLamadas Finalizadas</p-tab>
-  </p-tablist>
-  <p-tabpanels>
-    <p-tabpanel value="0">
-      <app-supervision></app-supervision>
-    </p-tabpanel>
-    <p-tabpanel value="1">
-      <app-finalizadas></app-finalizadas>
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
+  <p-tabs lazy [value]="viewValue()">
+    <p-tablist>
+      <p-tab [value]="'supervisor'" (click)="changeView('supervisor')"
+        >Supervisión en Vivo</p-tab
+      >
+      <p-tab [value]="'ended-calls'" (click)="changeView('ended-calls')"
+        >LLamadas Finalizadas</p-tab
+      >
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel [value]="'supervisor'">
+        <app-supervision *ngIf="viewValue() == 'supervisor'"></app-supervision>
+      </p-tabpanel>
+      <p-tabpanel [value]="'ended-calls'">
+        <app-ended-calls *ngIf="viewValue() == 'ended-calls'"></app-ended-calls>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 </div>

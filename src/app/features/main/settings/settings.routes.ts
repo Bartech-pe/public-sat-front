@@ -124,8 +124,8 @@ export const settingsRoutes: Routes = [
     path: 'channel-schedule',
     title: 'SAT | Asignación de Horarios',
     loadComponent: () =>
-      import(
-        '@features/main/settings/channel-schedule/channel-schedule.component'
-      ).then((c) => c.ChannelScheduleComponent),
+      import('@features/main/settings/holidays/holidays.component').then(
+        (c) => c.HolidaysComponent
+      ),
   },
 ];

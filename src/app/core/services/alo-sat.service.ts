@@ -9,6 +9,7 @@ import { Observable, tap } from 'rxjs';
 import { CallTimerService } from './call-timer.service';
 import { CitizenInfo, ExternalCitizenService } from './externalCitizen.service';
 import { ChannelState } from '@models/channel-state.model';
+import { VicidialUser } from '@models/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -129,6 +130,10 @@ export class AloSatService {
     );
   }
 
+  loadAllStates(): Observable<VicidialUser[]> {
+    return this.http.get<VicidialUser[]>(`${this.basePath}/all-agent-status`);
+  }
+
   getCallInfo(): Observable<any[]> {
     return this.http.get<any>(`${this.basePath}/call-info`);
   }
@@ -170,9 +175,18 @@ export class AloSatService {
     return this.http.get<any>(`${this.basePath}/agent-logout`);
   }
 
+  agentLogoutByUserId(userId: number) {
+    return this.http.get<any>(`${this.basePath}/agent-logout/${userId}`);
+  }
+
   endCall() {
     this._loadCitizens = false;
     return this.http.get<any>(`${this.basePath}/end-call`);
+  }
+
+  endCallByUserId(userId: number) {
+    this._loadCitizens = false;
+    return this.http.get<any>(`${this.basePath}/end-call/${userId}`);
   }
 
   pauseAgent(pauseCode: VicidialPauseCode | '') {
@@ -181,6 +195,10 @@ export class AloSatService {
 
   transferCall(userId: number) {
     return this.http.post<any>(`${this.basePath}/transfer-call`, { userId });
+  }
+
+  transferCallMe(userId: number) {
+    return this.http.post<any>(`${this.basePath}/transfer-call-me`, { userId });
   }
 
   parkCall(putOn: boolean) {

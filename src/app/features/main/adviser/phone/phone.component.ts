@@ -27,7 +27,7 @@ import {
   ExternalCitizenService,
 } from '@services/externalCitizen.service';
 import { AuthStore } from '@stores/auth.store';
-import { Subscription } from 'rxjs';
+import { filter, merge, Subscription, tap } from 'rxjs';
 import { CallTimerService } from '@services/call-timer.service';
 import { TextareaModule } from 'primeng/textarea';
 import { FieldsetModule } from 'primeng/fieldset';
@@ -39,7 +39,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TabsModule } from 'primeng/tabs';
-import { CitizenAssistanceStore } from '@stores/citizen-assistance.store';
 import { CitizenAssistanceService } from '@services/citizen-assistance.service';
 import { CitizenAssistance } from '@models/citizen-assistance.model';
 import { AloSatStore } from '@stores/alo-sat.store';
@@ -61,6 +60,8 @@ import { TypeIdeDoc } from '@models/type-ide-doc.model';
 import { ChannelAssistanceStore } from '@stores/channel-assistance.store';
 import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
+import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
+import { DurationPipe } from '@pipes/duration.pipe';
 
 @Component({
   selector: 'app-phone',
@@ -82,6 +83,8 @@ import { ChannelAssistanceService } from '@services/channel-assistance.service';
     ButtonModule,
     CardModule,
     TimeAgoPipe,
+    TimeElapsedPipe,
+    DurationPipe,
     ButtonSaveComponent,
     BtnCustomComponent,
   ],
@@ -101,7 +104,7 @@ export class PhoneComponent implements OnInit {
 
   private readonly aloSatService = inject(AloSatService);
 
-  private externalCitizenService = inject(ExternalCitizenService);
+  private readonly externalCitizenService = inject(ExternalCitizenService);
 
   private readonly authStore = inject(AuthStore);
 
@@ -260,11 +263,6 @@ export class PhoneComponent implements OnInit {
     return this.authStore.user()!;
   }
 
-  private callTimerService = inject(CallTimerService);
-
-  callTimer: string = '00:00:00';
-  private sub!: Subscription;
-
   tabSelected = 0;
 
   listtypeDeuda = [
@@ -331,24 +329,19 @@ export class PhoneComponent implements OnInit {
   private callInfoEffect = effect(() => {
     const callInfo = this.aloSatStore.callInfo();
     if (this.isInCall && callInfo) {
-      this.callTimerService.start(callInfo.entryDate);
       this.formDataAtencion
         .get('communicationId')
         ?.setValue(callInfo?.leadId as string);
-    } else {
-      this.callTimerService.reset(0);
     }
   });
 
   private lastCallInfoEffect = effect(() => {
     const lastCallInfo = this.aloSatStore.lastCallInfo();
     if (this.isInWrap) {
-      this.callTimerService.reset(lastCallInfo?.seconds);
       this.formDataAtencion
         .get('communicationId')
         ?.setValue(lastCallInfo?.leadId as string);
     } else {
-      this.callTimerService.reset(0);
     }
   });
 
@@ -402,34 +395,20 @@ export class PhoneComponent implements OnInit {
       this.aloSatStore.getState();
       this.aloSatService.getCallInfo();
       this.getCampaigns();
-      this.sub = this.callTimerService.time$.subscribe((time) => {
-        this.callTimer = time;
-      });
     }
 
-    this.socketService.onUserPhoneStateRequest().subscribe({
-      next: (data: { userId: number }) => {
-        console.log('onUserPhoneStateRequest', data);
-        if (data.userId === this.user.id) {
-          this.aloSatStore.getState();
-        }
-      },
-    });
-
-    this.socketService.onRequestPhoneCallSubject().subscribe({
-      next: (data: { userId: number }) => {
-        console.log('onRequestPhoneCallSubject', data);
-        if (data.userId === this.user.id) {
-          this.aloSatStore.getState();
-        }
-      },
-    });
+    merge(
+      this.socketService.onUserPhoneStateRequest(),
+      this.socketService.onRequestPhoneCallSubject()
+    )
+      .pipe(
+        filter((data) => data.userId === this.user.id),
+        tap((data) => console.log('Socket event', data))
+      )
+      .subscribe(() => this.aloSatStore.getState());
   }
 
-  ngOnDestroy(): void {
-    this.aloSatService.stopKeepalive();
-    this.sub?.unsubscribe();
-  }
+  ngOnDestroy(): void {}
 
   resetForm() {
     this.formDataAtencion.reset({

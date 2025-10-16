@@ -30,6 +30,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CitizenAssistance } from '@models/citizen-assistance.model';
 import { CitizenAssistanceService } from '@services/citizen-assistance.service';
 import { map } from 'rxjs';
+import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
 
 interface Atenciones {
   id?: string;
@@ -63,6 +64,7 @@ interface Atenciones {
     InputIconModule,
     IconFieldModule,
     RouterModule,
+    TitleSatComponent,
   ],
   templateUrl: './dashboard-adviser.component.html',
   styles: ``,

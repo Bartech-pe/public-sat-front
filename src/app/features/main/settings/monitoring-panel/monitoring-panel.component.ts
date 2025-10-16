@@ -1,16 +1,31 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import {
+  ChannelPhoneState,
+  pauseCodeAgent,
+} from '@constants/pause-code-agent.constant';
 import { AttentionDetail } from '@models/attention-detail.model';
 import { ChannelCount } from '@models/channel-count.model';
+import { ChannelState } from '@models/channel-state.model';
 import { ChatAdvisor } from '@models/chat-advisor.model';
 import { ChatWspAdvisor } from '@models/chat-wsp-advisor.model';
 import { MailCount } from '@models/count-mail';
 import { MailAdvisor } from '@models/mail-advisor.model';
 import { StateDetailsByAdvisor } from '@models/state-detail-by-advisor.model';
+import { User, VicidialUser } from '@models/user.model';
 import { VicidialCount } from '@models/vicidial-count-box.model';
 import { VicidialReport } from '@models/vicidial-report.model';
+import { DurationPipe } from '@pipes/duration.pipe';
+import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { MonitorService } from '@services/monitor.service';
+import { SocketService } from '@services/socket.service';
+import { AloSatStore } from '@stores/alo-sat.store';
 import { AccordionModule } from 'primeng/accordion';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
@@ -24,7 +39,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-
+import { merge, tap } from 'rxjs';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { AloSatService } from '@services/alo-sat.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { groupBy } from '@utils/array.util';
 
 @Component({
   selector: 'app-monitoring-panel',
@@ -46,23 +65,33 @@ import { TagModule } from 'primeng/tag';
     BadgeModule,
     DialogModule,
     TableModule,
+    TimeElapsedPipe,
+    DurationPipe,
+    BtnCustomComponent,
   ],
   templateUrl: './monitoring-panel.component.html',
   styles: ``,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MonitoringPanelComponent {
-
   private readonly dialogService = inject(DialogService);
 
+  private readonly msg = inject(MessageGlobalService);
+
   private readonly monitorService = inject(MonitorService);
+
+  private readonly socketService = inject(SocketService);
+
+  private readonly aloSatStore = inject(AloSatStore);
+
+  private readonly aloSatService = inject(AloSatService);
 
   value: number = 0;
   tablaActiva: 'estados' | 'atenciones' | null = null;
   popupAbierto: number | null = null;
   detalleAbierto = false;
 
-  // Contadores 
+  // Contadores
   viciCount: VicidialCount | null = null;
   chatCount: ChannelCount | null = null;
   wspCount: ChannelCount | null = null;
@@ -74,12 +103,12 @@ export class MonitoringPanelComponent {
   loadingWspCount = false;
   loadingMailCount = false;
 
-  // Tablas de Asesores 
+  // Tablas de Asesores
   mailAdvisors: MailAdvisor[] = [];
   chatAdvisors: ChatAdvisor[] = [];
   wspAdvisors: ChatWspAdvisor[] = [];
 
-   // Estados por asesor 
+  // Estados por asesor
   stateDetails: StateDetailsByAdvisor | null = null;
   loadingStateDetails = false;
 
@@ -87,7 +116,7 @@ export class MonitoringPanelComponent {
   attentionDetail: AttentionDetail | null = null;
   loadingAttentionDetail = false;
 
-  // Reporte Vicidial (Tabla) 
+  // Reporte Vicidial (Tabla)
   vicidialReport: VicidialReport[] = [];
 
   ngOnInit() {
@@ -106,23 +135,129 @@ export class MonitoringPanelComponent {
 
     this.monitorService.getMonitorVicidialCount().subscribe({
       next: (res) => (this.vicidialCount = res),
-      error: (err) => console.error('Error al obtener conteo Vicidial:', err.message),
+      error: (err) =>
+        console.error('Error al obtener conteo Vicidial:', err.message),
     });
   }
 
   /** VICIDIAL DASHBOARD */
   loadVicidialDashboard(): void {
-    this.loadingVicidialDashboard = true;
-    this.monitorService.getMonitorVicidialCountDashBoard().subscribe({
-      next: (res) => {
-        this.viciCount = res;
-        this.loadingVicidialDashboard = false;
-      },
-      error: (err) => {
-        console.error('Error al cargar conteo Vicidial Dashboard:', err);
-        this.loadingVicidialDashboard = false;
-      },
-    });
+    // this.monitorService.getMonitorVicidialCountDashBoard().subscribe({
+    //   next: (res) => {
+    //     this.viciCount = res;
+    //     this.loadingVicidialDashboard = false;
+    //   },
+    //   error: (err) => {
+    //     console.error('Error al cargar conteo Vicidial Dashboard:', err);
+    //     this.loadingVicidialDashboard = false;
+    //   },
+    // });
+    this.aloSatStore.loadAllStates();
+    merge(
+      this.socketService.onUserPhoneStateRequest(),
+      this.socketService.onRequestPhoneCallSubject()
+    )
+      .pipe(tap((data) => console.log('Socket event', data)))
+      .subscribe(() => {
+        this.loadingVicidialDashboard = true;
+        this.aloSatStore.loadAllStates();
+      });
+  }
+
+  userList: VicidialUser[] = [];
+
+  private callInfoEffect = effect(() => {
+    const userStates = this.aloSatStore.userStates();
+    if (userStates) {
+      this.loadingVicidialDashboard = false;
+      this.userList = userStates.map((item) => ({
+        ...item,
+        lastCall: item.user?.callHistory?.[0],
+        duration: item.user?.callHistory?.[0]?.seconds ?? 0,
+        tiempoTotalLlamadas: (item.user?.callHistory ?? []).reduce(
+          (acc, debt) => acc + debt.seconds,
+          0
+        ),
+        phoneNumber: item.user?.callHistory?.[0]?.phoneNumber,
+        isOffline: item.channelState?.id === ChannelPhoneState.OFFLINE,
+        inCall: item.channelState?.id === ChannelPhoneState.INCALL,
+        state: this.getState(item.channelState, item.pauseCode),
+      }));
+
+      const grouped = groupBy(this.userList, (item) => item.channelState?.id!);
+      this.viciCount = {
+        agentesLogueados: this.userList.filter(
+          (item) => item.channelState?.id !== ChannelPhoneState.OFFLINE
+        ).length,
+        agentesDisponibles: this.userList.filter(
+          (item) => item.channelState?.id !== ChannelPhoneState.READY
+        ).length,
+        agentesEnAtencion: this.userList.filter(
+          (item) => item.channelState?.id !== ChannelPhoneState.INCALL
+        ).length,
+        agentesPausados: this.userList.filter(
+          (item) => item.channelState?.id !== ChannelPhoneState.PAUSED
+        ).length,
+        llamadasActivas: this.userList.filter(
+          (item) => item.channelState?.id !== ChannelPhoneState.INCALL
+        ).length,
+        llamadasAtendidas: 0,
+        llamadasPerdidas: 0,
+        llamadasEnCola: 0,
+        llamadasEnIvr: 0,
+        llamadasTotales: 0,
+      };
+    }
+  });
+
+  getState(userState?: ChannelState, pauseCode?: string): any {
+    let icon = 'heroicons-outline:pause';
+    let label = userState?.name;
+    let textColor = 'text-slate-600';
+    switch (userState?.id) {
+      case ChannelPhoneState.PAUSED:
+        icon = 'heroicons-outline:pause';
+        label =
+          userState?.name +
+          (!!pauseCode
+            ? ` - ${this.getPauseCodeValue(pauseCode)}`
+            : ' - Inicial');
+        textColor = 'text-sky-600';
+        break;
+      case ChannelPhoneState.CLOSER:
+        icon = 'icon-park-outline:check-one';
+        label = userState?.name;
+        textColor = 'text-teal-600';
+        break;
+      case ChannelPhoneState.QUEUE:
+        icon = 'fluent:people-queue-20-regular';
+        label = userState?.name;
+        textColor = 'text-orange-600';
+        break;
+      case ChannelPhoneState.INCALL:
+        icon = 'line-md:phone-call-loop';
+        label = userState?.name;
+        textColor = 'text-green-600';
+        break;
+      case ChannelPhoneState.READY:
+        icon = 'heroicons-outline:check-circle';
+        label = userState?.name;
+        textColor = 'text-green-600';
+        break;
+      case ChannelPhoneState.OFFLINE:
+        icon = 'heroicons-outline:status-offline';
+        break;
+    }
+    return {
+      id: userState?.id,
+      icon,
+      label,
+      textColor,
+    };
+  }
+
+  getPauseCodeValue(code: string): string {
+    return pauseCodeAgent.find((p) => p.code === code)?.name!;
   }
 
   /** CHATS / WSP / MAIL*/
@@ -186,16 +321,18 @@ export class MonitoringPanelComponent {
   loadStateDetails(agentId: number, start: string, finish: string): void {
     this.loadingStateDetails = true;
 
-    this.monitorService.getStateDetailsByAdvisor(agentId, start, finish).subscribe({
-      next: (data) => {
-        this.stateDetails = data[0];
-        this.loadingStateDetails = false;
-      },
-      error: (err) => {
-        console.error('Error al cargar detalles de estados', err);
-        this.loadingStateDetails = false;
-      },
-    });
+    this.monitorService
+      .getStateDetailsByAdvisor(agentId, start, finish)
+      .subscribe({
+        next: (data) => {
+          this.stateDetails = data[0];
+          this.loadingStateDetails = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar detalles de estados', err);
+          this.loadingStateDetails = false;
+        },
+      });
   }
 
   /**  DETALLE DE ATENCIÓN  */
@@ -225,7 +362,11 @@ export class MonitoringPanelComponent {
   /** Alterna el popup (abre/cierra según el índice y tipo) */
   togglePopup(index: number, tipo: 'atenciones' | 'estados', userId: number) {
     // Si el mismo popup ya está abierto, se cierra
-    if (this.popupActivo && this.popupActivo.index === index && this.popupActivo.tipo === tipo) {
+    if (
+      this.popupActivo &&
+      this.popupActivo.index === index &&
+      this.popupActivo.tipo === tipo
+    ) {
       this.popupActivo = null;
       return;
     }
@@ -248,7 +389,7 @@ export class MonitoringPanelComponent {
 
   /** Abrir tabla de Atenciones */
   verAtenciones(userId: number): void {
-    this.tablaActiva = 'atenciones'; 
+    this.tablaActiva = 'atenciones';
     this.attentionDetail = null;
     this.loadingAttentionDetail = true;
 
@@ -288,13 +429,6 @@ export class MonitoringPanelComponent {
   cerrarModal(): void {
     this.tablaActiva = null;
   }
-
-
-
-
-
- 
-
 
   /**
    * Devuelve el color según tipo de estado y tiempo.
@@ -363,5 +497,19 @@ export class MonitoringPanelComponent {
     }
   }
 
-
+  logoutUser(item: User) {
+    this.msg.confirm(
+      `<div class='px-4 py-2'>
+          <p class='text-center'> ¿Está seguro de cerrar la sesión de <span class='uppercase font-bold'>${item.name}</span>? </p>
+          <p class='text-center'> Esta acción no se puede deshacer. </p>
+        </div>`,
+      () => {
+        this.aloSatService.agentLogoutByUserId(item.id).subscribe({
+          next: (data) => {
+            this.msg.success(`Se cerró la sesión de ${item.name}`);
+          },
+        });
+      }
+    );
+  }
 }

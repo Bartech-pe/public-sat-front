@@ -1,36 +1,62 @@
-<p-dialog  [modal]="true" [header]="'Escuchar en Vivo - ' + item.advisorName" [(visible)]="visible" (onHide)="onClose()">
-    <div class="text-sm text-gray-500 italic mb-4">Supervisa la llamda activa de {{item.advisorName}} </div>
+<p-dialog
+  [modal]="true"
+  [header]="header"
+  [(visible)]="visible"
+  (onHide)="onClose()"
+  styleClass="modal-lg"
+>
+  <div class="">Asesor: {{ this.item.user?.name }}</div>
+  <div class="text-sm text-gray-500 italic mb-4">
+    Supervisa la llamada activa
+  </div>
 
   <div class="flex items-center gap-x-4 mb-3">
-       <iconify-icon [icon]="'mdi:phone'" class="text-xl" />
-       <label for="title" class="whitespace-nowrap font-bold">LLamada Activa:</label>
-       <label>{{item.phoneNumber}}</label>
+    <iconify-icon [icon]="'mdi:phone'" class="text-xl" />
+    <label for="title" class="whitespace-nowrap font-bold"
+      >LLamada Activa:</label
+    >
+    <label>{{ item.phoneNumber }}</label>
   </div>
   <div class="flex items-center gap-x-4 mb-3">
-        <iconify-icon [icon]="'mdi:clock'" class="text-xl" />
-       <label for="title" class="whitespace-nowrap font-bold">Duración:</label>
-       <label>{{formatDuration(item.duration)}}</label>
+    <iconify-icon [icon]="'mdi:clock'" class="text-xl" />
+    <label for="title" class="whitespace-nowrap font-bold">Duración:</label>
+    <label>{{
+      item.inCall
+        ? (item.lastCall.entryDate | timeElapsed)
+        : (item.duration | duration)
+    }}</label>
   </div>
   <div class="flex items-center gap-x-4 mb-3">
-       <div class="w-5 flex justify-center">
-    <span class="h-3 w-3 rounded-full bg-red-500 inline-block mt-1"></span>
-  </div>
-       <label for="title" class="whitespace-nowrap font-bold">Estado:</label>
-       <label>{{item.actualState.state}}</label>
-  </div>
-   <div class="flex items-center gap-x-4 mb-3">
-       <label for="title" class="whitespace-nowrap font-bold">Volumen:</label>
-       <p-slider class="w-56" [(ngModel)]="volume"/>
-       <label>%</label>
-  </div>
-  <label class="text-sm text-gray-600 italic block mt-4">{{escucha}}</label>
-   <div class="flex justify-end gap-2 mt-4">
-     <button pButton type="submit" label="Escuchar" severity="info" (click)="listen()">
-         <iconify-icon [icon]="'mdi:play'" class="text-xl" />
-      </button>
-      <button pButton type="submit" label="Dejar de escuchar" severity="danger" (click)="pause()">
-         <iconify-icon [icon]="'mdi:stop'" class="text-xl" />
-      </button>
+    <div class="w-5 flex justify-center">
+      <span class="h-3 w-3 rounded-full bg-red-500 inline-block mt-1"></span>
     </div>
+    <label for="title" class="whitespace-nowrap font-bold">Estado:</label>
+    <label>{{ item.inCall ? "En llamada" : "Llamada finalizada" }}</label>
+  </div>
+  <div class="flex items-center gap-x-4 mb-3">
+    <label for="title" class="whitespace-nowrap font-bold">Volumen:</label>
+    <p-slider class="w-56" [(ngModel)]="volume" />
+    <label>{{ volume() }}%</label>
+  </div>
+  <label class="text-sm text-gray-600 italic block mt-4">{{ escucha }}</label>
+  <div class="flex justify-end gap-2 mt-4">
+    <button
+      pButton
+      type="submit"
+      label="Escuchar"
+      severity="info"
+      (click)="listen()"
+    >
+      <iconify-icon [icon]="'mdi:play'" class="text-xl" />
+    </button>
+    <button
+      pButton
+      type="submit"
+      label="Dejar de escuchar"
+      severity="danger"
+      (click)="pause()"
+    >
+      <iconify-icon [icon]="'mdi:stop'" class="text-xl" />
+    </button>
+  </div>
 </p-dialog>
-
