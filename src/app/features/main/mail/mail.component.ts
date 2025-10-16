@@ -244,7 +244,7 @@ export class MailComponent implements OnInit {
 
   menuOpen = false;
   selectMenuOpen = false;
-  allSelected = true;
+  allSelected: boolean = false;
 
   showLoginMessage = false;
 
@@ -1006,7 +1006,6 @@ export class MailComponent implements OnInit {
 
   /** Seleccionar/deseleccionar todos */
   selectAll() {
-    this.allSelected = !this.allSelected;
     this.mails.update((mails) =>
       mails.map((m) => ({ ...m, selected: this.allSelected }))
     );

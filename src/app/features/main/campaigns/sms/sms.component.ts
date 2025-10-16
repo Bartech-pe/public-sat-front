@@ -14,19 +14,15 @@ import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormSmsComponent } from './form-sms/form-sms.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
-import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { TagModule } from 'primeng/tag';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { SmsCampaningStore } from '@stores/sms-campaing.store';
-import { ButtonDownloadComponent } from '@shared/buttons/button-download/button-download.component';
 import { ButtonCountComponent } from '@shared/buttons/button-count/button-count.component';
 import { MessagePreview } from '@models/sms-campaing';
 import { parse } from 'path';
 import { SmsCampaingService } from '@services/sms-campania.service';
 import { Dialog } from 'primeng/dialog';
-import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
-import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
 
 @Component({
@@ -42,9 +38,8 @@ import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-
     TagModule,
     ButtonCountComponent,
     PopoverModule,
-    ButtonCancelComponent,
     Dialog,
-    ButtonProgressComponent
+    ButtonProgressComponent,
   ],
   templateUrl: './sms.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

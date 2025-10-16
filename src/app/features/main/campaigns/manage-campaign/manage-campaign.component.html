@@ -100,9 +100,7 @@
               <th>
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
-                >
-                  Acciones
-                </div>
+                ></div>
               </th>
             </tr>
           </ng-template>
@@ -112,20 +110,24 @@
               <td>
                 <p class="text-sm font-light">{{ registro.name }}</p>
               </td>
-             <td class="flex items-center gap-2">
+              <td class="flex items-center gap-2">
                 <p class="text-sm font-light">
-                  {{ registro.campaignType?.id === 3
-                      ? registro.campaignType?.name + ' ID VICIDIAL: ' + registro.vdCampaignId
-                      : registro.campaignType?.name }}
+                  {{
+                    registro.campaignType?.id === 3
+                      ? registro.campaignType?.name +
+                        " ID VICIDIAL: " +
+                        registro.vdCampaignId
+                      : registro.campaignType?.name
+                  }}
                 </p>
 
-                  <button
-                    *ngIf="registro.campaignType?.id === 3"
-                    (click)="copiarCampaniaId(registro)"
-                    class="text-xs text-black-500 hover:underline"
-                  >
-                     {{ registro.copiado ? 'Copiado' : 'Copiar' }}
-                  </button>
+                <button
+                  *ngIf="registro.campaignType?.id === 3"
+                  (click)="copiarCampaniaId(registro)"
+                  class="text-xs text-black-500 hover:underline"
+                >
+                  {{ registro.copiado ? "Copiado" : "Copiar" }}
+                </button>
               </td>
               <td>
                 <p class="text-sm font-light">
@@ -148,7 +150,7 @@
                     class="estado-tag"
                     [ngStyle]="{
                       'background-color': registro.campaignState?.color,
-                       color: getContraste(registro.campaignState?.color)
+                      color: getContraste(registro.campaignState?.color)
                     }"
                   >
                     {{ registro.campaignState?.name }}
@@ -156,15 +158,17 @@
                 </div>
               </td>
               <td>
-                <p class="text-sm font-light">{{ registro.createdByUser?.name }}</p>
+                <p class="text-sm font-light">
+                  {{ registro.createdByUser?.name }}
+                </p>
               </td>
               <td class="w-28">
                 <div class="flex justify-center items-center gap-1">
-                  <button-edit (click)="edit(registro)" />
-                  <btn-delete (click)="remove(registro)" />
+                  <!-- <button-edit (click)="edit(registro)" /> -->
                   <button-detail (click)="verResultados(registro)" />
                   <!-- <button-statu  (click)="verResultados(registro)"/> -->
                   <button-progress (click)="verResultadosProgreso(registro)" />
+                  <btn-delete (click)="remove(registro)" />
                 </div>
               </td>
             </tr>

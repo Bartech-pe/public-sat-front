@@ -1,15 +1,123 @@
-<div *ngFor="let msg of messages" class="mb-2 group relative">
-  <!-- Contenedor de alineación -->
+<div *ngFor="let msg of messages" class="mb-3 group relative">
+  <!-- Contenedor de alineación general -->
   <div
-    class="flex items-start"
+    class="flex w-full"
     [ngClass]="{
-      'justify-start': !msg.isSender,
-      'justify-end': msg.isSender
+      'justify-end': msg.isSender,
+      'justify-start': !msg.isSender
     }"
   >
-    <!-- Botón ⋮ -->
-    <div *ngIf="msg.isSender" class="flex relative">
+    <!-- Contenedor interno -->
+    <div
+      class="flex flex-col max-w-[70%]"
+      [ngClass]="{
+        'items-end text-right': msg.isSender,
+        'items-start text-left': !msg.isSender
+      }"
+    >
+      <!-- 🧾 Nombre -->
+      <div
+        *ngIf="msg.sender"
+        class="text-xs font-medium mb-1"
+        [ngClass]="{
+          'text-gray-500': !msg.isSender,
+          'text-gray-300': msg.isSender
+        }"
+      >
+        {{ msg.isSender ? 'Tú' : (msg.sender?.displayName || msg.sender?.name || 'Usuario') }}
+      </div>
+
+      <!-- Burbuja del mensaje -->
+      <div
+        class="rounded-2xl px-4 py-2 shadow-md break-words"
+        [ngClass]="{
+          'bg-blue-500 text-white rounded-br-none': msg.isSender,
+          'bg-gray-100 text-gray-800 rounded-bl-none': !msg.isSender
+        }"
+      >
+        <ng-container [ngSwitch]="msg.type">
+          <!-- Texto -->
+          <div *ngSwitchCase="'text'" class="whitespace-pre-wrap">
+            {{ msg.content }}
+          </div>
+
+          <!-- Imagen -->
+          <div *ngSwitchCase="'image'" class="flex flex-col">
+            <img
+              [src]="apiUrlImage + msg.resourceUrl"
+              alt="Imagen"
+              class="rounded-xl max-w-full max-h-60 mb-1 border border-gray-300"
+            />
+            <div
+              *ngIf="msg.content"
+              class="text-xs"
+              [ngClass]="{
+                'text-gray-700': !msg.isSender,
+                'text-gray-100': msg.isSender
+              }"
+            >
+              {{ msg.content }}
+            </div>
+          </div>
+
+          <!-- Video -->
+          <div *ngSwitchCase="'video'" class="flex flex-col">
+            <video
+              controls
+              class="rounded-xl max-w-full max-h-60 border border-gray-300 mb-1"
+            >
+              <source [src]="msg.resourceUrl" type="video/mp4" />
+              Tu navegador no soporta video.
+            </video>
+            <div
+              *ngIf="msg.content"
+              class="text-xs"
+              [ngClass]="{
+                'text-gray-700': !msg.isSender,
+                'text-gray-100': msg.isSender
+              }"
+            >
+              {{ msg.content }}
+            </div>
+          </div>
+
+          <!-- Otro tipo -->
+          <div *ngSwitchDefault class="italic text-sm text-gray-500">
+            Mensaje no soportado.
+          </div>
+        </ng-container>
+
+        <!-- Hora + check -->
+        <div
+          class="text-[10px] mt-1 flex items-center gap-1"
+          [ngClass]="{
+            'justify-end text-gray-200': msg.isSender,
+            'justify-start text-gray-500': !msg.isSender
+          }"
+        >
+          {{ msg.createdAt | date : "shortTime" }}
+
+          <ng-container *ngIf="msg.isSender">
+            <iconify-icon
+              *ngIf="!msg.isRead"
+              icon="mdi:check"
+              width="14"
+              class="text-white opacity-50"
+            ></iconify-icon>
+
+            <iconify-icon
+              *ngIf="msg.isRead"
+              icon="mdi:check-all"
+              width="14"
+              class="text-blue-300"
+            ></iconify-icon>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- ⋮ botón contextual -->
       <button
+        *ngIf="msg.isSender"
         type="button"
         class="absolute -left-6 top-5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
         (click)="menu.toggle($event); selectedMessage = msg"
@@ -20,92 +128,6 @@
           class="text-gray-500 hover:text-black"
         ></iconify-icon>
       </button>
-    </div>
-
-    <!-- Burbuja -->
-    <div
-      class="rounded-2xl px-4 py-2 max-w-[70%] shadow-md break-words"
-      [ngClass]="{
-        'bg-gray-100 text-gray-800': !msg.isSender,
-        'bg-blue-500 text-white': msg.isSender
-      }"
-    >
-      <ng-container [ngSwitch]="msg.type">
-        <div *ngSwitchCase="'text'" class="whitespace-pre-wrap">
-          {{ msg.content }}
-        </div>
-
-        <!-- Imagen -->
-        <div *ngSwitchCase="'image'" class="flex flex-col">
-          <img
-            [src]="apiUrlImage + msg.resourceUrl"
-            alt="Imagen"
-            class="rounded-xl max-w-full max-h-60 mb-1 border border-gray-300"
-          />
-          <div
-            *ngIf="msg.content"
-            class="text-xs"
-            [ngClass]="{
-              'text-gray-700': !msg.isSender,
-              'text-gray-100': msg.isSender
-            }"
-          >
-            {{ msg.content }}
-          </div>
-        </div>
-
-        <!-- Video -->
-        <div *ngSwitchCase="'video'" class="flex flex-col">
-          <video
-            controls
-            class="rounded-xl max-w-full max-h-60 border border-gray-300 mb-1"
-          >
-            <source [src]="msg.resourceUrl" type="video/mp4" />
-            Tu navegador no soporta video.
-          </video>
-          <div
-            *ngIf="msg.content"
-            class="text-xs"
-            [ngClass]="{
-              'text-gray-700': !msg.isSender,
-              'text-gray-100': msg.isSender
-            }"
-          >
-            {{ msg.content }}
-          </div>
-        </div>
-
-        <div *ngSwitchDefault class="italic text-sm text-gray-500">
-          Mensaje no soportado.
-        </div>
-      </ng-container>
-
-      <!-- Hora + check -->
-      <div
-        class="text-[10px] mt-1 flex items-center gap-1 justify-end"
-        [ngClass]="{
-          'text-gray-200': msg.isSender,
-          'text-gray-500': !msg.isSender
-        }"
-      >
-        {{ msg.createdAt | date : "shortTime" }}
-
-        <ng-container *ngIf="msg.isSender">
-          <iconify-icon
-            *ngIf="!msg.isRead"
-            icon="mdi:check"
-            width="14"
-            class="text-white opacity-50"
-          ></iconify-icon>
-
-          <iconify-icon
-            *ngIf="msg.isRead"
-            icon="mdi:check-all"
-            width="14"
-            class="text-blue-300"
-          ></iconify-icon>
-        </ng-container>
-      </div>
     </div>
   </div>
 </div>

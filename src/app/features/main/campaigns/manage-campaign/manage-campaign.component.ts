@@ -42,13 +42,10 @@ import { Campaign } from '@models/campaign.model';
     FormsModule,
     BreadcrumbModule,
     ButtonDetailComponent,
-    ButtonEditComponent,
     BtnDeleteComponent,
     ButtonSaveComponent,
     OverlayPanelModule,
     ButtonProgressComponent,
-    InputIcon,
-    IconField,
     TagModule,
   ],
   templateUrl: './manage-campaign.component.html',
@@ -116,7 +113,7 @@ export class ManageMampaignComponent {
     this.campaignStore.clearSelected();
     this.openModal = true;
     const ref = this.dialogService.open(CreateCampaignComponent, {
-      header: 'Nueva Campaña',
+      header: 'Nueva Campaña - Audio',
       styleClass: 'modal-8xl',
       modal: true,
       dismissableMask: false,
@@ -228,7 +225,7 @@ export class ManageMampaignComponent {
   }
 
   verResultadosProgreso(registro: any) {
- 
+
       const modal_item = this.dialogService.open(ProgresoCampaniaComponent, {
         data: registro,
         header: 'Progreso de Campaña ' + registro.name,
@@ -242,11 +239,11 @@ export class ManageMampaignComponent {
           this.loadData();
         }
       });
-   
+
   }
 
   verResultados(registro: any) {
-   
+
       const modal_item = this.dialogService.open(AudioSettingsComponent, {
         data: registro,
         header: 'Configurar Campaña ' + registro.name,
@@ -260,7 +257,7 @@ export class ManageMampaignComponent {
           this.loadData();
         }
       });
-   
+
   }
 
   configurar(registro: any) {}

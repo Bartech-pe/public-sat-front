@@ -189,7 +189,7 @@ export class CreateCampaignComponent {
 
   ngOnInit(): void {
     this.loadData();
-    // this.getDaysWeek();
+    this.getDaysWeek();
   }
   daysWeek = signal<IDayWeek[]>([]);
   isAudio = signal<boolean>(false);
@@ -234,8 +234,8 @@ export class CreateCampaignComponent {
          console.log(item)
       this.scheduleService.getByCampain(this.id).subscribe((res) => {
 
-        const startDate = item.startTime ? new Date(item.startTime) : undefined;
-        const endDate = item.endTime ? new Date(item.endTime) : undefined;
+        const startDate = item.startTime ? new Date(item.startTime) : null;
+       const endDate = item.endTime ? new Date(item.endTime) : null;
 
         // this.idCampain = res.id;
         // item.startTime = res.startTime;

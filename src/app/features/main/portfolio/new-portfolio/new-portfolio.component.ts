@@ -45,6 +45,7 @@ import { PortfolioDetailService } from '@services/portfolio-detail.service';
 import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { PortfolioStore } from '@stores/portfolio.store';
 import { CitizenContact } from '@models/citizen.model';
+import { PortfolioService } from '@services/portfolio.service';
 
 @Component({
   selector: 'app-new-portfolio',
@@ -76,6 +77,8 @@ export class NewPortfolioComponent implements OnInit {
   readonly portfolioDetailStore = inject(PortfolioDetailStore);
 
   readonly portfolioDetailService = inject(PortfolioDetailService);
+
+   readonly portfolioService = inject(PortfolioService);
 
   readonly areaStore = inject(DepartmentStore);
 
@@ -219,10 +222,11 @@ export class NewPortfolioComponent implements OnInit {
     'WHATSAPP',
     'EMAIL',
   ];
-
+  public selectedFile: File | null = null;
+  public files: NgxFileDropEntry[] = [];
   onFileDropped(files: NgxFileDropEntry[]) {
     const droppedFile = files[0];
-
+    this.files = files;
     if (droppedFile.fileEntry.isFile) {
       const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
       this.nombreArchivo = droppedFile.relativePath;
@@ -234,7 +238,7 @@ export class NewPortfolioComponent implements OnInit {
 
       fileEntry.file((file: File) => {
         const reader = new FileReader();
-
+        this.selectedFile = file;
         reader.onload = async (e: any) => {
           const arrayBuffer = e.target.result;
           const workbook = new Workbook();
@@ -528,7 +532,10 @@ export class NewPortfolioComponent implements OnInit {
   guardar() {
     if (this.formData.valid) {
       const { departmentId, ...request } = this.formData.value;
-
+      if (!this.selectedFile) {
+       this.msg.error('Por favor selecciona un archivo primero');
+        return;
+      }
       if (this.id) {
         request.amount = this.previewData.length;
         request.detalles = this.previewData
@@ -546,11 +553,20 @@ export class NewPortfolioComponent implements OnInit {
         }
 
         request.amount = this.previewData.length;
-        request.detalles = this.previewData.map((p) => {
-          const { user, ...item } = p;
-          return item;
-        });
-        this.portfolioStore.create(request);
+        //request.file = this.files;
+        // request.detalles = this.previewData.map((p) => {
+        //   const { user, ...item } = p;
+        //   return item;
+        // });
+
+        this.portfolioService.createPortfolio(request,this.selectedFile).subscribe(res =>{
+           if(res){
+             this.ref.close();
+             this.msg.success('¡Cartera creada exitosamente!');
+           }
+        })
+
+        //this.portfolioStore.create(request);
       }
       //this.router.navigate(['/portfolios']);
     }

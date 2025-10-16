@@ -150,12 +150,12 @@
               <td class="w-28">
                 <div class="flex justify-center items-center gap-1">
                   <button-edit (click)="edit(item)" [disabled]="item.status" />
-                  <btn-delete (click)="remove(item)" [disabled]="item.status" />
                   <button-manage (click)="verDetalle(item)" />
                   <button-statu
                     (click)="editarEstadoPortfolio(item)"
                     [disabled]="item.status"
                   />
+                  <btn-delete (click)="remove(item)" [disabled]="item.status" />
                 </div>
               </td>
             </tr>

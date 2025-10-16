@@ -25,7 +25,7 @@
               (click)="openNew()"
             />
             <button-save
-              label="Plantillas de Correo Electrónico"
+              label="Plantillas - Correo"
               [icon]="'mdi:plus-circle-outline'"
               (click)="openTemplate()"
             />
@@ -97,19 +97,17 @@
                   Cargada <p-sortIcon field="amount" />
                 </div>
               </th>
-              <th class="items-center" pSortableColumn="amount">
+              <th class="items-center">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
                 >
-                  Estado <p-sortIcon field="amount" />
+                  Estado
                 </div>
               </th>
               <th class="items-center">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
-                >
-                  Acciones
-                </div>
+                ></div>
               </th>
             </tr>
           </ng-template>
@@ -142,32 +140,31 @@
               </td> -->
               <td>
                 <div class="flex justify-center items-center">
-                 <p class="text-sm font-light text-center">
-                  {{ item.totalRegistration }} / {{ item.totalRegistration }}
-                </p>
+                  <p class="text-sm font-light text-center">
+                    {{ item.totalRegistration }} / {{ item.totalRegistration }}
+                  </p>
                 </div>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-                   {{ item.createdAt}}
+                  {{ item.createdAt }}
                 </p>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-               
-                     <p-tag
-                        [value]="getStatusLabel(item.campaignStatus)"
-                        [severity]="getStatusSeverity(item.campaignStatus)"
-                      ></p-tag>
+                  <p-tag
+                    [value]="getStatusLabel(item.campaignStatus)"
+                    [severity]="getStatusSeverity(item.campaignStatus)"
+                  ></p-tag>
                 </p>
               </td>
 
               <td class="w-28">
-               <div class="flex justify-center items-center gap-1">
+                <div class="flex justify-center items-center gap-1">
                   <!-- <button-edit (click)="edit(item)" /> -->
+                  <!-- <button-detail (click)="verResultados(item)" /> -->
+                  <button-count (click)="verResultados(item)" />
                   <btn-delete (click)="remove(item)" />
-                  <button-detail (click)="verResultados(item)" />
-
                 </div>
               </td>
             </tr>
@@ -178,13 +175,10 @@
   </div>
 </div>
 
-
 <p-dialog header="Mensajes Enviados" [(visible)]="visible" [modal]="true">
   <ng-template #header>
     <div class="inline-flex items-center justify-center gap-2">
-      <span class="font-bold whitespace-nowrap"
-        >Mensajes Enviados</span
-      >
+      <span class="font-bold whitespace-nowrap">Mensajes Enviados</span>
     </div>
   </ng-template>
   <div>
@@ -201,11 +195,15 @@
         <tr>
           <th class="w-30">
             <div class="flex items-center text-xs uppercase gap-4 text-center">
-             Correo Destino
+              Correo Destino
             </div>
           </th>
           <th class="w-150">
-            <div class="flex items-center justify-center text-xs uppercase gap-4">Asunto</div>
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4"
+            >
+              Asunto
+            </div>
           </th>
           <th class="w-30">
             <div
@@ -233,20 +231,20 @@
             </p>
           </td>
           <td>
-          <button
-            pButton
-            label="Ver mensaje"
-            icon="pi pi-eye"
-            class="p-button-text p-button-sm"
-            (click)="showTemplate(item)"
-          ></button>
-        </td>
-        <td>
-           <iconify-icon
-            icon="pepicons-pop:checkmark-filled"
-            class="text-green-500 text-xl"
-          ></iconify-icon>
-        </td>
+            <button
+              pButton
+              label="Ver mensaje"
+              icon="pi pi-eye"
+              class="p-button-text p-button-sm"
+              (click)="showTemplate(item)"
+            ></button>
+          </td>
+          <td>
+            <iconify-icon
+              icon="pepicons-pop:checkmark-filled"
+              class="text-green-500 text-xl"
+            ></iconify-icon>
+          </td>
         </tr>
       </ng-template>
     </p-table>
@@ -266,3 +264,9 @@
 >
   <div [innerHTML]="selectedMessage"></div>
 </p-dialog>
+
+<style>
+  ::ng-deep .p-dialog-content {
+    padding-bottom: 0rem;
+  }
+</style>
