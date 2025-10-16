@@ -31,7 +31,8 @@ import { PortfolioStore } from '@stores/portfolio.store';
 import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { ContactDetailsComponent } from './contact-details/contact-details.component';
 import { ButtonManageComponent } from '@shared/buttons/button-manage/button-manage.component';
-
+import { SocketService } from '@services/socket.service';
+import { ProgressBarModule } from 'primeng/progressbar';
 @Component({
   selector: 'app-portfolios',
   imports: [
@@ -47,7 +48,8 @@ import { ButtonManageComponent } from '@shared/buttons/button-manage/button-mana
     OverlayPanelModule,
     ButtonStatuComponent,
     TagModule,
-    ButtonManageComponent
+    ButtonManageComponent,
+    ProgressBarModule
   ],
   templateUrl: './portfolios.component.html',
   styles: ``,
@@ -61,6 +63,8 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
 
   private readonly dialogService = inject(DialogService);
 
+    private readonly socketService = inject(SocketService);
+
   readonly portfolioStore = inject(PortfolioStore);
 
   limit = signal(10);
@@ -69,6 +73,13 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   get listPortfolios(): Portfolio[] {
     return this.portfolioStore.items();
   }
+
+  progress = 0;
+  processed = 0;
+  total = 0;
+  message = '';
+
+  mostrarMessage:boolean = false;
 
   constructor(private router: Router) {}
 
@@ -83,6 +94,23 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadData();
+
+     this.socketService.onPortfolioProgress().subscribe((data) => {
+     this.mostrarMessage = true;
+      this.progress = data.percentage;
+      this.processed = data.processed;
+      this.total = data.total;
+      console.log(
+        `📊 Cartera ${data.portfolioId}: ${data.percentage}% (${data.processed}/${data.total})`
+      );
+    });
+
+    // Escuchar fin del proceso
+    this.socketService.onPortfolioComplete().subscribe((data) => {
+      this.message = data.message;
+      this.msg.success('Proceso completado:', data.message)
+      this.mostrarMessage = false;
+    });
   }
 
   private resetOnSuccessEffect = effect(() => {
@@ -138,6 +166,8 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
+      this.loadData();
+      //  this.mostrarMessage = true;
       if (res) {
         this.loadData();
       }
@@ -209,7 +239,7 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    //this.socketService.disconnect();
+    this.socketService.disconnect();
   }
 
   contactDetails() {

@@ -44,6 +44,21 @@
         </div>
       </div> -->
 
+      <ng-container *ngIf="mostrarMessage">
+          <div class="p-4 border rounded-md shadow-sm">
+              <h3 class="text-lg font-semibold mb-2">Progreso de carga</h3>
+
+              <p>Procesado: {{ processed }}/{{ total }}</p>
+
+              <p-progressBar
+                [value]="progress"
+                [showValue]="true"
+                unit="%"
+                styleClass="w-full"
+              ></p-progressBar>
+
+          </div>
+      </ng-container>
       <!-- Tabla -->
       <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
         <p-table

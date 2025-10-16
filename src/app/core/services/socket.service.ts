@@ -15,6 +15,9 @@ export class SocketService {
 
   private requestPhoneCallSubject = new Subject<{ userId: number }>();
 
+ private requestPortfolioSubject = new Subject<any>();
+  private requestPortfolioCompleteSubject = new Subject<any>();
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
       this.initializeSocketConnection();
@@ -49,6 +52,30 @@ export class SocketService {
       console.log('user.phone.state.request');
       this.requestUserPhoneStateSubject.next(paload);
     });
+
+    // Escuchar progreso
+    this.socket.on("portfolioProgress", (data) => {
+      console.log(
+        `📊 Cartera ${data.portfolioId}: ${data.percentage}% (${data.processed}/${data.total})`
+      );
+       this.requestPortfolioSubject.next(data);
+    });
+
+    // Escuchar fin del proceso
+    this.socket.on("portfolioComplete", (data) => {
+      console.log(data.message);
+       this.requestPortfolioCompleteSubject.next(data);
+    });
+
+  }
+
+  onPortfolioProgress(): Observable<any> {
+   return this.requestPortfolioSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioComplete(): Observable<any> {
+   return this.requestPortfolioCompleteSubject.asObservable();
   }
 
   registerUser(userId: number): void {

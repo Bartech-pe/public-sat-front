@@ -33,14 +33,14 @@ export const reportsRoutes: Routes = [
         '@features/main/reports/attention-non-attention/attention-non-attention.component'
       ).then((c) => c.AttentionNonAttentionComponent),
   },
-  {
+  /* {
     path: 'intern-chat',
     title: 'Chat Interno | Dashboard',
     loadComponent: () =>
       import('@features/main/reports/intern-chat/intern-chat.component').then(
         (c) => c.InternChatComponent
       ),
-  },
+  }, */
   {
     path: 'chatsat-wsp',
     title: 'ChatSat/Wsp | Dashboard',

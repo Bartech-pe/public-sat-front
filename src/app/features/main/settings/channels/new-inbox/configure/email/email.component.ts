@@ -26,8 +26,8 @@ export class EmailComponent {
   name: string = 'SAT - Mail';
   email: string = 'demo.correo.sat@gmail.com';
   clientId: string =
-    '704373357101-c9p6e5jb86ar9co0c36t7j3ahf2mdav6.apps.googleusercontent.com';
-  clientSecret: string = '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';
+    '';
+  clientSecret: string = '';
   topicName: string = 'email-notifications';
   projectId: string = 'giusen-lab';
 
