@@ -18,6 +18,7 @@ import { TableModule } from 'primeng/table';
 import { DepartmentFormComponent } from './department-form/department-form.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { AuthStore } from '@stores/auth.store';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-departments',
@@ -35,6 +36,7 @@ import { AuthStore } from '@stores/auth.store';
     ButtonEditComponent,
     BtnDeleteComponent,
     PaginatorComponent,
+    TagModule
   ],
   templateUrl: './departments.component.html',
   styles: ``,

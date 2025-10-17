@@ -107,7 +107,7 @@ export class WhatsappComponent implements OnInit, OnDestroy {
         name: this.data.name,
         accessToken: this.data.credentials?.accessToken ?? "",
         businessId: this.data.credentials.businessId?? "",
-        phoneNumber: this.data.credentials.phoneNumber,
+        phoneNumber: this.data.credentials?.phoneNumber?? "",
         phoneNumberId: this.data.credentials.phoneNumberId?? ""
       });
     }

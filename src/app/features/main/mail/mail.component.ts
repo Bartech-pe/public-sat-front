@@ -59,6 +59,7 @@ import { CalendarCommonModule } from 'angular-calendar';
 import { CardModule } from 'primeng/card';
 import { Reply } from '@models/mail-reply.model';
 import { ForwardCenterMail } from '@models/mail-forward.model';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface Mail {
   id: number;
@@ -142,6 +143,7 @@ interface OptionView {
     BtnCustomComponent,
     ReplyMailComponent,
     CalendarCommonModule,
+    TooltipModule
   ],
   templateUrl: './mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -230,7 +232,7 @@ export class MailComponent implements OnInit {
   ) {}
 
   get userList(): User[] {
-    return this.filteredMails
+    return this.mails()
       .filter((mail) => !!mail.advisor)
       .map((mail) => mail.advisor as User)
       .filter(
@@ -446,6 +448,10 @@ export class MailComponent implements OnInit {
     }
 
     return {};
+  }
+
+  isClosed(state: AssistanceState) {
+    return state.id === MailStates.CLOSED;
   }
 
   getStateStyle(state: AssistanceState) {
@@ -1004,10 +1010,17 @@ export class MailComponent implements OnInit {
     this.sendMenuOpen.set(false);
   }
 
+  formatId(id: number, length: number = 5): string {
+    return id.toString().padStart(length, '0');
+  }
+
   /** Seleccionar/deseleccionar todos */
   selectAll() {
     this.mails.update((mails) =>
-      mails.map((m) => ({ ...m, selected: this.allSelected }))
+      mails.map((m) => ({
+        ...m,
+        selected: !this.isClosed(m.state!) ? this.allSelected : false,
+      }))
     );
 
     // 🔜 En el futuro esto vendría del backend:

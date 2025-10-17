@@ -15,7 +15,6 @@
             [(ngModel)]="selectedUsers"
             optionLabel="name"
             optionValue="id"
-            optionValue="name"
             placeholder="Asesor"
             styleClass="w-48"
             appendTo="body"
@@ -101,8 +100,11 @@
             (onChange)="selectAll()"
             binary="true"
             inputId="selectAll"
+            pTooltip="Seleccionar"
+            tooltipPosition="top"
+            tooltipStyleClass="tooltip-small"
           />
- 
+
           <!-- p-checkbox
               [(ngModel)]="mail.selected"
               [binary]="true"
@@ -166,7 +168,7 @@
               >
                 Sin asignar
               </li>
-             
+
             </ul>
           </div> -->
         </div>
@@ -174,8 +176,11 @@
         <!-- Mostrar refrescar SOLO si NO hay selección -->
         <button
           *ngIf="!hasSelection"
-          class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700 cursor-pointer"
           (click)="loadMails()"
+          pTooltip="Actualizar"
+          tooltipPosition="top"
+          tooltipStyleClass="tooltip-small"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -224,8 +229,8 @@
             class="p-2 rounded-full hover:bg-gray-200"
             (click)="attentionSelected()"
           >
-             Icono en atención 
-             <iconify-icon [icon]="'uil:user-exclamation'" class="text-2xl"/> 
+             Icono en atención
+             <iconify-icon [icon]="'uil:user-exclamation'" class="text-2xl"/>
 
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -245,11 +250,11 @@
           </button> -->
 
           <btn-custom
-                severity="secondary"
-                tooltip="cambiar a En atención"
-                icon="bi:person-fill-exclamation"
-                (click)="attentionSelected()"
-              />
+            severity="secondary"
+            tooltip="Cambiar a En atención"
+            icon="bi:person-fill-exclamation"
+            (click)="attentionSelected()"
+          />
 
           <!-- <button
             class="p-2 rounded-full hover:bg-gray-200"
@@ -359,7 +364,7 @@
             </svg>
           </button>
 
-    
+
           <div
             *ngIf="menuOpen"
             class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10"
@@ -382,7 +387,7 @@
             </div>
           </div>
         </div>-->
-      </div> 
+      </div>
     </header>
 
     <!-- Vista de correo individual -->
@@ -440,36 +445,36 @@
 
                 <div
                   *ngIf="isDetailsOpen"
-                  class="absolute left-0 mt-2 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-700 w-[300px] shadow-md z-10"
+                  class="absolute left-0 mt-2 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-700 w-[350px] shadow-md z-10"
                 >
-                  <div class="grid grid-cols-2 gap-2 text-sm">
+                  <div class="grid grid-cols-3 gap-2 text-sm">
                     <div class="font-medium">De:</div>
-                    <div>{{ selectedMail()?.from }}</div>
+                    <div class="col-span-2">{{ selectedMail()?.from }}</div>
 
                     <div class="font-medium">Responder a:</div>
-                    <div>{{ selectedMail()?.from }}</div>
+                    <div class="col-span-2">{{ selectedMail()?.from }}</div>
 
-                    <div class="font-medium">Para:</div>
-                    <div>{{ selectedMail()?.to }}</div>
+                    <!-- <div class="font-medium">Para:</div>
+                    <div>{{ selectedMail()?.to }}</div> -->
 
                     <div class="font-medium">Fecha:</div>
-                    <div>
+                    <div class="col-span-2">
                       {{
                         selectedMail()?.createdAt | date : "dd MMM yyyy, h:mm a"
                       }}
                     </div>
 
                     <div class="font-medium">Asunto:</div>
-                    <div>{{ selectedMail()?.subject }}</div>
+                    <div class="col-span-2">{{ selectedMail()?.subject }}</div>
 
                     <div class="font-medium">Enviado por:</div>
-                    <div>mail.ejemplo.com</div>
+                    <div class="col-span-2">mail.ejemplo.com</div>
 
                     <div class="font-medium">Firmado por:</div>
-                    <div>mail.ejemplo.com</div>
+                    <div class="col-span-2">mail.ejemplo.com</div>
 
                     <div class="font-medium">Seguridad:</div>
-                    <div>Encriptación estándar (TLS)</div>
+                    <div class="col-span-2">Encriptación estándar (TLS)</div>
                   </div>
                 </div>
               </div>
@@ -512,7 +517,7 @@
               />
               <btn-custom
                 severity="secondary"
-                tooltip="cambiar a En atención"
+                tooltip="Cambiar a En atención"
                 icon="bi:person-fill-exclamation"
                 (click)="attentionSelected()"
               />
@@ -865,7 +870,7 @@
             <div class="px-4 py-3 flex justify-between gap-2">
               {{ this.replyMode }}
               <div class="flex items-center gap-3">
-   
+
                 <div class="relative flex">
                   <button
                     type="button"
@@ -1133,11 +1138,25 @@
             <p-checkbox
               [(ngModel)]="mail.selected"
               [binary]="true"
+              [disabled]="isClosed(mail.state)"
               (click)="$event.stopPropagation()"
             />
-            <span class="text-sm font-semibold w-48 text-gray-900 truncate">{{
-              mail.name ? mail.name : mail.from
-            }}</span>
+            <div class="flex item-center gap-1">
+              <div class="flex">
+                <div
+                  class="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm"
+                >
+                  <iconify-icon
+                    icon="mdi:ticket-confirmation-outline"
+                    class="w-3 h-3 mr-1"
+                  ></iconify-icon>
+                  <span>#{{ formatId(mail.mailAttentionId) || "N/A" }}</span>
+                </div>
+              </div>
+              <span class="text-sm font-semibold w-48 text-gray-900 truncate">
+                {{ mail.name ? mail.name : mail.from }}
+              </span>
+            </div>
 
             <div
               class="text-sm font-medium text-gray-600 truncate text-left pl-3"
@@ -1180,8 +1199,11 @@
             <div class="flex gap-2">
               <div class="relative">
                 <button
-                  class="p-2 rounded-full hover:bg-gray-200"
+                  class="p-2 rounded-full hover:bg-gray-200 cursor-pointer"
                   (click)="$event.stopPropagation(); toggleMore(mail)"
+                  pTooltip="Más"
+                  tooltipPosition="top"
+                  tooltipStyleClass="tooltip-small"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1242,7 +1264,7 @@
                     </li> -->
                     <li>
                       <button
-                        class="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                        class="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                         (click)="$event.stopPropagation(); onDeleteMail(mail)"
                       >
                         <svg
@@ -1279,3 +1301,11 @@
     </ng-template>
   </main>
 </div>
+
+<style>
+  ::ng-deep .tooltip-small {
+    font-size: 12px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+  }
+</style>

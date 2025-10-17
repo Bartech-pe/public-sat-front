@@ -628,20 +628,20 @@ completionEventReceived){
                   class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-300"
                   [ngClass]="{
                     'from-red-400 to-red-500':
-                      getFileExtension(attachment) === 'pdf',
+                      getFileIconClass(attachment?.extension) === 'pdf',
                     'from-blue-600 to-blue-600': ['doc', 'docx'].includes(
-                      getFileExtension(attachment)
+                      getFileIconClass(attachment?.extension)
                     ),
                     'from-green-700 to-green-600': [
                       'csv',
                       'xls',
                       'xlsx'
-                    ].includes(getFileExtension(attachment)),
+                    ].includes(getFileIconClass(attachment?.extension)),
                     'from-yellow-500 to-yellow-500': ['zip', 'rar'].includes(
-                      getFileExtension(attachment)
+                      getFileIconClass(attachment?.extension)
                     ),
                     'from-orange-400 to-orange-500': ['txt'].includes(
-                      getFileExtension(attachment)
+                      getFileIconClass(attachment?.extension)
                     ),
                     'from-gray-400 to-gray-500': ![
                       'pdf',
@@ -652,7 +652,7 @@ completionEventReceived){
                       'zip',
                       'rar',
                       'txt'
-                    ].includes(getFileExtension(attachment))
+                    ].includes(getFileIconClass(attachment?.extension))
                   }"
                   style="width: 100%"
                 ></div>

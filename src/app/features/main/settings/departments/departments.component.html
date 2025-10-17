@@ -26,6 +26,9 @@
             <th>
               <div class="flex justify-start items-center">Nombre</div>
             </th>
+            <th>
+              <div class="flex justify-center items-center">Estado</div>
+            </th>
             <th class="w-28">
               <div class="flex justify-center items-center"></div>
             </th>
@@ -41,6 +44,14 @@
                   </h5>
                   <p class="text-sm font-light">{{ item.description }}</p>
                 </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex justify-center items-center">
+                <p-tag
+                  [value]="item.status === true ? ' Activo' : 'Inactivo'"
+                  [severity]="item.status === true ? 'success' : 'warn'"
+                />
               </div>
             </td>
             <td class="w-28">

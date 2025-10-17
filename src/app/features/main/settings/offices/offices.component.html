@@ -29,6 +29,9 @@
             <th>
               <div class="flex justify-center items-center">Área</div>
             </th>
+            <th>
+              <div class="flex justify-center items-center">Estado</div>
+            </th>
             <th class="w-32">
               <div class="flex justify-center items-center">Permisos</div>
             </th>
@@ -52,6 +55,14 @@
             <td>
               <div class="flex justify-center items-center">
                 <p class="text-sm font-light">{{ item.department.name }}</p>
+              </div>
+            </td>
+            <td>
+              <div class="flex justify-center items-center">
+                <p-tag
+                  [value]="item.status === true ? ' Activo' : 'Inactivo'"
+                  [severity]="item.status === true ? 'success' : 'warn'"
+                />
               </div>
             </td>
             <td class="w-32">

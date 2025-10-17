@@ -20,6 +20,7 @@ import { OfficeFormComponent } from './office-form/office-form.component';
 import { AuthStore } from '@stores/auth.store';
 import { RolePermissionComponent } from './role-permission/role-permission.component';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-offices',
@@ -38,6 +39,7 @@ import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.compon
     BtnDeleteComponent,
     BtnCustomComponent,
     PaginatorComponent,
+    TagModule
   ],
   templateUrl: './offices.component.html',
   styles: ``,

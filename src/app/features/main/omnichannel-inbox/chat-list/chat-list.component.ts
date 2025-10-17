@@ -13,7 +13,7 @@ import { IconField } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { debounceTime, last, Subject, switchMap } from 'rxjs';
+import { debounceTime, last, Subject, switchMap, takeUntil } from 'rxjs';
 import { AuthStore } from '@stores/auth.store';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { MessageService } from 'primeng/api';
@@ -156,7 +156,7 @@ interface FilterOptions{
     }
     `
 })
-export class ChatListComponent implements OnInit {
+export class ChatListComponent implements OnInit, OnDestroy {
 
   private readonly msg = inject(MessageGlobalService);
 
@@ -184,7 +184,7 @@ export class ChatListComponent implements OnInit {
   private timer: any;
   private filters$ = new Subject<void>();
   private readonly authStore = inject(AuthStore);
-
+  private destroy$ = new Subject<void>();
 
   constructor(
     private channelRoomService: ChannelRoomService,
@@ -194,159 +194,194 @@ export class ChatListComponent implements OnInit {
     private route: ActivatedRoute
   ){
       this.filters$
-      .pipe(
-        debounceTime(300),
-        switchMap(() => {
-
-          this.isLoading = true;
-          const filters = this.onChangeFilter();
-          return this.channelRoomService.getChatSummary(filters);
-        })
-      )
-      .subscribe(res => {
-        this.chatListInbox = res;
-        this.isLoading = false;
-      });
+        .pipe(
+          debounceTime(300),
+          switchMap(() => {
+            this.isLoading = true;
+            const filters = this.onChangeFilter();
+            return this.channelRoomService.getChatSummary(filters);
+          }),
+          takeUntil(this.destroy$)  // AGREGAR ESTO
+        )
+        .subscribe(res => {
+          this.chatListInbox = res;
+          this.isLoading = false;
+        });
 
   }
 
   ngOnInit(): void {
       console.log(this.authStore.user()?.role?.name == 'administrador')
+      this.route.queryParamMap
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((params) => {
+        if (!params.get('channel')) {
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { channel: 'all' }
+          });
+          return
+        }
+        const channel = (params.get('channel')) as Channels;
+        const lastChannel = this.channel
+        this.channel = channel
+        if(channel !== lastChannel){
+          this.loadChatList()
+        }
+      });
 
-    this.route.queryParamMap.subscribe((params) => {
-      if (!params.get('channel')) {
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { channel: 'all' }
-        });
-        return
-      }
-      const channel = (params.get('channel')) as Channels;
-      const lastChannel = this.channel
-      this.channel = channel
-      if(channel !== lastChannel){
-        this.loadChatList()
-      }
-    });
+      this.loadChatList()
 
-    this.loadChatList()
+      this.channelRoomSocketService.onChannelRoomStatusChanged()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((payload) => {
+        if (!payload || !this.chatListInbox.length) return;
 
-    this.channelRoomSocketService.onChannelRoomStatusChanged().subscribe((payload) => {
-      if (!payload || !this.chatListInbox.length) return;
+        this.chatListInbox = this.chatListInbox
+          .map((x) => {
+            if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
+              return { ...x, status: payload.status };
+            }
+            return x;
+          })
+          .filter((x) => {
+            if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
+              return false; // se quita
+            }
+            return true;
+          });
+      });
 
-      this.chatListInbox = this.chatListInbox
-        .map((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
-            return { ...x, status: payload.status };
+
+      this.channelRoomSocketService.onChatViewedReplies()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: ChannelRoomViewStatusDto) => {
+        if(this.chatListInbox.length){
+          const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
+          this.chatListInbox[index] = {
+            ...this.chatListInbox[index],
+            unreadCount: this.chatListInbox[index].unreadCount - message.readCount,
+            lastMessage: {
+              ...this.chatListInbox[index].lastMessage,
+              status: 'read'
+            }
           }
-          return x;
-        })
-        .filter((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
-            return false; // se quita
+        }
+      })
+
+      this.channelRoomSocketService.onNewMessage()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: ChannelRoomNewMessageDto) => {
+          this.updateChatList(message);
+      });
+
+      this.channelRoomSocketService.onAttentionDetailModified()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: ChannelRoomAssistance) => {
+        const index = this.chatListInbox.findIndex(c => c.attention.id === message.assistanceId);
+        this.chatListInbox[index] = {
+          ...this.chatListInbox[index],
+          attention: {...this.chatListInbox[index].attention, attentionDetail: 'Value', consultTypeId: 0}
+        };
+      });
+
+      this.channelRoomSocketService.onAdvisorChanged()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: AdvisorChangedDto) => {
+        const hasChannelRoomWithAdvisorChanged = this.chatListInbox.some(x => x.channelRoomId == message.channelRoomId)
+        if(hasChannelRoomWithAdvisorChanged)
+        {
+          this.loadChatList()
+        }else{
+          if(message.id == this.authStore.user()?.id)
+          {
+              this.msg.info("Se te ha asignado un nuevo chat.", "¡Tienes un nuevo chat!", 8000);
+              this.loadChatList();
           }
-          return true;
-        });
-    });
+        }
+      });
 
-
-    this.channelRoomSocketService.onChatViewedReplies().subscribe((message: ChannelRoomViewStatusDto) => {
-      if(this.chatListInbox.length){
+      this.channelRoomSocketService.onBotRepliesStatusChanged()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: BotStatusChangedDto) => {
         const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
         this.chatListInbox[index] = {
           ...this.chatListInbox[index],
-          unreadCount: this.chatListInbox[index].unreadCount - message.readCount,
-          lastMessage: {
-            ...this.chatListInbox[index].lastMessage,
-            status: 'read'
-          }
-        }
-      }
-    })
+          botStatus: message.botReplies ? "active": "paused"
+        };
+      });
 
-    this.channelRoomSocketService.onNewMessage().subscribe((message: ChannelRoomNewMessageDto) => {
-        this.updateChatList(message);
-    });
-
-    this.channelRoomSocketService.onAttentionDetailModified().subscribe((message: ChannelRoomAssistance) => {
-      const index = this.chatListInbox.findIndex(c => c.attention.id === message.assistanceId);
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        attention: {...this.chatListInbox[index].attention, attentionDetail: 'Value', consultTypeId: 0}
-      };
-    });
-
-    this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
-      const hasChannelRoomWithAdvisorChanged = this.chatListInbox.some(x => x.channelRoomId == message.channelRoomId)
-      if(hasChannelRoomWithAdvisorChanged)
-      {
-        this.loadChatList()
-      }else{
-        if(message.id == this.authStore.user()?.id)
+      this.channelRoomSocketService.onAdvisorRequest()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((payload: ChannelRoomAssistance) => {
+        const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
+        if(this.authStore.user()?.id === payload.userId)
         {
-            this.msg.info("Se te ha asignado un nuevo chat.", "¡Tienes un nuevo chat!", 8000);
-            this.loadChatList();
+
+          this.showHelpRequest(payload);
         }
-      }
-    });
+        this.chatListInbox[index] = {
+          ...this.chatListInbox[index],
+          botStatus: "paused",
+          status: 'prioridad'
+        };
+      })
 
-    this.channelRoomSocketService.onBotRepliesStatusChanged().subscribe((message: BotStatusChangedDto) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        botStatus: message.botReplies ? "active": "paused"
-      };
-    });
-
-    this.channelRoomSocketService.onAdvisorRequest().subscribe((payload: ChannelRoomAssistance) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
-      if(this.authStore.user()?.id === payload.userId)
-      {
-
-        this.showHelpRequest(payload);
-        // this.msg.confirm('Un ciudadano solicitó un asesor, ¿Desea darle seguimiento?',
-        //   ()=>{
-        //
-        //   },
-        //   ()=>{},
-        //   'Asesor solicitado.'
-        // )
-      }
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        botStatus: "paused",
-        status: 'prioridad'
-      };
-    })
-
-  }
-  loadChatList() {
-      this.filters$.next();
-  }
-
-  onChangeFilter(): GetChannelSummaryDto {
-  const filters: GetChannelSummaryDto = {
-    channel: this.channel,
-    messageStatus: null,
-    chatStatus: 'pendiente',
-    search: this.search,
-  };
-
-  if (this.selectedFilter) {
-    const value = this.selectedFilter.value as string;
-
-    if (['pendiente', 'completado', 'prioridad'].includes(value)) {
-      filters.chatStatus = value as ChatStatus;
-      filters.messageStatus = null; // ignorar messageStatus si chatStatus existe
-    } else if (['unread', 'read'].includes(value)) {
-      filters.messageStatus = value as MessageStatus;
-      filters.chatStatus = null;
     }
+    loadChatList() {
+        this.filters$.next();
+    }
+
+    onChangeFilter(): GetChannelSummaryDto {
+    const filters: GetChannelSummaryDto = {
+      channel: this.channel,
+      messageStatus: null,
+      chatStatus: 'pendiente',
+      search: this.search,
+    };
+
+    if (this.selectedFilter) {
+      const value = this.selectedFilter.value as string;
+
+      if (['pendiente', 'completado', 'prioridad'].includes(value)) {
+        filters.chatStatus = value as ChatStatus;
+        filters.messageStatus = null; // ignorar messageStatus si chatStatus existe
+      } else if (['unread', 'read'].includes(value)) {
+        filters.messageStatus = value as MessageStatus;
+        filters.chatStatus = null;
+      }
+    }
+
+    return filters;
   }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
 
-  return filters;
-}
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
 
+    this.chatListInbox = [];
+    this.search = '';
+
+    this.isLoading = false;
+    this.canScroll = false;
+    this.isDragging = false;
+    this.counterSeconds = 0;
+
+    this.selectedFilter = null;
+    this.channel = 'all' as Channels;
+    this.formattedTime = '00:00';
+
+    this.filters$.complete();
+
+    if (this.scrollContainer) {
+      this.scrollContainer.nativeElement.innerHTML = '';
+    }
+
+    console.log('ChatListComponent completamente destruido');
+  }
 
   updateChatList(message: ChannelRoomNewMessageDto) {
     try {
@@ -515,9 +550,11 @@ export class ChatListComponent implements OnInit {
         queryParams: { channelRoomId, channel:this.channel, assistanceId}
       });
   }
+
   formatId(id: number, length: number = 5): string {
     return id.toString().padStart(length, '0');
   }
+  
   private getClientX(event: MouseEvent | TouchEvent): number {
     return event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
   }

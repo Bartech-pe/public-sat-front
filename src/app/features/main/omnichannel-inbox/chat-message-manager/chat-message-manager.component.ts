@@ -61,6 +61,7 @@ import { PredefinedResponsesService } from '@services/predefined.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { FormAssistanceComponent } from '@features/main/mail/form-assistance/form-assistance.component';
 import { FormAttentionComponent } from '../form-attention/form-attention.component';
+import { Subject, takeUntil } from 'rxjs';
 
 export interface Attachment {
   type: 'file' | 'image';
@@ -104,7 +105,7 @@ interface AttachmentPreview extends Attachment {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styleUrl: './chat-message-manager.component.scss',
 })
-export class ChatMessageManagerComponent {
+export class ChatMessageManagerComponent implements OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   @ViewChild('fileInput') private fileInput!: ElementRef;
   private readonly msg = inject(MessageGlobalService);
@@ -152,6 +153,7 @@ export class ChatMessageManagerComponent {
   showHistorial = false;
   // NUEVA PROPIEDAD para respuestas predefinidas
   predefinedResponses: PredefinedResponses[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
@@ -177,7 +179,9 @@ export class ChatMessageManagerComponent {
     console.log(event);
   }
   ngOnInit() {
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((params) => {
       this.completionEventReceived = false;
       if (!params.get('channelRoomId') || !params.get('assistanceId')) {
         this.chatDetail = null;
@@ -193,9 +197,11 @@ export class ChatMessageManagerComponent {
     setInterval(() => {
       this.ngZone.run(() => {}); // fuerza change detection
     }, 1000);
+
     this.channelRoomSocketService
-      .onChannelRoomStatusChanged()
-      .subscribe((payload) => {
+    .onChannelRoomStatusChanged()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((payload) => {
         if (
           payload &&
           this.chatDetail &&
@@ -217,8 +223,9 @@ export class ChatMessageManagerComponent {
       });
 
     this.channelRoomSocketService
-      .onAdvisorRequest()
-      .subscribe((payload: ChannelRoomAssistance) => {
+    .onAdvisorRequest()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((payload: ChannelRoomAssistance) => {
         if (
           this.channelRoomId === payload.channelRoomId &&
           this.assintanceId === payload.assistanceId
@@ -230,14 +237,20 @@ export class ChatMessageManagerComponent {
         }
       });
 
-    this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
+    this.channelRoomSocketService
+    .onAdvisorChanged()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((message: AdvisorChangedDto) => {
       let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId;
       if(hasChannelRoomWithAdvisorChanged)
       {
 
       }
     });
-    this.channelRoomSocketService.onNewMessage().subscribe((message) => {
+    this.channelRoomSocketService
+    .onNewMessage()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((message) => {
       let messageIncoming = message.message;
 
       if (
@@ -313,6 +326,59 @@ export class ChatMessageManagerComponent {
         ],
       },
     ];
+  }
+
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    if (this.messagesContainer) {
+      this.messagesContainer.nativeElement.innerHTML = '';
+    }
+
+    this.chatDetail = null;
+    this.advisors = [];
+    this.messageText = '';
+    this.attachments = [];
+    this.predefinedResponses = [];
+
+    this.isLoading = false;
+    this.showTransferModal = false;
+    this.showChaneStatusModal = false;
+    this.showAttachmentsDialog = false;
+    this.showImageModal = false;
+    this.showScrollButton = false;
+    this.showHistorial = false;
+    this.uploadingFiles = false;
+    this.isDragOver = false;
+    this.typingIndicatorEmitted = false;
+    this.completionEventReceived = false;
+    this.updatingStatus = false;
+    this.newMessages = false;
+    this.unreadMessagesCount = 0;
+    this.isInitialLoad = false;
+    this.hasScrolledToBottom = false;
+    this.scrollLocked = false;
+    this.isLoadingOlderMessages = false;
+    this.isNearBottom = true;
+    this.selectedImage = null;
+    this.selectedNewStatus = null;
+    this.channelRoomId = null;
+    this.assintanceId = null;
+
+    const links = document.querySelectorAll('a[href^="blob:"]');
+    links.forEach(link => {
+      window.URL.revokeObjectURL((link as HTMLAnchorElement).href);
+    });
+
+    this.items = undefined;
+
+    console.log('ChatMessageManagerComponent completamente destruido');
   }
 
   sendEmailWithConversation() {
