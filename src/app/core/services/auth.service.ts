@@ -1,7 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, Injector, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
 import { environment } from '@envs/environments';
 import { LoginRequest, LoginResponse } from '@models/auth.model';
 import { Screen } from '@models/screen.model';

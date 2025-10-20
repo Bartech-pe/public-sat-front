@@ -1,14 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '@envs/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MetabaseReportsService {
 
-  private baseUrl = 'http://localhost:3000/v1/metabase/dashboard';
-
+  private baseUrl = `${environment.apiUrl}v1/metabase/dashboard`;
+  
   constructor(private http: HttpClient) {}
 
   getDashboardAlosat(id: string): Observable<{ url: string }> {

@@ -3,7 +3,7 @@
   <p-card class="text-center">
     <div class="flex items-center justify-center gap-2">
       <iconify-icon [icon]="item.icon" [class]="item.style" />
-      <p class="text-xl font-bold">{{ item.name }}</p>
+      <p class="text-xl font-bold">{{ item.callSateName }}</p>
     </div>
     <ng-template pTemplate="content">
       <p class="text-xl font-bold">{{ item.total }}</p>
@@ -112,7 +112,9 @@
           Teléfono <p-sortIcon field="star_date" />
         </th>
         <th pSortableColumn="end_date">
-          Estado Final <p-sortIcon field="end_date" />
+          <div class="flex items-center justify-center">
+            Estado Final <p-sortIcon field="end_date" />
+          </div>
         </th>
         <th pSortableColumn="estado" class="w-48">
           <div class="flex items-center justify-center">
@@ -132,9 +134,9 @@
         </td>
         <td>{{ registro.phoneNumber }}</td>
         <td>
-          <div class="flex items-center gap-2">
+          <div class="flex justify-center items-center gap-2">
             <!-- <iconify-icon [icon]="registro.stateIcon" [class]="registro.stateStyle" /> -->
-            <label class="text-base">{{ registro.callStatus }}</label>
+            <label class="text-base">{{ registro.callSateName }}</label>
           </div>
         </td>
         <td class="w-28">

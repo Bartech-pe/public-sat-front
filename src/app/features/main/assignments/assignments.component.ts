@@ -26,6 +26,7 @@ import { PortfolioStore } from '@stores/portfolio.store';
 import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
 import { CitizenContact } from '@models/citizen.model';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { InputNumberModule } from 'primeng/inputnumber';
 @Component({
   selector: 'app-assignments',
   imports: [
@@ -37,6 +38,7 @@ import { PaginatorComponent } from '@shared/paginator/paginator.component';
     TableModule,
     FormsModule,
     InputTextModule,
+    InputNumberModule,
     SelectModule,
     DatePickerModule,
     PhoneFormatPipe,
@@ -140,9 +142,9 @@ export class AssignmentsComponent implements OnInit {
   }
 
   estados = [
-    { label: 'Todos', value: '' },
-    { label: 'Sin Gestionar', value: 'Abierto' },
-    { label: 'Gestionado', value: 'En proceso' },
+    { label: 'Todos', value: undefined },
+    { label: 'Sin Gestionar', value: false },
+    { label: 'Gestionado', value: true },
   ];
 
   segmento: { label: string; value: string }[] = [];
@@ -160,10 +162,10 @@ export class AssignmentsComponent implements OnInit {
   tipoContribSelected = signal<string | undefined>(undefined);
   segmentSelected = signal<string | undefined>(undefined);
   profileSelected = signal<string | undefined>(undefined);
-  debtFrom = signal<string | undefined>(undefined);
-  debtTo = signal<string | undefined>(undefined);
+  debtFrom = signal<number | undefined>(undefined);
+  debtTo = signal<number | undefined>(undefined);
   searchText = signal<string | undefined>(undefined);
-  estadoSelected = signal<string | undefined>(undefined);
+  estadoSelected = signal<boolean | undefined>(undefined);
 
   get taxpayerTypes(): string[] {
     return Array.from(
@@ -183,55 +185,55 @@ export class AssignmentsComponent implements OnInit {
   get portfolioDetailFiltered(): PortfolioDetail[] {
     let filtered = [...this.portfolioDetail];
 
-    // Filtro por texto de búsqueda
-    const searchTerm = this.searchText()?.toLowerCase().trim();
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (item) =>
-          item.code?.toLowerCase().includes(searchTerm) ||
-          item.taxpayerName?.toLowerCase().includes(searchTerm) ||
-          item.citizenContacts.some((co) => co.value.includes(searchTerm))
-      );
-    }
+    // // Filtro por texto de búsqueda
+    // const searchTerm = this.searchText()?.toLowerCase().trim();
+    // if (searchTerm) {
+    //   filtered = filtered.filter(
+    //     (item) =>
+    //       item.code?.toLowerCase().includes(searchTerm) ||
+    //       item.taxpayerName?.toLowerCase().includes(searchTerm) ||
+    //       item.citizenContacts.some((co) => co.value.includes(searchTerm))
+    //   );
+    // }
 
-    // Filtro por tipo de contribuyente
-    const tipoContrib = this.tipoContribSelected();
-    if (tipoContrib) {
-      filtered = filtered.filter((item) => item.taxpayerType === tipoContrib);
-    }
-    // Filtro por estado
-    const estado = this.estadoSelected();
-    if (estado && estado !== '') {
-      if (estado === 'Abierto') {
-        filtered = filtered.filter((item) => !item.status);
-      } else if (estado === 'En proceso') {
-        filtered = filtered.filter((item) => item.status);
-      }
-    }
+    // // Filtro por tipo de contribuyente
+    // const tipoContrib = this.tipoContribSelected();
+    // if (tipoContrib) {
+    //   filtered = filtered.filter((item) => item.taxpayerType === tipoContrib);
+    // }
+    // // Filtro por estado
+    // const estado = this.estadoSelected();
+    // if (estado && estado !== '') {
+    //   if (estado === 'Abierto') {
+    //     filtered = filtered.filter((item) => !item.status);
+    //   } else if (estado === 'En proceso') {
+    //     filtered = filtered.filter((item) => item.status);
+    //   }
+    // }
 
-    // Filtro por segment
-    const segment = this.segmentSelected();
-    if (segment) {
-      filtered = filtered.filter((item) => item.segment === segment);
-    }
+    // // Filtro por segment
+    // const segment = this.segmentSelected();
+    // if (segment) {
+    //   filtered = filtered.filter((item) => item.segment === segment);
+    // }
 
-    // Filtro por profile
-    const profile = this.profileSelected();
-    if (profile) {
-      filtered = filtered.filter((item) => item.profile === profile);
-    }
+    // // Filtro por profile
+    // const profile = this.profileSelected();
+    // if (profile) {
+    //   filtered = filtered.filter((item) => item.profile === profile);
+    // }
 
-    // Filtro por rango de deuda
-    const desde = parseFloat(this.debtFrom()!);
-    const hasta = parseFloat(this.debtTo()!);
+    // // Filtro por rango de deuda
+    // const desde = parseFloat(this.debtFrom()!);
+    // const hasta = parseFloat(this.debtTo()!);
 
-    if (!isNaN(desde)) {
-      filtered = filtered.filter((item) => item.currentDebt! >= desde);
-    }
+    // if (!isNaN(desde)) {
+    //   filtered = filtered.filter((item) => item.currentDebt! >= desde);
+    // }
 
-    if (!isNaN(hasta)) {
-      filtered = filtered.filter((item) => item.currentDebt! <= hasta);
-    }
+    // if (!isNaN(hasta)) {
+    //   filtered = filtered.filter((item) => item.currentDebt! <= hasta);
+    // }
 
     return filtered;
   }
@@ -272,7 +274,19 @@ export class AssignmentsComponent implements OnInit {
 
   loadDataPortfolioDetail() {
     this.portfolioDetailService
-      .findAllByUserToken(this.portfolioId!, this.limit(), this.offset())
+      .findAllByUserToken(this.portfolioId!, this.limit(), this.offset(), {
+        search: this.searchText()?.toLowerCase().trim(),
+        taxpayerType: this.tipoContribSelected()?.toLowerCase().trim(),
+        status: this.estadoSelected(),
+        segment: this.segmentSelected()?.toLowerCase().trim(),
+        profile: this.profileSelected()?.toLowerCase().trim(),
+        range: this.debtFrom()
+          ? {
+              from: this.debtFrom(),
+              to: this.debtTo(),
+            }
+          : undefined,
+      })
       .subscribe({
         next: (res) => {
           this.portfolioDetail = res.data;
@@ -362,5 +376,30 @@ export class AssignmentsComponent implements OnInit {
     return contacts
       .filter((item) => item.contactType === 'EMAIL')
       .map((item, i) => ({ ...item, label: `Email ${i + 1}` }));
+  }
+
+  onDebtChange(type: 'from' | 'to', event: any) {
+    const debtFrom = this.debtFrom() ?? 0;
+    const debtTo = this.debtTo() ?? 0;
+
+    // Si debtTo queda por debajo, lo forzamos a debtFrom
+    if (debtTo <= debtFrom) {
+      this.debtTo.set(debtFrom + 100);
+    }
+  }
+
+  search() {
+    this.loadDataPortfolioDetail();
+  }
+
+  clear() {
+    this.searchText.set(undefined);
+    this.tipoContribSelected.set(undefined);
+    this.estadoSelected.set(undefined);
+    this.segmentSelected.set(undefined);
+    this.profileSelected.set(undefined);
+    this.debtFrom.set(undefined);
+    this.debtTo.set(undefined);
+    this.loadDataPortfolioDetail();
   }
 }

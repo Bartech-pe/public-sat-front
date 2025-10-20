@@ -2,6 +2,7 @@ import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   effect,
+  inject,
   OnInit,
   signal,
 } from '@angular/core';
@@ -26,6 +27,8 @@ import { CallStateService } from '@services/call-state.service';
 import { AmiService } from '@services/ami.service';
 import { CommonModule } from '@angular/common';
 import { DurationPipe } from '@pipes/duration.pipe';
+import { merge, tap } from 'rxjs';
+import { SocketService } from '@services/socket.service';
 
 @Component({
   selector: 'app-ended-calls',
@@ -45,6 +48,8 @@ import { DurationPipe } from '@pipes/duration.pipe';
   ],
 })
 export class EndedCallsComponent implements OnInit {
+  private readonly socketService = inject(SocketService);
+
   constructor(
     private callService: CallService,
     private callStateService: CallStateService,
@@ -81,6 +86,24 @@ export class EndedCallsComponent implements OnInit {
   ngOnInit() {
     this.getStates();
     this.getAdvisors();
+    merge(
+      this.socketService.onUserPhoneStateRequest(),
+      this.socketService.onRequestPhoneCallSubject()
+    )
+      .pipe(tap((data) => console.log('Socket event', data)))
+      .subscribe(() => {
+        const request: ICallFilter = {
+          limit: this.limit(),
+          offset: this.offset(),
+          search: this.activeSearch() || undefined,
+          advisor: this.activeAdvisorFilter() || undefined,
+          startDate: this.activeStartDateFilter() || undefined,
+          endDate: this.activeEndDateFilter() || undefined,
+          stateId: this.activeStateFilter() || undefined,
+        };
+        this.getCalls(request);
+        this.getTotals(request);
+      });
   }
 
   getTotals(request: ICallFilter) {

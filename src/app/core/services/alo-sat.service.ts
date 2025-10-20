@@ -189,8 +189,11 @@ export class AloSatService {
     return this.http.get<any>(`${this.basePath}/end-call/${userId}`);
   }
 
-  pauseAgent(pauseCode: VicidialPauseCode | '') {
-    return this.http.post<any>(`${this.basePath}/pause-agent`, { pauseCode });
+  pauseAgent(pauseCode: VicidialPauseCode | '', concluded: boolean = false) {
+    return this.http.post<any>(`${this.basePath}/pause-agent`, {
+      pauseCode,
+      concluded,
+    });
   }
 
   transferCall(userId: number) {

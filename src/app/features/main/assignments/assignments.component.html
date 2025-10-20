@@ -60,7 +60,7 @@
           <div class="grid lg:grid-cols-4 gap-4">
             <div class="grid grid-cols-1 gap-3 pr-4 border-r border-slate-300">
               <h4 class="font-medium">Cartera Actual</h4>
-              <div class="flex flex-col gap-0.5">
+              <div class="h-full flex flex-col gap-0.5">
                 <p-select
                   [options]="portfolioList"
                   [(ngModel)]="portfolioId"
@@ -71,81 +71,127 @@
                   (onChange)="selectPortfolio()"
                 ></p-select>
               </div>
-              <ng-container *ngIf="!!portfolioSelected">
-                <p
-                  class="text-center italic p-2 border border-slate-300 rounded-3xl"
-                >
-                  Periodo:
-                  {{
-                    !!portfolioSelected
-                      ? (portfolioSelected?.dateStart | date : "dd/MM/yyyy") +
-                        " - " +
-                        (portfolioSelected?.dateEnd | date : "dd/MM/yyyy")
-                      : ""
-                  }}
-                </p>
-              </ng-container>
+              <div class="min-h-[42px]">
+                <ng-container *ngIf="!!portfolioSelected">
+                  <p
+                    class="text-center italic p-2 border border-slate-300 rounded-3xl"
+                  >
+                    Periodo:
+                    {{
+                      !!portfolioSelected
+                        ? (portfolioSelected?.dateStart | date : "dd/MM/yyyy") +
+                          " - " +
+                          (portfolioSelected?.dateEnd | date : "dd/MM/yyyy")
+                        : ""
+                    }}
+                  </p>
+                </ng-container>
+              </div>
             </div>
-            <div class="col-span-3">
+            <div class="col-span-3" *ngIf="!!portfolioSelected">
               <div class="flex flex-col gap-3">
                 <h4 class="font-medium">Filtros de búsqueda</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input
-                    pInputText
-                    [(ngModel)]="searchText"
-                    placeholder="Buscar por contribuyente, código, celular..."
-                    class="placeholder:text-sm !rounded-full"
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="col-span-2">
+                    <input
+                      pInputText
+                      [(ngModel)]="searchText"
+                      placeholder="Buscar por contribuyente, código, celular..."
+                      class="!rounded-full w-full"
+                    />
+                  </div>
                   <p-select
                     [options]="taxpayerTypes"
                     [(ngModel)]="tipoContribSelected"
-                    placeholder="Filtrar por tipo de contribuyente"
-                    class="!rounded-full placeholder:text-sm"
+                    placeholder="Tipo de contribuyente"
+                    class="!rounded-full"
                     [showClear]="true"
                   ></p-select>
                   <p-select
                     [options]="estados"
                     [(ngModel)]="estadoSelected"
-                    placeholder="Filtrar por estado"
+                    placeholder="Estado de gestión"
                     class="!rounded-full"
                     [showClear]="true"
                   ></p-select>
-                  <p-select
-                    [options]="segments"
-                    [(ngModel)]="segmentSelected"
-                    placeholder="Filtrar por segmento"
-                    class="!rounded-full"
-                    [showClear]="true"
-                  ></p-select>
-                  <p-select
-                    [options]="profiles"
-                    [(ngModel)]="profileSelected"
-                    placeholder="Filtrar por perfil"
-                    class="!rounded-full"
-                    [showClear]="true"
-                  ></p-select>
-                  <div class="col-span-1">
-                    <div class="flex items-center gap-2">
-                      <label
-                        class="whitespace-nowrap font-semibold text-gray-700 text-sm"
-                      >
-                        Rango Deuda:
-                      </label>
-                      <div class="grid grid-cols-2 gap-2">
-                        <input
-                          pInputText
-                          [(ngModel)]="debtFrom"
-                          placeholder="Desde S/"
-                          class="placeholder:text-sm !rounded-full"
-                        />
-                        <input
-                          pInputText
-                          [(ngModel)]="debtTo"
-                          placeholder="Hasta S/"
-                          class="placeholder:text-sm !rounded-full"
-                        />
+                  <div class="col-span-3">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <p-select
+                          [options]="segments"
+                          [(ngModel)]="segmentSelected"
+                          placeholder="Segmento"
+                          class="!rounded-full"
+                          [showClear]="true"
+                        ></p-select>
+                        <p-select
+                          [options]="profiles"
+                          [(ngModel)]="profileSelected"
+                          placeholder="Perfil"
+                          class="!rounded-full"
+                          [showClear]="true"
+                        ></p-select>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="w-30">
+                          <p class="font-semibold text-gray-700 text-sm">
+                            Rango Deuda:
+                          </p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                          <p-inputnumber
+                            [(ngModel)]="debtFrom"
+                            [showButtons]="true"
+                            inputId="debtFrom"
+                            mode="currency"
+                            currency="PEN"
+                            locale="es-PE"
+                            (onInput)="onDebtChange('from', $event)"
+                            [step]="100"
+                            [min]="0"
+                            styleClass="!w-full !rounded-full"
+                            inputStyleClass="!w-full !rounded-full"
+                            incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                            decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                            class="!w-full"
+                          />
+                          <p-inputnumber
+                            [(ngModel)]="debtTo"
+                            [showButtons]="true"
+                            inputId="debtTo"
+                            mode="currency"
+                            currency="PEN"
+                            locale="es-PE"
+                            (onInput)="onDebtChange('to', $event)"
+                            [step]="100"
+                            [min]="debtFrom() + 100"
+                            styleClass="!w-full !rounded-full"
+                            inputStyleClass="!w-full !rounded-full"
+                            incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                            decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                            class="!w-full"
+                          />
+                        </div>
                       </div>
                     </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 items-center">
+                    <p-button
+                      severity="contrast"
+                      size="small"
+                      (click)="search()"
+                      label="Filtrar"
+                      styleClass="w-full"
+                    />
+
+                    <p-button
+                      severity="danger"
+                      variant="outlined"
+                      size="small"
+                      (click)="clear()"
+                      label="Limpiar"
+                      styleClass="w-full"
+                    />
                   </div>
                 </div>
               </div>

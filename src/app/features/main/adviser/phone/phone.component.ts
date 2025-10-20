@@ -62,6 +62,7 @@ import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { DurationPipe } from '@pipes/duration.pipe';
+import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-phone',
@@ -87,6 +88,7 @@ import { DurationPipe } from '@pipes/duration.pipe';
     DurationPipe,
     ButtonSaveComponent,
     BtnCustomComponent,
+    CheckboxModule,
   ],
   templateUrl: './phone.component.html',
   styles: ``,
@@ -127,6 +129,8 @@ export class PhoneComponent implements OnInit {
   readonly typeIdeDocStore = inject(TypeIdeDocStore);
 
   motivo: any;
+
+  abandoned: boolean = false;
 
   formData = new FormGroup({
     idCampaign: new FormControl<string | undefined>(undefined, {
@@ -698,11 +702,16 @@ export class PhoneComponent implements OnInit {
   }
 
   endAssistance() {
-    this.aloSatService.pauseAgent(VicidialPauseCode.WRAPUP).subscribe({
-      next: (data) => {
-        this.msg.success('¡Atención finalizada!');
-      },
-    });
+    this.aloSatService
+      .pauseAgent(
+        VicidialPauseCode.WRAPUP,
+        this.isInWrap ? !this.abandoned : false
+      )
+      .subscribe({
+        next: (data) => {
+          this.msg.success('¡Atención finalizada!');
+        },
+      });
   }
 
   cerrarModal() {
@@ -712,20 +721,6 @@ export class PhoneComponent implements OnInit {
   busqueda: string = '';
 
   filaExpandidaIndex: number | null = null;
-
-  items = [
-    {
-      nombre: 'Juan Pérez',
-      estado: 'Activo',
-      detalles:
-        'Llamado el 5 de agosto. Comentó que está satisfecho con el servicio.',
-    },
-    {
-      nombre: 'Ana López',
-      estado: 'Pendiente',
-      detalles: 'Se dejó mensaje de voz. Seguir intentando el contacto.',
-    },
-  ];
 
   expandirFila(index: number) {
     this.filaExpandidaIndex = this.filaExpandidaIndex === index ? null : index;

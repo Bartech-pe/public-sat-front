@@ -310,7 +310,21 @@
                   </div>
                 </div>
               </p-fieldset>
-              <div class="flex justify-end gap-4">
+              <div class="flex justify-between items-center gap-4">
+                <div>
+                  <div *ngIf="isInWrap" class="flex items-center gap-2">
+                    <p-checkbox
+                      [(ngModel)]="abandoned"
+                      inputId="abandoned"
+                      binary="true"
+                      [ngModelOptions]="{ standalone: true }"
+                    >
+                    </p-checkbox>
+                    <label for="recordatorio" class="text-sm -mb-1">
+                      Marcar la llamada como abandonada
+                    </label>
+                  </div>
+                </div>
                 <div class="flex gap-2">
                   <btn-custom
                     *ngIf="isInWrap"

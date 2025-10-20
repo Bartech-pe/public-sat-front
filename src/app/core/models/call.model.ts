@@ -53,4 +53,5 @@ export interface CallHistory {
   callBasicInfo: string;
   callsToday: number;
   updatedAt: Date;
+  callSateName?: string;
 }
