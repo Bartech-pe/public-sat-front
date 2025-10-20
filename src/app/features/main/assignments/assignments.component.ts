@@ -25,6 +25,7 @@ import { Portfolio } from '@models/portfolio.model';
 import { PortfolioStore } from '@stores/portfolio.store';
 import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
 import { CitizenContact } from '@models/citizen.model';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
 @Component({
   selector: 'app-assignments',
   imports: [
@@ -43,6 +44,7 @@ import { CitizenContact } from '@models/citizen.model';
     ChipModule,
     ButtonCustomSquareComponent,
     CompleteManagementComponent,
+    PaginatorComponent,
   ],
   providers: [MessageGlobalService],
   templateUrl: './assignments.component.html',
@@ -97,21 +99,26 @@ export class AssignmentsComponent implements OnInit {
     return this.portfolioList.find((p) => p.id === this.portfolioId);
   }
 
+  limit = signal(5);
+  offset = signal(0);
+  totalItems: number = 0;
+  portfolioDetailManaged: number = 0;
+
   portfolioDetail: PortfolioDetail[] = [];
 
   get cardItems() {
     return [
       {
-        label: 'Total asignados',
+        label: 'asignados',
         total: this.totalAsignado,
       },
       {
-        label: 'Sin gestionar',
-        total: this.totalSinGestionar,
+        label: 'gestionados',
+        total: this.portfolioDetailManaged,
       },
       {
-        label: 'Gestionado',
-        total: this.totalGestionado,
+        label: 'sin gestionar',
+        total: this.totalAsignado - this.portfolioDetailManaged,
       },
       // {
       //   label: 'Cerrado',
@@ -121,7 +128,7 @@ export class AssignmentsComponent implements OnInit {
   }
 
   get totalAsignado(): number {
-    return this.portfolioDetail.length;
+    return this.totalItems;
   }
 
   get totalSinGestionar(): number {
@@ -265,12 +272,20 @@ export class AssignmentsComponent implements OnInit {
 
   loadDataPortfolioDetail() {
     this.portfolioDetailService
-      .findAllByUserToken(this.portfolioId!)
+      .findAllByUserToken(this.portfolioId!, this.limit(), this.offset())
       .subscribe({
-        next: (data) => {
-          this.portfolioDetail = data;
+        next: (res) => {
+          this.portfolioDetail = res.data;
+          this.totalItems = res.total ?? 0;
+          this.portfolioDetailManaged = res.managed;
         },
       });
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadDataPortfolioDetail();
   }
 
   selectPortfolio() {

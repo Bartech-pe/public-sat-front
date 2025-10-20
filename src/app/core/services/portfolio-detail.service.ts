@@ -7,6 +7,7 @@ import {
   ReasignCarteraDetalle,
 } from '@models/portfolio-detail.model';
 import { Observable } from 'rxjs';
+import { PaginatedResponse } from '@interfaces/paginated-response.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +17,19 @@ export class PortfolioDetailService extends GenericCrudService<PortfolioDetail> 
     super(http, 'portfolio-details');
   }
 
-  findAllByUserToken(portfolioId: number): Observable<PortfolioDetail[]> {
-    return this.http.get<PortfolioDetail[]>(
-      `${this.url}/detalleByUserToken/${portfolioId}`
+  findAllByUserToken(
+    portfolioId: number,
+    limit?: number,
+    offset?: number,
+    q?: Record<string, any>
+  ): Observable<PaginatedResponse<PortfolioDetail> & { managed: number }> {
+    const query = q ? `q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    const limitQ = limit ? `limit=${limit}&` : '';
+    const offsetQ = limit ? `offset=${offset}&` : '';
+    return this.http.get<
+      PaginatedResponse<PortfolioDetail> & { managed: number }
+    >(
+      `${this.url}/detailByUserToken/${portfolioId}?${limitQ}${offsetQ}${query}`
     );
   }
 
@@ -31,7 +42,7 @@ export class PortfolioDetailService extends GenericCrudService<PortfolioDetail> 
     portfolioId: number
   ): Observable<PortfolioDetail[]> {
     return this.http.get<PortfolioDetail[]>(
-      `${this.url}/detalleByUserId/${userId}/${portfolioId}`
+      `${this.url}/detailByUserId/${userId}/${portfolioId}`
     );
   }
 

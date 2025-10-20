@@ -11,7 +11,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DialogService } from 'primeng/dynamicdialog';
 
 import { MessageGlobalService } from '@services/generic/message-global.service';
@@ -19,7 +18,6 @@ import { CommonModule } from '@angular/common';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { Router } from '@angular/router';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { NewPortfolioComponent } from './new-portfolio/new-portfolio.component';
@@ -28,28 +26,33 @@ import { ButtonStatuComponent } from '@shared/buttons/button-statu/button-statu.
 import { TagModule } from 'primeng/tag';
 import { Portfolio } from '@models/portfolio.model';
 import { PortfolioStore } from '@stores/portfolio.store';
-import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { ContactDetailsComponent } from './contact-details/contact-details.component';
 import { ButtonManageComponent } from '@shared/buttons/button-manage/button-manage.component';
 import { SocketService } from '@services/socket.service';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { CardModule } from 'primeng/card';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { TimeRemainingPipe } from '@pipes/time-remaining.pipe';
 @Component({
   selector: 'app-portfolios',
   imports: [
+    CommonModule,
+    CardModule,
     TableModule,
     InputTextModule,
-    CommonModule,
     ColorPickerModule,
     ButtonModule,
     FormsModule,
+    OverlayPanelModule,
+    TagModule,
+    ButtonManageComponent,
+    ButtonStatuComponent,
     ButtonSaveComponent,
     ButtonEditComponent,
     BtnDeleteComponent,
-    OverlayPanelModule,
-    ButtonStatuComponent,
-    TagModule,
-    ButtonManageComponent,
-    ProgressBarModule
+    BtnCustomComponent,
+    ProgressBarModule,
+    TimeRemainingPipe,
   ],
   templateUrl: './portfolios.component.html',
   styles: ``,
@@ -63,7 +66,7 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
 
   private readonly dialogService = inject(DialogService);
 
-    private readonly socketService = inject(SocketService);
+  private readonly socketService = inject(SocketService);
 
   readonly portfolioStore = inject(PortfolioStore);
 
@@ -74,12 +77,17 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
     return this.portfolioStore.items();
   }
 
-  progress = 0;
-  processed = 0;
-  total = 0;
-  message = '';
+  progress: number = 0;
+  updated: boolean = false;
+  cancelLoading: boolean = false;
+  remainingSeconds?: number;
+  portfolioProggessId?: number;
+  portfolioName?: string;
+  processed: number = 0;
+  total: number = 0;
+  message?: string;
 
-  mostrarMessage:boolean = false;
+  mostrarMessage: boolean = false;
 
   constructor(private router: Router) {}
 
@@ -95,21 +103,31 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadData();
 
-     this.socketService.onPortfolioProgress().subscribe((data) => {
-     this.mostrarMessage = true;
-      this.progress = data.percentage;
+    this.socketService.onPortfolioProgress().subscribe((data) => {
+      this.mostrarMessage = true;
+      (this.updated = data.updated), (this.progress = data.processed);
+      this.portfolioProggessId = data.portfolioId;
+      this.portfolioName = data.name;
       this.processed = data.processed;
       this.total = data.total;
-      console.log(
-        `📊 Cartera ${data.portfolioId}: ${data.percentage}% (${data.processed}/${data.total})`
-      );
+      this.remainingSeconds = data.remainingSeconds;
     });
 
     // Escuchar fin del proceso
     this.socketService.onPortfolioComplete().subscribe((data) => {
       this.message = data.message;
-      this.msg.success('Proceso completado:', data.message)
+      this.msg.success(data.message);
       this.mostrarMessage = false;
+      this.clearProgress();
+    });
+
+    // Escuchar fin del proceso
+    this.socketService.onPortfolioCancelled().subscribe((data) => {
+      this.message = data.message;
+      this.msg.info(data.message);
+      this.mostrarMessage = false;
+      this.clearProgress();
+      this.loadData();
     });
   }
 
@@ -143,8 +161,38 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
     }
   });
 
+  clearProgress() {
+    this.progress = 0;
+    this.portfolioProggessId = undefined;
+    this.cancelLoading = false;
+    this.portfolioName = undefined;
+    this.processed = 0;
+    this.total = 0;
+    this.updated = false;
+  }
+
   loadData() {
     this.portfolioStore.loadAll();
+  }
+
+  cancelProgress() {
+    if (this.portfolioProggessId) {
+      this.msg.confirm(
+        this.updated
+          ? `<div class='px-4 py-2'>
+        <p class='text-center'> ¿Está seguro de cancelar la carga de la cartera <span class='uppercase font-bold'>${this.portfolioName}</span>? </p>
+        <p class='text-center'> Esta acción solo detendrá la carga de nuevos contribuyentes. </p>
+      </div>`
+          : `<div class='px-4 py-2'>
+        <p class='text-center'> ¿Está seguro de cancelar la carga de la cartera <span class='uppercase font-bold'>${this.portfolioName}</span>? </p>
+        <p class='text-center'> Esta acción eliminará permanentemente la cartera incompleta. </p>
+      </div>`,
+        () => {
+          this.cancelLoading = true;
+          this.socketService.cancelProtfolio(this.portfolioProggessId!);
+        }
+      );
+    }
   }
 
   onPageChange(event: { limit: number; offset: number }) {
@@ -212,11 +260,9 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   }
 
   editarEstadoPortfolio(registro: any) {
-    // registro.status = true;
-    // registro.amount = Number(registro.amount);
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de cambiar el estado de la cartera <span class='uppercase font-bold'>${registro.name}</span>? </p>
+        <p class='text-center'> ¿Está seguro de cambiar el estado de la cartera <span class='uppercase font-bold'>${registro.name}</span> a FINALIZADO? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {

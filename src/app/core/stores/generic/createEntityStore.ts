@@ -116,10 +116,10 @@ export function createEntityStore<T>(options: {
         //     .subscribe();
         // },
 
-        create(data: Partial<T>) {
+        create(data: Partial<T>, file?: File) {
           patchState(store, { loading: true, error: null });
           service
-            .create(data)
+            .create(data, file)
             .pipe(
               tap({
                 next: (data) =>
@@ -161,10 +161,10 @@ export function createEntityStore<T>(options: {
             .subscribe();
         },
 
-        update(id: number | string, data: Partial<T>) {
+        update(id: number | string, data: Partial<T>, file?: File) {
           patchState(store, { loading: true, error: null });
           service
-            .update(id, data)
+            .update(id, data, file)
             .pipe(
               tap({
                 next: (data) =>

@@ -1,7 +1,8 @@
+import { VicidialCredentials } from '@features/main/settings/channels/inbox-form/inbox-form.component';
 import { Channel } from './channel.model';
 import { User } from './user.model';
 
-export interface InboxCredential {
+export interface InboxCredential extends VicidialCredentials {
   businessId?: string;
   phoneNumber?: string;
   phoneNumberId?: string;

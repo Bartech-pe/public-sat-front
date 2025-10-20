@@ -3,7 +3,7 @@
   <div
     class="grid grid-cols-1 gap-2 py-1 px-2 rounded-md border border-slate-500"
   >
-    <div class="flex gap-4">
+    <div class="flex justify-between gap-4">
       <div class="font-semibold">{{ code }} | {{ name }}</div>
       <div class="w-32 text-sm text-right">
         {{ currentDate | date : "dd/MM/yyyy hh:mm:ss .a" }}
@@ -161,6 +161,9 @@
                         </td>
                       </tr>
                     </ng-container>
+                    <tr>
+                      <div class="h-4"></div>
+                    </tr>
                   </ng-container>
                 </tbody>
               </table>

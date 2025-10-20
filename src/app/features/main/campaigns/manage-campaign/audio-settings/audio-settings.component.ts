@@ -52,6 +52,9 @@ export class AudioSettingsComponent {
     active: 'Y',
     dtoList: [],
   };
+
+  public files: NgxFileDropEntry[] = [];
+   public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
   constructor(
     private globalService: GlobalService,
@@ -87,8 +90,9 @@ export class AudioSettingsComponent {
   onFileDropped(files: NgxFileDropEntry[]) {
     const droppedFile = files[0];
     this.formlist.dtoList = [];
-
+    this.files = files;
     if (droppedFile.fileEntry.isFile) {
+      
       const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
       this.nameArchivo = droppedFile.relativePath;
       const ext = this.nameArchivo.split('.').pop()?.toLowerCase();
@@ -99,6 +103,8 @@ export class AudioSettingsComponent {
       }
 
       fileEntry.file((file: File) => {
+
+        this.selectedFile = file;
         const reader = new FileReader();
 
         reader.onload = (e: any) => {
@@ -216,6 +222,7 @@ export class AudioSettingsComponent {
       this.msg.error('No hay audio para subir');
       return;
     }
+    
     const randomNumber = Math.floor(Math.random() * 100); // entero entre 0 y 99999
     const name_archivo = `${this.campania.vdCampaignId}_${randomNumber}.wav`;
     if (this.audioBlob) {
@@ -262,8 +269,14 @@ export class AudioSettingsComponent {
   }
 
   guardarlead() {
+
     if (!this.formlist) {
       this.msg.error('No hay información de la lista para guardar');
+      return;
+    }
+
+      if (!this.selectedFile) {
+      this.msg.error('Por favor selecciona un archivo primero');
       return;
     }
 
@@ -278,16 +291,17 @@ export class AudioSettingsComponent {
       this.msg.error('No hay leads para guardar');
       return;
     }
+    
+    this.formlist.dtoList = [];
 
-    this.vicidialService.create(this.formlist, 'central/listas').subscribe({
+    this.vicidialService.createlista(this.formlist ,this.selectedFile,).subscribe({
       next: (res) => {
-        console.log(res);
-        if (res.status == 'created') {
-          this.msg.success('Leads guardados correctamente');
-          // Limpiar dtoList si quieres
-          this.formlist.dtoList = [];
-          this.onCancel();
-        }
+    
+      
+            this.msg.success('Leads guardados correctamente');
+       
+            //this.onCancel();
+     
       },
       error: (err) => {
         console.error('Error al guardar leads:', err);

@@ -6,8 +6,18 @@ import {
   Input,
   Output,
 } from '@angular/core';
-import { ButtonModule, ButtonSeverity } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+
+export type ButtonSeverity =
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'help'
+  | 'danger'
+  | 'contrast';
 
 @Component({
   selector: 'btn-custom',

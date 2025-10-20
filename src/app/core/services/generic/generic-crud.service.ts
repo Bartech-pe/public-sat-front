@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@envs/environments';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
+import { toFormData } from '@utils/formData.function';
 import { Observable } from 'rxjs';
 
 export class GenericCrudService<T> {
@@ -31,8 +32,13 @@ export class GenericCrudService<T> {
     return this.http.get<T>(`${this.url}/${id}`);
   }
 
-  create(dto: Partial<T>): Observable<T> {
-    // const formData = toFormData(dto);
+  create(dto: Partial<T>, file?: File): Observable<T> {
+    if (file) {
+      const formData = toFormData(dto);
+      formData.append('file', file, file.name);
+      return this.http.post<T>(this.url, formData);
+    }
+
     return this.http.post<T>(this.url, dto);
   }
 
@@ -45,8 +51,13 @@ export class GenericCrudService<T> {
     return this.http.post<T[]>(`${this.url}/assignment/${id}${query}`, dto);
   }
 
-  update(id: number, dto: Partial<T>): Observable<T> {
-    // const formData = toFormData(dto);
+  update(id: number, dto: Partial<T>, file?: File): Observable<T> {
+    if (file) {
+      const formData = toFormData(dto);
+      formData.append('file', file, file.name);
+      return this.http.patch<T>(`${this.url}/${id}`, formData);
+    }
+
     return this.http.patch<T>(`${this.url}/${id}`, dto);
   }
 

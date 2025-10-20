@@ -20,7 +20,6 @@ import { ImageModule } from 'primeng/image';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TableModule } from 'primeng/table';
 import { RoleFormComponent } from './role-form/role-form.component';
-import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { CardModule } from 'primeng/card';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';

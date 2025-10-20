@@ -23,6 +23,11 @@
       (inboxChange)="inboxChange($event)"
       [data]="channelData"
     ></app-chatweb>
+    } @case (8) {
+    <app-vicidial
+      (inboxChange)="inboxChange($event)"
+      [data]="channelData"
+    ></app-vicidial>
     } @default {
     <p>No se sabe que es</p>
     } }

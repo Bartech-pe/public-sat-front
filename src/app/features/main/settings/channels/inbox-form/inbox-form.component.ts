@@ -12,18 +12,27 @@ import { MessengerComponent } from '../new-inbox/configure/messenger/messenger.c
 import { EmailComponent } from '../new-inbox/configure/email/email.component';
 import { InboxUserFormComponent } from '../inbox-user-form/inbox-user-form.component';
 import { ChatwebComponent } from '../new-inbox/configure/chatweb/chatweb.component';
+import { VicidialComponent } from '../new-inbox/configure/vicidial/vicidial.component';
 
 interface Credentials {
   id: number;
   inboxId: number;
-  accessToken: string | null;
-  phoneNumberId: string | null;
-  businessId: string | null;
-  phoneNumber: string;
-  expiresAt: string | null;
+  accessToken?: string | null;
+  phoneNumberId?: string | null;
+  businessId?: string | null;
+  phoneNumber?: string | null;
+  expiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
+  deletedAt?: string | null;
+}
+export interface VicidialCredentials
+{
+  vicidialHost?: string;
+  publicIp?: string;
+  privateIp?: string;
+  user?: string;
+  password?: string;
 }
 
 export interface ChannelData {
@@ -37,6 +46,7 @@ export interface ChannelData {
   updatedAt: string;
   channel: Channel;
   credentials: Credentials;
+  vicidialCredentials: VicidialCredentials;
 }
 @Component({
   selector: 'app-inbox-form',
@@ -46,6 +56,7 @@ export interface ChannelData {
     WhatsappComponent,
     TelegramComponent,
     SmsComponent,
+    VicidialComponent,
     // InstagramComponent,
     // MessengerComponent,
     EmailComponent,

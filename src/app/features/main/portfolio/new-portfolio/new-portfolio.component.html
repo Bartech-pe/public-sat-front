@@ -316,16 +316,12 @@
     <!-- Botones -->
     <div class="pt-3 flex justify-end space-x-2">
       <button-cancel (click)="onCancel()" />
-      <p-button
-        type="submit"
-        size="small"
+      <button-save
         [label]="id ? 'Actualizar' : 'Guardar'"
-        styleClass="w-full !rounded-full !shadow-none"
-        severity="primary"
-        [disabled]="formData.invalid || loading"
-      >
-        <iconify-icon [icon]="'ci:save'" class="text-xl" />
-      </p-button>
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      />
     </div>
   </form>
 </div>

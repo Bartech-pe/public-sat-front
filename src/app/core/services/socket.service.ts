@@ -15,8 +15,11 @@ export class SocketService {
 
   private requestPhoneCallSubject = new Subject<{ userId: number }>();
 
- private requestPortfolioSubject = new Subject<any>();
+  private requestPortfolioSubject = new Subject<any>();
+
   private requestPortfolioCompleteSubject = new Subject<any>();
+
+  private requestPortfolioCancelledSubject = new Subject<any>();
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
@@ -54,28 +57,45 @@ export class SocketService {
     });
 
     // Escuchar progreso
-    this.socket.on("portfolioProgress", (data) => {
+    this.socket.on('portfolio-progress', (data) => {
       console.log(
         `📊 Cartera ${data.portfolioId}: ${data.percentage}% (${data.processed}/${data.total})`
       );
-       this.requestPortfolioSubject.next(data);
+      this.requestPortfolioSubject.next(data);
     });
 
     // Escuchar fin del proceso
-    this.socket.on("portfolioComplete", (data) => {
+    this.socket.on('portfolio-complete', (data) => {
       console.log(data.message);
-       this.requestPortfolioCompleteSubject.next(data);
+      this.requestPortfolioCompleteSubject.next(data);
     });
 
+    // Escuchar fin del proceso
+    this.socket.on('portfolio-cancelled', (data) => {
+      console.log(data.message);
+      this.requestPortfolioCancelledSubject.next(data);
+    });
   }
 
-  onPortfolioProgress(): Observable<any> {
-   return this.requestPortfolioSubject.asObservable();
+  onPortfolioProgress(): Observable<{
+    updated: boolean;
+    portfolioId: number;
+    name: string;
+    processed: number;
+    total: number;
+    remainingSeconds?: number;
+  }> {
+    return this.requestPortfolioSubject.asObservable();
   }
 
   // Escuchar cuando termina el proceso
   onPortfolioComplete(): Observable<any> {
-   return this.requestPortfolioCompleteSubject.asObservable();
+    return this.requestPortfolioCompleteSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioCancelled(): Observable<any> {
+    return this.requestPortfolioCancelledSubject.asObservable();
   }
 
   registerUser(userId: number): void {
@@ -137,8 +157,14 @@ export class SocketService {
   onUserPhoneStateRequest(): Observable<{ userId: number }> {
     return this.requestUserPhoneStateSubject.asObservable();
   }
-  
+
   onRequestPhoneCallSubject(): Observable<{ userId: number }> {
     return this.requestPhoneCallSubject.asObservable();
+  }
+
+  cancelProtfolio(portfolioId: number): void {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('cancel-portfolio', { portfolioId });
+    }
   }
 }

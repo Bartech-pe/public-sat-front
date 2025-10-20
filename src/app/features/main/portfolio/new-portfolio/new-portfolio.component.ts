@@ -46,6 +46,7 @@ import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { PortfolioStore } from '@stores/portfolio.store';
 import { CitizenContact } from '@models/citizen.model';
 import { PortfolioService } from '@services/portfolio.service';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 
 @Component({
   selector: 'app-new-portfolio',
@@ -63,6 +64,7 @@ import { PortfolioService } from '@services/portfolio.service';
     NgxFileDropModule,
     DatePicker,
     SelectModule,
+    ButtonSaveComponent,
     ButtonCancelComponent,
   ],
   templateUrl: './new-portfolio.component.html',
@@ -78,7 +80,7 @@ export class NewPortfolioComponent implements OnInit {
 
   readonly portfolioDetailService = inject(PortfolioDetailService);
 
-   readonly portfolioService = inject(PortfolioService);
+  // readonly portfolioService = inject(PortfolioService);
 
   readonly areaStore = inject(DepartmentStore);
 
@@ -123,8 +125,6 @@ export class NewPortfolioComponent implements OnInit {
       officeId: [undefined, Validators.required],
       dateStart: [undefined, Validators.required],
       dateEnd: [undefined, Validators.required],
-      amount: [0],
-      status: [false],
     });
 
     this.userStore.loadAll();
@@ -169,12 +169,10 @@ export class NewPortfolioComponent implements OnInit {
       this.formData.setValue({
         name: item.name,
         description: item.description,
-        status: item.status ?? false,
         dateStart: new Date(item.dateStart),
         dateEnd: new Date(item.dateEnd),
         departmentId: item?.office?.departmentId,
         officeId: item.officeId,
-        amount: item.amount ?? 0,
       });
 
       const data = item.detalles.map((row: any): PortfolioDetail => {
@@ -529,46 +527,27 @@ export class NewPortfolioComponent implements OnInit {
     this.ref.close();
   }
 
-  guardar() {
+  onSubmit() {
     if (this.formData.valid) {
       const { departmentId, ...request } = this.formData.value;
       if (!this.selectedFile) {
-       this.msg.error('Por favor selecciona un archivo primero');
+        this.msg.error('Por favor selecciona un archivo primero');
         return;
       }
       if (this.id) {
-        request.amount = this.previewData.length;
-        request.detalles = this.previewData
-          .filter((p) => !p.id)
-          .map((p) => {
-            const { user, ...item } = p;
-            return item;
-          });
-
-        this.portfolioStore.update(this.id, { id: this.id, ...request });
+        this.portfolioStore.update(
+          this.id,
+          { id: this.id, ...request },
+          this.selectedFile
+        );
       } else {
         if (!this.previewData || this.previewData.length === 0) {
           this.msg.error('Debe agregar al menos un registro antes de guardar.');
           return;
         }
 
-        request.amount = this.previewData.length;
-        //request.file = this.files;
-        // request.detalles = this.previewData.map((p) => {
-        //   const { user, ...item } = p;
-        //   return item;
-        // });
-
-        this.portfolioService.createPortfolio(request,this.selectedFile).subscribe(res =>{
-           if(res){
-             this.ref.close();
-             this.msg.success('¡Cartera creada exitosamente!');
-           }
-        })
-
-        //this.portfolioStore.create(request);
+        this.portfolioStore.create(request, this.selectedFile);
       }
-      //this.router.navigate(['/portfolios']);
     }
   }
 }

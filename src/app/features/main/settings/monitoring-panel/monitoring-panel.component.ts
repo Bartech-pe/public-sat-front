@@ -142,16 +142,21 @@ export class MonitoringPanelComponent {
 
   /** VICIDIAL DASHBOARD */
   loadVicidialDashboard(): void {
-    // this.monitorService.getMonitorVicidialCountDashBoard().subscribe({
-    //   next: (res) => {
-    //     this.viciCount = res;
-    //     this.loadingVicidialDashboard = false;
-    //   },
-    //   error: (err) => {
-    //     console.error('Error al cargar conteo Vicidial Dashboard:', err);
-    //     this.loadingVicidialDashboard = false;
-    //   },
-    // });
+    this.monitorService.getMonitorVicidialCountDashBoard().subscribe({
+      next: (res: any) => {
+        this.viciCount = {
+          llamadasAtendidas: res.llamadas_tendidas,
+          llamadasTotales: res.llamadas_totales,
+          llamadasPerdidas: res.llamadas_perdidas,
+          llamadasEnCola: res.llamadas_en_cola,
+        };
+        this.loadingVicidialDashboard = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar conteo Vicidial Dashboard:', err);
+        this.loadingVicidialDashboard = false;
+      },
+    });
     this.aloSatStore.loadAllStates();
     merge(
       this.socketService.onUserPhoneStateRequest(),
@@ -185,28 +190,28 @@ export class MonitoringPanelComponent {
       }));
 
       const grouped = groupBy(this.userList, (item) => item.channelState?.id!);
-      this.viciCount = {
-        agentesLogueados: this.userList.filter(
-          (item) => item.channelState?.id !== ChannelPhoneState.OFFLINE
-        ).length,
-        agentesDisponibles: this.userList.filter(
-          (item) => item.channelState?.id !== ChannelPhoneState.READY
-        ).length,
-        agentesEnAtencion: this.userList.filter(
-          (item) => item.channelState?.id !== ChannelPhoneState.INCALL
-        ).length,
-        agentesPausados: this.userList.filter(
-          (item) => item.channelState?.id !== ChannelPhoneState.PAUSED
-        ).length,
-        llamadasActivas: this.userList.filter(
-          (item) => item.channelState?.id !== ChannelPhoneState.INCALL
-        ).length,
-        llamadasAtendidas: 0,
-        llamadasPerdidas: 0,
-        llamadasEnCola: 0,
-        llamadasEnIvr: 0,
-        llamadasTotales: 0,
-      };
+      // this.viciCount = {
+      //   agentesLogueados: this.userList.filter(
+      //     (item) => item.channelState?.id !== ChannelPhoneState.OFFLINE
+      //   ).length,
+      //   agentesDisponibles: this.userList.filter(
+      //     (item) => item.channelState?.id !== ChannelPhoneState.READY
+      //   ).length,
+      //   agentesEnAtencion: this.userList.filter(
+      //     (item) => item.channelState?.id !== ChannelPhoneState.INCALL
+      //   ).length,
+      //   agentesPausados: this.userList.filter(
+      //     (item) => item.channelState?.id !== ChannelPhoneState.PAUSED
+      //   ).length,
+      //   llamadasActivas: this.userList.filter(
+      //     (item) => item.channelState?.id !== ChannelPhoneState.INCALL
+      //   ).length,
+      //   llamadasAtendidas: 0,
+      //   llamadasPerdidas: 0,
+      //   llamadasEnCola: 0,
+      //   llamadasEnIvr: 0,
+      //   llamadasTotales: 0,
+      // };
     }
   });
 

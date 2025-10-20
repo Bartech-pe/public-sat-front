@@ -8,7 +8,7 @@ export const environment = {
   roleIdAdministrador: 1,
   roleIdSupervisor: 2,
   roleIdAsesor: 3,
-  channelConnectorApiUrl: 'https://channelpre.sat.gob.pe',
+  channelConnectorApiUrl: 'https://channelpre.sat.gob.pe/',
   urlTextoAudio: 'http://172.29.55.105:8000',
   // citizenApiUrl: 'http://172.29.55.54:8042/api/v1',
   // urlVicidial: 'http://161.132.45.63:4000',

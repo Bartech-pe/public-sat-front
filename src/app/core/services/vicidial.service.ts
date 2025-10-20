@@ -47,8 +47,26 @@ export class VicidialService {
   }
 
   create(data: any, endpoint: string): Observable<any> {
+     
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
       return this.http.post<any>(`${this.baseUrl}${endpoint}`, data, { headers }).pipe(catchError(this.handleError));
+  }
+
+
+  createlista(data: any, file: File): Observable<any> {
+      const formData = new FormData();
+      
+      Object.keys(data).forEach(key => {
+        if (data[key] !== undefined && data[key] !== null) {
+          formData.append(key, data[key]);
+        }
+      });
+
+      formData.append('file', file, file.name);
+
+    
+      return this.http.post<any>(`${this.baseUrl}central/listas`, formData).pipe(catchError(this.handleError));
+  
   }
 
   editarCampania(campaign_id: string, data: Partial<any>): Observable<any> {
