@@ -65,6 +65,15 @@ export class AudioSettingsComponent {
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
   listAudios:any=[];
   listListVicidial:any=[];
+
+  ttsText: string = '';
+  columnas: string[] = [];
+  previewData: any[] = [];
+  nameArchivo: string = '';
+  uploadProgress = 0;
+  @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
+  audioUrlAudio: string | null = null;
+
   constructor(
     private globalService: GlobalService,
     private msg: MessageGlobalService,
@@ -75,31 +84,33 @@ export class AudioSettingsComponent {
 
   ngOnInit(): void {
     if (this.config.data) {
-      if (this.config.data.vdCampaignId) {
-        this.campania = this.config.data;
-        this.formlist.campaign_id = Number(this.config.data.vdCampaignId);
-      }
+        if (this.config.data.vdCampaignId) {
 
-      this.vicidialService.getAllAudio().subscribe(res=>{
-        this.listAudios = res;
-      })
+          this.campania = this.config.data;
+          this.formlist.campaign_id = Number(this.config.data.vdCampaignId);
 
-      this.vicidialService.getlistCampania(this.config.data.vdCampaignId).subscribe(res=>{
-                console.log(res);
-        this.listListVicidial= res;
-      })
+          this.vicidialService.getByIdlistCampania(this.config.data.vdCampaignId).subscribe(res => {
+            if (res?.survey_first_audio_file) {
+              this.audioUrlAudio = `${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`;
+            } else {
+              this.audioUrlAudio = '';
+            }
+          })
+        }
+
+        this.vicidialService.getAllAudio().subscribe(res=>{
+          this.listAudios = res;
+        })
+
+        this.vicidialService.getlistCampania(this.config.data.vdCampaignId).subscribe(res=>{
+          this.listListVicidial= res;
+        })
     }
   }
 
   descargarPlantilla() {
     descargarPlantillaExcelAudio();
   }
-
-  ttsText: string = '';
-  columnas: string[] = [];
-  previewData: any[] = [];
-  nameArchivo: string = '';
-  uploadProgress = 0;
 
   onFileDropped(files: NgxFileDropEntry[]) {
     const droppedFile = files[0];
@@ -355,16 +366,13 @@ export class AudioSettingsComponent {
   reproducirAudio(){
     environment.urlTextoAudioreproducir
   }
-  @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
 
-  audioUrlAudio: string | null = null;
   onAudioChange(event: any) {
     const selectedAudio = event.value;
-    console.log('🎧 Audio seleccionado:', environment.urlTextoAudioreproducir + selectedAudio);
     this.audioUrlAudio = environment.urlTextoAudioreproducir + selectedAudio;
     setTimeout(() => {
-    this.audioPlayer?.nativeElement.play().catch(err => console.warn('No se pudo reproducir automáticamente:', err));
-  }, 100);
+      this.audioPlayer?.nativeElement.play().catch(err => console.log('No se pudo reproducir automáticamente:', err));
+    }, 100);
   }
  
   eliminarArchivo() {
@@ -389,28 +397,21 @@ export class AudioSettingsComponent {
       return;
     }
 
-    // Validar list_id y list_name
     if (!this.formlist.list_id || !this.formlist.list_name?.trim()) {
       this.msg.error('Debe seleccionar una lista válida antes de guardar');
       return;
     }
 
-    // Validar que dtoList tenga datos
     if (!this.formlist.dtoList || this.formlist.dtoList.length === 0) {
       this.msg.error('No hay leads para guardar');
       return;
     }
     
     this.formlist.dtoList = [];
-
     this.vicidialService.createlista(this.formlist ,this.selectedFile,).subscribe({
       next: (res) => {
-    
-      
-            this.msg.success('Leads guardados correctamente');
-       
-            //this.onCancel();
-     
+          this.msg.success('Leads guardados correctamente');
+          this.onCancel();
       },
       error: (err) => {
         console.error('Error al guardar leads:', err);
