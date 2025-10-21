@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UnifiedQuerySistemComponent } from '@features/main/adviser/unified-query-system/unified-query-system.component';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
 import { ChannelAttentionService } from '@services/channel-attention.service';
 import { ChannelCitizenService, IChannelCitizen } from '@services/channel-citizen.service';
 import { CitizenInfo, ExternalCitizenService } from '@services/externalCitizen.service';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 
 // Interface para el tipo de datos del contacto
 
@@ -13,9 +15,11 @@ import { CitizenInfo, ExternalCitizenService } from '@services/externalCitizen.s
   selector: 'app-citizen-information',
   imports: [
     CommonModule,
+    DynamicDialogModule,
     PhoneFormatPipe
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [DialogService],
   templateUrl: './citizen-information.component.html',
   styles: `
     :host {
@@ -29,10 +33,11 @@ export class CitizenInformationComponent implements OnInit {
   isLoading: boolean = false;
   channelCitizen: IChannelCitizen | null = null;
   channelRoomId: number | null = null;
-
+  // private readonly dialogService = inject(DialogService);
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private dialogService: DialogService,
     private readonly externalCitizenService: ExternalCitizenService,
     private readonly channelCitizenService: ChannelCitizenService
   ) {}
@@ -105,7 +110,18 @@ export class CitizenInformationComponent implements OnInit {
   }
 
   onDocumentClick(): void {
-    console.log('Document clicked');
+    const ref = this.dialogService.open(UnifiedQuerySistemComponent, {
+          header: 'Registro de Atención',
+          styleClass: 'modal-6xl',
+          data:{
+            documentToSearch: this.channelCitizen?.documentNumber
+          },
+          modal: true,
+          focusOnShow: false,
+          dismissableMask: false,
+          closable: true,
+        });
+
   }
 
   onPhoneClick(): void {

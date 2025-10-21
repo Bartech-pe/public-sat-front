@@ -188,6 +188,10 @@ export class CompleteManagementComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
+    methodKey: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     method: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
@@ -544,9 +548,10 @@ export class CompleteManagementComponent implements OnInit {
         i: wsps.length > 1 ? `${i + 1} ` : '',
         ...l,
       })),
-    ].map((l) => {
+    ].map((l, i) => {
       const mo = methods.find((m) => m.key == l.contactType);
       return {
+        key: `${mo?.type}_${i}`,
         type: mo?.type,
         channel: mo?.channel,
         label: `${mo?.type} ${l?.i}| ${l.value as string}`,
@@ -555,8 +560,9 @@ export class CompleteManagementComponent implements OnInit {
     });
   }
 
-  selectMetodo(type: string) {
-    const method = this.listMetodos.find((m) => m.type == type);
+  selectMetodo(key: string) {
+    const method = this.listMetodos.find((m) => m.key == key);
+    this.formData.get('method')?.setValue(method?.type);
     this.formData.get('channel')?.setValue(method?.channel);
     this.formData.get('contact')?.setValue(method?.contact);
   }
@@ -564,6 +570,7 @@ export class CompleteManagementComponent implements OnInit {
   resetForm() {
     this.formData.reset({
       portfolioDetailId: this.portfolioDetail?.id,
+      methodKey: undefined,
       method: undefined,
       type: undefined,
       channel: undefined,
@@ -746,7 +753,8 @@ export class CompleteManagementComponent implements OnInit {
 
   onSubmit() {
     if (!this.pagoVerificado) {
-      const { caseInformation, recordatorio, ...form } = this.formData.value;
+      const { caseInformation, recordatorio, methodKey, ...form } =
+        this.formData.value;
 
       const infoCaso =
         caseInformation?.commitmentDate ||
@@ -924,6 +932,7 @@ export class CompleteManagementComponent implements OnInit {
 }
 
 interface MetodoContacto {
+  key: string;
   type: string;
   contact: string;
   channel: string;

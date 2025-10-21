@@ -51,4 +51,5 @@ export interface VicidialUser {
   user: User;
   channelState?: ChannelState;
   pauseCode?: string;
+  calls?: number;
 }

@@ -70,7 +70,7 @@ export class EditPortfolioComponent implements OnInit {
   tipoList: { value: string; label: string }[] = [
     {
       value: '1',
-      label: 'Asignación',
+      label: 'Reasignación',
     },
     {
       value: '2',
@@ -228,7 +228,7 @@ export class EditPortfolioComponent implements OnInit {
           portfolioId: this.portfolioId,
           asignaciones: this.selectedRows,
         },
-        header: 'Asignar ' + this.selectedRows.length + ' Casos Seleccionados',
+        header: 'Reasignar ' + this.selectedRows.length + ' Casos Seleccionados',
         styleClass: 'modal-lg',
         modal: true,
         dismissableMask: false,

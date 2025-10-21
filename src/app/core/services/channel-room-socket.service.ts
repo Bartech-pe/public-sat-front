@@ -14,7 +14,7 @@ export interface ChannelRoomAssistance {
   channelRoomId?: number;
   assistanceId: number;
   citizenId?: number;
-  userId?: number;
+  userId?: number | null;
 }
 export interface changeChannelRoomStatusDto extends ChannelRoomAssistance {
   status: ChatStatus;

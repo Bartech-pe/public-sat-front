@@ -1,14 +1,7 @@
-import {
-  Component,
-  CUSTOM_ELEMENTS_SCHEMA,
-  effect,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, Input, OnInit, signal } from "@angular/core";
 import { ButtonModule } from 'primeng/button';
-import { DialogService } from 'primeng/dynamicdialog';
-import { BreakComponent } from './break/break.component';
+import { DialogService, DynamicDialogConfig, DynamicDialogModule } from 'primeng/dynamicdialog';
+import { BreakComponent } from "../phone/break/break.component";
 import { CommonModule } from '@angular/common';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -32,7 +25,7 @@ import { CallTimerService } from '@services/call-timer.service';
 import { TextareaModule } from 'primeng/textarea';
 import { FieldsetModule } from 'primeng/fieldset';
 import { TableModule } from 'primeng/table';
-import { TransferCallComponent } from './transfer-call/transfer-call.component';
+import { TransferCallComponent } from "../phone/transfer-call/transfer-call.component";
 import { OmnicanalidadService } from '@services/api-sat/omnicanalidad.service';
 import { SaldomaticoService } from '@services/api-sat/saldomatico.service';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -62,13 +55,11 @@ import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { DurationPipe } from '@pipes/duration.pipe';
-import { UnifiedQuerySistemComponent } from '../unified-query-system/unified-query-system.component';
-import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
-  selector: 'app-phone',
+  selector: 'app-unified-query-system',
   imports: [
-    CommonModule,
+      CommonModule,
     BreadcrumbModule,
     FormsModule,
     ReactiveFormsModule,
@@ -76,7 +67,6 @@ import { CheckboxModule } from 'primeng/checkbox';
     SelectModule,
     TextareaModule,
     FieldsetModule,
-    UnifiedQuerySistemComponent,
     TableModule,
     TabsModule,
     SelectModule,
@@ -85,26 +75,24 @@ import { CheckboxModule } from 'primeng/checkbox';
     InputIconModule,
     ButtonModule,
     CardModule,
-    TimeAgoPipe,
-    TimeElapsedPipe,
-    DurationPipe,
-    ButtonSaveComponent,
     BtnCustomComponent,
-    CheckboxModule,
+    DynamicDialogModule
   ],
-  templateUrl: './phone.component.html',
+  providers: [DialogService],
+  templateUrl: './unified-query-system.component.html',
   styles: ``,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PhoneComponent implements OnInit {
+export class UnifiedQuerySistemComponent implements OnInit {
+
+  @Input  () documentToSearch?: string;
+
   openModal: boolean = false;
 
   showConfigDialog: boolean = false;
   showInfoDialog: boolean = false;
 
-  private readonly dialogService = inject(DialogService);
-
-  private readonly msg = inject(MessageGlobalService);
+  public readonly config = inject(DynamicDialogConfig, { optional: true });
 
   private readonly aloSatService = inject(AloSatService);
 
@@ -132,41 +120,8 @@ export class PhoneComponent implements OnInit {
 
   motivo: any;
 
-  abandoned: boolean = false;
-
   formData = new FormGroup({
     idCampaign: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-  });
-
-  formDataAtencion = new FormGroup({
-    name: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    detail: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    consultTypeId: new FormControl<number | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    categoryId: new FormControl<number | undefined>(1, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    communicationId: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    docIde: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    tipDoc: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -310,7 +265,7 @@ export class PhoneComponent implements OnInit {
 
   tableTramites: any[] = [];
 
-  searchText = signal<string | undefined>(undefined);
+  searchText = signal('');
 
   tableComunicaciones: CitizenAssistance[] = [];
 
@@ -332,69 +287,12 @@ export class PhoneComponent implements OnInit {
     return this.aloSatStore.lastCallInfo();
   }
 
-  private callInfoEffect = effect(() => {
-    const callInfo = this.aloSatStore.callInfo();
-    if (this.isInCall && callInfo) {
-      this.formDataAtencion
-        .get('communicationId')
-        ?.setValue(callInfo?.leadId as string);
-    }
-  });
-
-  private lastCallInfoEffect = effect(() => {
-    const lastCallInfo = this.aloSatStore.lastCallInfo();
-    if (this.isInWrap) {
-      this.formDataAtencion
-        .get('communicationId')
-        ?.setValue(lastCallInfo?.leadId as string);
-    } else {
-    }
-  });
-
-  private citizenEffect = effect(() => {
-    const citizen = this.aloSatStore.citizen();
-    if (citizen) {
-      this.formDataAtencion.get('tipDoc')?.setValue(citizen.vtipDoc);
-      this.formDataAtencion.get('docIde')?.setValue(citizen.vdocIde);
-      this.searchText.set(citizen.vdocIde);
-      this.formDataAtencion.get('name')?.setValue(citizen.vcontacto);
+  ngOnInit(): void {
+    const doc = this.documentToSearch || this.config?.data?.documentToSearch;
+    if (doc) {
+      this.searchText.set(doc);
       this.search();
     }
-  });
-
-  private resetOnSuccessEffect = effect(() => {
-    const item = this.store.selectedItem();
-    const error = this.store.error();
-    const action = this.store.lastAction();
-
-    // Manejo de errores
-    if (error) {
-      console.log('error', error);
-      this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al guardar la atención!'
-      );
-      return; // Salimos si hay un error
-    }
-
-    // Si se ha creado o actualizado correctamente
-    if (action === 'created' || action === 'updated') {
-      this.msg.success(
-        action === 'created'
-          ? '¡Atención registrada exitosamente!'
-          : '¡Atención actualizada exitosamente!'
-      );
-
-      this.store.clearSelected();
-      this.resetForm();
-      this.getAtenciones();
-      if (this.isInWrap) {
-        this.endAssistance();
-      }
-      return;
-    }
-  });
-
-  ngOnInit(): void {
     this.consultTypeStore.loadAll();
     this.typeIdeDocStore.loadAll();
     if (this.isAloSat) {
@@ -416,26 +314,21 @@ export class PhoneComponent implements OnInit {
 
   ngOnDestroy(): void {}
 
-  resetForm() {
-    this.formDataAtencion.reset({
-      name: undefined,
-      detail: undefined,
-      consultTypeId: undefined,
-      categoryId: 2,
-      tipDoc: undefined,
-      docIde: undefined,
+  getCampaigns() {
+    this.aloSatService.getCampaignsByUser().subscribe({
+      next: (data) => {
+        this.listCampaigns = data;
+      },
     });
   }
-
   getAtenciones() {
-    const searchText = this.searchText();
-    if (searchText) {
-      this.citizenAssistanceService.findByDocIde(searchText).subscribe({
+    if (this.searchText()) {
+      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
         next: (data) => {
           this.tableComunicaciones = data;
         },
       });
-      this.channelAssistanceService.findByDocIde(searchText).subscribe({
+      this.channelAssistanceService.findByDocIde(this.searchText()).subscribe({
         next: (data) => {
           this.tableChannelAssistances = data;
         },
@@ -444,9 +337,8 @@ export class PhoneComponent implements OnInit {
   }
 
   getChannelAssistances() {
-    const searchText = this.searchText();
-    if (searchText) {
-      this.citizenAssistanceService.findByDocIde(searchText).subscribe({
+    if (this.searchText()) {
+      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
         next: (data) => {
           this.tableComunicaciones = data;
         },
@@ -455,35 +347,33 @@ export class PhoneComponent implements OnInit {
   }
 
   getImpuestoPredial() {
-    const searchText = this.searchText();
-    if (searchText) {
-      this.saldomaticoService
-        .impuestoPredialInfo(
-          !isNaN(Number.parseInt(searchText)) && searchText.length == 8
-            ? 2
-            : searchText.length == 7
-            ? 5
-            : 1,
-          searchText
-        )
-        .subscribe({
-          next: (data) => {
-            this.tableImpuestoPredial = data;
-          },
-        });
-    }
+    this.saldomaticoService
+      .impuestoPredialInfo(
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
+          ? 2
+          : this.searchText().length == 7
+          ? 5
+          : 1,
+        this.searchText()
+      )
+      .subscribe({
+        next: (data) => {
+          this.tableImpuestoPredial = data;
+        },
+      });
   }
 
   getImpuestoVehicular(code?: string) {
-    const searchText = this.searchText()!;
     this.saldomaticoService
       .impuestoVehicularInfo(
-        !isNaN(Number.parseInt(searchText)) && searchText.length == 8
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
           ? 2
-          : searchText.length == 7
+          : this.searchText().length == 7
           ? 5
           : 1,
-        searchText
+        this.searchText()
       )
       .subscribe({
         next: (data) => {
@@ -493,11 +383,13 @@ export class PhoneComponent implements OnInit {
   }
 
   getPapeletaInfo() {
-    const searchText = this.searchText()!;
     this.omnicanalidadService
       .consultarPapeleta(
-        !isNaN(Number.parseInt(searchText)) && searchText.length == 8 ? 2 : 1,
-        searchText
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
+          ? 2
+          : 1,
+        this.searchText()
       )
       .subscribe({
         next: (data) => {
@@ -507,11 +399,13 @@ export class PhoneComponent implements OnInit {
   }
 
   getDeuda() {
-    const searchText = this.searchText()!;
     this.omnicanalidadService
       .consultarMultaAdm(
-        !isNaN(Number.parseInt(searchText)) && searchText.length == 8 ? 2 : 1,
-        searchText
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
+          ? 2
+          : 1,
+        this.searchText()
       )
       .subscribe({
         next: (data) => {
@@ -521,11 +415,13 @@ export class PhoneComponent implements OnInit {
   }
 
   getTramites() {
-    const searchText = this.searchText()!;
     this.omnicanalidadService
       .consultarTramite(
-        !isNaN(Number.parseInt(searchText)) && searchText.length == 8 ? 2 : 1,
-        searchText
+        !isNaN(Number.parseInt(this.searchText())) &&
+          this.searchText().length == 8
+          ? 2
+          : 1,
+        this.searchText()
       )
       .subscribe({
         next: (data) => {
@@ -544,186 +440,13 @@ export class PhoneComponent implements OnInit {
   }
 
   clear() {
-    this.searchText.set(undefined);
+    this.searchText.set('');
     this.tableDeudas = [];
     this.tableImpuestoPredial = [];
     this.tablePapeletas = [];
     this.tableTramites = [];
     this.tableComunicaciones = [];
     this.tableChannelAssistances = [];
-  }
-
-  onSubmit() {
-    const { idCampaign } = this.formData.value;
-    if (!idCampaign) {
-      this.msg.error('El id de la campaña es obligatorio');
-      return;
-    }
-    this.aloSatService.agentLogin(idCampaign as string).subscribe({
-      next: (data) => {
-        this.aloSatStore.getState();
-      },
-    });
-  }
-
-  agentRelogin() {
-    this.aloSatService.agentRelogin().subscribe({
-      next: (data) => {
-        this.aloSatStore.getState();
-      },
-    });
-  }
-
-  getStatus() {
-    this.aloSatService.agentStatus().subscribe({
-      next: (data) => {
-        this.aloSatService.status = data;
-      },
-    });
-  }
-
-  onLogout() {
-    this.msg.confirm(
-      `
-      <div class='px-4'>
-        <p class='text-center'> ¿Está seguro de cerrar la conexión del agente? </p>
-      </div>
-      `,
-      () => {
-        this.aloSatService.agentLogout().subscribe({
-          next: (data) => {
-            console.log('data', data);
-            this.aloSatStore.getState();
-          },
-        });
-      },
-      undefined,
-      'Desconectar agente'
-    );
-  }
-
-  getCampaigns() {
-    this.aloSatService.getCampaignsByUser().subscribe({
-      next: (data) => {
-        this.listCampaigns = data;
-      },
-    });
-  }
-
-  requestPause() {
-    this.openModal = true;
-    const ref = this.dialogService.open(BreakComponent, {
-      header: 'Solicitar Pausa',
-      styleClass: 'modal-lg',
-      modal: true,
-      focusOnShow: false,
-      dismissableMask: true,
-      closable: true,
-    });
-
-    ref.onClose.subscribe((res) => {
-      this.openModal = false;
-      this.aloSatStore.getState();
-    });
-  }
-
-  transferCall() {
-    this.openModal = true;
-    const ref = this.dialogService.open(TransferCallComponent, {
-      header: `Transferir llamada | ${this.callInfo?.phoneNumber}`,
-      styleClass: 'modal-sm',
-      modal: true,
-      focusOnShow: false,
-      dismissableMask: true,
-      closable: true,
-    });
-
-    ref.onClose.subscribe((res) => {
-      this.openModal = false;
-    });
-  }
-
-  changeAvailable() {
-    this.aloSatService.resumeAgent().subscribe({
-      next: (data) => {
-        this.aloSatStore.getState();
-      },
-    });
-  }
-
-  addNew() {}
-
-  vistaActual: 'estado' | 'llamada-nueva' | 'llamada-reconocida' = 'estado';
-
-  abrirLlamadaNueva() {
-    this.vistaActual = 'llamada-nueva';
-  }
-
-  abrirLlamadaReconocida() {
-    this.vistaActual = 'llamada-reconocida';
-  }
-
-  volverEstado() {
-    this.vistaActual = 'estado';
-  }
-
-  mostrarTodoHistorial = false;
-
-  pausaActiva: boolean = false;
-
-  vistaSeleccionada: string = 'Comunicaciones';
-
-  botonSeleccionado = false;
-
-  selectedItem: any = null;
-  mostrarModal: boolean = false;
-
-  abrirModal(item: any) {
-    this.selectedItem = item;
-    this.mostrarModal = true;
-  }
-
-  endCall() {
-    this.aloSatService.endCall().subscribe({
-      next: (data) => {
-        this.msg.success('¡Llamada finalizada!');
-      },
-    });
-  }
-
-  parkCall() {
-    this.aloSatService.parkCall(!this.isInPark!).subscribe({
-      next: (data) => {
-        this.msg.success(
-          !this.isInPark ? '¡Ciudadano en espera!' : '¡Llamada Reanudada!'
-        );
-      },
-    });
-  }
-
-  endAssistance() {
-    this.aloSatService
-      .pauseAgent(
-        VicidialPauseCode.WRAPUP,
-        this.isInWrap ? !this.abandoned : false
-      )
-      .subscribe({
-        next: (data) => {
-          this.msg.success('¡Atención finalizada!');
-        },
-      });
-  }
-
-  cerrarModal() {
-    this.mostrarModal = false;
-  }
-
-  busqueda: string = '';
-
-  filaExpandidaIndex: number | null = null;
-
-  expandirFila(index: number) {
-    this.filaExpandidaIndex = this.filaExpandidaIndex === index ? null : index;
   }
 
   get loadingCitizen(): boolean {
@@ -745,41 +468,4 @@ export class PhoneComponent implements OnInit {
       ? 'Número no registrado en el sistema'
       : 'Número registrado en el sistema';
   }
-
-  buscarContribuyente() {
-    if (!this.busqueda.trim()) {
-      console.warn('Búsqueda vacía');
-      return;
-    }
-
-    this.externalCitizenService
-      .getCitizenInformation({
-        psiTipConsulta: 2,
-        piValPar1:
-          !isNaN(Number.parseInt(this.busqueda)) && this.busqueda.length == 8
-            ? 2
-            : 1,
-        pvValPar2: this.busqueda,
-      })
-      .subscribe((response) => {
-        this.aloSatService.citizen = response[0];
-      });
-
-    // Aquí podrías invocar un servicio real para la búsqueda
-  }
-
-  onSubmitAtencion() {
-    const form = this.formDataAtencion.value;
-
-    this.store.create({
-      ...form,
-    } as ChannelAssistance);
-  }
-}
-
-interface MetodoContacto {
-  tipo: string;
-  contacto: string;
-  canal: string;
-  label: string;
 }

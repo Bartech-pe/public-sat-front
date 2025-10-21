@@ -143,7 +143,7 @@ interface OptionView {
     BtnCustomComponent,
     ReplyMailComponent,
     CalendarCommonModule,
-    TooltipModule
+    TooltipModule,
   ],
   templateUrl: './mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -507,7 +507,7 @@ export class MailComponent implements OnInit {
 
   changeChannelState() {
     if (this.userStateId) {
-      this.mailService.changeEmailState(this.userStateId).subscribe({
+      this.mailService.changeEmailMyState(this.userStateId).subscribe({
         next: () => {
           this.msg.success('Estado actualizado');
         },
@@ -1452,7 +1452,7 @@ export class MailComponent implements OnInit {
     this.mailService.rebalanceAdvisors().subscribe({
       next: (res) => {
         console.log('🔄 Rebalanceo completado', res);
-        this.msg.success('Correos re-balanceados entre asesores');
+        this.msg.success('Correos balanceados entre asesores');
         this.loadMails(); // opcional refrescar
       },
       error: (err) => {

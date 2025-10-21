@@ -36,6 +36,16 @@ export class VicidialService {
       .pipe(catchError(this.handleError));
   }
 
+  getlistCampania(id:string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}central/listas/`+ id)
+      .pipe(catchError(this.handleError));
+  }
+
+  getAllAudio(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}central/audios`)
+      .pipe(catchError(this.handleError));
+  }
+
   getById(id: any, endpoint: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${endpoint}/${id}`)
       .pipe(catchError(this.handleError));

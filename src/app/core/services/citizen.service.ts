@@ -16,8 +16,12 @@ export class CitizenService extends GenericCrudService<Citizen> {
     tipDoc: string,
     docIde: string
   ): Observable<CitizenContact[]> {
-    return this.http.get<CitizenContact[]>(
-      `${this.url}/citizen-contacts/${tipDoc}/${docIde}`
+    return this.http.post<CitizenContact[]>(
+      `${this.url}/citizen-contacts/${docIde}`,
+      {
+        tipDoc,
+        docIde,
+      }
     );
   }
 

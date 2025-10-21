@@ -336,34 +336,34 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
     const oldScrollHeight = messagesContainer.scrollHeight;
     const oldScrollTop = messagesContainer.scrollTop;
 
-    this.ChannelAttentionService.getMessagesFromAssistance(
-      this.asistenciaSeleccionada.assistanceId
-    ).subscribe({
-      next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
-        if (response.success && response.data.messages.length > 0) {
-          this.asistenciaSeleccionada!.messages = [...response.data.messages, ...this.asistenciaSeleccionada!.messages!];
-          this.asistenciaSeleccionada!.hasMore = response.data.messages.length === 15; // Suponemos 15 como límite por página
+    // this.ChannelAttentionService.getMessagesFromAssistance(
+    //   this.asistenciaSeleccionada.assistanceId
+    // ).subscribe({
+    //   next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
+    //     if (response.success && response.data.messages.length > 0) {
+    //       this.asistenciaSeleccionada!.messages = [...response.data.messages, ...this.asistenciaSeleccionada!.messages!];
+    //       this.asistenciaSeleccionada!.hasMore = response.data.messages.length === 15; // Suponemos 15 como límite por página
 
-          requestAnimationFrame(() => {
-            const newScrollHeight = messagesContainer.scrollHeight;
-            const heightDifference = newScrollHeight - oldScrollHeight;
-            messagesContainer.scrollTop = oldScrollTop + heightDifference;
+    //       requestAnimationFrame(() => {
+    //         const newScrollHeight = messagesContainer.scrollHeight;
+    //         const heightDifference = newScrollHeight - oldScrollHeight;
+    //         messagesContainer.scrollTop = oldScrollTop + heightDifference;
 
-            setTimeout(() => {
-              this.scrollLocked = false;
-            }, 100);
-          });
-        } else {
-          this.asistenciaSeleccionada!.hasMore = false;
-          this.scrollLocked = false;
-        }
-        this.isLoadingOlderMessages = false;
-      },
-      error: () => {
-        this.isLoadingOlderMessages = false;
-        this.scrollLocked = false;
-      }
-    });
+    //         setTimeout(() => {
+    //           this.scrollLocked = false;
+    //         }, 100);
+    //       });
+    //     } else {
+    //       this.asistenciaSeleccionada!.hasMore = false;
+    //       this.scrollLocked = false;
+    //     }
+    //     this.isLoadingOlderMessages = false;
+    //   },
+    //   error: () => {
+    //     this.isLoadingOlderMessages = false;
+    //     this.scrollLocked = false;
+    //   }
+    // });
   }
 
   handleScrollDown(): void {

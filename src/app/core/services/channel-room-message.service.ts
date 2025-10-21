@@ -9,7 +9,7 @@ export interface CreateChannelAgentMessageDto {
   assistanceId?: number;
   externalChannelRoomId?: string;
   phoneNumberReceiver?: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
   message?: string;
   attachments: Attachment[];
   channel?: string;

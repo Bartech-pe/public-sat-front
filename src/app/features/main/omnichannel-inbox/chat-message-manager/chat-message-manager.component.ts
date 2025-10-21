@@ -48,7 +48,6 @@ import {
 } from '@services/channel-room-message.service';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
 import { AdvisorComponent } from '@shared/modal/advisor/advisor.component';
-import { UserService } from '@services/user.service';
 import { MarkdownPipe } from '@pipes/markdown.pipe';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DropdownModule } from 'primeng/dropdown';
@@ -62,6 +61,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { FormAssistanceComponent } from '@features/main/mail/form-assistance/form-assistance.component';
 import { FormAttentionComponent } from '../form-attention/form-attention.component';
 import { Subject, takeUntil } from 'rxjs';
+import { TooltipModule } from 'primeng/tooltip';
 
 export interface Attachment {
   type: 'file' | 'image';
@@ -95,6 +95,7 @@ interface AttachmentPreview extends Attachment {
     OverlayBadgeModule,
     AdvisorComponent,
     MarkdownPipe,
+    TooltipModule,
     TagModule,
     DialogModule,
     ProgressBarModule,
@@ -110,7 +111,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
   @ViewChild('fileInput') private fileInput!: ElementRef;
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
-
   chatDetail: ChatDetail | null = null;
   advisors: getAdvisorsResponseDto[] = [];
   channelRoomId: number | null = null;
@@ -126,6 +126,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
   typingIndicatorEmitted = false;
   isDragOver = false;
   uploadingFiles = false;
+  isBotBlocked = false
   private isInitialLoad = false;
   private hasScrolledToBottom = false;
   private isLoadingOlderMessages = false;
@@ -165,7 +166,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
     private channelRoomSocketService: ChannelRoomSocketService,
     private predefinedResponsesService: PredefinedResponsesService,
     private ngZone: NgZone
-  ) {}
+  ) {
+  }
 
 
   items: MenuItem[] | undefined;
@@ -176,7 +178,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
   handleEvent(event: boolean) {
     this.showHistorial = event;
-    console.log(event);
   }
   ngOnInit() {
     this.route.queryParamMap
@@ -191,7 +192,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
       this.channelRoomId = Number(channelRoomId);
       const assintanceId = params.get('assistanceId');
       this.assintanceId = Number(assintanceId);
-      this.loadPredefinedResponses();
       this.loadChatData();
     });
     setInterval(() => {
@@ -232,6 +232,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
         ) {
           this.chatDetail = {
             ...this.chatDetail,
+            botStatus: 'paused',
             status: 'prioridad',
           } as ChatDetail;
         }
@@ -378,7 +379,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
     this.items = undefined;
 
-    console.log('ChatMessageManagerComponent completamente destruido');
   }
 
   sendEmailWithConversation() {
@@ -484,7 +484,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
         )
         .subscribe({
           next: (response) => {
-            console.log(response);
             if (response.messages && response.messages.length > 0) {
               this.chatDetail!.messages = [
                 ...response.messages,
@@ -609,13 +608,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
   // Método que se ejecuta cuando la imagen se carga (opcional)
   onImageLoad(event: Event) {
     const img = event.target as HTMLImageElement;
-    console.log('Imagen cargada:', img.naturalWidth, 'x', img.naturalHeight);
   }
 
   // Método para descargar archivo
   downloadAttachment(attachment: Attachment) {
     try {
-      console.log(attachment);
       if (!attachment.content) {
         this.messageService.add({
           severity: 'error',
@@ -728,8 +725,9 @@ export class ChatMessageManagerComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.chatDetail = response;
+          this.loadPredefinedResponses();
 
-          if (this.chatDetail.messages.length) {
+          if (this.chatDetail.messages.length && this.chatDetail?.agentAssigned?.id) {
             this.channelRoomSocketService.onChatViewed(response.channelRoomId);
 
             requestAnimationFrame(() => {
@@ -832,7 +830,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
       // Scroll instantáneo sin animación
       element.style.scrollBehavior = 'auto';
       element.scrollTop = element.scrollHeight;
-      console.log('Scroll instantáneo realizado al final');
     }
   }
 
@@ -1278,7 +1275,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
       this.channelRoomService
         .toggleBotServices(payload)
         .subscribe((response) => {
-          console.log(response);
 
           const updatedChatDetail: ChatDetail = {
             channelRoomId: this.chatDetail?.channelRoomId as number,
@@ -1331,12 +1327,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
     return id.toString().padStart(length, '0');
   }
 
-  viewClosedChats() {
-    console.log('Ver chats finalizados');
-  }
 
   backToList() {
-    console.log('Volver a la lista');
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { channel: this.route.snapshot.queryParams['channel'] },
@@ -1345,15 +1337,30 @@ export class ChatMessageManagerComponent implements OnDestroy {
   }
 
   loadPredefinedResponses(): void {
-    this.predefinedResponsesService.allChatSat().subscribe({
-      next: (responses) => {
-        console.log(responses);
-        this.predefinedResponses = responses;
-      },
-      error: (error) => {
-        console.error('Error al cargar respuestas predefinidas:', error);
-      },
-    });
+    switch (this.chatDetail?.channel) {
+      case 'whatsapp':
+        this.predefinedResponsesService.allWhatsapp().subscribe({
+          next: (responses) => {
+            this.predefinedResponses = responses;
+          },
+          error: (error) => {
+            console.error('Error al cargar respuestas predefinidas:', error);
+          },
+        });
+        break;
+      case 'chatsat':
+         this.predefinedResponsesService.allChatSat().subscribe({
+          next: (responses) => {
+            this.predefinedResponses = responses;
+          },
+          error: (error) => {
+            console.error('Error al cargar respuestas predefinidas:', error);
+          },
+        });
+        break;
+      default:
+        break;
+    }
   }
 
   /**

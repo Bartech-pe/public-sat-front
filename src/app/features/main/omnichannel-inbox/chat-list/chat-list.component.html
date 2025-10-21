@@ -2,7 +2,37 @@
   <div class="flex flex-col h-full">
     <!-- Header sticky - altura fija -->
     <div class="px-5 pt-5 pb-3 flex-shrink-0 sticky top-0 z-10 bg-white border-b border-gray-100">
-      <h4 class="p-card-title mb-3 text-lg font-semibold">Lista de chats</h4>
+
+      <div class="mb-3 flex items-center justify-between">
+        <h4 class="p-card-title text-lg font-semibold">Lista de chats</h4>
+
+        <!-- Estado del usuario -->
+        @if(!['administrador'].includes(getUserRole()))
+        {
+          <div class="flex items-center gap-1">
+            <p>Tu estado: </p>
+            <button
+              #statusBtn
+              pRipple
+              (click)="statusMenu.toggle($event)"
+              [ngClass]="{
+                'bg-green-100 border-green-300': userStatus === 'Disponible',
+                'bg-red-100 border-red-300': userStatus !== 'Disponible'
+              }"
+              class="flex items-center gap-2.5 pl-2 py-2 border rounded-lg hover:shadow-md transition-all duration-200"
+            >
+              <div [ngClass]="userStatus === 'Disponible' ? 'bg-green-600' : 'bg-red-500'"
+                  class="w-2.5 h-2.5 rounded-full flex-shrink-0"></div>
+              <span class="text-sm font-semibold text-gray-800 whitespace-nowrap">
+                {{ userStatus }}
+              </span>
+              <iconify-icon icon="hugeicons:chevron-down-02" class="text-base text-gray-700 flex-shrink-0"></iconify-icon>
+            </button>
+
+            <p-menu #statusMenu [popup]="true" [model]="statusOptions" appendTo="body" (onItemClick)="changeUserStatus($event)"></p-menu>
+          </div>
+        }
+      </div>
 
       <!-- Buscador -->
       <p-iconfield class="mb-3">
@@ -199,7 +229,7 @@
                   </div>
 
                   <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-500">{{ chat?.advisor?.name | titlecase}}</span>
+                    <span class="text-sm text-gray-500">{{ chat?.advisor?.name?? 'Disponible (BOT)' | titlecase}}</span>
 
                     <div class="flex items-center gap-2">
                       <iconify-icon
@@ -247,7 +277,7 @@
   </div>
 </p-card>
 <p-toast position="top-right" key="helpRequest" [baseZIndex]="5000">
-  <ng-template let-message pTemplate="headless" let-closeFn="closeFn">
+  <ng-template let-message pTemplate="headless">
     <section
       class="flex flex-col p-4 gap-4 w-full bg-primary text-white dark:text-black rounded-2xl shadow-lg border-2 border-white"
     >
@@ -278,7 +308,7 @@
         <!-- Botón -->
         <p-button
           label="Atender ahora"
-          (onClick)="onAttend(message, closeFn)"
+          (onClick)="onAttend(message)"
           styleClass="!bg-white !text-black !rounded-xl !px-3 !py-1"
           size="small"
         />

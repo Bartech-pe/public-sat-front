@@ -64,7 +64,7 @@ export interface ChatDetail
   status: ChatStatus
   citizen: ChannelCitizenSummariesDto;
   botStatus: BotStatus;
-  agentAssigned?: ChannelAgent;
+  agentAssigned?: ChannelAgent | null;
   messages: ChannelMessage[];
   hasMore?: boolean
 }
@@ -106,11 +106,11 @@ export interface ChannelSender
 
 export interface ChannelAgent
 {
-    id: number;
-    name: string;
-    alias?: string;
-    phoneNumber?: string;
-    email?: string;
+    id?: number | null;
+    name?: string | null;
+    alias?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
 }
 
 export interface LastMessageReceived
@@ -140,7 +140,7 @@ export interface ChatListInbox{
     externalRoomId: string;
     channel: Channels;
     status: ChatStatus;
-    advisor: AdvisorAssigned;
+    advisor?: AdvisorAssigned | null;
     lastMessage: LastMessageReceived;
     unreadCount: number;
     botStatus: BotStatus;
@@ -166,7 +166,7 @@ export interface ChannelRoomNewMessageDto{
     attention: ChannelAttentionSummariesDTO;
     externalRoomId: string;
     channel: Channels;
-    advisor: AdvisorAssigned;
+    advisor: AdvisorAssigned | null;
     status: ChatStatus;
     attachments: MessageAttachment[];
     message: NewMessage;
@@ -184,8 +184,8 @@ export interface MessageAttachment
   extension: string
 }
 export interface AdvisorAssigned{
-    id: number;
-    name: string;
+    id?: number | null;
+    name?: string | null;
 }
 export interface ChannelRoomViewStatusDto{
     channelRoomId: number;

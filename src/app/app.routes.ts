@@ -162,7 +162,7 @@ export const routes: Routes = [
         title: 'SAT | Panel',
         loadComponent: () =>
           import(
-            '@features/main/settings/monitoring-panel/monitoring-panel.component'
+            '@features/main/monitoring-panel/monitoring-panel.component'
           ).then((c) => c.MonitoringPanelComponent),
       },
       {

@@ -2,23 +2,66 @@
   <div class="grid grid-cols-1 gap-4">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium"> Teléfono </label>
-      <p-inputgroup>
-        <p-inputgroup-addon> +51 </p-inputgroup-addon>
-        <p-inputnumber [useGrouping]="false" formControlName="phone" />
-      </p-inputgroup>
+      <div class="grid grid-cols-1">
+        <p-inputgroup>
+          <p-inputgroup-addon> +51 </p-inputgroup-addon>
+          <input pInputText pKeyFilter="int" formControlName="phone" />
+        </p-inputgroup>
+        <div
+          *ngIf="
+            formData.controls.phone.invalid && formData.controls.phone.touched
+          "
+        >
+          <small
+            class="text-xs text-red-500"
+            *ngIf="formData.controls.phone.errors"
+          >
+            El número debe tener 9 digitos.
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium"> Whatsapp </label>
-      <p-inputgroup>
-        <p-inputgroup-addon> wa.me/ </p-inputgroup-addon>
-        <p-inputnumber [useGrouping]="false" formControlName="whatsapp" />
-      </p-inputgroup>
+      <div class="grid grid-cols-1">
+        <p-inputgroup>
+          <p-inputgroup-addon> wa.me/ </p-inputgroup-addon>
+          <input pInputText pKeyFilter="int" formControlName="whatsapp" />
+        </p-inputgroup>
+        <div
+          *ngIf="
+            formData.controls.whatsapp.invalid &&
+            formData.controls.whatsapp.touched
+          "
+        >
+          <small
+            class="text-xs text-red-500"
+            *ngIf="formData.controls.whatsapp.errors"
+          >
+            El número debe tener 9 digitos.
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium"> Email </label>
-      <input pInputText formControlName="email" class="w-full" />
+      <div class="grid grid-cols-1">
+        <input pInputText formControlName="email" class="w-full" />
+        <div
+          *ngIf="
+            formData.controls.email.invalid && formData.controls.email.touched
+          "
+        >
+          <small
+            class="text-xs text-red-500"
+            *ngIf="formData.controls.email.errors"
+          >
+            Ingresa correo válido.
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="flex items-center gap-2 py-1">

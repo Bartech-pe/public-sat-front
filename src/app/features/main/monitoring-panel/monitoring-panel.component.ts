@@ -4,6 +4,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   effect,
   inject,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -44,15 +45,24 @@ import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.compon
 import { AloSatService } from '@services/alo-sat.service';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { groupBy } from '@utils/array.util';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CallService } from '@services/call.service';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { SelectModule } from 'primeng/select';
+import { ChannelStateService } from '@services/channel-state.service';
+import { MailService } from '@services/mail.service';
+
+type ViewType = 'alosat' | 'email' | 'chatsat' | 'whatsapp';
 
 @Component({
   selector: 'app-monitoring-panel',
   imports: [
+    CommonModule,
+    FormsModule,
     TableModule,
     InputTextModule,
     ColorPickerModule,
     ButtonModule,
-    FormsModule,
     BreadcrumbModule,
     CardModule,
     InputTextModule,
@@ -60,14 +70,15 @@ import { groupBy } from '@utils/array.util';
     TabsModule,
     TagModule,
     AccordionModule,
-    CommonModule,
     AvatarModule,
     BadgeModule,
     DialogModule,
     TableModule,
+    SelectModule,
     TimeElapsedPipe,
     DurationPipe,
     BtnCustomComponent,
+    PaginatorComponent,
   ],
   templateUrl: './monitoring-panel.component.html',
   styles: ``,
@@ -76,15 +87,25 @@ import { groupBy } from '@utils/array.util';
 export class MonitoringPanelComponent {
   private readonly dialogService = inject(DialogService);
 
+  private readonly router = inject(Router);
+
+  private readonly route = inject(ActivatedRoute);
+
   private readonly msg = inject(MessageGlobalService);
 
   private readonly monitorService = inject(MonitorService);
+
+  private readonly callService = inject(CallService);
 
   private readonly socketService = inject(SocketService);
 
   private readonly aloSatStore = inject(AloSatStore);
 
   private readonly aloSatService = inject(AloSatService);
+
+  private readonly channelStateService = inject(ChannelStateService);
+
+  private readonly mailService = inject(MailService);
 
   value: number = 0;
   tablaActiva: 'estados' | 'atenciones' | null = null;
@@ -93,6 +114,12 @@ export class MonitoringPanelComponent {
 
   // Contadores
   viciCount: VicidialCount | null = null;
+
+  aloSatCount: any[] = [];
+  aloSatTotal: number = 0;
+  aloSatQueueTotal: number = 0;
+  saleTotal: number = 0;
+
   chatCount: ChannelCount | null = null;
   wspCount: ChannelCount | null = null;
   mailCount: MailCount | null = null;
@@ -119,17 +146,66 @@ export class MonitoringPanelComponent {
   // Reporte Vicidial (Tabla)
   vicidialReport: VicidialReport[] = [];
 
+  originalRoute: string = '';
+
+  viewValue = signal<ViewType>('alosat');
+
+  limitAlo = signal(10);
+  offsetAlo = signal(0);
+  totalItemsAlo: number = 0;
+
+  limitEmail = signal(10);
+  offsetEmail = signal(0);
+  totalItemsEmail: number = 0;
+
+  userMailStates: ChannelState[] = [];
+
   ngOnInit() {
     this.loadCounts();
+    this.loadChannelStateEmails();
+
+    this.originalRoute = this.router.url.split('?')[0];
+    console.log('Ruta original:', this.originalRoute);
+    this.route.queryParams.subscribe((params) => {
+      const view = params['view'] ?? 'alosat';
+      this.viewValue.set(view);
+    });
+  }
+
+  loadChannelStateEmails() {
+    this.channelStateService.channelStateEmail().subscribe({
+      next: (data) => {
+        this.userMailStates = data;
+      },
+    });
+  }
+
+  changeChannelState(userId: number, stateId: number) {
+    console.log('userId', userId);
+    console.log('stateId', stateId);
+
+    if (stateId) {
+      this.mailService.changeEmailState(userId, stateId).subscribe({
+        next: () => {
+          this.msg.success('Estado actualizado');
+          this.loadMailMonitoring()
+        },
+      });
+    }
+  }
+
+  changeView(view: ViewType) {
+    this.router.navigate([this.originalRoute], {
+      queryParams: { view },
+    });
   }
 
   loadCounts() {
-    this.loadVicidialDashboard();
+    this.loadAlosatMonitoring();
+    this.loadMailMonitoring();
     this.loadChatCount();
     this.loadWspCount();
-    this.loadMailCount();
     this.loadVicidialReport();
-    this.loadMailAdvisors();
     this.loadChatAdvisors();
     this.loadWspAdvisors();
 
@@ -138,19 +214,38 @@ export class MonitoringPanelComponent {
       error: (err) =>
         console.error('Error al obtener conteo Vicidial:', err.message),
     });
+
+    merge(
+      this.socketService.onUserPhoneStateRequest(),
+      this.socketService.onRequestPhoneCallSubject()
+    )
+      .pipe(tap((data) => console.log('Socket event', data)))
+      .subscribe(() => {
+        this.loadAlosatMonitoring();
+      });
+
+    this.socketService.onEmailRequest().subscribe({
+      next: () => {
+        this.loadMailMonitoring();
+      },
+    });
   }
 
   /** VICIDIAL DASHBOARD */
-  loadVicidialDashboard(): void {
-    this.monitorService.getMonitorVicidialCountDashBoard().subscribe({
+  loadAlosatMonitoring(): void {
+    this.callService.getStatesCountByNow().subscribe({
       next: (res: any) => {
-        this.viciCount = {
-          llamadasAtendidas: res.llamadas_tendidas,
-          llamadasTotales: res.llamadas_totales,
-          llamadasPerdidas: res.llamadas_perdidas,
-          llamadasEnCola: res.llamadas_en_cola,
-        };
-        this.loadingVicidialDashboard = false;
+        this.aloSatCount = res.calls;
+        this.aloSatTotal = res.total;
+        this.aloSatQueueTotal = res.queueTotal;
+        this.saleTotal = res.saleTotal;
+        // this.viciCount = {
+        //   llamadasAtendidas: res.llamadas_tendidas,
+        //   llamadasTotales: res.llamadas_totales,
+        //   llamadasPerdidas: res.llamadas_perdidas,
+        //   llamadasEnCola: res.llamadas_en_cola,
+        // };
+        // this.loadingVicidialDashboard = false;
       },
       error: (err) => {
         console.error('Error al cargar conteo Vicidial Dashboard:', err);
@@ -158,18 +253,29 @@ export class MonitoringPanelComponent {
       },
     });
     this.aloSatStore.loadAllStates();
-    merge(
-      this.socketService.onUserPhoneStateRequest(),
-      this.socketService.onRequestPhoneCallSubject()
-    )
-      .pipe(tap((data) => console.log('Socket event', data)))
-      .subscribe(() => {
-        this.loadingVicidialDashboard = true;
-        this.aloSatStore.loadAllStates();
-      });
   }
 
   userList: VicidialUser[] = [];
+
+  getEfectividad(calls: number = 0) {
+    return this.saleTotal ? calls / this.saleTotal : undefined;
+  }
+
+  get usersOnline(): number {
+    return this.userList.filter((user: any) => !user.isOffline).length;
+  }
+
+  get usersIncall(): number {
+    return this.userList.filter((user: any) => user.inCall).length;
+  }
+
+  get usersReady(): number {
+    return this.userList.filter(
+      (user: VicidialUser) =>
+        user?.channelState?.id === ChannelPhoneState.READY ||
+        user?.channelState?.id === ChannelPhoneState.CLOSER
+    ).length;
+  }
 
   private callInfoEffect = effect(() => {
     const userStates = this.aloSatStore.userStates();
@@ -183,35 +289,12 @@ export class MonitoringPanelComponent {
           (acc, debt) => acc + debt.seconds,
           0
         ),
+        efectividad: this.getEfectividad(item.calls),
         phoneNumber: item.user?.callHistory?.[0]?.phoneNumber,
         isOffline: item.channelState?.id === ChannelPhoneState.OFFLINE,
         inCall: item.channelState?.id === ChannelPhoneState.INCALL,
         state: this.getState(item.channelState, item.pauseCode),
       }));
-
-      const grouped = groupBy(this.userList, (item) => item.channelState?.id!);
-      // this.viciCount = {
-      //   agentesLogueados: this.userList.filter(
-      //     (item) => item.channelState?.id !== ChannelPhoneState.OFFLINE
-      //   ).length,
-      //   agentesDisponibles: this.userList.filter(
-      //     (item) => item.channelState?.id !== ChannelPhoneState.READY
-      //   ).length,
-      //   agentesEnAtencion: this.userList.filter(
-      //     (item) => item.channelState?.id !== ChannelPhoneState.INCALL
-      //   ).length,
-      //   agentesPausados: this.userList.filter(
-      //     (item) => item.channelState?.id !== ChannelPhoneState.PAUSED
-      //   ).length,
-      //   llamadasActivas: this.userList.filter(
-      //     (item) => item.channelState?.id !== ChannelPhoneState.INCALL
-      //   ).length,
-      //   llamadasAtendidas: 0,
-      //   llamadasPerdidas: 0,
-      //   llamadasEnCola: 0,
-      //   llamadasEnIvr: 0,
-      //   llamadasTotales: 0,
-      // };
     }
   });
 
@@ -284,26 +367,28 @@ export class MonitoringPanelComponent {
     });
   }
 
-  loadMailCount(): void {
-    this.loadingMailCount = true;
+  /** TABLAS DE ASESORES */
+  loadMailMonitoring(): void {
+    this.monitorService.getMonitorAdvisorsMail().subscribe({
+      next: (data) => {
+        this.mailAdvisors = data;
+      },
+      error: (err) => console.error('Error cargando asesores de correo', err),
+    });
     this.monitorService.getCountMail().subscribe({
-      next: (res) => (this.mailCount = res),
+      next: (res) => {
+        this.mailCount = res;
+      },
       error: (err) => console.error('Error al cargar conteo de correos:', err),
       complete: () => (this.loadingMailCount = false),
     });
   }
 
-  /** TABLAS DE ASESORES */
-  loadMailAdvisors(): void {
-    this.monitorService.getMonitorAdvisorsMail().subscribe({
-      next: (data) => (this.mailAdvisors = data),
-      error: (err) => console.error('Error cargando asesores de correo', err),
-    });
-  }
-
   loadChatAdvisors(): void {
     this.monitorService.getMonitorAdvisorsChat().subscribe({
-      next: (data) => (this.chatAdvisors = data),
+      next: (data) => {
+        this.chatAdvisors = data;
+      },
       error: (err) => console.error('Error cargando asesores de chat', err),
     });
   }

@@ -19,6 +19,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CitizenContact } from '@models/citizen.model';
 import { CitizenService } from '@services/citizen.service';
+import { KeyFilterModule } from 'primeng/keyfilter';
 
 @Component({
   selector: 'app-contact-details',
@@ -31,6 +32,7 @@ import { CitizenService } from '@services/citizen.service';
     InputTextModule,
     SelectModule,
     ButtonModule,
+    KeyFilterModule,
     ToggleSwitchModule,
     ReactiveFormsModule,
     ButtonSaveComponent,
@@ -50,11 +52,11 @@ export class ContactDetailsComponent implements OnInit {
   formData = new FormGroup({
     phone: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
-      validators: [],
+      validators: [Validators.minLength(9), Validators.maxLength(9)],
     }),
     whatsapp: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
-      validators: [Validators.minLength(9)],
+      validators: [Validators.minLength(9), Validators.maxLength(9)],
     }),
     email: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
@@ -117,7 +119,9 @@ export class ContactDetailsComponent implements OnInit {
         docIde: this.info?.docIde,
         contactType: 'WHATSAPP',
         isAdditional: this.isAdditional,
-        value: `wa.me/51${this.formData.get('whatsapp')?.value}`,
+        value: this.formData.get('whatsapp')?.value
+          ? `wa.me/51${this.formData.get('whatsapp')?.value}`
+          : undefined,
         status: true,
       },
     ]

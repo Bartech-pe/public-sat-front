@@ -98,7 +98,7 @@
     <ng-template pTemplate="header">
       <tr>
         <th pSortableColumn="name" class="w-48">
-          Hora <p-sortIcon field="name" />
+          Fecha y hora <p-sortIcon field="name" />
         </th>
         <th pSortableColumn="description">
           Asesor <p-sortIcon field="description" />
@@ -109,7 +109,9 @@
           </div>
         </th>
         <th pSortableColumn="star_date">
-          Teléfono <p-sortIcon field="star_date" />
+          <div class="flex items-center justify-center">
+            Teléfono <p-sortIcon field="star_date" />
+          </div>
         </th>
         <th pSortableColumn="end_date">
           <div class="flex items-center justify-center">
@@ -125,33 +127,52 @@
     </ng-template>
     <ng-template pTemplate="body" let-registro>
       <tr>
-        <td>{{ registro.entryDate | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ registro.user?.name }}</td>
         <td>
-          <div class="flex items-center justify-center">
+          <div class="text-sm">
+            {{ registro.entryDate | date : "dd/MM/yyyy HH:mm:ss" }}
+          </div>
+        </td>
+        <td>
+          <div
+            class="text-sm"
+            [ngClass]="{
+              'italic font-light': !registro.user
+            }"
+          >
+            {{ registro.user?.name ?? "No asignado" }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
             {{ registro.seconds | duration }}
           </div>
         </td>
-        <td>{{ registro.phoneNumber }}</td>
         <td>
-          <div class="flex justify-center items-center gap-2">
+          <div class="flex items-center justify-center text-sm">
+            {{ registro.phoneNumber }}
+          </div>
+        </td>
+        <td>
+          <div class="flex justify-center items-center gap-2 text-sm">
             <!-- <iconify-icon [icon]="registro.stateIcon" [class]="registro.stateStyle" /> -->
-            <label class="text-base">{{ registro.callSateName }}</label>
+            <label>{{ registro.callSateName }}</label>
           </div>
         </td>
         <td class="w-28">
-          @if (registro.location==null) {
-          <label>No hay grabación</label>
-          } @else {
-          <button
-            pButton
-            class="p-button-text"
-            (click)="download(registro.location)"
-          >
-            <iconify-icon [icon]="'mdi:download'" class="text-xl" />
-            <label>Grabación</label>
-          </button>
-          }
+          <div class="flex justify-center">
+            @if (registro.location==null) {
+            <label class="text-sm">No hay grabación</label>
+            } @else {
+            <button
+              pButton
+              class="p-button-text"
+              (click)="download(registro.location)"
+            >
+              <iconify-icon [icon]="'mdi:download'" class="text-xl" />
+              <label>Grabación</label>
+            </button>
+            }
+          </div>
         </td>
       </tr>
     </ng-template>

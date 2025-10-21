@@ -16,10 +16,13 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { debounceTime, last, Subject, switchMap, takeUntil } from 'rxjs';
 import { AuthStore } from '@stores/auth.store';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { MessageService } from 'primeng/api';
+import { MenuItem, MessageService, ToastMessageOptions } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { timeStamp } from 'console';
 import { TooltipModule } from 'primeng/tooltip';
+import { MenuModule } from 'primeng/menu';
+import { InboxService } from '@services/inbox.service';
+import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
 
 
 interface SummaryFilters{
@@ -41,6 +44,7 @@ interface FilterOptions{
     FormsModule,
     InputTextModule,
     IconField,
+    MenuModule,
     // ButtonChannelComponent,
     PhoneFormatPipe,
     ToastModule,
@@ -159,6 +163,8 @@ interface FilterOptions{
 export class ChatListComponent implements OnInit, OnDestroy {
 
   private readonly msg = inject(MessageGlobalService);
+  private readonly authStore = inject(AuthStore);
+
 
   @ViewChild('scrollContainer', { static: true }) scrollContainer!: ElementRef;
 
@@ -168,6 +174,12 @@ export class ChatListComponent implements OnInit, OnDestroy {
   startX = 0;
   scrollStart = 0;
   search: string = "";
+  userStatus= 'Fuera de línea';
+  statusOptions: MenuItem[] = [
+    { label: 'Disponible', value: 'available', icon: 'pi pi-envelope', command: ()=>{this.changeUserStatus(true)} },
+    { label: 'Fuera de línea', value: 'unavailable', icon: 'pi pi-envelope', command: ()=>{this.changeUserStatus(false)} },
+  ];
+
   isLoading: boolean = false;
   selectedFilter: FilterOptions | null = { label: 'Todos', value: 'all', icon: 'pi pi-envelope' };
   filterOptions: FilterOptions[] = [
@@ -183,13 +195,13 @@ export class ChatListComponent implements OnInit, OnDestroy {
   formattedTime = '00:00';
   private timer: any;
   private filters$ = new Subject<void>();
-  private readonly authStore = inject(AuthStore);
   private destroy$ = new Subject<void>();
 
   constructor(
     private channelRoomService: ChannelRoomService,
     private messageService: MessageService,
     private channelRoomSocketService: ChannelRoomSocketService,
+    private inboxService: InboxService,
     private router: Router,
     private route: ActivatedRoute
   ){
@@ -211,7 +223,6 @@ export class ChatListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-      console.log(this.authStore.user()?.role?.name == 'administrador')
       this.route.queryParamMap
         .pipe(takeUntil(this.destroy$))
         .subscribe((params) => {
@@ -231,7 +242,8 @@ export class ChatListComponent implements OnInit, OnDestroy {
       });
 
       this.loadChatList()
-
+      this.getCurrrentStatusByUser()
+      // this.inboxService.changeAllUserStatus()
       this.channelRoomSocketService.onChannelRoomStatusChanged()
       .pipe(takeUntil(this.destroy$))
       .subscribe((payload) => {
@@ -281,7 +293,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
         const index = this.chatListInbox.findIndex(c => c.attention.id === message.assistanceId);
         this.chatListInbox[index] = {
           ...this.chatListInbox[index],
-          attention: {...this.chatListInbox[index].attention, attentionDetail: 'Value', consultTypeId: 0}
+          attention: {...this.chatListInbox[index]?.attention, attentionDetail: 'Value', consultTypeId: 0}
         };
       });
 
@@ -317,8 +329,8 @@ export class ChatListComponent implements OnInit, OnDestroy {
         const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
         if(this.authStore.user()?.id === payload.userId)
         {
-
           this.showHelpRequest(payload);
+          this.loadChatList();
         }
         this.chatListInbox[index] = {
           ...this.chatListInbox[index],
@@ -380,12 +392,10 @@ export class ChatListComponent implements OnInit, OnDestroy {
       this.scrollContainer.nativeElement.innerHTML = '';
     }
 
-    console.log('ChatListComponent completamente destruido');
   }
 
   updateChatList(message: ChannelRoomNewMessageDto) {
     try {
-      console.log("se recibió un nuevo mensaje", message)
 
       let hasAttachment = false;
       const index = this.chatListInbox.findIndex(c => c.channelRoomId == message.channelRoomId
@@ -428,10 +438,9 @@ export class ChatListComponent implements OnInit, OnDestroy {
       } else {
         if((
             ['supervisor', 'administrador']
-              .includes(this.authStore.user()?.role?.name??'') || this.authStore.user()?.id == message.advisor.id)
+              .includes(this.authStore.user()?.role?.name??'') || this.authStore.user()?.id == message?.advisor?.id)
             && message.status !== 'completado' && (['unread', 'all'].includes(this.selectedFilter?.value?? '') || this.selectedFilter?.value == message.status))
         {
-          console.log("paso exitosamente", message)
           let model : ChatListInbox = {
             unreadCount : message.unreadCount || 1,
             channelRoomId: message.channelRoomId,
@@ -439,7 +448,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
             channel : message.channel,
             botStatus : message.botStatus,
             status : message.status,
-            advisor: message.advisor,
+            advisor: message?.advisor,
             attention : message.attention,
             lastMessage : {
               citizen: {
@@ -462,7 +471,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
       this.loadChatList()
     }
   }
@@ -471,27 +480,34 @@ export class ChatListComponent implements OnInit, OnDestroy {
   showHelpRequest(data: ChannelRoomAssistance) {
     this.messageService.add({
     key: 'helpRequest',
-      severity: 'info',
-      summary: '¡Un ciudadano necesita tu ayuda!',
-      detail: 'Un cliente está esperando atención inmediata.',
-      sticky: true,
-      closable: false,
-      data: data
+    severity: 'info',
+    summary: '¡Un ciudadano necesita tu ayuda!',
+    detail: 'Un ciudadano está esperando atención inmediata.',
+    sticky: true,
+    closable: false,
+    data: data
     });
   }
 
-  onAttend(message: ChannelRoomAssistance, closeFn?: Function) {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { channelRoomId: message.channelRoomId, assistanceId: message.assistanceId, channel:this.channel}
-    });
-
-    if (typeof closeFn === 'function') {
-      closeFn();
-    } else {
+  onAttend(message: ToastMessageOptions, closeFn?: Function) {
+    try {
       this.messageService.clear('helpRequest');
+
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          channelRoomId: message.data.channelRoomId,
+          assistanceId: message.data.assistanceId,
+          channel: this.channel
+        }
+      });
+    } catch (err) {
+      console.error('Error en onAttend:', err);
     }
   }
+
+
+
 
   trackByChat(index: number, chat: ChatListInbox): string {
     return String(chat.attention.id);
@@ -520,6 +536,9 @@ export class ChatListComponent implements OnInit, OnDestroy {
 
   scrollLeft() {
     this.scrollContainer.nativeElement.scrollBy({ left: -150, behavior: 'smooth' });
+  }
+  getUserRole(){
+    return this.authStore.user()?.role?.name?? ''
   }
 
   scrollRight() {
@@ -554,7 +573,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
   formatId(id: number, length: number = 5): string {
     return id.toString().padStart(length, '0');
   }
-  
+
   private getClientX(event: MouseEvent | TouchEvent): number {
     return event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
   }
@@ -570,5 +589,38 @@ export class ChatListComponent implements OnInit, OnDestroy {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  getCurrrentStatusByUser()
+  {
+    this.inboxService.getUserStatus().subscribe((response: IBaseResponseDto<{userStatus: string}>) => {
+        this.userStatus = response.data?.userStatus ?? 'Fuera de línea';
+    })
+  }
+
+  getUserStatuses()
+  {
+
+  }
+
+  changeUserStatus(isAvailable: boolean)
+  {
+    const currentUserStatus = this.userStatus === 'Disponible';
+    if(currentUserStatus === isAvailable) return
+    this.inboxService.changeAllUserStatus(isAvailable).subscribe(response => {
+      if(response.success)
+      {
+        this.msg.success("Su estado ha sido actualizado correctamente.", "Estado del asesor", 5000)
+        this.userStatus = isAvailable ? 'Disponible': 'Fuera de Línea'
+        return
+      }else{
+        if(response?.error)
+        {
+          console.error(response.error)
+          this.msg.error("Su estado no ha podido ser actualizado, por favor contacte a soporte", "Estado del asesor", 5000)
+          return
+        }
+        this.msg.warn("Su estado no ha podido ser actualizado", "Estado del asesor", 5000)
+      }
+    });
+  }
 
 }

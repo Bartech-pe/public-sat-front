@@ -101,7 +101,7 @@ export class AssignmentsComponent implements OnInit {
     return this.portfolioList.find((p) => p.id === this.portfolioId);
   }
 
-  limit = signal(5);
+  limit = signal(10);
   offset = signal(0);
   totalItems: number = 0;
   portfolioDetailManaged: number = 0;
@@ -297,6 +297,7 @@ export class AssignmentsComponent implements OnInit {
   }
 
   onPageChange(event: { limit: number; offset: number }) {
+    console.log('event', event);
     this.limit.set(event.limit);
     this.offset.set(event.offset);
     this.loadDataPortfolioDetail();

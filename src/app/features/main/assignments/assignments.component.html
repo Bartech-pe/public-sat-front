@@ -1,39 +1,44 @@
 <ng-container *ngIf="type === 'GestiónCompleta'; else elseTemplate">
-  <div class="grid grid-cols-1 gap-4">
-    <div class="flex gap-2">
-      <p-button
-        severity="danger"
-        label="Volver"
-        size="small"
-        styleClass="p-button-sm"
-        (click)="closeCompleteManagement()"
-      >
-        <iconify-icon icon="lucide:arrow-left" pButtonIcon />
-      </p-button>
-      <h5 class="text-2xl font-semibold capitalize">Gestión completa</h5>
+  <p-card>
+    <div class="h-[calc(100vh-205px)] flex flex-col gap-2">
+      <div class="flex-1">
+        <div class="flex gap-4">
+          <p-button
+            severity="danger"
+            label="Volver"
+            size="small"
+            styleClass="p-button-sm"
+            (click)="closeCompleteManagement()"
+          >
+            <iconify-icon icon="lucide:arrow-left" pButtonIcon />
+          </p-button>
+          <h5 class="text-2xl font-semibold capitalize">Gestión completa</h5>
+        </div>
+      </div>
+
+      <div class="grow border-t border-slate-200 overflow-y-auto">
+        <app-complete-management
+          [portfolioDetail]="portfolioDetailSelect"
+          (refresh)="refreshDetail($event.value)"
+        />
+      </div>
     </div>
-    <app-complete-management
-      [portfolioDetail]="portfolioDetailSelect"
-      (refresh)="refreshDetail($event.value)"
-    />
-  </div>
+  </p-card>
 </ng-container>
 <ng-template #elseTemplate>
   <div class="px-3">
     <div class="grid grid-cols-1 gap-4">
       <!-- Encabezado -->
-      <div class="shadow-lg rounded-xl p-4 bg-gray-50">
+      <p-card>
         <div class="flex justify-between">
           <app-title-sat [showDesc]="false" />
         </div>
-        <div class="flex flex-col w-full gap-3 text-n-slate-11">
-          <p
-            class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
-          >
-            Sectorista: {{ name }} {{ officeFullName }}
-          </p>
-        </div>
-      </div>
+        <p
+          class="text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+        >
+          Sectorista: {{ name }} {{ officeFullName }}
+        </p>
+      </p-card>
 
       <!-- Fila 1: Totales -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
@@ -103,14 +108,14 @@
                   <p-select
                     [options]="taxpayerTypes"
                     [(ngModel)]="tipoContribSelected"
-                    placeholder="Tipo de contribuyente"
+                    placeholder="Tipo de contribuyente..."
                     class="!rounded-full"
                     [showClear]="true"
                   ></p-select>
                   <p-select
                     [options]="estados"
                     [(ngModel)]="estadoSelected"
-                    placeholder="Estado de gestión"
+                    placeholder="Estado de gestión..."
                     class="!rounded-full"
                     [showClear]="true"
                   ></p-select>
@@ -120,14 +125,14 @@
                         <p-select
                           [options]="segments"
                           [(ngModel)]="segmentSelected"
-                          placeholder="Segmento"
+                          placeholder="Segmento..."
                           class="!rounded-full"
                           [showClear]="true"
                         ></p-select>
                         <p-select
                           [options]="profiles"
                           [(ngModel)]="profileSelected"
-                          placeholder="Perfil"
+                          placeholder="Perfil..."
                           class="!rounded-full"
                           [showClear]="true"
                         ></p-select>
@@ -149,6 +154,7 @@
                             (onInput)="onDebtChange('from', $event)"
                             [step]="100"
                             [min]="0"
+                            placeholder="Desde..."
                             styleClass="!w-full !rounded-full"
                             inputStyleClass="!w-full !rounded-full"
                             incrementButtonClass="!w-6 !rounded-full mr-1.5"
@@ -165,6 +171,7 @@
                             (onInput)="onDebtChange('to', $event)"
                             [step]="100"
                             [min]="debtFrom() + 100"
+                            placeholder="Hasta..."
                             styleClass="!w-full !rounded-full"
                             inputStyleClass="!w-full !rounded-full"
                             incrementButtonClass="!w-6 !rounded-full mr-1.5"
@@ -181,6 +188,7 @@
                       size="small"
                       (click)="search()"
                       label="Filtrar"
+                      rounded
                       styleClass="w-full"
                     />
 
@@ -190,6 +198,7 @@
                       size="small"
                       (click)="clear()"
                       label="Limpiar"
+                      rounded
                       styleClass="w-full"
                     />
                   </div>
@@ -245,7 +254,7 @@
           <p-table
             [value]="portfolioDetailFiltered"
             [scrollable]="true"
-            scrollHeight="calc(100vh - 500px)"
+            scrollHeight="calc(100vh - 595px)"
           >
             <ng-template pTemplate="header">
               <tr>
@@ -299,7 +308,7 @@
                   </div>
                 </td>
                 <td>
-                  <p class="text-center text-xs font-normal">
+                  <p class="w-16 text-center text-xs font-normal">
                     {{ item?.tipDoc }}
                   </p>
                 </td>
@@ -375,10 +384,12 @@
                 <td>
                   <div class="flex justify-center items-center">
                     <p-chip
-                      class="!text-xs text-center !px-0.5"
+                      class="!text-xs text-center !px-0.5 !py-1 border"
                       [ngClass]="{
-                        '!bg-[#d1f7d6] !text-[#2e7d32]': item?.status,
-                        '!bg-[#fff4cd] !text-[#c49000]': !item?.status
+                        '!bg-[#d1f7d6] !text-[#2e7d32] !border-[#2e7d32]':
+                          item?.status,
+                        '!bg-[#fff4cd] !text-[#c49000] !border-[#c49000]':
+                          !item?.status
                       }"
                     >
                       <div class="w-20">
@@ -408,6 +419,7 @@
                       [totalItems]="totalItems"
                       [limit]="limit()"
                       [offset]="offset()"
+                      [limitOptions]="[10, 25, 50, 100]"
                       (pageChange)="onPageChange($event)"
                     />
                   </div>

@@ -157,17 +157,28 @@ export class MailService {
    * Cambiar el estado de correos entre asesores
    *
    */
-  changeEmailState(channelStateId: number): Observable<any> {
+  changeEmailMyState(channelStateId: number): Observable<any> {
     return this.http.put(
-      `${this.baseUrl}/changeEmailState/${channelStateId}`,
+      `${this.baseUrl}/changeEmailMyState/${channelStateId}`,
       {}
     );
   }
 
-   /**
-  * Marcar un ticket como "No Wish"
-  * @param mailAttentionId id del mail a actualizar
-  */
+  /**
+   * Cambiar el estado de correos entre asesores
+   *
+   */
+  changeEmailState(userId: number, channelStateId: number): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/changeEmailState/${userId}/${channelStateId}`,
+      {}
+    );
+  }
+
+  /**
+   * Marcar un ticket como "No Wish"
+   * @param mailAttentionId id del mail a actualizar
+   */
   noWishTicket(mailAttentionId: number): Observable<any> {
     return this.http.put<any>(
       `${this.baseUrl}/noWishTicket/${mailAttentionId}`,

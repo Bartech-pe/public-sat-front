@@ -1,8 +1,8 @@
 <div class="text-sm text-gray-800">
-  <p class="mb-3">Selecciona un sectorista para asignar los casos.</p>
+  <p class="mb-3">Selecciona un sectorista para reasignar los casos.</p>
 
   <!-- Selector de sectorista -->
-  <label class="block font-medium mb-1">Asignar a:</label>
+  <label class="block font-medium mb-1">Reasignar a:</label>
   <p-dropdown
     [options]="listUsers"
     [(ngModel)]="selectedUser"
@@ -69,7 +69,7 @@
       [disabled]="!selectedUser"
       (click)="confirmarAsignacion()"
     >
-      Confirmar Asignación
+      Confirmar Reasignación
     </button>
   </div>
 </div>

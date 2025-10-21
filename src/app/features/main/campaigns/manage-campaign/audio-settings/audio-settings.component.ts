@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
   inject,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -24,6 +26,9 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
 import * as XLSX from 'xlsx';
 import { Campaign } from '@models/campaign.model';
+import { DropdownModule } from 'primeng/dropdown';
+import { environment } from '@envs/environments';
+import { TableModule } from 'primeng/table';
 @Component({
   selector: 'app-audio-settings',
   imports: [
@@ -35,6 +40,8 @@ import { Campaign } from '@models/campaign.model';
     FieldsetModule,
     InputTextModule,
     ButtonCancelComponent,
+    DropdownModule,
+    TableModule,
   ],
   templateUrl: './audio-settings.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -54,8 +61,10 @@ export class AudioSettingsComponent {
   };
 
   public files: NgxFileDropEntry[] = [];
-   public selectedFile: File | null = null;
+  public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
+  listAudios:any=[];
+  listListVicidial:any=[];
   constructor(
     private globalService: GlobalService,
     private msg: MessageGlobalService,
@@ -71,9 +80,14 @@ export class AudioSettingsComponent {
         this.formlist.campaign_id = Number(this.config.data.vdCampaignId);
       }
 
-      // this.vicidialService.getAll('central/listas').subscribe(res=>{
-      //   console.log(res);
-      // })
+      this.vicidialService.getAllAudio().subscribe(res=>{
+        this.listAudios = res;
+      })
+
+      this.vicidialService.getlistCampania(this.config.data.vdCampaignId).subscribe(res=>{
+                console.log(res);
+        this.listListVicidial= res;
+      })
     }
   }
 
@@ -215,26 +229,99 @@ export class AudioSettingsComponent {
       URL.revokeObjectURL(url); // Limpieza
     }
   }
+
   loading = false;
-  CargarVicidial() {
+  async convertToPCM16Mono8k(blob: Blob): Promise<Blob> {
+      const audioCtx = new AudioContext();
+      const arrayBuffer = await blob.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      // Re-muestrear a 8 kHz
+      const offlineCtx = new OfflineAudioContext(1, audioBuffer.duration * 8000, 8000);
+      const source = offlineCtx.createBufferSource();
+      source.buffer = audioBuffer;
+
+      // Convertir a mono
+      const merger = offlineCtx.createChannelMerger(1);
+      source.connect(merger);
+      merger.connect(offlineCtx.destination);
+
+      source.start(0);
+      const renderedBuffer = await offlineCtx.startRendering();
+
+      // Convertir a WAV PCM 16-bit
+      const wavBlob = this.audioBufferToWavBlob(renderedBuffer);
+
+      return wavBlob;
+  }
+
+  audioBufferToWavBlob(buffer: AudioBuffer): Blob {
+      const numOfChan = 1;
+      const length = buffer.length * numOfChan * 2 + 44;
+      const bufferData = new ArrayBuffer(length);
+      const view = new DataView(bufferData);
+
+      const writeString = (view: DataView, offset: number, str: string) => {
+        for (let i = 0; i < str.length; i++) {
+          view.setUint8(offset + i, str.charCodeAt(i));
+        }
+      };
+
+      const sampleRate = 8000;
+      const numSamples = buffer.length;
+      const channelData = buffer.getChannelData(0);
+      let offset = 0;
+
+      // Escribir cabecera WAV
+      writeString(view, offset, 'RIFF'); offset += 4;
+      view.setUint32(offset, 36 + numSamples * 2, true); offset += 4;
+      writeString(view, offset, 'WAVE'); offset += 4;
+      writeString(view, offset, 'fmt '); offset += 4;
+      view.setUint32(offset, 16, true); offset += 4;
+      view.setUint16(offset, 1, true); offset += 2; // PCM
+      view.setUint16(offset, 1, true); offset += 2; // Mono
+      view.setUint32(offset, sampleRate, true); offset += 4;
+      view.setUint32(offset, sampleRate * 2, true); offset += 4;
+      view.setUint16(offset, 2, true); offset += 2;
+      view.setUint16(offset, 16, true); offset += 2;
+      writeString(view, offset, 'data'); offset += 4;
+      view.setUint32(offset, numSamples * 2, true); offset += 4;
+
+      let pos = 44;
+      for (let i = 0; i < numSamples; i++, pos += 2) {
+        let s = Math.max(-1, Math.min(1, channelData[i]));
+        view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+  }
+  name_archivo:any;
+  async CargarVicidial() {
     this.loading = true;
     if (!this.audioBlob) {
       this.msg.error('No hay audio para subir');
       return;
     }
-    
-    const randomNumber = Math.floor(Math.random() * 100); // entero entre 0 y 99999
-    const name_archivo = `${this.campania.vdCampaignId}_${randomNumber}.wav`;
-    if (this.audioBlob) {
-      const file = new File([this.audioBlob], name_archivo, {
+
+    const randomNumber = Math.floor(Math.random() * 100);
+    this.name_archivo = `${this.campania.vdCampaignId}_${randomNumber}.wav`;
+    const name_clear = `${this.campania.vdCampaignId}_${randomNumber}`;
+
+    try {
+      
+      const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
+
+      const file = new File([wavBlob], this.name_archivo, {
         type: 'audio/wav',
       });
-      this.globalService.uploadAudio(file).subscribe({
+
+       this.globalService.uploadAudio(file).subscribe({
         next: (res) => {
+          console.log(res)
           this.msg.success('subida exitosa audio para subir');
           let requestVicidialEdit = {
             campaign_name: this.campania.name,
-            survey_first_audio_file: name_archivo,
+            survey_first_audio_file: name_clear,
           };
 
           let vdCampaignId = this.campania.vdCampaignId;
@@ -255,9 +342,31 @@ export class AudioSettingsComponent {
           this.loading = false;
         },
       });
+
+
+    
+    } catch (err) {
+      console.error('Error al convertir el audio:', err);
+      this.msg.error('No se pudo procesar el audio.');
+      this.loading = false;
     }
   }
 
+  reproducirAudio(){
+    environment.urlTextoAudioreproducir
+  }
+  @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
+
+  audioUrlAudio: string | null = null;
+  onAudioChange(event: any) {
+    const selectedAudio = event.value;
+    console.log('🎧 Audio seleccionado:', environment.urlTextoAudioreproducir + selectedAudio);
+    this.audioUrlAudio = environment.urlTextoAudioreproducir + selectedAudio;
+    setTimeout(() => {
+    this.audioPlayer?.nativeElement.play().catch(err => console.warn('No se pudo reproducir automáticamente:', err));
+  }, 100);
+  }
+ 
   eliminarArchivo() {
     this.nameArchivo = '';
     this.columnas = [];

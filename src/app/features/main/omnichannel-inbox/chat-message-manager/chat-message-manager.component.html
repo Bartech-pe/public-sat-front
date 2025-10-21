@@ -239,7 +239,6 @@ completionEventReceived){
           [outlined]="true"
           size="small"
           class="shadow-sm"
-          (onClick)="viewClosedChats()"
         >
         </p-button>
         <p-button
@@ -356,38 +355,40 @@ completionEventReceived){
     <div class="flex items-center space-x-2">
       @if(['whatsapp','chatsat'].includes(chatDetail.channel) && chatDetail.status !== 'completado'){
         @if(chatDetail.botStatus === 'active') {
-      <p-button
-        severity="danger"
-        size="small"
-        [disabled]="false"
-        [loading]="false"
-        (onClick)="toggleBotService(false)"
-      >
-        <div class="flex justify-center items-center gap-1">
-          <iconify-icon
-            [icon]="'lucide:bot-off'"
-            class="text-xl"
-          ></iconify-icon>
-          <div>Pausar Bot</div>
-        </div>
-      </p-button>
-      } @else {
-      <p-button
-        size="small"
-        severity="contrast"
-        [disabled]="false"
-        [loading]="false"
-        (onClick)="toggleBotService(true)"
-      >
-        <div class="flex justify-center items-center gap-1">
-          <iconify-icon
-            [icon]="'codicon:debug-start'"
-            class="text-xl"
-          ></iconify-icon>
-          <div>Activar Bot</div>
-        </div>
-      </p-button>
-      } }
+          <p-button
+            severity="danger"
+            size="small"
+            [disabled]="!chatDetail.agentAssigned.id"
+            pTooltip="{{!chatDetail.agentAssigned.id ? 'No hay un asesor asignado a este chat.': ''}}"
+            [loading]="false"
+            (onClick)="toggleBotService(false)"
+          >
+            <div class="flex justify-center items-center gap-1">
+              <iconify-icon
+                [icon]="!chatDetail.agentAssigned.id ? 'lucide:lock' : 'lucide:bot-off'"
+                class="text-xl"
+              ></iconify-icon>
+              <div>{{ !chatDetail.agentAssigned.id ? 'Bloqueado' : 'Pausar Bot' }}</div>
+            </div>
+          </p-button>
+          } @else {
+          <p-button
+            size="small"
+            severity="contrast"
+            [disabled]="!chatDetail.agentAssigned.id"
+            [loading]="false"
+            (onClick)="toggleBotService(true)"
+          >
+            <div class="flex justify-center items-center gap-1">
+              <iconify-icon
+                [icon]="!chatDetail.agentAssigned.id ? 'lucide:lock' : 'codicon:debug-start'"
+                class="text-xl"
+              ></iconify-icon>
+              <div>{{ !chatDetail.agentAssigned.id ? 'Bloqueado' : 'Activar Bot' }}</div>
+            </div>
+          </p-button>
+          }
+      }
       <p-menu #menu [model]="items" [popup]="true" />
       <ng-container *ngIf="advisors.length != 0">
         <app-advisor

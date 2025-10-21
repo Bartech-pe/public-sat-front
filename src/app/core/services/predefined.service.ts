@@ -27,4 +27,8 @@ export class PredefinedResponsesService extends GenericCrudService<PredefinedRes
   allChatSat(): Observable<PredefinedResponses[]> {
     return this.http.get<PredefinedResponses[]>(`${this.url}/allChatSat`);
   }
+
+  allWhatsapp(): Observable<PredefinedResponses[]> {
+    return this.http.get<PredefinedResponses[]>(`${this.url}/allWhatsapp`);
+  }
 }

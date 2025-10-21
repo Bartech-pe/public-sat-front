@@ -26,6 +26,7 @@ export class CallService {
       );
     return this.http.get<any>(this.basePath, { params });
   }
+
   getStateStatus(query: ICallFilter) {
     const params = Object.entries(query)
       .filter(
@@ -37,7 +38,12 @@ export class CallService {
       );
     return this.http.get<any>(this.basePath + '/statesCount', { params });
   }
+
   getAdvisors() {
     return this.http.get<any>(this.basePath + '/advisors');
+  }
+
+  getStatesCountByNow() {
+    return this.http.get<any>(this.basePath + '/statesCountByNow');
   }
 }
