@@ -10,6 +10,7 @@ export const environment = {
   roleIdAsesor: 3,
   channelConnectorApiUrl: 'https://channelpre.sat.gob.pe/',
   urlTextoAudio: 'http://24.144.82.222:8000',
+  urlTextoAudioreproducir: 'http://satvcwebcc01.sat.gob.pe/8kf13k3p4s11prtwyqn50r4xyp52zd/',
   // citizenApiUrl: 'http://172.29.55.54:8042/api/v1',
   // urlVicidial: 'http://161.132.45.63:4000',
 };
