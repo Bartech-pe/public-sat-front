@@ -33,8 +33,18 @@ export class PortfolioDetailService extends GenericCrudService<PortfolioDetail> 
     );
   }
 
-  findAllByIdCartera(id: number): Observable<PortfolioDetail[]> {
-    return this.http.get<PortfolioDetail[]>(`${this.url}/detalle/${id}`);
+  findAllByPortfolioId(
+    portfolioId: number,
+    limit?: number,
+    offset?: number,
+    q?: Record<string, any>
+  ): Observable<PaginatedResponse<PortfolioDetail>> {
+    const query = q ? `q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    const limitQ = limit ? `limit=${limit}&` : '';
+    const offsetQ = limit ? `offset=${offset}&` : '';
+    return this.http.get<PaginatedResponse<PortfolioDetail>>(
+      `${this.url}/byPortfolioId/${portfolioId}?${limitQ}${offsetQ}${query}`
+    );
   }
 
   findAllByuserId(
@@ -62,15 +72,18 @@ export class PortfolioDetailService extends GenericCrudService<PortfolioDetail> 
     );
   }
 
-  getByIdDetalleAsignar(id: number, portfolioId: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.url}/portfolio-assignments/details/${id}/${portfolioId}`
+  getByIdDetailCount(
+    userId: number,
+    portfolioId: number
+  ): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(
+      `${this.url}/portfolio-assignments/detail-count/${userId}/${portfolioId}`
     );
   }
 
-  getByIdDetalleAsignado(id_user: number): Observable<any[]> {
+  getByIdDetalleAsignado(userId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${this.url}/portfolio-assignments/details/${id_user}`
+      `${this.url}/portfolio-assignments/details/${userId}`
     );
   }
 

@@ -21,6 +21,8 @@ export class SocketService {
 
   private requestPortfolioCancelledSubject = new Subject<any>();
 
+  private requestPortfolioErrorSubject = new Subject<any>();
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
       this.initializeSocketConnection();
@@ -59,7 +61,10 @@ export class SocketService {
     // Escuchar progreso
     this.socket.on('portfolio-progress', (data) => {
       console.log(
-        `📊 Cartera ${data.portfolioId}: ${data.percentage}% (${data.processed}/${data.total})`
+        `📊 Cartera ${data.portfolioId}: ${(
+          (data.processed / data.total) *
+          100
+        ).toFixed(2)}% (${data.processed}/${data.total})`
       );
       this.requestPortfolioSubject.next(data);
     });
@@ -74,6 +79,12 @@ export class SocketService {
     this.socket.on('portfolio-cancelled', (data) => {
       console.log(data.message);
       this.requestPortfolioCancelledSubject.next(data);
+    });
+
+    // Escuchar fin del proceso
+    this.socket.on('portfolio-error', (data) => {
+      console.log(data.message);
+      this.requestPortfolioErrorSubject.next(data);
     });
   }
 
@@ -96,6 +107,11 @@ export class SocketService {
   // Escuchar cuando termina el proceso
   onPortfolioCancelled(): Observable<any> {
     return this.requestPortfolioCancelledSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioError(): Observable<any> {
+    return this.requestPortfolioErrorSubject.asObservable();
   }
 
   registerUser(userId: number): void {

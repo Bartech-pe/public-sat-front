@@ -1,6 +1,6 @@
 <div class="w-full flex justify-center">
   <div class="w-full p-0">
-    <p-fieldset legend="Filtros">
+    <!-- <p-fieldset legend="Filtros">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <p-select
           [options]="listSectorista"
@@ -49,19 +49,6 @@
             Deudas: {{ rangoPrecio[0] }} - {{ rangoPrecio[1] }}
           </p>
         </div>
-
-        <!-- <div class="p-fluid">
-          <p-datepicker
-            [(ngModel)]="filtroRangoFecha"
-            selectionMode="multiple"
-            [readonlyInput]="true"
-            dateFormat="dd/mm/yy"
-            placeholder="Rango de fecha atención"
-            (ngModelChange)="onRangoFechaChange($event)"
-            appendTo="body"
-            [showIcon]="true"
-          ></p-datepicker>
-        </div> -->
         <input
           type="text"
           pInputText
@@ -80,7 +67,116 @@
           Limpiar Filtros
         </button>
       </div>
-    </p-fieldset>
+    </p-fieldset> -->
+
+    <div class="flex flex-col gap-3">
+      <h4 class="font-medium">Filtros de búsqueda</h4>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="col-span-2">
+          <input
+            pInputText
+            [(ngModel)]="searchText"
+            placeholder="Buscar por contribuyente, código, celular..."
+            class="!rounded-full w-full"
+          />
+        </div>
+        <p-select
+          [options]="taxpayerTypes"
+          [(ngModel)]="tipoContribSelected"
+          placeholder="Tipo de contribuyente..."
+          class="!rounded-full"
+          [showClear]="true"
+        ></p-select>
+        <p-select
+          [options]="estados"
+          [(ngModel)]="estadoSelected"
+          placeholder="Estado de gestión..."
+          class="!rounded-full"
+          [showClear]="true"
+        ></p-select>
+        <div class="col-span-3">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+              <p-select
+                [options]="segments"
+                [(ngModel)]="segmentSelected"
+                placeholder="Segmento..."
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+              <p-select
+                [options]="profiles"
+                [(ngModel)]="profileSelected"
+                placeholder="Perfil..."
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-30">
+                <p class="font-semibold text-gray-700 text-sm">Rango Deuda:</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <p-inputnumber
+                  [(ngModel)]="debtFrom"
+                  [showButtons]="true"
+                  inputId="debtFrom"
+                  mode="currency"
+                  currency="PEN"
+                  locale="es-PE"
+                  (onInput)="onDebtChange('from', $event)"
+                  [step]="100"
+                  [min]="0"
+                  placeholder="Desde..."
+                  styleClass="!w-full !rounded-full"
+                  inputStyleClass="!w-full !rounded-full"
+                  incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  class="!w-full"
+                />
+                <p-inputnumber
+                  [(ngModel)]="debtTo"
+                  [showButtons]="true"
+                  inputId="debtTo"
+                  mode="currency"
+                  currency="PEN"
+                  locale="es-PE"
+                  (onInput)="onDebtChange('to', $event)"
+                  [step]="100"
+                  [min]="debtFrom()! + 100"
+                  placeholder="Hasta..."
+                  styleClass="!w-full !rounded-full"
+                  inputStyleClass="!w-full !rounded-full"
+                  incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  class="!w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <p-button
+            severity="contrast"
+            size="small"
+            (click)="search()"
+            label="Filtrar"
+            rounded
+            styleClass="w-full"
+          />
+
+          <p-button
+            severity="danger"
+            variant="outlined"
+            size="small"
+            (click)="clear()"
+            label="Limpiar"
+            rounded
+            styleClass="w-full"
+          />
+        </div>
+      </div>
+    </div>
 
     <div class="bg-white shadow rounded-xl p-4 mb-4">
       <div class="card flex justify-between items-center flex-wrap gap-4">
@@ -103,9 +199,9 @@
         </div>
 
         <!-- Botón a la derecha -->
-        <div>
+        <div class="flex items-center gap-4" *ngIf="tipoAsignacion">
+          {{ selectedRows.length }} Seleccionados
           <p-button
-            *ngIf="tipoAsignacion"
             severity="contrast"
             size="small"
             (click)="mostrarRegistro()"
@@ -118,144 +214,176 @@
     </div>
 
     <p-table
-      [value]="detalleCarteraFiltrado"
+      [value]="portfolioDetail"
       [(selection)]="selectedRows"
-      [paginator]="true"
-      [rows]="10"
-      [responsiveLayout]="'scroll'"
-      sortMode="multiple"
-      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+      [scrollable]="true"
+      scrollHeight="900px"
     >
       <ng-template pTemplate="header">
         <tr>
           <th style="width: 3rem">
             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
           </th>
-
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">
-              Sectorista
-            </div>
+            <div class="text-center text-xs">Sectorista</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">
-              Segmento
-            </div>
+            <div class="text-center text-xs">Tipo de contribuyente</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">Perfil</div>
+            <div class="text-center text-xs">Código de contribuyente</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">
-              Contribuyente
-            </div>
+            <div class="text-center text-xs">Tipo Doc. Ide.</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">
-              Tipo Contribuyente
-            </div>
+            <div class="text-center text-xs">N° Doc. Ide.</div>
           </th>
           <th>
-            <div class="flex items-center text-xs text-center uppercase gap-4">
-              Codigo Contribuyente
-            </div>
+            <div class="text-center text-xs">Contribuyente</div>
           </th>
           <th>
-            <div class="flex items-center text-xs text-center uppercase gap-4">
-              Tipo Doc. Ide.
-            </div>
+            <div class="text-center text-xs">Segmento</div>
           </th>
           <th>
-            <div class="flex items-center text-xs text-center uppercase gap-4">
-              N° Doc. Ide.
-            </div>
+            <div class="text-center text-xs">Perfil</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">Deuda</div>
+            <div class="text-center text-xs">Deuda</div>
           </th>
           <th>
-            <div
-              class="flex justify-center items-center text-xs uppercase gap-4"
-            >
-              Email
-            </div>
+            <div class="text-center text-xs">Tel. 1</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">
-              WhatsApp
-            </div>
-          </th>
-
-          <th>
-            <div class="flex items-center text-xs uppercase gap-4">Tel. 1</div>
+            <div class="text-center text-xs">Tel. 2</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">Tel. 2</div>
+            <div class="text-center text-xs">Tel. 3</div>
           </th>
           <th>
-            <div class="flex items-center text-xs uppercase gap-4">Tel. 3</div>
+            <div class="text-center text-xs">Tel. 4</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Whatsapp</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Email</div>
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-row>
-        <tr [pSelectableRow]="row">
+
+      <ng-template pTemplate="body" let-item>
+        <tr [pSelectableRow]="item">
           <td>
             <p class="text-sm font-light"></p>
-            <p-tableCheckbox [value]="row"></p-tableCheckbox>
-          </td>
-
-          <td>
-            <p class="text-sm font-light">{{ row.user?.name }}</p>
+            <p-tableCheckbox [value]="item"></p-tableCheckbox>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.segment }}</p>
+            <div
+              class="w-[140px] text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item.user?.name }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.profile }}</p>
+            <div
+              class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item?.taxpayerType }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.taxpayerName }}</p>
+            <div
+              class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item?.code }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.taxpayerType }}</p>
+            <p class="w-16 text-center text-xs font-normal">
+              {{ item?.tipDoc }}
+            </p>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.code }}</p>
+            <p class="text-center text-sm font-normal">
+              {{ item?.docIde }}
+            </p>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.tipDoc }}</p>
+            <div
+              class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+              tooltipPosition="top"
+              tooltipStyleClass="text-xs !p-0.5"
+              [pTooltip]="item?.taxpayerName"
+            >
+              {{ item?.taxpayerName }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.docIde }}</p>
+            <div class="text-sm text-center">
+              {{ item?.segment }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.debt | currency }}</p>
+            <div class="text-sm text-center">{{ item?.profile }}</div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.user.email || "-" }}</p>
+            <div class="text-sm text-end">
+              {{ item?.debt | currency }}
+            </div>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.whatsapp || "-" }}</p>
+            <p class="text-sm font-normal">
+              {{ getPhoneContacts(item.citizenContacts)?.[0]?.value || "-" }}
+            </p>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.phone1 || "-" }}</p>
+            <p class="text-sm font-normal">
+              {{  getPhoneContacts(item.citizenContacts)?.[1]?.value || "-" }}
+            </p>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.phone2 || "-" }}</p>
+            <p class="text-sm font-normal">
+              {{  getPhoneContacts(item.citizenContacts)?.[2]?.value || "-" }}
+            </p>
           </td>
           <td>
-            <p class="text-sm font-light">{{ row.phone3 || "-" }}</p>
+            <p class="text-sm font-normal">
+              {{ getPhoneContacts(item.citizenContacts)?.[3]?.value || "-" }}
+            </p>
+          </td>
+          <td>
+            <div class="text-sm text-center">
+              {{ getWhatsappContacts(item.citizenContacts)?.[0]?.value || "-" }}
+            </div>
+          </td>
+          <td>
+            <div class="text-sm text-center">
+              {{ getEmailContacts(item.citizenContacts)?.[0]?.value || '-' }}
+            </div>
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
-          <td colspan="15" class="py-6">
-            <div class="flex flex-col items-center justify-center text-center">
-              <i class="pi pi-search text-gray-400 text-2xl mb-2"></i>
-              <span class="text-gray-500 text-base font-medium">
-                No se encontraron resultados para los filtros seleccionados.
-              </span>
+          <td colspan="100">
+            <div class="text-center text-sm font-light p-4">
+              No tienes asignaciones en la cartera seleccionada.
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #footer>
+        <tr>
+          <td colspan="100">
+            <div class="flex justify-center items-center">
+              <sat-paginator
+                [totalItems]="totalItems"
+                [limit]="limit()"
+                [offset]="offset()"
+                [limitOptions]="[10, 25, 50, 100]"
+                (pageChange)="onPageChange($event)"
+              />
             </div>
           </td>
         </tr>

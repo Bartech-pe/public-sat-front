@@ -51,7 +51,7 @@
             <div class="grid grid-cols-1 gap-1">
               <h3 class="text-lg font-semibold">
                 Progreso de carga: {{ portfolioName }} ({{
-                  processed / total | percent
+                  data.processed / data.total | percent
                 }})
                 <span class="italic text-sm font-light">
                   @if (remainingSeconds) { Tiempo restante
@@ -65,9 +65,10 @@
                 Cargando: {{ processed }}/{{ total }}
               </p>
               <div class="flex items-center gap-4">
+                <!-- {{ (processed / total) * 100 }} -->
                 <p-progressBar
-                  [value]="(processed / total) * 100"
-                  [showValue]="false"
+                  [value]="percentValue"
+                  [showValue]="true"
                   unit="%"
                   styleClass="w-full"
                   class="w-full"

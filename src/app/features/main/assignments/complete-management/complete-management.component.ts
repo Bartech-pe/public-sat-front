@@ -59,7 +59,7 @@ import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { ChannelAssistance } from '@models/channel-assistance.model';
 import { CitizenContact } from '@models/citizen.model';
 import { CitizenService } from '@services/citizen.service';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-complete-management',
@@ -86,11 +86,11 @@ import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.compon
     InputIconModule,
     ButtonModule,
     DatePickerModule,
-    ButtonSaveComponent,
-    BtnCustomComponent,
     DatePipe,
     PhoneFormatPipe,
-    BtnDeleteComponent,
+    TooltipModule,
+    ButtonSaveComponent,
+    BtnCustomComponent,
   ],
   templateUrl: './complete-management.component.html',
   styles: ``,

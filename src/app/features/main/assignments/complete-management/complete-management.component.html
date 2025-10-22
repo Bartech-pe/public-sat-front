@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 gap-4">
   <p-fieldset legend="Información básica del caso">
-    <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 gap-2">
       <div class="grid grid-cols-3 gap-6">
         <div class="grid grid-cols-1">
           <p class="font-light text-sm">
@@ -32,78 +32,86 @@
         </div>
       </div>
       <div class="grid grid-cols-3 gap-6">
-        <div
-          class="max-h-20 max-w-72 overflow-y-auto border border-slate-200 px-2 py-1 rounded-md"
-        >
-          @for (contact of phoneContacts; track $index) {
-          <div class="flex justify-between items-center gap-2">
-            <div class="h-full flex items-center font-light text-sm">
-              <strong>{{ contact.label }}:</strong>
-              {{ contact.value }}
-              @if(contact.isAdditional){
-              <small>(Adicional)</small>
-              }
-            </div>
-            <btn-delete
-              icon="mdi:times"
-              tooltip="Eliminar contacto"
-              (click)="removeContact(contact)"
-            />
-          </div>
+        <div class="px-2 py-1 rounded-md">
+          <div class="grid grid-cols-1 gap-1">
+            @for (contact of phoneContacts; track $index) {
+            <div class="flex items-center gap-6">
+              <div class="h-full flex items-center font-light text-sm gap-1">
+                <strong>{{ contact.label }}:</strong>
+                {{ contact.value }}
+                @if(contact.isAdditional){
+                <small>(Adicional)</small>
+                }
+              </div>
 
-          }
+              <iconify-icon
+                icon="mdi:times"
+                class="text-lg text-red-500 cursor-pointer"
+                pTooltip="Eliminar contacto"
+                tooltipPosition="top"
+                tooltipStyleClass="!text-xs !font-normal !p-0"
+                (click)="removeContact(contact)"
+              />
+            </div>
+
+            }
+          </div>
         </div>
-        <div
-          class="max-h-20 max-w-72 overflow-y-auto border border-slate-200 px-2 py-1 rounded-md"
-        >
-          @for (contact of whatsappContacts; track $index) {
-          <div class="flex justify-between items-center gap-2">
-            <div class="h-full flex items-center font-light text-sm">
-              <strong>{{ contact.label }}:</strong>
-              <a
-                [href]="'https://wa.me/' + cleanWhatsapp(contact?.value)"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-blue-500 hover:underline"
-              >
-                {{ cleanWhatsapp(contact?.value) | phoneFormat }}
-              </a>
-              @if(contact.isAdditional){
-              <small>(Adicional)</small>
-              }
+        <div class="px-2 py-1 rounded-md">
+          <div class="grid grid-cols-1 gap-1">
+            @for (contact of whatsappContacts; track $index) {
+            <div class="flex items-center gap-6">
+              <div class="h-full flex items-center font-light text-sm gap-1">
+                <strong>{{ contact.label }}:</strong>
+                <a
+                  [href]="'https://wa.me/' + cleanWhatsapp(contact?.value)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-blue-500 hover:underline"
+                >
+                  {{ cleanWhatsapp(contact?.value) | phoneFormat }}
+                </a>
+                @if(contact.isAdditional){
+                <small>(Adicional)</small>
+                }
+              </div>
+              <iconify-icon
+                icon="mdi:times"
+                class="text-lg text-red-500 cursor-pointer"
+                pTooltip="Eliminar contacto"
+                tooltipPosition="top"
+                tooltipStyleClass="!text-xs !font-normal !p-0"
+                (click)="removeContact(contact)"
+              />
             </div>
-            <btn-delete
-              icon="mdi:times"
-              tooltip="Eliminar contacto"
-              (click)="removeContact(contact)"
-            />
+            }
           </div>
-
-          }
         </div>
-        <div
-          class="max-h-20 max-w-72 overflow-y-auto border border-slate-200 px-2 py-1 rounded-md"
-        >
-          @for (contact of emailContacts; track $index) {
-          <div class="flex justify-between items-center gap-2">
-            <div class="h-full flex items-center font-light text-sm">
-              <strong>{{ contact.label }}:</strong>
-              <a (click)="copyEmail(contact?.value)">
-                {{ contact?.value }}
-                <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
-              </a>
-              @if(contact.isAdditional){
-              <small>(Adicional)</small>
-              }
+        <div class="px-2 py-1 rounded-md">
+          <div class="grid grid-cols-1 gap-1">
+            @for (contact of emailContacts; track $index) {
+            <div class="flex items-center gap-6">
+              <div class="h-full flex items-center font-light text-sm gap-1">
+                <strong>{{ contact.label }}:</strong>
+                <a (click)="copyEmail(contact?.value)">
+                  {{ contact?.value }}
+                  <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
+                </a>
+                @if(contact.isAdditional){
+                <small>(Adicional)</small>
+                }
+              </div>
+              <iconify-icon
+                icon="mdi:times"
+                class="text-lg text-red-500 cursor-pointer"
+                pTooltip="Eliminar contacto"
+                tooltipPosition="top"
+                tooltipStyleClass="!text-xs !font-normal !p-0"
+                (click)="removeContact(contact)"
+              />
             </div>
-            <btn-delete
-              icon="mdi:times"
-              tooltip="Eliminar contacto"
-              (click)="removeContact(contact)"
-            />
+            }
           </div>
-
-          }
         </div>
       </div>
       <div class="flex justify-end gap-2">

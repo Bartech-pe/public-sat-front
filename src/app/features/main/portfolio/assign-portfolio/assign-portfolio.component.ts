@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { User } from '@models/user.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { PortfolioDetailService } from '@services/portfolio-detail.service';
@@ -52,12 +53,16 @@ export class AssignPortfolioComponent implements OnInit {
 
   private readonly dialogService: DialogService = inject(DialogService);
 
-  readonly storeUser = inject(UserStore);
+  readonly userStore = inject(UserStore);
   constructor(private portfolioDetailService: PortfolioDetailService) {}
 
-  portfolioId: any = undefined;
-  selectedRows: any[] = [];
-  selectedRowsAsignados: any[] = [];
+  portfolioId?: number;
+
+  officeId?: number;
+
+  selectedRows: PortfolioDetail[] = [];
+  newRows: number = 0;
+  asignedRows: number = 0;
 
   ngOnInit(): void {
     const instance = this.dialogService.getInstance(this.ref);
@@ -65,26 +70,19 @@ export class AssignPortfolioComponent implements OnInit {
     const data = instance.data;
     if (data) {
       this.portfolioId = data.portfolioId;
-      this.selectedRows = data.asignaciones;
+      this.officeId = data.officeId;
+      this.selectedRows = data.selectedRows;
     }
     this.loadData();
   }
 
   get listUsers(): User[] {
-    const users = this.storeUser.items().filter((user) => user.roleId === 3);
-
-    // Obtener los IDs de usuarios ya seleccionados
-    const selectedUserIds = this.selectedRows.map((row) => row.user.id);
-
-    // Filtrar los que no están en la lista seleccionada
-    const filteredUsers = users.filter(
-      (user) => !selectedUserIds.includes(user.id)
-    );
-    return filteredUsers;
+    return this.userStore.items().filter((user) => user.roleId === 3);
   }
 
   loadData() {
-    this.storeUser.loadAll();
+    const query: Record<string, any> = { officeId: this.officeId };
+    this.userStore.loadAll(undefined, undefined, query);
   }
 
   selectedUser: any = null;
@@ -94,14 +92,15 @@ export class AssignPortfolioComponent implements OnInit {
 
   calcularCarga(user: User) {
     this.portfolioDetailService
-      .getByIdDetalleAsignar(user.id, this.portfolioId)
+      .getByIdDetailCount(user.id, this.portfolioId!)
       .subscribe({
         next: (res) => {
-          this.selectedRowsAsignados = res;
-          const nuevosCasos = this.selectedRows.length;
-          const totalCasos = res.length + nuevosCasos;
-          this.nuevaCarga = totalCasos;
-          this.esAsignable = true;
+          this.asignedRows = res.count;
+          this.newRows = this.selectedRows.filter(
+            (item) => item.userId !== user.id
+          ).length;
+          this.nuevaCarga = this.asignedRows + this.newRows;
+          this.esAsignable = this.newRows != 0;
         },
       });
   }
@@ -118,7 +117,7 @@ export class AssignPortfolioComponent implements OnInit {
       portfolioDetailId: Number(element.id),
       userPrevId: Number(element.userId),
       userId: Number(this.selectedUser.id),
-      motivo: element.motivo,
+      // motivo: element.motivo,
     }));
 
     if (arrayRequest.length != 0) {

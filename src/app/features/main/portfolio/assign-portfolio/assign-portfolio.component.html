@@ -15,25 +15,32 @@
 
   <!-- Card resumen -->
   <div
-    class="border-2 rounded-lg p-4 mb-4"
+    class="border-2 rounded-lg px-4 py-2"
     [ngClass]="{
       'border-green-500': esAsignable,
       'border-red-500': !esAsignable
     }"
     *ngIf="selectedUser"
   >
-    <div class="flex justify-between items-center">
-      <strong>{{ selectedUser.name }}</strong>
-      <span *ngIf="esAsignable" class="text-green-600 text-xl font-bold"
-        >✔</span
-      >
+    <div class="flex justify-end items-center">
+      @if (esAsignable) {
+      <iconify-icon [icon]="'gg:check-o'" class="text-xl text-green-500" />
+      } @else {
+      <div class="flex items-center gap-1 text-red-500 text-xs italic">
+        Todos los casos seleccionados son del sectorista a reasignar
+        <iconify-icon [icon]="'gg:close-o'" class="text-xl text-red-500" />
+      </div>
+      }
     </div>
+    <h4>
+      Sectorista: <strong>{{ selectedUser.name }}</strong>
+    </h4>
     <p class="mt-1">
       Casos actuales de esta cartera:
-      <strong>{{ selectedRowsAsignados.length }}</strong>
+      <strong>{{ asignedRows }}</strong>
     </p>
     <p>
-      Nuevos: + {{ selectedRows.length }} = <strong>{{ nuevaCarga }}</strong>
+      Nuevos: + {{ newRows }} = <strong>{{ nuevaCarga }}</strong>
     </p>
     <!-- <p>
         Carga: {{ selectedUser.carga }}%
@@ -66,7 +73,7 @@
       pButton
       type="button"
       class="p-button-primary"
-      [disabled]="!selectedUser"
+      [disabled]="!selectedUser || newRows == 0"
       (click)="confirmarAsignacion()"
     >
       Confirmar Reasignación

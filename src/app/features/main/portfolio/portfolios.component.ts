@@ -84,6 +84,7 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   portfolioProggessId?: number;
   portfolioName?: string;
   processed: number = 0;
+  percentValue: number = 0;
   total: number = 0;
   message?: string;
 
@@ -110,6 +111,9 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
       this.portfolioName = data.name;
       this.processed = data.processed;
       this.total = data.total;
+      this.percentValue = Number.parseInt(
+        ((data.processed / data.total) * 100).toFixed(2)
+      );
       this.remainingSeconds = data.remainingSeconds;
     });
 
@@ -128,6 +132,12 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
       this.mostrarMessage = false;
       this.clearProgress();
       this.loadData();
+    });
+
+    // Escuchar fin del proceso
+    this.socketService.onPortfolioError().subscribe((data) => {
+      this.message = data.message;
+      this.msg.error(data.message);
     });
   }
 
@@ -222,11 +232,14 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
     });
   }
 
-  verDetalle(registro: any) {
+  verDetalle(item: Portfolio) {
     this.openModalDetalle = true;
     const modal_item = this.dialogService.open(EditPortfolioComponent, {
-      data: registro.id,
-      header: 'Gestionar Cartera - ' + registro.name,
+      data: {
+        portfolioId: item.id,
+        officeId: item.officeId,
+      },
+      header: `Gestionar Cartera - ${item.name}`,
       styleClass: 'modal-10xl',
       modal: true,
       dismissableMask: false,

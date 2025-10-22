@@ -1,8 +1,8 @@
 <div class="w-full flex justify-center">
+  <p-blockui [blocked]="loadingFile" />
   <form
     *ngIf="formData"
     [formGroup]="formData"
-    (ngSubmit)="guardar()"
     class="w-full grid grid-cols-1 gap-2"
   >
     <p-fieldset legend="Información básica">
@@ -168,144 +168,340 @@
       </div>
     </p-fieldset>
 
-    <p-fieldset *ngIf="previewData.length" legend="Vista previa de Datos">
+    <p-fieldset *ngIf="previewDataAll.length" legend="Vista previa de Datos">
       <div class="grid grid-cols-1 gap-1">
-        <p-table
-          [value]="previewData"
-          [paginator]="true"
-          [rows]="10"
-          [scrollable]="true"
-          scrollHeight="500px"
-        >
+        <p-table [value]="previewData" [scrollable]="true" scrollHeight="900px">
           <ng-template pTemplate="header">
             <tr>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Sectorista
-                </div>
+                <div class="text-center text-xs">Sectorista</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Segmento
-                </div>
+                <div class="text-center text-xs">Tipo de contribuyente</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Perfil
-                </div>
+                <div class="text-center text-xs">Código de contribuyente</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Contribuyente
-                </div>
+                <div class="text-center text-xs">Tipo Doc. Ide.</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Tipo Contribuyente
-                </div>
+                <div class="text-center text-xs">N° Doc. Ide.</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Código
-                </div>
+                <div class="text-center text-xs">Contribuyente</div>
               </th>
               <th>
-                <div
-                  class="flex items-center text-xs text-center uppercase gap-4"
-                >
-                  Tipo Doc. Ide.
-                </div>
+                <div class="text-center text-xs">Segmento</div>
               </th>
               <th>
-                <div
-                  class="flex items-center text-xs text-center uppercase gap-4"
-                >
-                  N° Doc. Ide.
-                </div>
+                <div class="text-center text-xs">Perfil</div>
               </th>
               <th>
-                <div class="flex items-center text-xs uppercase gap-4">
-                  Deuda
-                </div>
+                <div class="text-center text-xs">Deuda</div>
               </th>
               <th>
-                <div class="text-center">Tel. 1</div>
+                <div class="text-center text-xs">Tel. 1</div>
               </th>
               <th>
-                <div class="text-center">Tel. 2</div>
+                <div class="text-center text-xs">Tel. 2</div>
               </th>
               <th>
-                <div class="text-center">Tel. 3</div>
+                <div class="text-center text-xs">Tel. 3</div>
               </th>
               <th>
-                <div class="text-center">Tel. 4</div>
+                <div class="text-center text-xs">Tel. 4</div>
               </th>
-              <th>WhatsApp</th>
-              <th>Email</th>
+              <th>
+                <div class="text-center text-xs">Whatsapp</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Email</div>
+              </th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-row>
+
+          <ng-template pTemplate="body" let-item>
             <tr>
               <td>
                 <div
                   class="w-[140px] text-sm whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  {{ row.user?.name }}
+                  {{ item.user?.name }}
                 </div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.segment }}</p>
+                <div
+                  class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.taxpayerType }}
+                </div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.profile }}</p>
+                <div
+                  class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.code }}
+                </div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.taxpayerName }}</p>
+                <p class="w-16 text-center text-xs font-normal">
+                  {{ item?.tipDoc }}
+                </p>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.taxpayerType }}</p>
+                <p class="text-center text-sm font-normal">
+                  {{ item?.docIde }}
+                </p>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.code }}</p>
+                <div
+                  class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                  tooltipPosition="top"
+                  tooltipStyleClass="text-xs !p-0.5"
+                  [pTooltip]="item?.taxpayerName"
+                >
+                  {{ item?.taxpayerName }}
+                </div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.tipDoc }}</p>
+                <div class="text-sm text-center">
+                  {{ item?.segment }}
+                </div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.docIde }}</p>
+                <div class="text-sm text-center">{{ item?.profile }}</div>
               </td>
               <td>
-                <p class="text-sm font-normal">{{ row.debt | currency }}</p>
+                <div class="text-sm text-end">
+                  {{ item?.debt | currency }}
+                </div>
               </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{ getPhoneContacts(item.citizenContacts)?.[0]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{  getPhoneContacts(item.citizenContacts)?.[1]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{  getPhoneContacts(item.citizenContacts)?.[2]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{ getPhoneContacts(item.citizenContacts)?.[3]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <div class="text-sm text-center">
+                  {{ getWhatsappContacts(item.citizenContacts)?.[0]?.value || "-" }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm text-center">
+                  {{ getEmailContacts(item.citizenContacts)?.[0]?.value || '-' }}
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="100">
+                <div class="text-center text-sm font-light p-4">
+                  No tienes asignaciones en la cartera seleccionada.
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="100">
+                <div class="flex justify-center items-center">
+                  <sat-paginator
+                    [totalItems]="totalItemsPreview"
+                    [limit]="limitPreview()"
+                    [offset]="offsetPreview()"
+                    [limitOptions]="[10, 25, 50, 100]"
+                    (pageChange)="onPageChangePreview($event)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-fieldset>
 
+    <p-fieldset *ngIf="portfolioDetail.length" legend="Datos de la cartera">
+      <div class="grid grid-cols-1 gap-1">
+        <p-table
+          [value]="portfolioDetail"
+          [scrollable]="true"
+          scrollHeight="900px"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>
+                <div class="text-center text-xs">Sectorista</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tipo de contribuyente</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Código de contribuyente</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tipo Doc. Ide.</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">N° Doc. Ide.</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Contribuyente</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Segmento</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Perfil</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Deuda</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tel. 1</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tel. 2</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tel. 3</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tel. 4</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Whatsapp</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Email</div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr>
               <td>
-                <p class="text-sm font-normal">
-                  {{ getPhoneContacts(row.citizenContacts)?.[0]?.value || "-" }}
+                <div
+                  class="w-[140px] text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item.user?.name }}
+                </div>
+              </td>
+              <td>
+                <div
+                  class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.taxpayerType }}
+                </div>
+              </td>
+              <td>
+                <div
+                  class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.code }}
+                </div>
+              </td>
+              <td>
+                <p class="w-16 text-center text-xs font-normal">
+                  {{ item?.tipDoc }}
                 </p>
               </td>
               <td>
-                <p class="text-sm font-normal">
-                  {{  getPhoneContacts(row.citizenContacts)?.[1]?.value || "-" }}
+                <p class="text-center text-sm font-normal">
+                  {{ item?.docIde }}
                 </p>
               </td>
               <td>
-                <p class="text-sm font-normal">
-                  {{  getPhoneContacts(row.citizenContacts)?.[2]?.value || "-" }}
-                </p>
-              </td>
-              <td>
-                <p class="text-sm font-normal">
-                  {{ getPhoneContacts(row.citizenContacts)?.[3]?.value || "-" }}
-                </p>
-              </td>
-              <td>
-                <div class="text-sm text-center">
-                  {{ getWhatsappContacts(row.citizenContacts)?.[0]?.value || "-" }}
+                <div
+                  class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                  tooltipPosition="top"
+                  tooltipStyleClass="text-xs !p-0.5"
+                  [pTooltip]="item?.taxpayerName"
+                >
+                  {{ item?.taxpayerName }}
                 </div>
               </td>
               <td>
                 <div class="text-sm text-center">
-                  {{ getEmailContacts(row.citizenContacts)?.[0]?.value || '-' }}
+                  {{ item?.segment }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm text-center">{{ item?.profile }}</div>
+              </td>
+              <td>
+                <div class="text-sm text-end">
+                  {{ item?.debt | currency }}
+                </div>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{ getPhoneContacts(item.citizenContacts)?.[0]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{  getPhoneContacts(item.citizenContacts)?.[1]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{  getPhoneContacts(item.citizenContacts)?.[2]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-normal">
+                  {{ getPhoneContacts(item.citizenContacts)?.[3]?.value || "-" }}
+                </p>
+              </td>
+              <td>
+                <div class="text-sm text-center">
+                  {{ getWhatsappContacts(item.citizenContacts)?.[0]?.value || "-" }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm text-center">
+                  {{ getEmailContacts(item.citizenContacts)?.[0]?.value || '-' }}
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="100">
+                <div class="text-center text-sm font-light p-4">
+                  No tienes asignaciones en la cartera seleccionada.
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="100">
+                <div class="flex justify-center items-center">
+                  <sat-paginator
+                    [totalItems]="totalItems"
+                    [limit]="limit()"
+                    [offset]="offset()"
+                    [limitOptions]="[10, 25, 50, 100]"
+                    (pageChange)="onPageChange($event)"
+                  />
                 </div>
               </td>
             </tr>

@@ -3,10 +3,9 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   effect,
   ElementRef,
-  Inject,
   inject,
   OnInit,
-  PLATFORM_ID,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { TableModule } from 'primeng/table';
@@ -27,11 +26,10 @@ import { CalendarModule } from 'primeng/calendar';
 import { descargarPlantillaExcel } from '@utils/plantilla-excel';
 import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 import { NgxFileDropModule } from 'ngx-file-drop';
-import { CellValue, Workbook } from 'exceljs';
+import { Workbook } from 'exceljs';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { UserStore } from '@stores/user.store';
 import { User } from '@models/user.model';
-import { Router } from '@angular/router';
 import { DatePicker } from 'primeng/datepicker';
 import { DepartmentStore } from '@stores/department.store';
 import { OfficeStore } from '@stores/office.store';
@@ -39,14 +37,15 @@ import { Department } from '@models/department.model';
 import { Office } from '@models/office.model';
 import { SelectModule } from 'primeng/select';
 import { FieldsetModule } from 'primeng/fieldset';
+import { BlockUIModule } from 'primeng/blockui';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
 import { PortfolioDetailService } from '@services/portfolio-detail.service';
 import { PortfolioDetail } from '@models/portfolio-detail.model';
 import { PortfolioStore } from '@stores/portfolio.store';
 import { CitizenContact } from '@models/citizen.model';
-import { PortfolioService } from '@services/portfolio.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-new-portfolio',
@@ -64,8 +63,10 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
     NgxFileDropModule,
     DatePicker,
     SelectModule,
+    BlockUIModule,
     ButtonSaveComponent,
     ButtonCancelComponent,
+    PaginatorComponent,
   ],
   templateUrl: './new-portfolio.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -109,13 +110,46 @@ export class NewPortfolioComponent implements OnInit {
     return this.portfolioStore.loading();
   }
 
+  columnas: string[] = [];
+
+  nombreArchivo: string = '';
+  loadingFile: boolean = false;
+  //'PAGO',
+  plantillaCabeceras: string[] = [
+    'SECTORISTA',
+    'SEGMENTO',
+    'PERFIL',
+    'CONTRIBUYENTE',
+    'TIPO DE CONTRIBUYENTE',
+    'TIPO DOC. IDE.',
+    'N° DOC. IDE.',
+    'CODIGO DE CONTRIBUYENTE',
+    'DEUDA',
+    'TELEFONO 1',
+    'TELEFONO 2',
+    'TELEFONO 3',
+    'TELEFONO 4',
+    'WHATSAPP',
+    'EMAIL',
+  ];
+  public selectedFile: File | null = null;
+  public files: NgxFileDropEntry[] = [];
+
+  limit = signal(10);
+  offset = signal(0);
+  totalItems: number = 0;
+
+  limitPreview = signal(10);
+  offsetPreview = signal(0);
+  totalItemsPreview: number = 0;
+
+  previewDataAll: PortfolioDetail[] = [];
+  previewData: PortfolioDetail[] = [];
+
+  portfolioDetail: PortfolioDetail[] = [];
+
   id!: number;
-  constructor(
-    private fb: FormBuilder,
-    private msg: MessageGlobalService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private router: Router
-  ) {}
+  constructor(private fb: FormBuilder, private msg: MessageGlobalService) {}
 
   ngOnInit(): void {
     this.formData = this.fb.group({
@@ -175,224 +209,383 @@ export class NewPortfolioComponent implements OnInit {
         officeId: item.officeId,
       });
 
-      const data = item.detalles.map((row: any): PortfolioDetail => {
-        return {
-          id: row.id,
-          userId: row.user?.id,
-          user: row.user,
-          segment: row.segment,
-          profile: row.profile,
-          taxpayerName: row.taxpayerName,
-          taxpayerType: row.taxpayerType,
-          tipDoc: row.tipDoc,
-          docIde: row.docIde,
-          code: row.code,
-          debt: row.debt || 0,
-          citizenContacts: row.citizenContacts,
-        };
-      });
-      this.previewData = data;
+      this.loadDataPortfolioDetail();
+
+      // const data = item.detalles.map((row: any): PortfolioDetail => {
+      //   return {
+      //     id: row.id,
+      //     userId: row.user?.id,
+      //     user: row.user,
+      //     segment: row.segment,
+      //     profile: row.profile,
+      //     taxpayerName: row.taxpayerName,
+      //     taxpayerType: row.taxpayerType,
+      //     tipDoc: row.tipDoc,
+      //     docIde: row.docIde,
+      //     code: row.code,
+      //     debt: row.debt || 0,
+      //     citizenContacts: row.citizenContacts,
+      //   };
+      // });
+      // this.previewData = data;
     }
   });
+
+  loadDataPortfolioDetail() {
+    this.portfolioDetailService
+      .findAllByPortfolioId(this.id!, this.limit(), this.offset())
+      .subscribe({
+        next: (res) => {
+          this.portfolioDetail = res.data;
+          this.totalItems = res.total ?? 0;
+        },
+      });
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    console.log('event', event);
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadDataPortfolioDetail();
+  }
+
+  filterPreviewData() {
+    this.totalItemsPreview = this.previewDataAll.length;
+    this.previewData = this.previewDataAll.slice(
+      this.offsetPreview(),
+      this.offsetPreview() + this.limitPreview()
+    );
+  }
+
+  onPageChangePreview(event: { limit: number; offset: number }) {
+    console.log('event', event);
+    this.limitPreview.set(event.limit);
+    this.offsetPreview.set(event.offset);
+    this.filterPreviewData();
+  }
 
   descargarPlantilla() {
     descargarPlantillaExcel();
   }
 
-  columnas: string[] = [];
-  previewData: PortfolioDetail[] = [];
-  nombreArchivo: string = '';
-  //'PAGO',
-  plantillaCabeceras: string[] = [
-    'SECTORISTA',
-    'SEGMENTO',
-    'PERFIL',
-    'CONTRIBUYENTE',
-    'TIPO DE CONTRIBUYENTE',
-    'TIPO DOC. IDE.',
-    'N° DOC. IDE.',
-    'CODIGO DE CONTRIBUYENTE',
-    'DEUDA',
-    'TELEFONO 1',
-    'TELEFONO 2',
-    'TELEFONO 3',
-    'TELEFONO 4',
-    'WHATSAPP',
-    'EMAIL',
-  ];
-  public selectedFile: File | null = null;
-  public files: NgxFileDropEntry[] = [];
-  onFileDropped(files: NgxFileDropEntry[]) {
+  // onFileDropped(files: NgxFileDropEntry[]) {
+  //   const droppedFile = files[0];
+  //   this.files = files;
+  //   if (droppedFile.fileEntry.isFile) {
+  //     const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+  //     this.nombreArchivo = droppedFile.relativePath;
+  //     const ext = this.nombreArchivo.split('.').pop()?.toLowerCase();
+  //     if (!['xlsx', 'xls', 'csv'].includes(ext!)) {
+  //       this.msg.error('Formato no válido. Solo se permite .xlsx, .xls, .csv');
+  //       return;
+  //     }
+
+  //     fileEntry.file((file: File) => {
+  //       const reader = new FileReader();
+  //       this.selectedFile = file;
+  //       reader.onload = async (e: any) => {
+  //         const arrayBuffer = e.target.result;
+  //         const workbook = new Workbook();
+  //         await workbook.xlsx.load(arrayBuffer);
+
+  //         const worksheet = workbook.worksheets[0]; // Primera hoja
+  //         const jsonData: any[] = [];
+
+  //         // Obtener encabezados desde la primera fila
+  //         const headerRow = worksheet.getRow(1);
+  //         const headers: CellValue[] = Array.isArray(headerRow.values)
+  //           ? headerRow.values.slice(1) // Omite el primer elemento vacío
+  //           : [];
+
+  //         // Recorrer filas desde la segunda en adelante
+  //         worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+  //           if (rowNumber === 1) return; // Saltar encabezado
+
+  //           const rowData: any = {};
+  //           row.eachCell((cell, colNumber) => {
+  //             const header = headers[colNumber - 1];
+  //             const key = String(header); // Asegura que sea una clave válida
+  //             rowData[key] = cell.value;
+  //           });
+
+  //           jsonData.push(rowData);
+  //         });
+
+  //         if (jsonData.length) {
+  //           const columnasArchivo = headers.map((h) => h as string);
+
+  //           // Verificamos si las columnas coinciden con la plantilla
+  //           const coinciden = this.validarCabeceras(columnasArchivo);
+
+  //           if (coinciden) {
+  //             this.columnas = columnasArchivo;
+  //             //this.previewData = jsonData;
+  //             const data = jsonData.map((item): PortfolioDetail => {
+  //               const citizenContacts: CitizenContact[] =
+  //                 this.getCitizenContacts(item);
+  //               return {
+  //                 user: { name: item['SECTORISTA'] } as User,
+  //                 segment: item['SEGMENTO'],
+  //                 profile: item['PERFIL'],
+  //                 taxpayerName: item['CONTRIBUYENTE'],
+  //                 taxpayerType: item['TIPO DE CONTRIBUYENTE'],
+  //                 tipDoc: item['TIPO DOC. IDE.'],
+  //                 docIde: item['N° DOC. IDE.'],
+  //                 code: String(item['CODIGO DE CONTRIBUYENTE']),
+  //                 debt: parseFloat(item['DEUDA']) || 0,
+  //                 citizenContacts,
+  //               };
+  //             });
+
+  //             const invaluserIds = data.some(
+  //               (d: PortfolioDetail) =>
+  //                 !d.user?.name ||
+  //                 !this.listUsers.find(
+  //                   (u: User) =>
+  //                     u.name?.trim().toLowerCase() ===
+  //                     d.user?.name?.trim().toLowerCase()
+  //                 )
+  //             );
+
+  //             if (invaluserIds) {
+  //               this.msg.confirm(
+  //                 `<div class='px-4 py-2'>
+  //                   <p class='text-center'> Se encontraron sectoristas no registrados o pertenecientes a otra office, solo tienes permitido asignar a miembros de tu propia office </p>
+  //                   <p class='text-center'> Si decides continuar se registrará la cartera excluyendo estos sectoristas no validados. </p>
+  //                 </div>`,
+  //                 () => {
+  //                   this.previewDataAll = data
+  //                     .filter(
+  //                       (d: PortfolioDetail) =>
+  //                         d.user?.name &&
+  //                         this.listUsers.find(
+  //                           (u: User) =>
+  //                             u.name?.trim().toLowerCase() ===
+  //                             d.user?.name?.trim().toLowerCase()
+  //                         )
+  //                     )
+  //                     .map((d: PortfolioDetail) => {
+  //                       const user = this.listUsers.find(
+  //                         (u: User) =>
+  //                           u.name?.trim().toLowerCase() ===
+  //                           d.user?.name?.trim().toLowerCase()
+  //                       );
+  //                       d.userId = user.id;
+  //                       d.user = user;
+  //                       return d;
+  //                     });
+
+  //                   if (this.previewDataAll.length === 0) {
+  //                     this.msg.error('No se encontraron sectoritas válidos.');
+  //                     this.columnas = [];
+  //                     this.previewDataAll = [];
+  //                     this.previewData = [];
+  //                     this.nombreArchivo = '';
+  //                   } else {
+  //                     this.filterPreviewData();
+  //                     this.msg.warn(
+  //                       'Archivo cargado, excluyendo sectoristas no encontrados.'
+  //                     );
+  //                   }
+  //                 }
+  //               );
+  //             } else {
+  //               this.previewDataAll = data
+  //                 .filter(
+  //                   (d: PortfolioDetail) =>
+  //                     d.user?.name &&
+  //                     this.listUsers.find(
+  //                       (u: User) =>
+  //                         u.name?.trim().toLowerCase() ===
+  //                         d.user?.name?.trim().toLowerCase()
+  //                     )
+  //                 )
+  //                 .map((d: PortfolioDetail) => {
+  //                   const user = this.listUsers.find(
+  //                     (u: User) =>
+  //                       u.name?.trim().toLowerCase() ===
+  //                       d.user?.name?.trim().toLowerCase()
+  //                   );
+  //                   d.userId = user.id;
+  //                   d.user = user;
+  //                   return d;
+  //                 });
+
+  //               this.filterPreviewData();
+  //               this.msg.success('Archivo válido, listo para registrar.');
+  //             }
+  //           } else {
+  //             this.msg.info(
+  //               'Las cabeceras del archivo no coinciden con la plantilla requerida.'
+  //             );
+  //             this.columnas = [];
+  //             this.previewDataAll = [];
+  //             this.previewData = [];
+  //             this.nombreArchivo = '';
+  //           }
+  //         }
+  //       };
+
+  //       reader.readAsArrayBuffer(file);
+  //     });
+  //   }
+  // }
+
+  async onFileDropped(files: NgxFileDropEntry[]) {
+    if (!files?.length) return;
+
     const droppedFile = files[0];
     this.files = files;
-    if (droppedFile.fileEntry.isFile) {
-      const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
-      this.nombreArchivo = droppedFile.relativePath;
-      const ext = this.nombreArchivo.split('.').pop()?.toLowerCase();
-      if (!['xlsx', 'xls', 'csv'].includes(ext!)) {
-        this.msg.error('Formato no válido. Solo se permite .xlsx, .xls, .csv');
+
+    if (!droppedFile.fileEntry.isFile) return;
+
+    const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+    this.nombreArchivo = droppedFile.relativePath;
+
+    if (!this.esExtensionValida(this.nombreArchivo)) {
+      this.msg.error('Formato no válido. Solo se permite .xlsx, .xls o .csv');
+      return;
+    }
+
+    fileEntry.file(async (file: File) => {
+      this.selectedFile = file;
+      this.loadingFile = true;
+      const jsonData = await this.leerArchivoExcel(file);
+
+      if (!jsonData.length) {
+        this.msg.info('El archivo está vacío o no se pudo leer correctamente.');
+        this.loadingFile = false;
         return;
       }
 
-      fileEntry.file((file: File) => {
-        const reader = new FileReader();
-        this.selectedFile = file;
-        reader.onload = async (e: any) => {
+      const columnasArchivo = Object.keys(jsonData[0]);
+      if (!this.validarCabeceras(columnasArchivo)) {
+        this.limpiarDatos();
+        this.msg.info(
+          'Las cabeceras del archivo no coinciden con la plantilla requerida.'
+        );
+        this.loadingFile = false;
+        return;
+      }
+
+      this.columnas = columnasArchivo;
+      const data = this.mapearDatos(jsonData);
+      this.procesarUsuarios(data);
+    });
+  }
+
+  private esExtensionValida(nombreArchivo: string): boolean {
+    const ext = nombreArchivo.split('.').pop()?.toLowerCase();
+    return ['xlsx', 'xls', 'csv'].includes(ext ?? '');
+  }
+
+  private async leerArchivoExcel(file: File): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e: any) => {
+        try {
           const arrayBuffer = e.target.result;
           const workbook = new Workbook();
           await workbook.xlsx.load(arrayBuffer);
 
-          const worksheet = workbook.worksheets[0]; // Primera hoja
-          const jsonData: any[] = [];
-
-          // Obtener encabezados desde la primera fila
+          const worksheet = workbook.worksheets[0];
           const headerRow = worksheet.getRow(1);
-          const headers: CellValue[] = Array.isArray(headerRow.values)
-            ? headerRow.values.slice(1) // Omite el primer elemento vacío
+          const headers = Array.isArray(headerRow.values)
+            ? headerRow.values.slice(1).map((h) => String(h ?? '').trim())
             : [];
 
-          // Recorrer filas desde la segunda en adelante
-          worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-            if (rowNumber === 1) return; // Saltar encabezado
+          const data: any[] = [];
 
+          worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+            if (rowNumber === 1) return;
             const rowData: any = {};
             row.eachCell((cell, colNumber) => {
-              const header = headers[colNumber - 1];
-              const key = String(header); // Asegura que sea una clave válida
+              const key = String(headers[colNumber - 1]);
               rowData[key] = cell.value;
             });
-
-            jsonData.push(rowData);
+            data.push(rowData);
           });
 
-          if (jsonData.length) {
-            const columnasArchivo = headers.map((h) => h as string);
+          resolve(data);
+        } catch (err) {
+          console.error('Error leyendo Excel:', err);
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject('Error al leer el archivo');
+      reader.readAsArrayBuffer(file);
+    });
+  }
 
-            // Verificamos si las columnas coinciden con la plantilla
-            const coinciden = this.validarCabeceras(columnasArchivo);
+  private mapearDatos(jsonData: any[]): PortfolioDetail[] {
+    return jsonData.map((item) => {
+      const citizenContacts = this.getCitizenContacts(item);
+      return {
+        user: { name: item['SECTORISTA'] } as User,
+        segment: item['SEGMENTO'],
+        profile: item['PERFIL'],
+        taxpayerName: item['CONTRIBUYENTE'],
+        taxpayerType: item['TIPO DE CONTRIBUYENTE'],
+        tipDoc: item['TIPO DOC. IDE.'],
+        docIde: item['N° DOC. IDE.'],
+        code: String(item['CODIGO DE CONTRIBUYENTE']),
+        debt: parseFloat(item['DEUDA']) || 0,
+        citizenContacts,
+      };
+    });
+  }
 
-            if (coinciden) {
-              this.columnas = columnasArchivo;
-              //this.previewData = jsonData;
-              const data = jsonData.map((item): PortfolioDetail => {
-                const citizenContacts: CitizenContact[] =
-                  this.getCitizenContacts(item);
-                return {
-                  user: { name: item['SECTORISTA'] } as User,
-                  segment: item['SEGMENTO'],
-                  profile: item['PERFIL'],
-                  taxpayerName: item['CONTRIBUYENTE'],
-                  taxpayerType: item['TIPO DE CONTRIBUYENTE'],
-                  tipDoc: item['TIPO DOC. IDE.'],
-                  docIde: item['N° DOC. IDE.'],
-                  code: String(item['CODIGO DE CONTRIBUYENTE']),
-                  debt: parseFloat(item['DEUDA']) || 0,
-                  // phone1: item['TELEFONO 1'],
-                  // phone2: item['TELEFONO 2'],
-                  // phone3: item['TELEFONO 3'],
-                  // phone4: item['TELEFONO 4'],
-                  // whatsapp: item['WHATSAPP'],
-                  // email: emailValue,
-                  citizenContacts,
-                };
-              });
+  private procesarUsuarios(data: PortfolioDetail[]) {
+    const usuarioValido = (name?: string) =>
+      this.listUsers.find(
+        (u: User) => u.name?.trim().toLowerCase() === name?.trim().toLowerCase()
+      );
 
-              const invaluserIds = data.some(
-                (d: PortfolioDetail) =>
-                  !d.user?.name ||
-                  !this.listUsers.find(
-                    (u: User) =>
-                      u.name?.trim().toLowerCase() ===
-                      d.user?.name?.trim().toLowerCase()
-                  )
-              );
-
-              if (invaluserIds) {
-                this.msg.confirm(
-                  `<div class='px-4 py-2'>
-                    <p class='text-center'> Se encontraron sectoristas no registrados o pertenecientes a otra office, solo tienes permitido asignar a miembros de tu propia office </p>
-                    <p class='text-center'> Si decides continuar se registrará la cartera excluyendo estos sectoristas no validados. </p>
-                  </div>`,
-                  () => {
-                    const arraydetallecartera: any[] = data
-                      .filter(
-                        (d: PortfolioDetail) =>
-                          d.user?.name &&
-                          this.listUsers.find(
-                            (u: User) =>
-                              u.name?.trim().toLowerCase() ===
-                              d.user?.name?.trim().toLowerCase()
-                          )
-                      )
-                      .map((d: PortfolioDetail) => {
-                        const user = this.listUsers.find(
-                          (u: User) =>
-                            u.name?.trim().toLowerCase() ===
-                            d.user?.name?.trim().toLowerCase()
-                        );
-                        d.userId = user.id;
-                        d.user = user;
-                        return d;
-                      });
-
-                    arraydetallecartera.forEach((element) => {
-                      this.previewData.push(element);
-                    });
-
-                    if (this.previewData.length === 0) {
-                      this.msg.error('No se encontraron sectoritas válidos.');
-                      this.columnas = [];
-                      this.previewData = [];
-                      this.nombreArchivo = '';
-                    } else {
-                      this.msg.warn(
-                        'Archivo cargado, excluyendo sectoristas no encontrados.'
-                      );
-                    }
-                  }
-                );
-              } else {
-                const arraydetallecartera: any[] = data
-                  .filter(
-                    (d: PortfolioDetail) =>
-                      d.user?.name &&
-                      this.listUsers.find(
-                        (u: User) =>
-                          u.name?.trim().toLowerCase() ===
-                          d.user?.name?.trim().toLowerCase()
-                      )
-                  )
-                  .map((d: PortfolioDetail) => {
-                    const user = this.listUsers.find(
-                      (u: User) =>
-                        u.name?.trim().toLowerCase() ===
-                        d.user?.name?.trim().toLowerCase()
-                    );
-                    d.userId = user.id;
-                    d.user = user;
-                    return d;
-                  });
-
-                arraydetallecartera.forEach((element) => {
-                  this.previewData.push(element);
-                });
-
-                this.msg.success('Archivo válido, listo para registrar.');
-              }
-            } else {
-              this.msg.info(
-                'Las cabeceras del archivo no coinciden con la plantilla requerida.'
-              );
-              this.columnas = [];
-              this.previewData = [];
-              this.nombreArchivo = '';
-            }
-          }
-        };
-
-        reader.readAsArrayBuffer(file);
+    const dataValida = data
+      .filter((d) => d.user?.name && usuarioValido(d.user.name))
+      .map((d) => {
+        const user = usuarioValido(d.user?.name);
+        return { ...d, userId: user.id, user };
       });
+
+    const tieneInvalidos = dataValida.length < data.length;
+
+    this.loadingFile = false;
+
+    if (tieneInvalidos) {
+      this.msg.confirm(
+        `<div class='px-4 py-2'>
+        <p class='text-center'>Se encontraron sectoristas no registrados o de otra oficina.</p>
+        <p class='text-center'>Si continúas, se excluirán del registro.</p>
+      </div>`,
+        () => this.finalizarCarga(dataValida, true)
+      );
+    } else {
+      this.finalizarCarga(dataValida, false);
     }
+  }
+
+  private finalizarCarga(dataValida: PortfolioDetail[], excluidos: boolean) {
+    if (!dataValida.length) {
+      this.msg.error('No se encontraron sectoristas válidos.');
+      this.limpiarDatos();
+      return;
+    }
+
+    this.previewDataAll = dataValida;
+    this.filterPreviewData();
+    this.msg[excluidos ? 'warn' : 'success'](
+      excluidos
+        ? 'Archivo cargado, excluyendo sectoristas no encontrados.'
+        : 'Archivo válido, listo para registrar.'
+    );
+  }
+
+  private limpiarDatos() {
+    this.columnas = [];
+    this.previewDataAll = [];
+    this.previewData = [];
+    this.nombreArchivo = '';
   }
 
   getCitizenContacts(row: any): CitizenContact[] {
