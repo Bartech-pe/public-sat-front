@@ -533,6 +533,7 @@ export class MailComponent implements OnInit {
           date: new Date(d.date),
           attachments: d.files || [],
           type: (d.type as Reply['type']) || 'CIUDADANO', // <--- aquí también
+          createdAt: d.createdAt,
         }));
 
         this.selectedMail.set({

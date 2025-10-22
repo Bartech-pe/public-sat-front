@@ -31,6 +31,13 @@ export class EmailComponent {
   topicName: string = 'email-notifications';
   projectId: string = 'giusen-lab';
 
+  // name?: string;
+  // email?: string;
+  // clientId?: string;
+  // clientSecret?: string;
+  // topicName?: string;
+  // projectId?: string;
+
   constructor(
     private msg: MessageGlobalService,
     private gmailService: GmailService
@@ -54,12 +61,12 @@ export class EmailComponent {
   createCredential(activateCallback: any) {
     this.gmailService
       .createCredential({
-        name: this.name,
-        email: this.email,
-        clientId: this.clientId,
-        clientSecret: this.clientSecret,
-        topicName: this.topicName,
-        projectId: this.projectId,
+        name: this.name!,
+        email: this.email!,
+        clientId: this.clientId!,
+        clientSecret: this.clientSecret!,
+        topicName: this.topicName!,
+        projectId: this.projectId!,
       })
       .subscribe({
         next: (res) => {

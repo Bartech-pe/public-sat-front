@@ -91,19 +91,28 @@ export class AloSatService {
     }
   }
 
-  private resetCall() {
-    this.callTimer.pause();
-    this.citizen = undefined;
-    this.existCitizen = false;
-    this.loadingCitizen = false;
+  findAllUserGroups(): Observable<{ userGroup: string; groupName: string }[]> {
+    return this.http.get<{ userGroup: string; groupName: string }[]>(
+      `${this.basePath}/user-groups`
+    );
   }
 
   getCampaignsByUser(): Observable<any[]> {
     return this.http.get<any[]>(`${this.basePath}/campaigns`);
   }
 
-  agentLogin(idCampaign: string) {
-    return this.http.post<any>(`${this.basePath}/agent-login`, { idCampaign });
+  findInboundGroupsByCampaign(campaignId: string) {
+    return this.http.post<{ groupId: string; groupName: string }[]>(
+      `${this.basePath}/inbound-groups-by-campaign`,
+      { campaignId }
+    );
+  }
+
+  agentLogin(campaignId: string, inboundGroups: string) {
+    return this.http.post<any>(`${this.basePath}/agent-login`, {
+      campaignId,
+      inboundGroups,
+    });
   }
 
   agentRelogin() {

@@ -32,6 +32,9 @@ import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { KeyFilterModule } from 'primeng/keyfilter';
+import { AloSatService } from '@services/alo-sat.service';
+import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-user-form',
@@ -46,6 +49,8 @@ import { KeyFilterModule } from 'primeng/keyfilter';
     ButtonModule,
     SelectModule,
     KeyFilterModule,
+    TooltipModule,
+    CheckboxModule,
     ButtonCancelComponent,
     ButtonSaveComponent,
   ],
@@ -63,6 +68,8 @@ export class UserFormComponent implements OnInit {
   readonly departmentStore = inject(DepartmentStore);
 
   readonly officeStore = inject(OfficeStore);
+
+  private readonly aloSatService = inject(AloSatService);
 
   formData = new FormGroup({
     name: new FormControl<string | undefined>(undefined, {
@@ -134,6 +141,8 @@ export class UserFormComponent implements OnInit {
   id!: number;
   vicidialId!: number;
 
+  isVicidialUser: boolean = false;
+
   submited: boolean = false;
 
   readonly roleStore = inject(RoleStore);
@@ -157,6 +166,12 @@ export class UserFormComponent implements OnInit {
         (item) => item.departmentId === this.formData.get('departmentId')?.value
       );
   }
+
+  get isAloSat(): boolean {
+    return this.formData.get('officeId')?.value == 1;
+  }
+
+  listUserGroups: { userGroup: string; groupName: string }[] = [];
 
   listLevel = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -217,6 +232,7 @@ export class UserFormComponent implements OnInit {
           },
         });
         this.formData.get('vicidial')?.enable();
+        this.isVicidialUser = true;
       }
     }
   });
@@ -226,6 +242,7 @@ export class UserFormComponent implements OnInit {
     this.roleStore.loadAll();
     this.departmentStore.loadAll();
     this.officeStore.loadAll();
+    this.getUserGroups();
 
     this.formData.get('roleId')!.valueChanges.subscribe((roleId) => {
       const departmentControl = this.formData.get('departmentId')!;
@@ -256,6 +273,14 @@ export class UserFormComponent implements OnInit {
     });
   }
 
+  getUserGroups() {
+    this.aloSatService.findAllUserGroups().subscribe({
+      next: (data) => {
+        this.listUserGroups = data;
+      },
+    });
+  }
+
   resetForm() {
     this.formData.reset({
       name: '',
@@ -278,7 +303,7 @@ export class UserFormComponent implements OnInit {
   }
 
   changeOffice() {
-    if (this.formData.get('officeId')?.value == 1) {
+    if (this.isAloSat) {
       this.formData.get('vicidial')?.enable();
     } else {
       this.formData.get('vicidial')?.disable();
@@ -322,6 +347,14 @@ export class UserFormComponent implements OnInit {
         ?.setValue(cleaned, { emitEvent: false });
     }
     this.changeVicidialUsername();
+  }
+
+  toggleVicidial() {
+    if (this.isVicidialUser) {
+      this.formData.get('vicidial')?.enable();
+    } else {
+      this.formData.get('vicidial')?.disable();
+    }
   }
 
   onCancel() {

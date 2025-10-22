@@ -135,7 +135,7 @@ export class PhoneComponent implements OnInit {
   abandoned: boolean = false;
 
   formData = new FormGroup({
-    idCampaign: new FormControl<string | undefined>(undefined, {
+    campaignId: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -173,6 +173,11 @@ export class PhoneComponent implements OnInit {
   });
 
   listCampaigns: any[] = [];
+
+  inboundGroupsAlls: { groupId: string; groupName: string }[] = [];
+  inboundGroups: { groupId: string; groupName: string }[] = [];
+  inboundGroupsSelected: { groupId: string; groupName: string }[] = [];
+  submitCampaign: boolean = false;
 
   get consultTypeList(): ConsultType[] {
     return this.consultTypeStore.items();
@@ -416,6 +421,30 @@ export class PhoneComponent implements OnInit {
 
   ngOnDestroy(): void {}
 
+  selectedInboundGroupAll() {
+    this.inboundGroupsSelected = this.inboundGroupsAlls;
+    this.inboundGroups = [];
+  }
+
+  deletedInboundGroupAll() {
+    this.inboundGroups = this.inboundGroupsAlls;
+    this.inboundGroupsSelected = [];
+  }
+
+  selectedInboundGroup(group: { groupId: string; groupName: string }) {
+    this.inboundGroupsSelected.push(group);
+    this.inboundGroups = this.inboundGroups.filter(
+      (g) => g.groupId !== group.groupId
+    );
+  }
+
+  deletedInboundGroup(group: { groupId: string; groupName: string }) {
+    this.inboundGroups.push(group);
+    this.inboundGroupsSelected = this.inboundGroupsSelected.filter(
+      (g) => g.groupId !== group.groupId
+    );
+  }
+
   resetForm() {
     this.formDataAtencion.reset({
       name: undefined,
@@ -553,17 +582,39 @@ export class PhoneComponent implements OnInit {
     this.tableChannelAssistances = [];
   }
 
-  onSubmit() {
-    const { idCampaign } = this.formData.value;
-    if (!idCampaign) {
+  nextStep() {
+    const { campaignId } = this.formData.value;
+    if (!campaignId) {
       this.msg.error('El id de la campaña es obligatorio');
       return;
     }
-    this.aloSatService.agentLogin(idCampaign as string).subscribe({
-      next: (data) => {
-        this.aloSatStore.getState();
-      },
-    });
+    this.aloSatService
+      .findInboundGroupsByCampaign(campaignId as string)
+      .subscribe({
+        next: (data) => {
+          this.submitCampaign = true;
+          this.inboundGroupsAlls = data;
+          this.inboundGroups = data;
+        },
+      });
+  }
+
+  onSubmit() {
+    const { campaignId } = this.formData.value;
+    if (!campaignId) {
+      this.msg.error('El id de la campaña es obligatorio');
+      return;
+    }
+    this.aloSatService
+      .agentLogin(
+        campaignId as string,
+        `${this.inboundGroupsSelected.map((item) => item.groupId).join(' ')} -`
+      )
+      .subscribe({
+        next: (data) => {
+          this.aloSatStore.getState();
+        },
+      });
   }
 
   agentRelogin() {
@@ -593,6 +644,7 @@ export class PhoneComponent implements OnInit {
         this.aloSatService.agentLogout().subscribe({
           next: (data) => {
             console.log('data', data);
+            this.submitCampaign = false;
             this.aloSatStore.getState();
           },
         });

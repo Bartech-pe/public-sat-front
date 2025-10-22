@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 px-3 pb-2">
+<div class="flex flex-col gap-4 px-3 pb-2">
   <ng-container *ngIf="isLogged; else elseTemplate">
     <p-card *ngIf="!isInCall && !isInWrap" class="w-full rounded-md shadow-xl">
       <h2 class="text-lg font-semibold border-b pb-2 text-sky-700">
@@ -129,7 +129,7 @@
                         {{ citizen?.vcontacto ?? "no encontrado" }}
                       </h2>
                     </div>
-                    <div class="w-full border-t"></div>
+                    <div class="w-full border-t border-slate-300"></div>
                   </div>
                 </ng-template>
 
@@ -158,7 +158,7 @@
                           : "Llamada finalizada"
                       }}
                     </h2>
-                    <div class="w-full border-t"></div>
+                    <div class="w-full border-t border-slate-300"></div>
                   </div>
                 </ng-template>
                 <div class="grid grid-cols-1 gap-2">
@@ -351,60 +351,125 @@
     </ng-container>
   </ng-container>
   <ng-template #elseTemplate>
-    <div class="flex items-center justify-center">
-      <h4 *ngIf="!isAloSat">Modulo exclusivo de AlóSAT</h4>
-      <form
-        *ngIf="isAloSat"
-        [formGroup]="formData"
-        class="flex justify-center items-center gap-2"
-      >
-        <div class="w-full flex items-center gap-2">
-          <label class="text-sm font-medium" for="idCampaign"> Campaña </label>
-          <p-select
-            id="idCampaign"
-            [options]="listCampaigns"
-            optionValue="campaign_id"
-            optionLabel="campaign_name"
-            formControlName="idCampaign"
-            placeholder="Seleccione..."
-            styleClass="w-42 text-sm"
-            appendTo="body"
+    <p-card>
+      <div class="flex items-center justify-center">
+        <h4 *ngIf="!isAloSat">Modulo exclusivo de AlóSAT</h4>
+        <div *ngIf="isAloSat" class="grid grid-cols-1 gap-2">
+          <form
+            *ngIf="!submitCampaign"
+            [formGroup]="formData"
+            class="flex justify-center items-center gap-2"
           >
-            <ng-template #selectedItem let-selectedOption>
-              <div
-                class="flex items-center gap-2 uppercase"
-                *ngIf="selectedOption"
+            <div class="w-full flex items-center gap-2">
+              <label class="text-sm font-medium" for="campaignId">
+                Campaña
+              </label>
+              <p-select
+                id="campaignId"
+                [options]="listCampaigns"
+                optionValue="campaign_id"
+                optionLabel="campaign_name"
+                formControlName="campaignId"
+                placeholder="Seleccione..."
+                styleClass="w-42 text-sm"
+                appendTo="body"
               >
-                <div>{{ selectedOption.campaign_name }}</div>
+                <ng-template #selectedItem let-selectedOption>
+                  <div
+                    class="flex items-center gap-2 uppercase"
+                    *ngIf="selectedOption"
+                  >
+                    <div>{{ selectedOption.campaign_name }}</div>
+                  </div>
+                </ng-template>
+                <ng-template let-option #item>
+                  <div class="flex items-center gap-2 uppercase">
+                    <div>{{ option.campaign_name }}</div>
+                  </div>
+                </ng-template>
+              </p-select>
+            </div>
+            <div class="flex items-center gap-2">
+              <btn-custom
+                [label]="'Siguiente'"
+                [text]="false"
+                severity="contrast"
+                [showIcon]="false"
+                [loading]="loading"
+                [disabled]="formData.invalid"
+                (click)="nextStep()"
+              />
+            </div>
+          </form>
+          <div *ngIf="submitCampaign" class="grid grid-cols-1 gap-2 w-96">
+            <div
+              class="grid grid-cols-1 rounded-lg border border-green-500 overflow-auto"
+            >
+              <h4
+                class="px-3 text-center py-1 text-sm font-semibold text-green-700 bg-green-100 border-b border-green-500"
+              >
+                Seleccionar grupos de entrada
+              </h4>
+              <div class="grid grid-cols-2 bg-green-50/50">
+                <div
+                  class="flex flex-col p-2 pb-4 gap-1 border-r border-green-500"
+                >
+                  <div
+                    class="uppercase text-center px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
+                    (click)="selectedInboundGroupAll()"
+                  >
+                    ---ADD ALL---
+                  </div>
+                  @for (item of inboundGroups; track item) {
+                  <div
+                    class="uppercase text-start px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
+                    (click)="selectedInboundGroup(item)"
+                  >
+                    {{ item.groupName }}
+                  </div>
+                  }
+                </div>
+                <div class="flex flex-col p-2 pb-4 gap-1">
+                  <div
+                    class="uppercase text-center px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
+                    (click)="deletedInboundGroupAll()"
+                  >
+                    ---DELETE ALL---
+                  </div>
+                  @for (item of inboundGroupsSelected; track item) {
+                  <div
+                    class="uppercase text-start px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
+                    (click)="deletedInboundGroup(item)"
+                  >
+                    {{ item.groupName }}
+                  </div>
+                  }
+                </div>
               </div>
-            </ng-template>
-            <ng-template let-option #item>
-              <div class="flex items-center gap-2 uppercase">
-                <div>{{ option.campaign_name }}</div>
-              </div>
-            </ng-template>
-          </p-select>
+            </div>
+            <div class="flex items-center justify-between">
+              <btn-custom
+                [label]="'Cancelar'"
+                [text]="false"
+                [outlined]="true"
+                severity="danger"
+                [showIcon]="false"
+                (click)="submitCampaign = false"
+              />
+              <btn-custom
+                [label]="'Conectar'"
+                [text]="false"
+                severity="primary"
+                [showIcon]="false"
+                [loading]="loading"
+                [disabled]="formData.invalid || !inboundGroupsSelected.length"
+                (click)="onSubmit()"
+              />
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <!-- <btn-custom
-            [text]="false"
-            icon="lucide:refresh-ccw"
-            severity="primary"
-            tooltip="Recargar campañas"
-            (click)="this.getCampaigns()"
-          /> -->
-          <btn-custom
-            [label]="'Conectar'"
-            [text]="false"
-            severity="primary"
-            [showIcon]="false"
-            [loading]="loading"
-            [disabled]="formData.invalid"
-            (click)="onSubmit()"
-          />
-        </div>
-      </form>
-    </div>
+      </div>
+    </p-card>
   </ng-template>
 
   <p-card>
@@ -419,11 +484,10 @@
             centralizada
           </p>
         </div>
-        <div class="w-full border-t"></div>
+        <div class="w-full border-t border-slate-300"></div>
       </div>
     </ng-template>
     <app-unified-query-system></app-unified-query-system>
-
   </p-card>
 
   <!-- Enlaces Directos SAT -->
