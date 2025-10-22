@@ -168,7 +168,10 @@
       </div>
     </p-fieldset>
 
-    <p-fieldset *ngIf="previewDataAll.length" legend="Vista previa de Datos">
+    <p-fieldset
+      *ngIf="previewDataAll.length"
+      legend="Vista previa de Datos ({{ previewDataAll.length }} registros)"
+    >
       <div class="grid grid-cols-1 gap-1">
         <p-table [value]="previewData" [scrollable]="true" scrollHeight="900px">
           <ng-template pTemplate="header">
@@ -337,7 +340,10 @@
       </div>
     </p-fieldset>
 
-    <p-fieldset *ngIf="portfolioDetail.length" legend="Datos de la cartera">
+    <p-fieldset
+      *ngIf="portfolioDetail.length"
+      legend="Datos de la cartera  ({{ portfolioDetail.length }} registros)"
+    >
       <div class="grid grid-cols-1 gap-1">
         <p-table
           [value]="portfolioDetail"

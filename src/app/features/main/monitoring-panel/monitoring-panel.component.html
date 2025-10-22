@@ -524,12 +524,11 @@
               </tr>
             </ng-template>
           </p-table>
-          <table
+          <!-- <table
             class="table-auto w-full border-collapse border border-gray-300 text-sm"
           >
             <thead class="bg-blue-100">
               <tr>
-                <!-- <th class="border p-2">Canal</th> -->
                 <th class="border p-2">Asesor</th>
                 <th class="border p-2">Estado</th>
                 <th class="border p-2">Tiempo estado</th>
@@ -544,7 +543,6 @@
 
             <tbody>
               <tr *ngFor="let item of userList; let i = index">
-                <!-- <td class="border p-2">Aló</td> -->
                 <td class="border p-2 text-left">
                   {{ item.user?.displayName }}
                 </td>
@@ -578,7 +576,6 @@
                 </td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
-                    <!-- BOTÓN ATENCIONES -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'atenciones', item.user.id)"
@@ -586,8 +583,6 @@
                       >
                         Atenciones
                       </button>
-
-                      <!-- POPUP ATENCIONES -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -675,8 +670,6 @@
                         </button>
                       </div>
                     </div>
-
-                    <!-- BOTÓN ESTADOS -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'estados', item.user.id)"
@@ -684,8 +677,6 @@
                       >
                         Estado
                       </button>
-
-                      <!-- POPUP ESTADOS -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -785,7 +776,7 @@
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table> -->
         </p-tabpanel>
 
         <!-- CORREO -->
@@ -989,7 +980,7 @@
               </tr>
             </ng-template>
           </p-table>
-          <table
+          <!-- <table
             class="table-auto w-full border-collapse border border-gray-300 text-sm"
           >
             <thead class="bg-purple-100">
@@ -1009,7 +1000,6 @@
                 <td class="border p-2">{{ advisor.percentage }}%</td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
-                    <!-- BOTÓN ATENCIONES -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'atenciones', advisor.userId)"
@@ -1017,8 +1007,6 @@
                       >
                         Atenciones
                       </button>
-
-                      <!-- POPUP ATENCIONES -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -1110,7 +1098,7 @@
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table> -->
         </p-tabpanel>
 
         <!-- CHAT SAT -->

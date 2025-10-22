@@ -452,13 +452,13 @@ export class NewPortfolioComponent implements OnInit {
       this.loadingFile = true;
       const jsonData = await this.leerArchivoExcel(file);
 
-      if (!jsonData.length) {
+      if (!jsonData.data.length) {
         this.msg.info('El archivo está vacío o no se pudo leer correctamente.');
         this.loadingFile = false;
         return;
       }
 
-      const columnasArchivo = Object.keys(jsonData[0]);
+      const columnasArchivo = jsonData.headers;
       if (!this.validarCabeceras(columnasArchivo)) {
         this.limpiarDatos();
         this.msg.info(
@@ -469,7 +469,7 @@ export class NewPortfolioComponent implements OnInit {
       }
 
       this.columnas = columnasArchivo;
-      const data = this.mapearDatos(jsonData);
+      const data = this.mapearDatos(jsonData.data);
       this.procesarUsuarios(data);
     });
   }
@@ -479,7 +479,9 @@ export class NewPortfolioComponent implements OnInit {
     return ['xlsx', 'xls', 'csv'].includes(ext ?? '');
   }
 
-  private async leerArchivoExcel(file: File): Promise<any[]> {
+  private async leerArchivoExcel(
+    file: File
+  ): Promise<{ headers: string[]; data: any[] }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e: any) => {
@@ -506,7 +508,7 @@ export class NewPortfolioComponent implements OnInit {
             data.push(rowData);
           });
 
-          resolve(data);
+          resolve({ data, headers });
         } catch (err) {
           console.error('Error leyendo Excel:', err);
           reject(err);
@@ -700,6 +702,8 @@ export class NewPortfolioComponent implements OnInit {
       c.trim().toLowerCase()
     );
     const archivo = cabeceras.map((c) => c.trim().toLowerCase());
+    console.log('archivo', archivo);
+    console.log('plantilla', plantilla);
 
     // Compara longitud e igualdad exacta (sin importar el orden)
     return (
