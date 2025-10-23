@@ -181,66 +181,9 @@ export class AssignmentsComponent implements OnInit {
     return Array.from(new Set(this.portfolioDetail.map((d) => d.segment!)));
   }
 
-  // GETTER PARA DATOS FILTRADOS
-  get portfolioDetailFiltered(): PortfolioDetail[] {
-    let filtered = [...this.portfolioDetail];
-
-    // // Filtro por texto de búsqueda
-    // const searchTerm = this.searchText()?.toLowerCase().trim();
-    // if (searchTerm) {
-    //   filtered = filtered.filter(
-    //     (item) =>
-    //       item.code?.toLowerCase().includes(searchTerm) ||
-    //       item.taxpayerName?.toLowerCase().includes(searchTerm) ||
-    //       item.citizenContacts.some((co) => co.value.includes(searchTerm))
-    //   );
-    // }
-
-    // // Filtro por tipo de contribuyente
-    // const tipoContrib = this.tipoContribSelected();
-    // if (tipoContrib) {
-    //   filtered = filtered.filter((item) => item.taxpayerType === tipoContrib);
-    // }
-    // // Filtro por estado
-    // const estado = this.estadoSelected();
-    // if (estado && estado !== '') {
-    //   if (estado === 'Abierto') {
-    //     filtered = filtered.filter((item) => !item.status);
-    //   } else if (estado === 'En proceso') {
-    //     filtered = filtered.filter((item) => item.status);
-    //   }
-    // }
-
-    // // Filtro por segment
-    // const segment = this.segmentSelected();
-    // if (segment) {
-    //   filtered = filtered.filter((item) => item.segment === segment);
-    // }
-
-    // // Filtro por profile
-    // const profile = this.profileSelected();
-    // if (profile) {
-    //   filtered = filtered.filter((item) => item.profile === profile);
-    // }
-
-    // // Filtro por rango de deuda
-    // const desde = parseFloat(this.debtFrom()!);
-    // const hasta = parseFloat(this.debtTo()!);
-
-    // if (!isNaN(desde)) {
-    //   filtered = filtered.filter((item) => item.currentDebt! >= desde);
-    // }
-
-    // if (!isNaN(hasta)) {
-    //   filtered = filtered.filter((item) => item.currentDebt! <= hasta);
-    // }
-
-    return filtered;
-  }
-
   originalRoute: string = '';
 
-  idSelected?: number;
+  portfolioDetailId?: number;
   type?: string;
 
   ngOnInit(): void {
@@ -249,23 +192,19 @@ export class AssignmentsComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       const portfolio = params['portfolio'];
       this.type = params['type'];
-      this.idSelected = params['id'];
+      this.portfolioDetailId = params['id'];
 
       if (portfolio && !isNaN(portfolio)) {
         this.portfolioId = Number(portfolio);
 
         this.loadDataPortfolioDetail();
         // Si existe type=GestiónCompleta pero no id → limpiar queryParams
-        if (this.type === 'GestiónCompleta' && !this.idSelected) {
+        if (this.type === 'GestiónCompleta' && !this.portfolioDetailId) {
           this.router.navigate([this.originalRoute], { replaceUrl: true });
         }
       }
     });
     this.loadPortfolios();
-  }
-
-  get portfolioDetailSelect(): PortfolioDetail | undefined {
-    return this.portfolioDetail.find((d) => d.id == this.idSelected);
   }
 
   loadPortfolios() {

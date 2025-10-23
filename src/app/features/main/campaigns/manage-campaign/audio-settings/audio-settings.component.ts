@@ -52,7 +52,7 @@ import { Department } from '@models/department.model';
 export class AudioSettingsComponent {
   audioUrl: SafeUrl | null = null;
   audioBlob: Blob | null = null;
-  campania!: Campaign;
+  campania!: any;
   formlist: any = {
     list_id: null,
     list_name: '',
@@ -105,7 +105,11 @@ export class AudioSettingsComponent {
       this.listCampaignVicidial = res;
     })
 
-    this.vicidialService.getAllAudio().subscribe(res=>{
+    this.listAudio();
+  }
+
+  listAudio(){
+     this.vicidialService.getAllAudio().subscribe(res=>{
       this.listAudios = res;
     })
   }
@@ -332,11 +336,11 @@ export class AudioSettingsComponent {
         next: (res) => {
           this.msg.success('subida exitosa audio para subir');
           let requestVicidialEdit = {
-            campaign_name: this.campania.name,
+            //campaign_name: this.campania?.campaign_name,
             survey_first_audio_file: name_clear,
           };
 
-          let vdCampaignId = this.campania.vdCampaignId;
+          let vdCampaignId = this.campania.campaign_id;
           if (!vdCampaignId) {
             this.msg.error(
               'No se puede editar la campaña: vdCampaignId está vacío o indefinido.'
@@ -345,7 +349,7 @@ export class AudioSettingsComponent {
           }
           this.vicidialService
             .editarCampania(vdCampaignId, requestVicidialEdit)
-            .subscribe((res) => {});
+            .subscribe((res) => { this.listAudio();});
           this.uploadProgress = 100;
           this.loading = false;
         },
@@ -358,7 +362,6 @@ export class AudioSettingsComponent {
 
     
     } catch (err) {
-      console.error('Error al convertir el audio:', err);
       this.msg.error('No se pudo procesar el audio.');
       this.loading = false;
     }
@@ -379,6 +382,9 @@ export class AudioSettingsComponent {
         );
 
         if (campaign) {
+
+          this.campania = campaign;
+
           this.formlist.campaign_name = campaign.campaign_name; 
  
         }
@@ -443,9 +449,7 @@ export class AudioSettingsComponent {
           this.msg.success('Leads guardados correctamente');
           this.onCancel();
       },
-      error: (err) => {
-
-      },
+      error: (err) => {},
     });
   }
 }

@@ -6,7 +6,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+// import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -21,7 +21,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { AudioSettingsComponent } from './audio-settings/audio-settings.component';
 import { ProgresoCampaniaComponent } from './progreso-campania/progreso-campania.component';
 import { CampaignStore } from '@stores/campaign.store';
-import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
+// import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
 import { VicidialService } from '@services/vicidial.service';
 import { TagModule } from 'primeng/tag';
 import { ScheduleService } from '@services/schedule.service';
@@ -40,10 +40,10 @@ import { CampaignDetalleComponent } from './campaign-detalle/campaign-detalle.co
     FormsModule,
     BreadcrumbModule,
     ButtonDetailComponent,
-    BtnDeleteComponent,
+    // BtnDeleteComponent,
     ButtonSaveComponent,
     OverlayPanelModule,
-    ButtonProgressComponent,
+    // ButtonProgressComponent,
     TagModule,
   ],
   templateUrl: './manage-campaign.component.html',

@@ -125,9 +125,8 @@ export class CompleteManagementComponent implements OnInit {
   vnomAdm?: string;
   totalDebt: number = 0;
 
-  @Input() set portfolioDetail(val: PortfolioDetail) {
-    this._portfolioDetail = val;
-    this.precargarDatos();
+  @Input() set portfolioDetailId(id: number) {
+    this.precargarDatos(id);
   }
   channelSelected: string = '';
 
@@ -139,9 +138,7 @@ export class CompleteManagementComponent implements OnInit {
 
   tabSelected = 0;
 
-  get portfolioDetail(): PortfolioDetail | undefined {
-    return this._portfolioDetail;
-  }
+  portfolioDetail?: PortfolioDetail;
 
   get citizenContacts(): CitizenContact[] {
     return this.portfolioDetail?.citizenContacts ?? [];
@@ -408,9 +405,7 @@ export class CompleteManagementComponent implements OnInit {
     }
   });
 
-  ngOnInit(): void {
-    // this.portfolioDetail = instance.data;
-  }
+  ngOnInit(): void {}
 
   cleanWhatsapp(whatsapp: string): string {
     if (!whatsapp) return '';
@@ -418,36 +413,42 @@ export class CompleteManagementComponent implements OnInit {
     return whatsapp.replace(/^https?:\/\/?wa\.me\//, '').replace('wa.me/', '');
   }
 
-  precargarDatos() {
-    if (this.portfolioDetail) {
-      this.formData.patchValue({
-        portfolioDetailId: this.portfolioDetail.id,
-      });
-
-      if (this.portfolioDetail.caseInformation) {
+  precargarDatos(id: number) {
+    this.portfolioDetailService.findOne(id).subscribe({
+      next: (data) => {
+        this.portfolioDetail = data;
         this.formData.patchValue({
-          caseInformation: {
-            commitmentDate: this.portfolioDetail.caseInformation.commitmentDate,
-            commitmentAmount:
-              this.portfolioDetail.caseInformation.commitmentAmount,
-            observation: this.portfolioDetail.caseInformation.observation,
-            followUp: this.portfolioDetail.caseInformation.followUp,
-          },
+          portfolioDetailId: this.portfolioDetail.id,
         });
-      }
 
-      this.listMetodos = this.getMetodos(this.portfolioDetail.citizenContacts);
+        if (this.portfolioDetail.caseInformation) {
+          this.formData.patchValue({
+            caseInformation: {
+              commitmentDate:
+                this.portfolioDetail.caseInformation.commitmentDate,
+              commitmentAmount:
+                this.portfolioDetail.caseInformation.commitmentAmount,
+              observation: this.portfolioDetail.caseInformation.observation,
+              followUp: this.portfolioDetail.caseInformation.followUp,
+            },
+          });
+        }
 
-      this.formData.get('recordatorio')?.disable();
-      this.getAtenciones();
-      this.getAttentions(this.portfolioDetail.docIde);
-      this.getDeudasInfo(this.portfolioDetail.code);
-      this.getImpuestoPredial(this.portfolioDetail.code);
-      this.getImpuestoVehicular(this.portfolioDetail.code);
-      this.getDeuda(this.portfolioDetail.code);
-      this.getPapeletaInfo(this.portfolioDetail.code);
-      this.getTramites(this.portfolioDetail.code);
-    }
+        this.listMetodos = this.getMetodos(
+          this.portfolioDetail.citizenContacts
+        );
+
+        this.formData.get('recordatorio')?.disable();
+        this.getAtenciones();
+        this.getAttentions(this.portfolioDetail.docIde);
+        this.getDeudasInfo(this.portfolioDetail.code);
+        this.getImpuestoPredial(this.portfolioDetail.code);
+        this.getImpuestoVehicular(this.portfolioDetail.code);
+        this.getDeuda(this.portfolioDetail.code);
+        this.getPapeletaInfo(this.portfolioDetail.code);
+        this.getTramites(this.portfolioDetail.code);
+      },
+    });
   }
 
   getAttentions(dni: string) {

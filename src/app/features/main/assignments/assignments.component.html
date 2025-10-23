@@ -17,10 +17,7 @@
       </div>
 
       <div class="grow border-t border-slate-200 overflow-y-auto">
-        <app-complete-management
-          [portfolioDetail]="portfolioDetailSelect"
-          (refresh)="refreshDetail($event.value)"
-        />
+        <app-complete-management [portfolioDetailId]="portfolioDetailId" />
       </div>
     </div>
   </p-card>
@@ -252,7 +249,7 @@
         <!-- Fila 4: Tabla -->
         <p-card>
           <p-table
-            [value]="portfolioDetailFiltered"
+            [value]="portfolioDetail"
             [scrollable]="true"
             scrollHeight="calc(100vh - 595px)"
           >

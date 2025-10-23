@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import { CampaignData } from '@models/campaign.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { VicidialService } from '@services/vicidial.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -8,7 +9,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+
 
 @Component({
   selector: 'app-campaign-detalle',
@@ -35,15 +36,15 @@ export class CampaignDetalleComponent {
 
   }
 
-  called:any;
+ called: CampaignData = {} as CampaignData;
   ngOnInit(): void {
 
     if(this.config){
  
-      this.vicidialService.getByIdProgresoList(this.config.data.vdlistId).subscribe( res=>{
-
+       this.vicidialService.getByIdProgresoList(this.config.data.vdlistId)
+      .subscribe(res => {
         this.called = res;
-      })
+      });
     }
 
   }

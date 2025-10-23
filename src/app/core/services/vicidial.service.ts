@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '@envs/environments';
+import { CampaignData } from '@models/campaign.model';
 export interface ProgresoCampania {
   agentes_conectados: number;
   llamadas_pendientes: number;
@@ -70,8 +71,8 @@ export class VicidialService {
       .pipe(catchError(this.handleError));
   }
 
-  getByIdProgresoList(id: any): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}central/campanias/list/${id}`)
+  getByIdProgresoList(id: any): Observable<CampaignData> {
+    return this.http.get<CampaignData>(`${this.baseUrl}central/campanias/list/${id}`)
       .pipe(catchError(this.handleError));
   }
 

@@ -26,3 +26,14 @@ export interface Campaign {
   campaignState?: CampaignState;
   createdByUser?: User;
 }
+
+export  interface CampaignData {
+  campaign_name: string;
+  campaign_id: string;
+  list_name: string;
+  list_id: string;
+  not_called: number;
+  total_leads: number;
+  penetration: number;
+  called: string;
+}
