@@ -198,6 +198,7 @@ export class NewPortfolioComponent implements OnInit {
     if (item && !this.id) {
       this.columnas = [];
       this.previewData = [];
+      this.previewDataAll = [];
       this.nombreArchivo = '';
       this.id = item.id ?? null;
       this.formData.setValue({
@@ -588,6 +589,10 @@ export class NewPortfolioComponent implements OnInit {
     this.previewDataAll = [];
     this.previewData = [];
     this.nombreArchivo = '';
+    this.selectedFile = null;
+    this.limitPreview.set(10);
+    this.offsetPreview.set(0);
+    this.totalItemsPreview = 0;
   }
 
   getCitizenContacts(row: any): CitizenContact[] {
@@ -710,12 +715,6 @@ export class NewPortfolioComponent implements OnInit {
       plantilla.length === archivo.length &&
       plantilla.every((col) => archivo.includes(col))
     );
-  }
-
-  eliminarArchivo() {
-    this.nombreArchivo = '';
-    this.columnas = [];
-    this.previewData = [];
   }
 
   onCancel() {

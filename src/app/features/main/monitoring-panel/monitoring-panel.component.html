@@ -380,17 +380,29 @@
                   </div>
                 </td>
                 <td class="border p-2 relative">
-                  <div class="flex gap-2">
-                    <!-- BOTÓN ATENCIONES -->
-                    <div class="relative">
+                  <div class="flex justify-center gap-2">
+                    <btn-custom
+                      severity="info"
+                      [text]="false"
+                      [outlined]="true"
+                      label="Atenciones"
+                      (click)="loadAttentionDetail(item.user.id, $event)"
+                    />
+                    <btn-custom
+                      severity="success"
+                      [text]="false"
+                      [outlined]="true"
+                      label="Estados"
+                      (click)="loadStateDetails(item.user.id, $event)"
+                    />
+
+                    <!-- <div class="relative">
                       <button
                         (click)="togglePopup(i, 'atenciones', item.user.id)"
                         class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
                       >
                         Atenciones
                       </button>
-
-                      <!-- POPUP ATENCIONES -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -479,7 +491,6 @@
                       </div>
                     </div>
 
-                    <!-- BOTÓN ESTADOS -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'estados', item.user.id)"
@@ -487,7 +498,7 @@
                       >
                         Estado
                       </button>
-                    </div>
+                    </div> -->
                   </div>
                 </td>
                 <td>
@@ -524,259 +535,6 @@
               </tr>
             </ng-template>
           </p-table>
-          <!-- <table
-            class="table-auto w-full border-collapse border border-gray-300 text-sm"
-          >
-            <thead class="bg-blue-100">
-              <tr>
-                <th class="border p-2">Asesor</th>
-                <th class="border p-2">Estado</th>
-                <th class="border p-2">Tiempo estado</th>
-                <th class="border p-2">Tiempo total de llamada</th>
-                <th class="border p-2">Número</th>
-                <th class="border p-2">Promedio tiempo atención</th>
-                <th class="border p-2">Efectividad</th>
-                <th class="border p-2">Detalles</th>
-                <th class="border p-2">Sesión</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr *ngFor="let item of userList; let i = index">
-                <td class="border p-2 text-left">
-                  {{ item.user?.displayName }}
-                </td>
-                <td class="border p-2 text-center">
-                  <div
-                    [ngClass]="[
-                      'flex justify-center items-center gap-2 text-sm text-center',
-                      item.state.textColor
-                    ]"
-                  >
-                    <iconify-icon [icon]="item.state.icon" class="text-2xl" />
-                    <span>{{ item.state.label }}</span>
-                  </div>
-                </td>
-                <td class="border p-2 text-center">
-                  <div class="flex items-center justify-center">
-                    {{ item.isOffline ? "-" : (item.updatedAt | timeElapsed) }}
-                  </div>
-                </td>
-                <td class="border p-2 text-center">
-                  {{ item.tiempoTotalLlamadas | duration }}
-                </td>
-                <td class="border p-2 text-center">{{ item.phoneLogin }}</td>
-                <td class="border p-2 text-center">
-                  {{ item.average | duration }}
-                </td>
-                <td>
-                  <div class="flex justify-center">
-                    {{ item.efectividad | percent }}
-                  </div>
-                </td>
-                <td class="border p-2 relative">
-                  <div class="flex gap-2">
-                    <div class="relative">
-                      <button
-                        (click)="togglePopup(i, 'atenciones', item.user.id)"
-                        class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
-                      >
-                        Atenciones
-                      </button>
-                      <div
-                        *ngIf="
-                          popupActivo?.index === i &&
-                          popupActivo?.tipo === 'atenciones'
-                        "
-                        class="absolute right-10 mt-2 w-72 bg-white border border-gray-300 shadow-lg rounded-lg p-3 text-sm z-50"
-                      >
-                        <div
-                          *ngIf="
-                            !loadingAttentionDetail && attentionDetail;
-                            else loadingAtencion
-                          "
-                        >
-                          <table class="table-auto w-full border text-xs">
-                            <thead class="bg-blue-50">
-                              <tr>
-                                <th
-                                  colspan="2"
-                                  class="text-center font-semibold py-1 border-b"
-                                >
-                                  Detalle de Atenciones
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Aló SAT
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.alosat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Correo
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.recievedCount }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chat
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chatbot
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chatbot }}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td
-                                  class="py-1 px-2 font-semibold text-gray-900"
-                                >
-                                  Total
-                                </td>
-                                <td
-                                  class="py-1 px-2 font-semibold text-right text-blue-700"
-                                >
-                                  {{ attentionDetail.count }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-
-                        <ng-template #loadingAtencion>
-                          <p class="text-gray-400 text-xs text-center py-3">
-                            Cargando datos...
-                          </p>
-                        </ng-template>
-
-                        <button
-                          (click)="cerrarPopup()"
-                          class="mt-3 w-full text-xs text-gray-500 hover:text-gray-700 border-t pt-2"
-                        >
-                          Cerrar
-                        </button>
-                      </div>
-                    </div>
-                    <div class="relative">
-                      <button
-                        (click)="togglePopup(i, 'estados', item.user.id)"
-                        class="flex items-center gap-2 rounded-full border border-green-600 px-4 py-1 text-sm font-medium shadow-sm text-green-600 hover:bg-green-100 transition"
-                      >
-                        Estado
-                      </button>
-                      <div
-                        *ngIf="
-                          popupActivo?.index === i &&
-                          popupActivo?.tipo === 'estados'
-                        "
-                        class="absolute right-10 mt-2 w-72 bg-white border border-gray-300 shadow-lg rounded-lg p-3 text-sm z-50"
-                      >
-                        <div
-                          *ngIf="
-                            !loadingStateDetails && stateDetails;
-                            else loadingEstado
-                          "
-                        >
-                          <table class="table-auto w-full border text-xs">
-                            <thead class="bg-green-50">
-                              <tr>
-                                <th
-                                  colspan="2"
-                                  class="text-center font-semibold py-1 border-b"
-                                >
-                                  Detalle de Estados
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Pausa
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ stateDetails.tiempo_pausa }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Espera
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ stateDetails.tiempo_espera }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Llamadas
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ stateDetails.tiempo_llamadas }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Disponible
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ stateDetails.tiempo_dispo }}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td
-                                  class="py-1 px-2 font-semibold text-gray-900"
-                                >
-                                  Total
-                                </td>
-                                <td
-                                  class="py-1 px-2 font-semibold text-right text-green-700"
-                                >
-                                  {{ stateDetails.tiempo_total }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-
-                        <ng-template #loadingEstado>
-                          <p class="text-gray-400 text-xs text-center py-3">
-                            Cargando estados...
-                          </p>
-                        </ng-template>
-
-                        <button
-                          (click)="cerrarPopup()"
-                          class="mt-3 w-full text-xs text-gray-500 hover:text-gray-700 border-t pt-2"
-                        >
-                          Cerrar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="border p-2 text-center">
-                  <btn-custom
-                    severity="danger"
-                    label="Cerrar Sesión"
-                    [disabled]="item.isOffline"
-                    (click)="logoutUser(item.user)"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table> -->
         </p-tabpanel>
 
         <!-- CORREO -->
@@ -980,125 +738,6 @@
               </tr>
             </ng-template>
           </p-table>
-          <!-- <table
-            class="table-auto w-full border-collapse border border-gray-300 text-sm"
-          >
-            <thead class="bg-purple-100">
-              <tr>
-                <th class="border p-2">Canal</th>
-                <th class="border p-2">Asesor</th>
-
-                <th class="border p-2">Efectividad</th>
-                <th class="border p-2">Atenciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let advisor of mailAdvisors; let i = index">
-                <td class="border p-2">Correo</td>
-                <td class="border p-2">{{ advisor.name }}</td>
-
-                <td class="border p-2">{{ advisor.percentage }}%</td>
-                <td class="border p-2 relative">
-                  <div class="flex gap-2">
-                    <div class="relative">
-                      <button
-                        (click)="togglePopup(i, 'atenciones', advisor.userId)"
-                        class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
-                      >
-                        Atenciones
-                      </button>
-                      <div
-                        *ngIf="
-                          popupActivo?.index === i &&
-                          popupActivo?.tipo === 'atenciones'
-                        "
-                        class="absolute right-10 mt-2 w-72 bg-white border border-gray-300 shadow-lg rounded-lg p-3 text-sm z-50"
-                      >
-                        <div
-                          *ngIf="
-                            !loadingAttentionDetail && attentionDetail;
-                            else loadingAtencion
-                          "
-                        >
-                          <table class="table-auto w-full border text-xs">
-                            <thead class="bg-blue-50">
-                              <tr>
-                                <th
-                                  colspan="2"
-                                  class="text-center font-semibold py-1 border-b"
-                                >
-                                  Detalle de Atenciones
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Aló SAT
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.alosat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Correo
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.recievedCount }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chat
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chatbot
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chatbot }}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td
-                                  class="py-1 px-2 font-semibold text-gray-900"
-                                >
-                                  Total
-                                </td>
-                                <td
-                                  class="py-1 px-2 font-semibold text-right text-blue-700"
-                                >
-                                  {{ attentionDetail.count }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-
-                        <ng-template #loadingAtencion>
-                          <p class="text-gray-400 text-xs text-center py-3">
-                            Cargando datos...
-                          </p>
-                        </ng-template>
-
-                        <button
-                          (click)="cerrarPopup()"
-                          class="mt-3 w-full text-xs text-gray-500 hover:text-gray-700 border-t pt-2"
-                        >
-                          Cerrar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table> -->
         </p-tabpanel>
 
         <!-- CHAT SAT -->
@@ -1362,6 +1001,97 @@
     </p-tabs>
   </p-card>
 </div>
+
+<p-popover #opAssistances>
+  <div class="w-60">
+    <div *ngIf="attentionDetail; else loadingAtencion">
+      <table class="table-auto w-full border border-slate-300 text-xs">
+        <thead class="bg-blue-50">
+          <tr>
+            <th colspan="2" class="text-center font-semibold py-1 border-b">
+              Detalle de Atenciones
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="py-1 px-2 font-medium text-gray-700">Aló SAT</td>
+            <td class="py-1 px-2 text-right">
+              {{ attentionDetail.alosat }}
+            </td>
+          </tr>
+          <tr class="border-b">
+            <td class="py-1 px-2 font-medium text-gray-700">Correo</td>
+            <td class="py-1 px-2 text-right">
+              {{ attentionDetail.recievedCount }}
+            </td>
+          </tr>
+          <tr class="border-b">
+            <td class="py-1 px-2 font-medium text-gray-700">Chat</td>
+            <td class="py-1 px-2 text-right">
+              {{ attentionDetail.chat }}
+            </td>
+          </tr>
+          <tr class="border-b">
+            <td class="py-1 px-2 font-medium text-gray-700">Chatbot</td>
+            <td class="py-1 px-2 text-right">
+              {{ attentionDetail.chatbot }}
+            </td>
+          </tr>
+          <tr>
+            <td class="py-1 px-2 font-semibold text-gray-900">Total</td>
+            <td class="py-1 px-2 font-semibold text-right text-blue-700">
+              {{ attentionDetail.count }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingAtencion>
+      <p class="text-xs text-center py-3">No se encontró información...</p>
+    </ng-template>
+  </div>
+</p-popover>
+
+<p-popover #opStates>
+  <div class="w-60">
+    <div *ngIf="stateDetails; else loadingEstado">
+      <table class="table-auto w-full border border-slate-300 text-xs">
+        <thead class="bg-green-50">
+          <tr>
+            <th colspan="2" class="text-center font-semibold py-1 border-b">
+              Detalle de Estados
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (state of stateDetails; track state) {
+          <tr class="border-b">
+            <td class="py-1 px-2 font-medium text-gray-700">
+              {{ state.newChannelState?.name }}
+            </td>
+            <td class="py-1 px-2 text-right">
+              {{ state.duration | duration }}
+            </td>
+          </tr>
+          }
+
+          <tr>
+            <td class="py-1 px-2 font-semibold text-gray-900">Total</td>
+            <td class="py-1 px-2 font-semibold text-right text-green-700">
+              {{ totalDurationStates | duration }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingEstado>
+      <p class="text-xs text-center py-3">No se encontró información...</p>
+    </ng-template>
+  </div>
+</p-popover>
 
 <!-- Modal Detalle -->
 <div

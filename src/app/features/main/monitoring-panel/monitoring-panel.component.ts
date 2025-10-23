@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -44,13 +45,13 @@ import { merge, tap } from 'rxjs';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { AloSatService } from '@services/alo-sat.service';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { groupBy } from '@utils/array.util';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CallService } from '@services/call.service';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { SelectModule } from 'primeng/select';
 import { ChannelStateService } from '@services/channel-state.service';
 import { MailService } from '@services/mail.service';
+import { Popover, PopoverModule } from 'primeng/popover';
 
 type ViewType = 'alosat' | 'email' | 'chatsat' | 'whatsapp';
 
@@ -77,6 +78,7 @@ type ViewType = 'alosat' | 'email' | 'chatsat' | 'whatsapp';
     SelectModule,
     TimeElapsedPipe,
     DurationPipe,
+    PopoverModule,
     BtnCustomComponent,
     PaginatorComponent,
   ],
@@ -85,6 +87,9 @@ type ViewType = 'alosat' | 'email' | 'chatsat' | 'whatsapp';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MonitoringPanelComponent {
+  @ViewChild('opStates') opStates!: Popover;
+  @ViewChild('opAssistances') opAssistances!: Popover;
+
   private readonly dialogService = inject(DialogService);
 
   private readonly router = inject(Router);
@@ -136,7 +141,8 @@ export class MonitoringPanelComponent {
   wspAdvisors: ChatWspAdvisor[] = [];
 
   // Estados por asesor
-  stateDetails: StateDetailsByAdvisor | null = null;
+  stateDetails: any[] = [];
+  totalDurationStates: number = 0;
   loadingStateDetails = false;
 
   // Detalle de atención
@@ -188,7 +194,7 @@ export class MonitoringPanelComponent {
       this.mailService.changeEmailState(userId, stateId).subscribe({
         next: () => {
           this.msg.success('Estado actualizado');
-          this.loadMailMonitoring()
+          this.loadMailMonitoring();
         },
       });
     }
@@ -408,35 +414,31 @@ export class MonitoringPanelComponent {
   }
 
   /** ESTADOS DETALLADOS  */
-  loadStateDetails(agentId: number, start: string, finish: string): void {
-    this.loadingStateDetails = true;
-
-    this.monitorService
-      .getStateDetailsByAdvisor(agentId, start, finish)
-      .subscribe({
-        next: (data) => {
-          this.stateDetails = data[0];
-          this.loadingStateDetails = false;
-        },
-        error: (err) => {
-          console.error('Error al cargar detalles de estados', err);
-          this.loadingStateDetails = false;
-        },
-      });
+  loadStateDetails(userId: number, e: any): void {
+    this.monitorService.getStateDetailsByAdvisor(userId).subscribe({
+      next: (data) => {
+        this.stateDetails = data;
+        this.opStates.toggle(e);
+        this.totalDurationStates = data.reduce(
+          (acc, debt) => acc + debt.duration,
+          0
+        );
+      },
+      error: (err) => {
+        console.error('Error al cargar detalles de estados', err);
+      },
+    });
   }
 
   /**  DETALLE DE ATENCIÓN  */
-  loadAttentionDetail(userId: number): void {
-    this.loadingAttentionDetail = true;
-
+  loadAttentionDetail(userId: number, e: any): void {
     this.monitorService.getAttentionDetail(userId).subscribe({
       next: (data) => {
         this.attentionDetail = Array.isArray(data) ? data[0] : data;
-        this.loadingAttentionDetail = false;
+        this.opAssistances.toggle(e);
       },
       error: (err) => {
         console.error('Error al obtener detalle de atención', err);
-        this.loadingAttentionDetail = false;
       },
     });
   }
@@ -444,37 +446,6 @@ export class MonitoringPanelComponent {
   /**  POPUP Y DETALLE */
   toggleDetalle(): void {
     this.detalleAbierto = !this.detalleAbierto;
-  }
-
-  // Controla qué popup está abierto por fila e identifica tipo ('atenciones' o 'estados')
-  popupActivo: { index: number; tipo: 'atenciones' | 'estados' } | null = null;
-
-  /** Alterna el popup (abre/cierra según el índice y tipo) */
-  togglePopup(index: number, tipo: 'atenciones' | 'estados', userId: number) {
-    // Si el mismo popup ya está abierto, se cierra
-    if (
-      this.popupActivo &&
-      this.popupActivo.index === index &&
-      this.popupActivo.tipo === tipo
-    ) {
-      this.popupActivo = null;
-      return;
-    }
-
-    // Abre el popup correspondiente
-    this.popupActivo = { index, tipo };
-
-    // Usa tus métodos originales para cargar los datos
-    if (tipo === 'atenciones') {
-      this.verAtenciones(userId);
-    } else {
-      this.verDetalleEstados(userId);
-    }
-  }
-
-  /** Cierra el popup activo */
-  cerrarPopup() {
-    this.popupActivo = null;
   }
 
   /** Abrir tabla de Atenciones */
@@ -493,31 +464,6 @@ export class MonitoringPanelComponent {
         this.loadingAttentionDetail = false;
       },
     });
-  }
-
-  /** Abrir tabla de Detalle de Estados */
-  verDetalleEstados(userId: number): void {
-    this.tablaActiva = 'estados';
-    this.stateDetails = null;
-    this.loadingStateDetails = true;
-
-    const hoy = new Date().toISOString().split('T')[0];
-
-    this.monitorService.getStateDetailsByAdvisor(userId, hoy, hoy).subscribe({
-      next: (data) => {
-        this.stateDetails = data[0];
-        this.loadingStateDetails = false;
-      },
-      error: (err) => {
-        console.error('Error al obtener detalle de estados', err);
-        this.loadingStateDetails = false;
-      },
-    });
-  }
-
-  /** Cerrar modal */
-  cerrarModal(): void {
-    this.tablaActiva = null;
   }
 
   /**

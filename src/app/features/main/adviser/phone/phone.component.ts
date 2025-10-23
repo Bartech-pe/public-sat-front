@@ -64,6 +64,8 @@ import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { DurationPipe } from '@pipes/duration.pipe';
 import { UnifiedQuerySistemComponent } from '../unified-query-system/unified-query-system.component';
 import { CheckboxModule } from 'primeng/checkbox';
+import { VicidialUserComponent } from '@features/main/settings/users/user-vicidial/user-vicidial.component';
+import { UserStore } from '@stores/user.store';
 
 @Component({
   selector: 'app-phone',
@@ -111,6 +113,8 @@ export class PhoneComponent implements OnInit {
   private readonly externalCitizenService = inject(ExternalCitizenService);
 
   private readonly authStore = inject(AuthStore);
+
+  private readonly userStore = inject(UserStore);
 
   private readonly store = inject(ChannelAssistanceStore);
 
@@ -599,6 +603,12 @@ export class PhoneComponent implements OnInit {
       });
   }
 
+  clearInbound() {
+    this.submitCampaign = false;
+    this.inboundGroups = [];
+    this.inboundGroupsSelected = [];
+  }
+
   onSubmit() {
     const { campaignId } = this.formData.value;
     if (!campaignId) {
@@ -644,7 +654,7 @@ export class PhoneComponent implements OnInit {
         this.aloSatService.agentLogout().subscribe({
           next: (data) => {
             console.log('data', data);
-            this.submitCampaign = false;
+            this.clearInbound();
             this.aloSatStore.getState();
           },
         });
@@ -826,6 +836,21 @@ export class PhoneComponent implements OnInit {
     this.store.create({
       ...form,
     } as ChannelAssistance);
+  }
+
+  vicidialParams() {
+    const user = this.authStore.user();
+    if (user) {
+      this.userStore.loadById(user.id);
+      const ref = this.dialogService.open(VicidialUserComponent, {
+        header: `Credenciales VICIdial | ${user.name}`,
+        styleClass: 'modal-md',
+        modal: true,
+        focusOnShow: false,
+        dismissableMask: false,
+        closable: true,
+      });
+    }
   }
 }
 

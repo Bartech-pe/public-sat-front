@@ -40,6 +40,12 @@ export class VicidialService {
     return this.http.get<any[]>(`${this.baseUrl}central/listas/`+ id)
       .pipe(catchError(this.handleError));
   }
+ 
+
+  getlistCampaniaAll(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}central/campanign`)
+      .pipe(catchError(this.handleError));
+  }
 
   getByIdlistCampania(id: string): Observable<any> {
       return this.http.get<any>(`${this.baseUrl}central/campanias/getbyid/${id}`).pipe(
@@ -64,6 +70,11 @@ export class VicidialService {
       .pipe(catchError(this.handleError));
   }
 
+  getByIdProgresoList(id: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}central/campanias/list/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
   create(data: any, endpoint: string): Observable<any> {
      
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
@@ -85,6 +96,11 @@ export class VicidialService {
     
       return this.http.post<any>(`${this.baseUrl}central/listas`, formData).pipe(catchError(this.handleError));
   
+  }
+
+  editarList(listId: number, data: Partial<any>): Observable<any> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.patch(`${this.baseUrl}central/campanias/list/${listId}`, data, { headers });
   }
 
   editarCampania(campaign_id: string, data: Partial<any>): Observable<any> {

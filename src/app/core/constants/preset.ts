@@ -302,7 +302,8 @@ export const MyPreset = definePreset(Aura, {
       xl: '12px',
     },
     colors: {
-       ...colors, ...satColors
+      ...colors,
+      ...satColors,
       // primary: satColors.principal,
       // primaryHover: satColors.principalHover,
       // error: satColors.error,
@@ -1008,12 +1009,12 @@ export const MyPreset = definePreset(Aura, {
         paddingY: '{formField.paddingY}',
         iconOnlyWidth: '2.5rem',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
         lg: {
-          fontSize: '{formField.lg.font.size}',
+          fontSize: '{formField.lg.fontSize}',
           paddingX: '{formField.lg.paddingX}',
           paddingY: '{formField.lg.paddingY}',
         },
@@ -1158,43 +1159,43 @@ export const MyPreset = definePreset(Aura, {
             primary: {
               hoverBackground: '{primary.50}',
               activeBackground: '{primary.100}',
-              borderColor: '{primary.200}',
+              borderColor: '{primary.500}',
               color: '{primary.color}',
             },
             secondary: {
               hoverBackground: '{surface.50}',
               activeBackground: '{surface.100}',
-              borderColor: '{surface.200}',
+              borderColor: '{surface.500}',
               color: '{surface.500}',
             },
             success: {
               hoverBackground: '{green.50}',
               activeBackground: '{green.100}',
-              borderColor: '{green.200}',
+              borderColor: '{green.500}',
               color: '{green.500}',
             },
             info: {
               hoverBackground: '{sky.50}',
               activeBackground: '{sky.100}',
-              borderColor: '{sky.200}',
+              borderColor: '{sky.500}',
               color: '{sky.500}',
             },
             warn: {
               hoverBackground: '{orange.50}',
               activeBackground: '{orange.100}',
-              borderColor: '{orange.200}',
+              borderColor: '{orange.500}',
               color: '{orange.500}',
             },
             help: {
               hoverBackground: '{purple.50}',
               activeBackground: '{purple.100}',
-              borderColor: '{purple.200}',
+              borderColor: '{purple.500}',
               color: '{purple.500}',
             },
             danger: {
               hoverBackground: '{red.50}',
               activeBackground: '{red.100}',
-              borderColor: '{red.200}',
+              borderColor: '{red.500}',
               color: '{red.500}',
             },
             contrast: {
@@ -1392,7 +1393,7 @@ export const MyPreset = definePreset(Aura, {
                 'color-mix(in srgb, {primary.color}, transparent 96%)',
               activeBackground:
                 'color-mix(in srgb, {primary.color}, transparent 84%)',
-              borderColor: '{primary.700}',
+              borderColor: '{primary.500}',
               color: '{primary.color}',
             },
             secondary: {
@@ -1754,7 +1755,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
@@ -2930,7 +2931,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
@@ -3569,7 +3570,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
@@ -4000,7 +4001,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
@@ -4455,7 +4456,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },
@@ -4650,7 +4651,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           padding: '0.375rem 0.75rem',
         },
         lg: {
@@ -4862,7 +4863,7 @@ export const MyPreset = definePreset(Aura, {
         },
         transitionDuration: '{formField.transition.duration}',
         sm: {
-          fontSize: '{formField.sm.font.size}',
+          fontSize: '{formField.sm.fontSize}',
           paddingX: '{formField.sm.paddingX}',
           paddingY: '{formField.sm.paddingY}',
         },

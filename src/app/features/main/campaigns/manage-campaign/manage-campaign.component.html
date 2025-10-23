@@ -53,14 +53,19 @@
         >
           <ng-template pTemplate="header">
             <tr>
+              <th pSortableColumn="vdlistId">
+                <div class="flex items-center text-xs uppercase gap-4">
+                   Lista Id<p-sortIcon field="vdlistId" />
+                </div>
+              </th>
               <th pSortableColumn="name">
                 <div class="flex items-center text-xs uppercase gap-4">
-                  Nombre <p-sortIcon field="name" />
+                  Nombre Lista<p-sortIcon field="name" />
                 </div>
               </th>
               <th pSortableColumn="campaignType.name">
                 <div class="flex items-center text-xs uppercase gap-4">
-                  Tipo
+                  Nombre Campaña
                   <p-sortIcon field="campaignType.name"></p-sortIcon>
                 </div>
               </th>
@@ -78,13 +83,7 @@
                   Fecha inicio <p-sortIcon field="startDate" />
                 </div>
               </th>
-              <th pSortableColumn="endDate">
-                <div
-                  class="flex items-center justify-center text-xs uppercase gap-4"
-                >
-                  Fecha fin <p-sortIcon field="endDate" />
-                </div>
-              </th>
+           
               <th>
                 <div
                   class="flex items-center justify-center text-xs uppercase gap-4"
@@ -108,26 +107,25 @@
           <ng-template pTemplate="body" let-registro>
             <tr>
               <td>
+                <p class="text-sm font-light">{{ registro.vdlistId }}</p>
+              </td>
+              <td>
                 <p class="text-sm font-light">{{ registro.name }}</p>
               </td>
-              <td class="flex items-center gap-2">
+              <td >
                 <p class="text-sm font-light">
                   {{
-                    registro.campaignType?.id === 3
-                      ? registro.campaignType?.name +
-                        " ID VICIDIAL: " +
-                        registro.vdCampaignId
-                      : registro.campaignType?.name
+                    registro.vdCampaignName
                   }}
                 </p>
 
-                <button
-                  *ngIf="registro.campaignType?.id === 3"
+                <!-- <button
+                  
                   (click)="copiarCampaniaId(registro)"
                   class="text-xs text-black-500 hover:underline"
                 >
                   {{ registro.copiado ? "Copiado" : "Copiar" }}
-                </button>
+                </button> -->
               </td>
               <td>
                 <p class="text-sm font-light">
@@ -139,21 +137,17 @@
                   {{ registro.startDate | date : "dd/MM/yyyy" }}
                 </p>
               </td>
-              <td>
-                <p class="text-sm font-light text-center">
-                  {{ registro.endDate | date : "dd/MM/yyyy" }}
-                </p>
-              </td>
+          
               <td>
                 <div class="flex justify-center items-center">
                   <span
-                    class="estado-tag"
+                    class="px-3 py-1 rounded-full text-white text-xs font-semibold"
                     [ngStyle]="{
-                      'background-color': registro.campaignState?.color,
-                      color: getContraste(registro.campaignState?.color)
+                      'background-color': registro.active === 'Y' ? '#16a34a' : '#dc2626'
                     }"
+                    (click)="updateStatus(registro)"
                   >
-                    {{ registro.campaignState?.name }}
+                    {{ registro.active === 'Y' ? 'Activo' : 'Desactivado' }}
                   </span>
                 </div>
               </td>
@@ -167,8 +161,8 @@
                   <!-- <button-edit (click)="edit(registro)" /> -->
                   <button-detail (click)="verResultados(registro)" />
                   <!-- <button-statu  (click)="verResultados(registro)"/> -->
-                  <button-progress (click)="verResultadosProgreso(registro)" />
-                  <btn-delete (click)="remove(registro)" />
+                  <!-- <button-progress (click)="verResultadosProgreso(registro)" /> -->
+                  <!-- <btn-delete (click)="remove(registro)" /> -->
                 </div>
               </td>
             </tr>

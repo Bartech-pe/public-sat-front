@@ -27,6 +27,7 @@ import { TagModule } from 'primeng/tag';
 import { ScheduleService } from '@services/schedule.service';
 import { CampaignService } from '@services/campaign.service';
 import { Campaign } from '@models/campaign.model';
+import { CampaignDetalleComponent } from './campaign-detalle/campaign-detalle.component';
 
 @Component({
   selector: 'app-manage-campaign',
@@ -109,7 +110,7 @@ export class ManageMampaignComponent {
   addNew() {
     this.campaignStore.clearSelected();
     this.openModal = true;
-    const ref = this.dialogService.open(CreateCampaignComponent, {
+    const ref = this.dialogService.open(AudioSettingsComponent, {
       header: 'Nueva Campaña - Audio',
       styleClass: 'modal-8xl',
       modal: true,
@@ -173,41 +174,41 @@ export class ManageMampaignComponent {
             <p class='text-center'> Esta acción no se puede deshacer. </p>
           </div>`,
       () => {
-        if (registro.id_tipo_campania == 3) {
+        // if (registro.id_tipo_campania == 3) {
           this.campaignStore.delete(registro.id);
-          this.vicidialService
-            .eliminarCampania(registro.campaniaId)
-            .subscribe((res) => {
-              if (res.status == 'not_found') {
-                this.msg.error(
-                  'No existe una campaña con ese campaign_id : ' +
-                    registro.campaniaId
-                );
-              } else {
-                this.msg.success(
-                  'La Campaña fue eliminado correctamente en Vicidial, ' +
-                    registro.name
-                );
-                this.scheduleService.deleteByCampain(registro.id).subscribe(
-                  (res) => {
-                    this.campaignStore.delete(registro.id);
-                  },
-                  (err) => {
-                    this.campaignStore.delete(registro.id);
-                  }
-                );
-              }
-            });
-        } else {
-          this.campaignStore.delete(registro.id);
-        }
+        //   this.vicidialService
+        //     .eliminarCampania(registro.campaniaId)
+        //     .subscribe((res) => {
+        //       if (res.status == 'not_found') {
+        //         this.msg.error(
+        //           'No existe una campaña con ese campaign_id : ' +
+        //             registro.campaniaId
+        //         );
+        //       } else {
+        //         this.msg.success(
+        //           'La Campaña fue eliminado correctamente en Vicidial, ' +
+        //             registro.name
+        //         );
+        //         this.scheduleService.deleteByCampain(registro.id).subscribe(
+        //           (res) => {
+        //             this.campaignStore.delete(registro.id);
+        //           },
+        //           (err) => {
+        //             this.campaignStore.delete(registro.id);
+        //           }
+        //         );
+        //       }
+        //     });
+        // } else {
+        //   this.campaignStore.delete(registro.id);
+        // }
       }
     );
   }
 
   copiarCampaniaId(registro: any) {
     navigator.clipboard
-      .writeText(registro.campaniaId.toString())
+      .writeText(registro.campaniaId)
       .then(() => {
         registro.copiado = true;
 
@@ -238,10 +239,11 @@ export class ManageMampaignComponent {
   }
 
   verResultados(registro: any) {
-    const modal_item = this.dialogService.open(AudioSettingsComponent, {
+    console.log(registro)
+    const modal_item = this.dialogService.open(CampaignDetalleComponent, {
       data: registro,
-      header: 'Configurar Campaña ' + registro.name,
-      styleClass: 'modal-8xl',
+      header: 'Gestionar ' + registro.name,
+      styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
       closable: true,
@@ -254,4 +256,38 @@ export class ManageMampaignComponent {
   }
 
   configurar(registro: any) {}
+
+  updateStatus(registro: any) {
+ 
+    const accion = registro.active === 'Y' ? 'DESACTIVAR' : 'ACTIVAR';
+    const colorAccion = registro.active === 'Y' ? 'text-red-600' : 'text-green-600';
+
+    this.msg.confirm(
+      `<div class='px-4 py-3 text-center'>
+        <p class='text-lg font-semibold'>
+          ¿Desea <span class='${colorAccion} uppercase'>${accion}</span> la campaña
+          <span class='font-bold uppercase text-gray-800'>${registro.name}</span>?
+        </p>
+        <p class='text-sm text-gray-500 mt-2'>
+          Esta acción ${accion === 'DESACTIVAR' ? 'deshabilitará temporalmente' : 'habilitará nuevamente'} la campaña en el sistema.
+        </p>
+      </div>`,
+      () => {
+         //this.campaignService.update()
+
+         const request = {
+            active : registro.active === 'Y' ? 'N': 'Y',
+            vdlistId: registro.vdlistId
+         }
+
+         this.vicidialService.editarList(registro.id, request).subscribe(res=>{
+          if(res.status == "updated"){
+              this.msg.success('El estado fue actualizado correctamente.');
+             this.loadData();
+          }
+           
+         })
+      }
+    );
+  }
 }

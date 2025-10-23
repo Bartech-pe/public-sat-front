@@ -213,17 +213,9 @@ export class UsersComponent implements OnInit {
       header: `Credenciales VICIdial | ${item.name}`,
       styleClass: 'modal-md',
       modal: true,
-      data: item.vicidial,
       focusOnShow: false,
       dismissableMask: false,
       closable: true,
-    });
-
-    ref.onClose.subscribe((res) => {
-      this.openModal = false;
-      if (res) {
-        this.loadData();
-      }
     });
   }
 }

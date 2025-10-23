@@ -14,10 +14,9 @@ import { VicidialReport } from '@models/vicidial-report.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MonitorService {
-
   private baseUrl = `${environment.apiUrl}v1/monitor`;
 
   private readonly http = inject(HttpClient);
@@ -25,8 +24,8 @@ export class MonitorService {
   //falta contador de Aló sat pro falta de data.
 
   /**
-  * Cantidad de chats
-  */
+   * Cantidad de chats
+   */
   getCountChat(): Observable<ChannelCount> {
     return this.http.get<any>(`${this.baseUrl}/countChat`);
   }
@@ -45,20 +44,12 @@ export class MonitorService {
     return this.http.get<any>(`${this.baseUrl}/countMail`);
   }
 
-
-
-
-
   /**
    * Reporte Vicidial - Conteo
    */
   getMonitorVicidialCount(): Observable<VicidialCount> {
     return this.http.get<any>(`${this.baseUrl}/monitorVicidialCount`);
   }
-
-
-
-
 
   /**
    * Correos abiertos por asesor
@@ -77,21 +68,19 @@ export class MonitorService {
    * Chats WSP abiertos por asesor
    */
   getMonitorAdvisorsChatWsp(): Observable<ChatWspAdvisor[]> {
-    return this.http.get<ChatWspAdvisor[]>(`${this.baseUrl}/monitorAdvisorsChatWsp`);
+    return this.http.get<ChatWspAdvisor[]>(
+      `${this.baseUrl}/monitorAdvisorsChatWsp`
+    );
   }
-
-
-
 
   /**
    * Reporte Vicidial - Tabla
    */
   getMonitorVicidialReport(): Observable<VicidialReport[]> {
-    return this.http.get<VicidialReport[]>(`${this.baseUrl}/monitorVicidialReport`);
+    return this.http.get<VicidialReport[]>(
+      `${this.baseUrl}/monitorVicidialReport`
+    );
   }
-
-
-
 
   /**
    * 🧾 Detalles de estados por asesor
@@ -99,16 +88,11 @@ export class MonitorService {
    * @param start Fecha inicio (YYYY-MM-DD)
    * @param finish Fecha fin (YYYY-MM-DD)
    */
-  getStateDetailsByAdvisor(
-    agent: number,
-    start: string,
-    finish: string
-  ): Observable<StateDetailsByAdvisor[]> {
-    const url = `${this.baseUrl}/stateDetailsByAdvisor/${agent}/${start}/${finish}`;
+  getStateDetailsByAdvisor(agent: number): Observable<any[]> {
+    const url = `${this.baseUrl}/stateDetailsByAdvisor/${agent}`;
     console.log('📡 Llamando a:', url); // te mostrará la URL final en consola
-    return this.http.get<StateDetailsByAdvisor[]>(url);
+    return this.http.get<any[]>(url);
   }
-
 
   /**
    * 📊 Conteo para dashboard Vicidial
@@ -138,5 +122,4 @@ export class MonitorService {
       `${this.baseUrl}/attentionDate/${date}`
     );
   }
-
 }

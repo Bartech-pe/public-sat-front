@@ -399,6 +399,12 @@
                 [disabled]="formData.invalid"
                 (click)="nextStep()"
               />
+              <btn-custom
+                severity="contrast"
+                icon="lucide:phone-call"
+                tooltip="Credenciales VICIdial"
+                (click)="vicidialParams(item)"
+              />
             </div>
           </form>
           <div *ngIf="submitCampaign" class="grid grid-cols-1 gap-2 w-96">
@@ -412,7 +418,7 @@
               </h4>
               <div class="grid grid-cols-2 bg-green-50/50">
                 <div
-                  class="flex flex-col p-2 pb-4 gap-1 border-r border-green-500"
+                  class="min-h-32 flex flex-col p-2 pb-4 gap-1 border-r border-green-500"
                 >
                   <div
                     class="uppercase text-center px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
@@ -429,7 +435,10 @@
                   </div>
                   }
                 </div>
-                <div class="flex flex-col p-2 pb-4 gap-1">
+                <div
+                  *ngIf="inboundGroupsSelected.length"
+                  class="min-h-32 flex flex-col p-2 pb-4 gap-1"
+                >
                   <div
                     class="uppercase text-center px-2 font-bold bg-green-100 hover:bg-green-200/75 cursor-pointer text-xs text-green-700 border rounded-sm"
                     (click)="deletedInboundGroupAll()"
@@ -454,7 +463,7 @@
                 [outlined]="true"
                 severity="danger"
                 [showIcon]="false"
-                (click)="submitCampaign = false"
+                (click)="clearInbound()"
               />
               <btn-custom
                 [label]="'Conectar'"

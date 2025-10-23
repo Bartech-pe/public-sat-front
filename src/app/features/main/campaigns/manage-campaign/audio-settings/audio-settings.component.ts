@@ -29,6 +29,8 @@ import { Campaign } from '@models/campaign.model';
 import { DropdownModule } from 'primeng/dropdown';
 import { environment } from '@envs/environments';
 import { TableModule } from 'primeng/table';
+import { DepartmentStore } from '@stores/department.store';
+import { Department } from '@models/department.model';
 @Component({
   selector: 'app-audio-settings',
   imports: [
@@ -57,14 +59,24 @@ export class AudioSettingsComponent {
     list_description: '',
     campaign_id: '',
     active: 'Y',
+    departmentId:'',
+    campaign_name:'',
     dtoList: [],
   };
 
   public files: NgxFileDropEntry[] = [];
   public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
+
+  readonly departmentStore = inject(DepartmentStore);
+
+  get departmentList(): Department[] {
+      return this.departmentStore.items();
+  }
+
   listAudios:any=[];
   listListVicidial:any=[];
+  listCampaignVicidial:any=[];
 
   ttsText: string = '';
   columnas: string[] = [];
@@ -73,7 +85,7 @@ export class AudioSettingsComponent {
   uploadProgress = 0;
   @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
   audioUrlAudio: string | null = null;
-
+  vidicialId: string | null = null;
   constructor(
     private globalService: GlobalService,
     private msg: MessageGlobalService,
@@ -83,29 +95,19 @@ export class AudioSettingsComponent {
   ) {}
 
   ngOnInit(): void {
-    if (this.config.data) {
-        if (this.config.data.vdCampaignId) {
 
-          this.campania = this.config.data;
-          this.formlist.campaign_id = Number(this.config.data.vdCampaignId);
+    this.loadData();
+  }
 
-          this.vicidialService.getByIdlistCampania(this.config.data.vdCampaignId).subscribe(res => {
-            if (res?.survey_first_audio_file) {
-              this.audioUrlAudio = `${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`;
-            } else {
-              this.audioUrlAudio = '';
-            }
-          })
-        }
+  loadData() {
+    this.departmentStore.loadAll();
+    this.vicidialService.getlistCampaniaAll().subscribe(res=>{
+      this.listCampaignVicidial = res;
+    })
 
-        this.vicidialService.getAllAudio().subscribe(res=>{
-          this.listAudios = res;
-        })
-
-        this.vicidialService.getlistCampania(this.config.data.vdCampaignId).subscribe(res=>{
-          this.listListVicidial= res;
-        })
-    }
+    this.vicidialService.getAllAudio().subscribe(res=>{
+      this.listAudios = res;
+    })
   }
 
   descargarPlantilla() {
@@ -328,7 +330,6 @@ export class AudioSettingsComponent {
 
        this.globalService.uploadAudio(file).subscribe({
         next: (res) => {
-          console.log(res)
           this.msg.success('subida exitosa audio para subir');
           let requestVicidialEdit = {
             campaign_name: this.campania.name,
@@ -365,6 +366,35 @@ export class AudioSettingsComponent {
 
   reproducirAudio(){
     environment.urlTextoAudioreproducir
+  }
+
+  onCampaignChange(event: any) {
+    const selectedCampaingId = event.value;
+    if(selectedCampaingId){
+
+        this.formlist.campaign_id = selectedCampaingId;
+
+        const campaign = this.listCampaignVicidial.find(
+          (res: any) => res.campaign_id == selectedCampaingId
+        );
+
+        if (campaign) {
+          this.formlist.campaign_name = campaign.campaign_name; 
+ 
+        }
+
+        this.vicidialService.getByIdlistCampania(selectedCampaingId).subscribe(res => {
+            if (res?.survey_first_audio_file) {
+              this.audioUrlAudio = `${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`;
+            } else {
+              this.audioUrlAudio = '';
+            }
+        })
+        
+        this.vicidialService.getlistCampania(selectedCampaingId).subscribe(res=>{
+          this.listListVicidial= res;
+        })
+    }
   }
 
   onAudioChange(event: any) {
@@ -414,8 +444,7 @@ export class AudioSettingsComponent {
           this.onCancel();
       },
       error: (err) => {
-        console.error('Error al guardar leads:', err);
-        this.msg.error('Error al guardar leads');
+
       },
     });
   }
