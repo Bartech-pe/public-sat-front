@@ -84,7 +84,7 @@ export class AudioSettingsComponent {
   nameArchivo: string = '';
   uploadProgress = 0;
   @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
-  audioUrlAudio: string | null = null;
+  audioUrlAudio: SafeUrl | null = null;
   vidicialId: string | null = null;
   constructor(
     private globalService: GlobalService,
@@ -221,7 +221,7 @@ export class AudioSettingsComponent {
         this.audioBlob = blob;
         const url = URL.createObjectURL(blob);
         this.audioUrl = this.sanitizer.bypassSecurityTrustUrl(url);
-
+        this.audioUrlAudio = this.sanitizer.bypassSecurityTrustUrl(url);
         // Reproducir automáticamente
         const audio = new Audio(url);
         audio.play();
@@ -314,41 +314,41 @@ export class AudioSettingsComponent {
   }
   name_archivo:any;
   async CargarVicidial() {
-  this.loading = true;
+    this.loading = true;
 
-  try {
-      const randomNumber = Math.floor(Math.random() * 100);
-      const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
-      this.name_archivo = `${name_clear}.wav`;
+    try {
+        const randomNumber = Math.floor(Math.random() * 100);
+        const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
+        this.name_archivo = `${name_clear}.wav`;
 
-      // Si hay un nuevo audio grabado o cargado
-      if (this.audioBlob) {
-        const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
-        const file = new File([wavBlob], this.name_archivo, { type: 'audio/wav' });
+        // Si hay un nuevo audio grabado o cargado
+        if (this.audioBlob) {
+          const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
+          const file = new File([wavBlob], this.name_archivo, { type: 'audio/wav' });
 
-        this.globalService.uploadAudio(file).subscribe({
-          next: (res) => {
-            this.msg.success('Audio subido exitosamente.');
-             this.audioBlob = null;
-            // Luego de subir el audio, actualizamos la campaña
-            this.actualizarCampania(name_clear);
-          },
-          error: (err) => {
-            console.error('Error al subir el audio:', err);
-            this.msg.error('Error al subir el audio.');
-            this.loading = false;
-          },
-        });
-      } else {
-       
-        this.msg.info('No se detectó nuevo audio, actualizando solo el nombre.');
-        this.actualizarCampania(name_clear);
+          this.globalService.uploadAudio(file).subscribe({
+            next: (res) => {
+              this.msg.success('Audio subido exitosamente.');
+              this.audioBlob = null;
+              // Luego de subir el audio, actualizamos la campaña
+              this.actualizarCampania(name_clear);
+            },
+            error: (err) => {
+              console.error('Error al subir el audio:', err);
+              this.msg.error('Error al subir el audio.');
+              this.loading = false;
+            },
+          });
+        } else {
+        
+          this.msg.info('No se detectó nuevo audio, actualizando solo el nombre.');
+          this.actualizarCampania(name_clear);
+        }
+      } catch (err) {
+        console.error(err);
+        this.msg.error('No se pudo procesar el audio.');
+        this.loading = false;
       }
-    } catch (err) {
-      console.error(err);
-      this.msg.error('No se pudo procesar el audio.');
-      this.loading = false;
-    }
   }
 
   private actualizarCampania(name_clear: string) {
@@ -410,7 +410,8 @@ export class AudioSettingsComponent {
 
         this.vicidialService.getByIdlistCampania(selectedCampaingId).subscribe(res => {
             if (res?.survey_first_audio_file) {
-              this.audioUrlAudio = `${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`;
+          
+             this.audioUrlAudio =   this.sanitizer.bypassSecurityTrustUrl(`${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`)
             } else {
               this.audioUrlAudio = '';
             }
