@@ -3,6 +3,7 @@ import { environment } from '@envs/environments';
 import {
   AdvisorChangedDto,
   BotStatusChangedDto,
+  ChannelAttentionStatus,
   ChannelRoomNewMessageDto,
   ChannelRoomViewStatusDto,
   ChatStatus,
@@ -18,6 +19,7 @@ export interface ChannelRoomAssistance {
 }
 export interface changeChannelRoomStatusDto extends ChannelRoomAssistance {
   status: ChatStatus;
+  attentionStatus: ChannelAttentionStatus;
 }
 
 @Injectable({

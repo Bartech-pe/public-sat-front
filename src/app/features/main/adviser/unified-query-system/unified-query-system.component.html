@@ -788,8 +788,22 @@
               </p-table>
             </p-tabpanel>
             <p-tabpanel [value]="1">
+              <div class="flex justify-start items-center gap-2 mb-2">
+                <p-select
+                  id="channelCommunication"
+                  [options]="listCanalesComunicacion"
+                  optionLabel="label"
+                  optionValue="code"
+                  [(ngModel)]="channelSelected"
+                  placeholder="Seleccionar canal"
+                  appendTo="body"
+                  [style]="{ 'min-width': '200px' }"
+                  (onChange)="filterCommunications()"
+                />
+              </div>
+
               <p-table
-                [value]="tableChannelAssistances"
+                [value]="tableChannelAttentionsFiltered"
                 [responsiveLayout]="'scroll'"
               >
                 <ng-template pTemplate="header">
@@ -837,7 +851,6 @@
                         Usuario
                       </div>
                     </th>
-
                     <th></th>
                   </tr>
                 </ng-template>
@@ -863,27 +876,45 @@
                         {{ item?.citizen?.name }}
                       </p>
                     </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.detail }}
-                      </p>
-                    </td>
-                    <td>
-                      <p class="text-sm font-light text-center">
-                        {{ item?.createdByUser?.name }}
-                      </p>
-                    </td>
-                    <td>
-                      <div class="flex justify-center">
+                    @if(item?.queryHistory)
+                    {
+                      <td class="flex justify-center">
                         <btn-custom
                           severity="success"
-                          icon="lucide:eye"
-                          tooltip="Mostrar información del caso"
-                          [disabled]="!item.informacionCaso"
-                          (click)="showInfoCaso(item)"
+                          icon="icon-park-outline:history-query"
+                          tooltip="Ver historial de consultas"
+                          (click)="showQueryHistory(item)"
                         />
-                      </div>
+                      </td>
+                    }@else
+                    {
+                      <td>
+                        <p class="text-sm font-light text-center">
+                          {{ item?.detail }}
+                        </p>
+                      </td>
+                    }
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.createdByUser?.fullName }}
+                      </p>
                     </td>
+                    @if(!['chatsat', 'whatsapp'].includes(item?.categoryChannel?.name) || item?.queryHistory == null)
+                    {
+                      <td>
+                        <div class="flex justify-center">
+                          <btn-custom
+                            severity="success"
+                            icon="lucide:eye"
+                            tooltip="Mostrar información del caso"
+                            [disabled]="!item.informacionCaso"
+                            (click)="showInfoCaso(item)"
+                          />
+                        </div>
+                      </td>
+                    }@else {
+                      <td></td>
+                    }
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage">

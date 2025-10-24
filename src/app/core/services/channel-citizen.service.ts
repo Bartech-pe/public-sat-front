@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@envs/environments';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { ChannelQueryHistory } from '@models/citizen-query-history.model';
 import { Observable } from 'rxjs';
 
 
@@ -25,6 +26,7 @@ export interface IGetAttentionsOfCitizen {
   channel?: string;
   advisorIntervention?: boolean;
   user?: string;
+  queryHistory: ChannelQueryHistory[];
   email?: string;
 }
 

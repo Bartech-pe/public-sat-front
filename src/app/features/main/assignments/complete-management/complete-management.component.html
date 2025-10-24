@@ -1044,7 +1044,6 @@
                       (onChange)="filterCommunications()"
                     />
                   </div>
-
                   <p-table
                     [value]="tableComunicaciones"
                     [responsiveLayout]="'scroll'"
@@ -1101,7 +1100,7 @@
                           </div>
                         </th>
 
-                        <th></th>
+                        <!-- <th></th> -->
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-item>
@@ -1141,7 +1140,7 @@
                             {{ item?.createdByUser?.name ?? item?.user }}
                           </p>
                         </td>
-                        <td>
+                        <!-- <td>
                           <div class="flex justify-center">
                             <btn-custom
                               severity="danger"
@@ -1150,7 +1149,7 @@
                               (click)="deleteItemAtencion(item)"
                             />
                           </div>
-                        </td>
+                        </td> -->
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">

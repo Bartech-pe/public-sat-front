@@ -85,16 +85,7 @@
 </div>
 
 <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
-  <p-table
-    [value]="items()"
-    [paginator]="true"
-    [rows]="limit()"
-    (onPage)="onPageChange($event)"
-    [responsiveLayout]="'scroll'"
-    sortMode="multiple"
-    [showCurrentPageReport]="true"
-    currentPageReportTemplate="Mostrando {first} a {last} de {{ itemsTotal() }}"
-  >
+  <p-table [value]="items()" [responsiveLayout]="'scroll'" sortMode="multiple">
     <ng-template pTemplate="header">
       <tr>
         <th pSortableColumn="name" class="w-48">
@@ -172,6 +163,29 @@
               <label>Grabación</label>
             </button>
             }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="100">
+          <div class="text-center text-sm font-light p-4">
+            No se encontraron asesores de Aló Sat.
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #footer>
+      <tr>
+        <td colspan="100">
+          <div class="flex justify-center items-center">
+            <sat-paginator
+              [totalItems]="totalItems"
+              [limit]="limit()"
+              [offset]="offset()"
+              (pageChange)="onPageChange($event)"
+            />
           </div>
         </td>
       </tr>

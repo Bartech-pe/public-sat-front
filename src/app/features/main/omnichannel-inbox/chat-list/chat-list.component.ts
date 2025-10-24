@@ -57,108 +57,7 @@ interface FilterOptions{
   templateUrl: './chat-list.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [MessageService],
-  styles: `
-   .card-custom {
-        position: relative;
-        overflow: hidden;
-
-    }
-    :host ::ng-deep .p-selectbutton	.p-togglebutton{
-        padding: 4px !important;
-    }
-    :host ::ng-deep .p-selectbutton .p-togglebutton-checked .p-togglebutton-content{
-        background: var(--sat-principal);
-        color: white !important;
-    }
-
-
-    :host ::ng-deep .p-toast .p-toast-message {
-      margin: 0 0 1rem 0 !important;   /* separación entre toasts */
-      padding: 0 !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      border: none !important;
-    }
-
-    :host ::ng-deep .p-toast .p-toast-message-content {
-      padding: 0 !important;
-      background: transparent !important;
-    }
-    :host ::ng-deep .p-toast .p-toast-close-button {
-      display: none !important;
-    }
-    .card-custom::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 6px;
-        height: 100%;
-        background-color: var(--color-sky-700, #ef4444); /* Color por defecto: rojo */
-        z-index: 1;
-        transition: all 0.1s ease-in-out;
-    }
-
-    .card-custom.notification-red {
-        --notification-color: #ef4444;
-    }
-
-    .card-custom.notification-green {
-        --notification-color: #22c55e;
-    }
-
-    .card-custom.notification-blue {
-        --notification-color: #3b82f6;
-    }
-
-    .card-custom.notification-yellow {
-        --notification-color: #eab308;
-    }
-
-    .card-custom.notification-purple {
-        --notification-color: #a855f7;
-    }
-
-    .card-custom.notification-orange {
-        --notification-color: #f97316;
-    }
-
-    .card-custom.no-notification::before {
-        display: none;
-    }
-
-    /* Animación hover */
-    .card-notification:hover::before {
-        width: 7px;
-    }
-    @keyframes shimmer {
-      0% {
-        background-position: -200px 0;
-      }
-      100% {
-        background-position: calc(200px + 100%) 0;
-      }
-    }
-
-    .animate-pulse {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    .animate-shimmer {
-      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-      background-size: 200px 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    /* Smooth transitions para hover effects */
-    .transition-all {
-      transition: all 0.2s ease-in-out;
-    }
-
-    .hover\\:shadow-sm:hover {
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    }
-    `
+  styleUrls: ['./chat-list.component.scss']
 })
 export class ChatListComponent implements OnInit, OnDestroy {
 
@@ -181,7 +80,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
   ];
 
   isLoading: boolean = false;
-  selectedFilter: FilterOptions | null = { label: 'Todos', value: 'all', icon: 'pi pi-envelope' };
+  selectedFilter: FilterOptions | null = { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' };
   filterOptions: FilterOptions[] = [
     { label: 'Todos', value: 'all', icon: 'pi pi-envelope' },
     { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' },
@@ -345,27 +244,42 @@ export class ChatListComponent implements OnInit, OnDestroy {
     }
 
     onChangeFilter(): GetChannelSummaryDto {
-    const filters: GetChannelSummaryDto = {
-      channel: this.channel,
-      messageStatus: null,
-      chatStatus: 'pendiente',
-      search: this.search,
-    };
+      const filters: GetChannelSummaryDto = {
+        channel: this.channel,
+        messageStatus: 'unread',
+        chatStatus: 'pendiente',
+        search: this.search,
+        allChats: false
+      };
 
-    if (this.selectedFilter) {
-      const value = this.selectedFilter.value as string;
+      if (this.selectedFilter) {
+        const filter = this.selectedFilter.value as string;
 
-      if (['pendiente', 'completado', 'prioridad'].includes(value)) {
-        filters.chatStatus = value as ChatStatus;
-        filters.messageStatus = null; // ignorar messageStatus si chatStatus existe
-      } else if (['unread', 'read'].includes(value)) {
-        filters.messageStatus = value as MessageStatus;
-        filters.chatStatus = null;
+        switch (filter) {
+          case 'all':
+            filters.allChats = true
+            filters.chatStatus = null;
+            filters.messageStatus = null
+            break;
+          case 'pendiente':
+          case 'completado':
+          case 'prioridad':
+            filters.allChats = false;
+            filters.chatStatus = filter as ChatStatus;
+            filters.messageStatus = null
+            break;
+          case 'unread':
+          case 'read':
+            filters.allChats = false;
+            filters.chatStatus = null
+            filters.messageStatus = filter as MessageStatus;
+            break;
+          default:
+            break;
+        }
       }
+      return filters;
     }
-
-    return filters;
-  }
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -438,8 +352,8 @@ export class ChatListComponent implements OnInit, OnDestroy {
       } else {
         if((
             ['supervisor', 'administrador']
-              .includes(this.authStore.user()?.role?.name??'') || this.authStore.user()?.id == message?.advisor?.id)
-            && message.status !== 'completado' && (['unread', 'all'].includes(this.selectedFilter?.value?? '') || this.selectedFilter?.value == message.status))
+              .includes(this.authStore.user()?.role?.name??'') || this.selectedFilter?.value == 'all' || this.authStore.user()?.id == message?.advisor?.id)
+            && message?.attention?.status !== 'closed' && (['unread', 'all'].includes(this.selectedFilter?.value?? '') || this.selectedFilter?.value == message.status))
         {
           let model : ChatListInbox = {
             unreadCount : message.unreadCount || 1,
@@ -520,7 +434,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
     return ChannelLogo[channel] || 'fxemoji:question';
   }
 
-  getChannelStatusIcon(channel: ChatListInbox['status']): string {
+  getChannelStatusIcon(channel: ChatListInbox['attention']['status']): string {
     return ChannelStatusIcon[channel] || 'fxemoji:question';
   }
 

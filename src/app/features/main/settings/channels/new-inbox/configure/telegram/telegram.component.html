@@ -21,7 +21,24 @@
         <p-button [disabled]="codeSended()" (click)="confirmModal()" label="Validar" [outlined]="true" />
       </div>
     </div>
-    @if(phone() != "" && codeSended())
+    @if(emailRequired)
+    {
+      <div class="flex flex-col gap-2">
+        <label class="block text-sm font-semibold text-gray-700 mb-1"
+          >Correo electrónico: <span class="text-xs">*</span></label
+        >
+        <input
+          type="email"
+          pInputText
+          class="w-full"
+          placeholder="Por favor, introduzca su e-mail"
+          (input)="onEmailChange($event)"
+        />
+        {{email()}}
+      </div>
+    }
+
+    @if(phone() != ""  && (!emailRequired || email()) && codeSended())
     {
         <div class="flex flex-col gap-2">
           <label class="text-sm font-medium"> Codigo de inicio de Sesión: </label>

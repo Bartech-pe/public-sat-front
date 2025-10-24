@@ -208,20 +208,20 @@
                 </div>
 
                 <div class="flex-1 min-w-0">
+
                   <div class="flex items-center justify-between mb-1">
                     <h3 class="font-semibold text-base text-gray-900 truncate">
                       {{ chat?.lastMessage?.citizen?.fullName || chat?.lastMessage?.citizen?.phone | phoneFormat }}
                     </h3>
                     <span class="text-sm text-gray-500 whitespace-nowrap ml-2">{{chat.lastMessage.time}}</span>
                   </div>
-
                   <div class="flex items-start gap-2 mb-2">
                     @if (chat.lastMessage.fromMe) {
                       <p class="text-sm font-semibold text-gray-600 leading-relaxed">Tú: </p>
                     }
                     @if(!chat.lastMessage.message && chat.lastMessage.hasAttachment)
                     {
-                      <p class="text-sm text-gray-600 truncate leading-relaxed">{{ chat.lastMessage.fromMe? 'Enviaste un archivo':'Archivo adjunto' }}</p>
+                      <p class="text-sm text-gray-600 truncate leading-relaxed">{{ chat.lastMessage.fromMe ? 'Enviaste un archivo':'Archivo adjunto' }}</p>
                     }@else
                     {
                       <p class="text-sm text-gray-600 truncate leading-relaxed">{{ chat.lastMessage.message }}</p>
@@ -249,18 +249,18 @@
                         }"
                         pTooltip="{{chat.botStatus === 'active' ? 'Bot activado': 'Bot desactivado'}}"
                       ></iconify-icon>
-
                       <iconify-icon
-                        icon={{getChannelStatusIcon(chat.status)}}
+                        icon={{getChannelStatusIcon(chat.attention.status)}}
                         [ngClass]="{
-                          'text-yellow-500': chat.status === 'pendiente',
-                          'text-red-500': chat.status === 'prioridad',
-                          'text-green-500': chat.status === 'completado'
+                          'text-yellow-500': chat.attention.status === 'identity_verification',
+                          'text-yellow-500': chat.attention.status === 'in_progress',
+                          'text-red-500': chat.attention.status === 'priority',
+                          'text-green-500': chat.attention.status === 'closed'
                         }"
-                        pTooltip="{{chat.status | titlecase}}"
+                        pTooltip="{{chat.attention.status | titlecase}}"
                       ></iconify-icon>
 
-                      @if (chat?.unreadCount && chat?.unreadCount > 0) {
+                      @if (chat?.unreadCount && chat?.unreadCount > 0 && chat?.attention.status !== 'closed') {
                         <div class="bg-red-500 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
                           {{chat.unreadCount}}
                         </div>

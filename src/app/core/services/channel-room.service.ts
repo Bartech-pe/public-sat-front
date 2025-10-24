@@ -3,7 +3,9 @@ import { Injectable } from '@angular/core';
 import { environment } from '@envs/environments';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
 import {
+  ChannelAttentionStatus,
   Channels,
+  ChannelStatusWithExtraStatuses,
   ChatDetail,
   ChatListInbox,
   ChatStatus,
@@ -17,15 +19,17 @@ export interface ToogleBotServicesDto {
 }
 export interface GetChannelSummaryDto {
   messageStatus?: MessageStatus | null;
-  chatStatus?: ChatStatus | null;
+  chatStatus?: ChannelStatusWithExtraStatuses | null;
   channel: Channels;
   search?: string;
+  allChats?: boolean
 }
 
 export interface changeChannelRoomStatusDto {
   channelRoomId: number;
   assistanceId: number;
   status: ChatStatus;
+  attentionStatus: ChannelAttentionStatus;
 }
 
 export interface CloseAssistanceDto {

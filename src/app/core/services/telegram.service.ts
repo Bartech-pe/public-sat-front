@@ -4,13 +4,19 @@ import { environment } from '@envs/environments';
 import { catchError, Observable, throwError } from 'rxjs';
 
 
-interface TelegramAuthResponse {
+export interface TelegramAuthResponse {
   success: string;
   message: string;
+  authStatuses?: AuthStatuses;
 }
-
+export interface AuthStatuses{
+  authMethod: 'EMAIL' | 'DEFAULT',
+  emailRequired: boolean;
+  codeSended: boolean;
+}
 interface TelegramAuthRequest
 {
+  email?: string;
   phoneNumber: string;
   code?: string;
   force?: boolean;

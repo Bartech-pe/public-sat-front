@@ -33,6 +33,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { CardModule } from 'primeng/card';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { TimeRemainingPipe } from '@pipes/time-remaining.pipe';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
 @Component({
   selector: 'app-portfolios',
   imports: [
@@ -53,6 +54,7 @@ import { TimeRemainingPipe } from '@pipes/time-remaining.pipe';
     BtnCustomComponent,
     ProgressBarModule,
     TimeRemainingPipe,
+    PaginatorComponent,
   ],
   templateUrl: './portfolios.component.html',
   styles: ``,
@@ -89,8 +91,6 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   message?: string;
 
   mostrarMessage: boolean = false;
-
-  constructor(private router: Router) {}
 
   filtroNombre: string = '';
 
@@ -182,7 +182,7 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   }
 
   loadData() {
-    this.portfolioStore.loadAll();
+    this.portfolioStore.loadAll(this.limit(), this.offset());
   }
 
   cancelProgress() {

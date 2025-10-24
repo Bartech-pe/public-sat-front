@@ -190,7 +190,7 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
 
   seleccionarAsistencia(asistencia: ChannelAssistanceDto): void {
     this.asistenciaSeleccionada = asistencia;
-    this.loading = true;
+    // this.loading = true;
     this.ChannelAttentionService.getMessagesFromAssistance(asistencia.assistanceId).subscribe({
       next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
         if (response.success) {

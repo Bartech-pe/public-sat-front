@@ -27,13 +27,24 @@ export interface Campaign {
   createdByUser?: User;
 }
 
-export  interface CampaignData {
-  campaign_name: string;
-  campaign_id: string;
+export interface CampaignResumen {
+  list_id: number;
   list_name: string;
-  list_id: string;
-  not_called: number;
+  campaign_id: string;
+  campaign_name: string;
   total_leads: number;
-  penetration: number;
-  called: string;
+  not_called: number;
+  called: number;
+  penetration: number; // porcentaje de avance
+}
+
+export interface CampaignDetalle {
+  estado: string;
+  nombre_estado: string;
+  subtotal: number;
+}
+
+export interface CampaignData {
+  resumen: CampaignResumen;
+  detalle: CampaignDetalle[];
 }

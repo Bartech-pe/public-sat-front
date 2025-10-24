@@ -55,6 +55,10 @@ import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { DurationPipe } from '@pipes/duration.pipe';
+import { ChannelAttentionService } from "@services/channel-attention.service";
+import { ChannelCitizenService } from "@services/channel-citizen.service";
+import { IAttentionRecord } from "@interfaces/features/main/unified-query-system/attentionRecord.interface";
+import { QueryHistoryComponent } from "@shared/modal/query-history/query-history.component";
 
 @Component({
   selector: 'app-unified-query-system',
@@ -96,6 +100,8 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   private readonly aloSatService = inject(AloSatService);
 
+  private readonly dialogService = inject(DialogService);
+
   private readonly externalCitizenService = inject(ExternalCitizenService);
 
   private readonly authStore = inject(AuthStore);
@@ -107,6 +113,8 @@ export class UnifiedQuerySistemComponent implements OnInit {
   private readonly citizenAssistanceService = inject(CitizenAssistanceService);
 
   private readonly channelAssistanceService = inject(ChannelAssistanceService);
+
+  private readonly channelCitizenService = inject(ChannelCitizenService);
 
   private readonly omnicanalidadService = inject(OmnicanalidadService);
 
@@ -126,7 +134,11 @@ export class UnifiedQuerySistemComponent implements OnInit {
       validators: [Validators.required],
     }),
   });
-
+  listCanalesComunicacion = [
+    { label: 'CORREO', code: 'email' },
+    { label: 'CHATSAT', code: 'chatsat' },
+    { label: 'WHATSAPP', code: 'whatsapp' },
+  ];
   listCampaigns: any[] = [];
 
   get consultTypeList(): ConsultType[] {
@@ -267,9 +279,13 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   searchText = signal('');
 
+  channelSelected: string = '';
+
   tableComunicaciones: CitizenAssistance[] = [];
 
-  tableChannelAssistances: ChannelAssistance[] = [];
+  tableChannelAllAttentions: IAttentionRecord[] = [];
+
+  tableChannelAttentionsFiltered: IAttentionRecord[] = [];
 
   get userState(): ChannelState | undefined {
     return this.aloSatStore.state();
@@ -321,6 +337,14 @@ export class UnifiedQuerySistemComponent implements OnInit {
       },
     });
   }
+
+  filterCommunications() {
+    const filteredTable = this.tableChannelAllAttentions.filter(
+      (x) => x.categoryChannel?.name == this.channelSelected
+    );
+    this.tableChannelAttentionsFiltered = [...filteredTable];
+  }
+
   getAtenciones() {
     if (this.searchText()) {
       this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
@@ -328,12 +352,58 @@ export class UnifiedQuerySistemComponent implements OnInit {
           this.tableComunicaciones = data;
         },
       });
-      this.channelAssistanceService.findByDocIde(this.searchText()).subscribe({
+      this.channelAssistanceService.findByDocIdentityTyped(this.searchText()).subscribe({
         next: (data) => {
-          this.tableChannelAssistances = data;
+          if(!data) return
+          this.tableChannelAttentionsFiltered = data;
+        },
+      });
+
+      this.channelCitizenService.getAssistancesByDocumentNumber(this.searchText()).subscribe({
+        next: (response) => {
+          if(response?.success && response?.data && response.data.length)
+          {
+            let channelAttentions: IAttentionRecord[] = response.data.map((attention) => {
+              return {
+                categoryChannel: {
+                  name: attention?.channel,
+                },
+                method: 'CHAT',
+                createdByUser: {
+                  fullName: attention?.advisorIntervention ? attention.user : 'BOT'
+                },
+                citizen: {
+                  name: attention?.email,
+                },
+                createdAt: attention?.startDate ,
+                result: 'Contacto',
+                consultType: {
+                  name: attention?.type,
+                },
+                queryHistory: attention.queryHistory
+              };
+            });
+            this.tableChannelAllAttentions = [...this.tableChannelAllAttentions, ...channelAttentions];
+            this.tableChannelAttentionsFiltered = this.tableChannelAllAttentions
+          }
         },
       });
     }
+  }
+
+  showQueryHistory(item: IAttentionRecord)
+  {
+    const ref = this.dialogService.open(QueryHistoryComponent, {
+      header: 'Historial de Consultas',
+      styleClass: 'modal-3xl',
+      modal: true,
+      data: {
+        queryHistory: item.queryHistory,
+      },
+      focusOnShow: false,
+      dismissableMask: true,
+      closable: true,
+    });
   }
 
   getChannelAssistances() {
@@ -431,6 +501,7 @@ export class UnifiedQuerySistemComponent implements OnInit {
   }
 
   search() {
+    this.clear();
     this.getDeuda();
     this.getImpuestoPredial();
     this.getImpuestoVehicular();
@@ -440,13 +511,13 @@ export class UnifiedQuerySistemComponent implements OnInit {
   }
 
   clear() {
-    this.searchText.set('');
     this.tableDeudas = [];
     this.tableImpuestoPredial = [];
     this.tablePapeletas = [];
     this.tableTramites = [];
     this.tableComunicaciones = [];
-    this.tableChannelAssistances = [];
+    this.tableChannelAllAttentions = [];
+    this.tableChannelAttentionsFiltered = [];
   }
 
   get loadingCitizen(): boolean {

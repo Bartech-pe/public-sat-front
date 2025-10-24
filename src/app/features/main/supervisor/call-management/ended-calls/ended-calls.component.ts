@@ -29,6 +29,7 @@ import { CommonModule } from '@angular/common';
 import { DurationPipe } from '@pipes/duration.pipe';
 import { merge, tap } from 'rxjs';
 import { SocketService } from '@services/socket.service';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-ended-calls',
@@ -45,6 +46,7 @@ import { SocketService } from '@services/socket.service';
     DatePickerModule,
     CardModule,
     DurationPipe,
+    PaginatorComponent,
   ],
 })
 export class EndedCallsComponent implements OnInit {
@@ -70,13 +72,14 @@ export class EndedCallsComponent implements OnInit {
     });
   }
   items = signal<CallHistory[]>([]);
-  itemsTotal = signal<number>(0);
   states = signal<ICallStateItem[]>([]);
   advisors = signal<IAdvisor[]>([]);
   total = signal<ICallStates[]>([]);
   activeSearch = signal<string>('');
   limit = signal<number>(50);
   offset = signal<number>(0);
+  totalItems?: number = 0;
+
   activeStartDateFilter = signal<Date | null>(null);
   activeEndDateFilter = signal<Date | null>(null);
   activeStateFilter = signal<number | null>(null);
@@ -92,17 +95,7 @@ export class EndedCallsComponent implements OnInit {
     )
       .pipe(tap((data) => console.log('Socket event', data)))
       .subscribe(() => {
-        const request: ICallFilter = {
-          limit: this.limit(),
-          offset: this.offset(),
-          search: this.activeSearch() || undefined,
-          advisor: this.activeAdvisorFilter() || undefined,
-          startDate: this.activeStartDateFilter() || undefined,
-          endDate: this.activeEndDateFilter() || undefined,
-          stateId: this.activeStateFilter() || undefined,
-        };
-        this.getCalls(request);
-        this.getTotals(request);
+        this.loadData();
       });
   }
 
@@ -117,7 +110,7 @@ export class EndedCallsComponent implements OnInit {
   getCalls(request: ICallFilter) {
     this.callService.getQuickResponses(request).subscribe((res) => {
       this.items.set(res.data);
-      // this.itemsTotal.set(res.total);
+      this.totalItems = res.total;
     });
   }
 
@@ -134,9 +127,24 @@ export class EndedCallsComponent implements OnInit {
     });
   }
 
-  onPageChange(event: TablePageEvent): void {
-    const change = event.first * this.limit();
-    this.offset.set(change);
+  loadData() {
+    const request: ICallFilter = {
+      limit: this.limit(),
+      offset: this.offset(),
+      search: this.activeSearch() || undefined,
+      advisor: this.activeAdvisorFilter() || undefined,
+      startDate: this.activeStartDateFilter() || undefined,
+      endDate: this.activeEndDateFilter() || undefined,
+      stateId: this.activeStateFilter() || undefined,
+    };
+    this.getCalls(request);
+    this.getTotals(request);
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadData();
   }
 
   download(url: string) {

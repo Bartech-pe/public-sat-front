@@ -131,6 +131,7 @@ export class CompleteManagementComponent implements OnInit {
   channelSelected: string = '';
 
   listCanalesComunicacion = [
+    { label: 'TELÉFONO', code: 'Teléfono' },
     { label: 'CORREO', code: 'email' },
     { label: 'CHATSAT', code: 'chatsat' },
     { label: 'WHATSAPP', code: 'whatsapp' },
@@ -364,6 +365,8 @@ export class CompleteManagementComponent implements OnInit {
 
   searchText = signal('');
 
+  tableAllComunicaciones: CitizenAssistance[] = [];
+
   tableComunicaciones: CitizenAssistance[] = [];
 
   tableChannelAssistances: ChannelAssistance[] = [];
@@ -455,28 +458,30 @@ export class CompleteManagementComponent implements OnInit {
     const response = this.channelCitizenService
       .getAssistancesByDocumentNumber(dni)
       .subscribe((response: IBaseResponseDto<IGetAttentionsOfCitizen[]>) => {
-        if (response.success) {
-          this.allAttentions = response?.data ?? [];
+        if (response.success && response.data?.length) {
+          let channelAttentions : CitizenAssistance[] = response.data?.map(attention => {
+              return {
+                channel: attention?.channel,
+                type: attention?.type,
+                method: 'CHAT',
+                user: attention?.advisorIntervention ? attention.user : 'BOT',
+                createdAt: attention?.startDate,
+                result: 'Contacto'
+              }
+          });
+
+          this.tableComunicaciones = [...channelAttentions, ...this.tableComunicaciones];
+          this.tableAllComunicaciones = this.tableComunicaciones;
         }
       });
   }
 
   filterCommunications() {
-    const filteredTable = this.allAttentions.filter(
+    const filteredTable = this.tableAllComunicaciones.filter(
       (x) => x.channel == this.channelSelected
     );
-    console.log(filteredTable);
-    const newData: CitizenAssistance[] = filteredTable.map((attention) => {
-      return {
-        channel: attention?.channel,
-        type: attention?.type,
-        method: 'CHAT',
-        user: attention?.advisorIntervention ? attention.user : 'BOT',
-        createdAt: attention?.startDate,
-        result: 'Contacto',
-      };
-    });
-    this.tableComunicaciones = [...newData];
+
+    this.tableComunicaciones = [...filteredTable];
   }
   getDeudasInfo(code: string) {
     this.saldomaticoService.deudasInfo(5, code).subscribe({

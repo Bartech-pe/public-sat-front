@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
-import { CampaignData } from '@models/campaign.model';
+import { CampaignData, CampaignDetalle, CampaignResumen } from '@models/campaign.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { VicidialService } from '@services/vicidial.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -36,14 +36,16 @@ export class CampaignDetalleComponent {
 
   }
 
- called: CampaignData = {} as CampaignData;
+  called: CampaignResumen = {} as CampaignResumen;
+  listCalled: CampaignDetalle[] = [];
   ngOnInit(): void {
 
     if(this.config){
  
        this.vicidialService.getByIdProgresoList(this.config.data.vdlistId)
       .subscribe(res => {
-        this.called = res;
+        this.called = res.resumen;
+        this.listCalled = res.detalle;
       });
     }
 

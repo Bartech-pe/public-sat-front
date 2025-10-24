@@ -1,0 +1,70 @@
+<div class="flex flex-col gap-4">
+  <p-table
+    [value]="queryHistory"
+    [responsiveLayout]="'scroll'"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>
+          <div class="flex text-center justify-center items-center text-xs uppercase gap-2">
+            Fecha/Hora
+          </div>
+        </th>
+        <th>
+          <div class="flex text-center justify-center items-center text-xs uppercase gap-2">
+            Tipo de Consulta
+          </div>
+        </th>
+        <th>
+          <div class="flex text-center justify-center items-center text-xs uppercase gap-2">
+            Tipo de Documento
+          </div>
+        </th>
+        <th>
+          <div class="flex text-center justify-center items-center text-xs uppercase gap-2">
+            Valor Documento
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-query>
+      <tr>
+        <td>
+          <p class="text-sm text-center font-light">
+            {{ query?.createdAt | date : "dd/MM/yyyy hh:mm a" }}
+          </p>
+        </td>
+        <td>
+          <p class="text-sm text-center font-light">
+            {{ getQueryTypeLabel(query?.queryType) }}
+          </p>
+        </td>
+        <td>
+          <p class="text-sm text-center font-light">
+            {{ getDocumentTypeLabel(query?.documentType) }}
+          </p>
+        </td>
+        <td>
+          <p class="text-sm text-center font-medium">
+            {{ query?.documentValue }}
+          </p>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-6">
+          <div class="flex flex-col items-center text-gray-500">
+            <i class="pi pi-inbox text-6xl text-gray-400"></i>
+            <p class="text-sm font-medium mt-3">
+              No hay historial de consultas
+            </p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

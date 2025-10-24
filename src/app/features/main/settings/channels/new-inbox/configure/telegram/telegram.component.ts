@@ -65,10 +65,11 @@ export class TelegramComponent implements OnInit {
   readonly channelStore = inject(ChannelStore);
 
   phone = signal('');
+  email = signal('');
   code = signal('');
   codeSended = signal(false);
   showModal = signal(false);
-
+  emailRequired: boolean = false;
   channelSelected!: Channel;
 
   formData = new FormGroup({
@@ -155,8 +156,24 @@ export class TelegramComponent implements OnInit {
       let phoneNumberFormatted = phoneValue.replace(/[^\d+]/g, '');
       this.telegramService.sendCodeAuth({phoneNumber: phoneNumberFormatted}).subscribe({
         next: (response)=>{
-          this.msg.toast("success","¡Código enviado!", response.message, 3000)
-          this.codeSended.set(true)
+          if(response?.authStatuses)
+          {
+            this.codeSended.set(response?.authStatuses?.codeSended?? false)
+            this.emailRequired = response?.authStatuses?.emailRequired ?? false;
+            if(response.success)
+            {
+              this.msg.toast("success","¡Código enviado!", response.message, 3000)
+            }
+            else{
+              if(response.authStatuses.authMethod == 'EMAIL')
+              {
+                this.msg.toast("warn","Telegram security policy - Email Requerido", response.message, 3000)
+                return
+              }
+              this.msg.toast("error","Error al enviar solicitud", response.message, 3000)
+
+            }
+          }
         },
         error: (error)=>{
           this.msg.toast("error","Ocurrió un problema", error.message, 3000)
@@ -166,11 +183,13 @@ export class TelegramComponent implements OnInit {
   }
 
   createNewSession() {
+    let email = this.email();
     let phoneNumber = this.phone().replace(/[^\d+]/g, '');
     let code = this.code().replace(/[^\d+]/g, '');
     if(phoneNumber != "" && code != ""){
-      this.telegramService.createAuthSession({phoneNumber: phoneNumber, code: code}).subscribe({
+      this.telegramService.createAuthSession({email: email,phoneNumber: phoneNumber, code: code}).subscribe({
         next: (response)=>{
+          console.log(response);
           this.onSubmit()
         },
         error: (error)=>{
@@ -184,6 +203,11 @@ export class TelegramComponent implements OnInit {
   onPhoneChange(event: Event) {
     const target = event.target as HTMLInputElement;
     this.phone.set(target.value);
+  }
+
+  onEmailChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.email.set(target.value);
   }
 
   onCodeChange(event: Event) {

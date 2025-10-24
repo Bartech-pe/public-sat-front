@@ -10,7 +10,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
-interface TransferToAdvisorResponseDto{
+export interface TransferToAdvisorResponseDto{
   message: string;
 }
 @Component({

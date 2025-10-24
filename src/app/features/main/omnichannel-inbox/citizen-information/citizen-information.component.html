@@ -109,7 +109,7 @@
 
         <!-- Tipo de Documento -->
         <div *ngIf="contactData.vdocIde" class="border-b border-gray-100 dark:border-gray-800">
-          <button (click)="onDocumentClick" class="w-full h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onDocumentClick()">
+          <button (click)="onDocumentClick" class="w-full flex justify-between items-center h-auto p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer" (click)="onDocumentClick()">
             <div class="flex items-center gap-3 w-full">
               <div class="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
                 <iconify-icon icon="material-symbols:description" class="text-lg text-blue-600 dark:text-blue-400"></iconify-icon>
@@ -120,6 +120,9 @@
                   {{contactData.vdocIde.trim()}}
                 </p>
               </div>
+            </div>
+            <div class="flex items-center">
+                <iconify-icon icon="tabler:external-link" class="text-xl text-[var(--sat-principal)] dark:text-blue-400"></iconify-icon>
             </div>
           </button>
         </div>

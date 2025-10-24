@@ -12,9 +12,10 @@ export enum ChannelLogo  {
 }
 
 export enum ChannelStatusIcon  {
-    pendiente = 'cuida:warning-outline',
-    prioridad = 'nonicons:error-16',
-    completado = 'icon-park-outline:check-one',
+    identity_verification = 'cuida:warning-outline',
+    in_progress = 'cuida:warning-outline',
+    priority = 'nonicons:error-16',
+    closed = 'icon-park-outline:check-one',
 }
 
 export enum ChannelStatusTag  {
@@ -25,20 +26,31 @@ export enum ChannelStatusTag  {
 
 export enum ChannelAttentionStatusTag  {
     identity_verification = 'Identificación',
+    priority = 'Prioridad',
     closed = 'Cerrado',
     in_progress = 'En proceso'
+}
+
+
+export enum ChannelAttentionStatusReverse  {
+    pendiente = 'in_progress',
+    prioridad = 'priority',
+    completado = 'closed'
 }
 
 
 export enum ChannelAttentionStatusTagType  {
     identity_verification = 'info',
     closed = 'success',
+    priority = 'danger',
     in_progress = 'warning'
 }
 
 
+export type ChannelStatusWithExtraStatuses = 'all' | ChatStatus;
+
 export type ChatStatus = 'pendiente' | 'prioridad' | 'completado';
-export type ChannelAttentionStatus = 'identity_verification' | 'closed' | 'in_progress';
+export type ChannelAttentionStatus = 'identity_verification' | 'closed' | 'in_progress' | 'priority';
 export type MessageStatus = 'read' | 'unread';
 export type Channels = 'all' | 'telegram' | 'whatsapp' | 'instagram' | 'messenger' | 'email' | 'sms' | 'chatsat';
 export type BotStatus = 'paused' | 'active' | 'out'
@@ -148,6 +160,7 @@ export interface ChatListInbox{
 
 export interface ChannelAttentionSummariesDTO{
   id: number;
+  status: ChannelAttentionStatus;
   endDate?: Date | null;
   consultTypeId?: number | null;
   attentionDetail?: string |  null;
@@ -195,6 +208,7 @@ export interface ChannelRoomViewStatusDto{
 
 export interface AdvisorChangedDto {
   channelRoomId: number;
+  attentionId: number;
   id: number;
   name: string;
   displayName?: string;

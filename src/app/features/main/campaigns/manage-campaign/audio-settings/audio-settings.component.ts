@@ -314,57 +314,74 @@ export class AudioSettingsComponent {
   }
   name_archivo:any;
   async CargarVicidial() {
-    this.loading = true;
-    if (!this.audioBlob) {
-      this.msg.error('No hay audio para subir');
-      return;
+  this.loading = true;
+
+  try {
+      const randomNumber = Math.floor(Math.random() * 100);
+      const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
+      this.name_archivo = `${name_clear}.wav`;
+
+      // Si hay un nuevo audio grabado o cargado
+      if (this.audioBlob) {
+        const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
+        const file = new File([wavBlob], this.name_archivo, { type: 'audio/wav' });
+
+        this.globalService.uploadAudio(file).subscribe({
+          next: (res) => {
+            this.msg.success('Audio subido exitosamente.');
+             this.audioBlob = null;
+            // Luego de subir el audio, actualizamos la campaña
+            this.actualizarCampania(name_clear);
+          },
+          error: (err) => {
+            console.error('Error al subir el audio:', err);
+            this.msg.error('Error al subir el audio.');
+            this.loading = false;
+          },
+        });
+      } else {
+       
+        this.msg.info('No se detectó nuevo audio, actualizando solo el nombre.');
+        this.actualizarCampania(name_clear);
+      }
+    } catch (err) {
+      console.error(err);
+      this.msg.error('No se pudo procesar el audio.');
+      this.loading = false;
     }
+  }
 
-    const randomNumber = Math.floor(Math.random() * 100);
-    this.name_archivo = `${this.campania.vdCampaignId}_${randomNumber}.wav`;
-    const name_clear = `${this.campania.vdCampaignId}_${randomNumber}`;
+  private actualizarCampania(name_clear: string) {
+      const vdCampaignId = this.campania?.campaign_id;
+      if (!vdCampaignId) {
+        this.msg.error('No se puede editar la campaña: ID no válido.');
+        this.loading = false;
+        return;
+      }
 
-    try {
-      
-      const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
+      if (!name_clear) {
+        this.msg.error('el nombre de archivo no existe');
+        this.loading = false;
+        return;
+      }
 
-      const file = new File([wavBlob], this.name_archivo, {
-        type: 'audio/wav',
-      });
+      const requestVicidialEdit = {
+        survey_first_audio_file: name_clear,
+      };
 
-       this.globalService.uploadAudio(file).subscribe({
+      this.vicidialService.editarCampania(vdCampaignId, requestVicidialEdit).subscribe({
         next: (res) => {
-          this.msg.success('subida exitosa audio para subir');
-          let requestVicidialEdit = {
-            //campaign_name: this.campania?.campaign_name,
-            survey_first_audio_file: name_clear,
-          };
-
-          let vdCampaignId = this.campania.campaign_id;
-          if (!vdCampaignId) {
-            this.msg.error(
-              'No se puede editar la campaña: vdCampaignId está vacío o indefinido.'
-            );
-            return;
-          }
-          this.vicidialService
-            .editarCampania(vdCampaignId, requestVicidialEdit)
-            .subscribe((res) => { this.listAudio();});
+          this.msg.success('Campaña actualizada correctamente.');
+          this.listAudio();
           this.uploadProgress = 100;
           this.loading = false;
         },
         error: (err) => {
-          console.error('Error al subir', err);
+          console.error('Error al actualizar campaña:', err);
+          this.msg.error('No se pudo actualizar la campaña.');
           this.loading = false;
         },
       });
-
-
-    
-    } catch (err) {
-      this.msg.error('No se pudo procesar el audio.');
-      this.loading = false;
-    }
   }
 
   reproducirAudio(){
@@ -384,6 +401,8 @@ export class AudioSettingsComponent {
         if (campaign) {
 
           this.campania = campaign;
+
+          console.log( this.campania);
 
           this.formlist.campaign_name = campaign.campaign_name; 
  

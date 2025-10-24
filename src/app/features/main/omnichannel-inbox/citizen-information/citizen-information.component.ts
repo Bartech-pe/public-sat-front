@@ -111,7 +111,7 @@ export class CitizenInformationComponent implements OnInit {
 
   onDocumentClick(): void {
     const ref = this.dialogService.open(UnifiedQuerySistemComponent, {
-          header: 'Registro de Atención',
+          header: 'Sistema de Consulta Unificada',
           styleClass: 'modal-6xl',
           data:{
             documentToSearch: this.channelCitizen?.documentNumber

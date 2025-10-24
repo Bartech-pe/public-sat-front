@@ -23,6 +23,10 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import {
   AdvisorChangedDto,
+  ChannelAttentionStatus,
+  ChannelAttentionStatusReverse,
+  ChannelAttentionStatusTag,
+  ChannelAttentionStatusTagType,
   ChannelCitizenSummariesDto,
   ChannelLogo,
   ChannelMessage,
@@ -47,7 +51,7 @@ import {
   CreateChannelAgentMessageDto,
 } from '@services/channel-room-message.service';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
-import { AdvisorComponent } from '@shared/modal/advisor/advisor.component';
+import { AdvisorComponent, TransferToAdvisorResponseDto } from '@shared/modal/advisor/advisor.component';
 import { MarkdownPipe } from '@pipes/markdown.pipe';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DropdownModule } from 'primeng/dropdown';
@@ -60,8 +64,10 @@ import { PredefinedResponsesService } from '@services/predefined.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { FormAssistanceComponent } from '@features/main/mail/form-assistance/form-assistance.component';
 import { FormAttentionComponent } from '../form-attention/form-attention.component';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, timestamp } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
+import { AuthStore } from '@stores/auth.store';
+import { ThemeUtils } from '@primeng/themes';
 
 export interface Attachment {
   type: 'file' | 'image';
@@ -111,6 +117,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
   @ViewChild('fileInput') private fileInput!: ElementRef;
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
+  private readonly authStore = inject(AuthStore);
+
   chatDetail: ChatDetail | null = null;
   advisors: getAdvisorsResponseDto[] = [];
   channelRoomId: number | null = null;
@@ -155,6 +163,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
   // NUEVA PROPIEDAD para respuestas predefinidas
   predefinedResponses: PredefinedResponses[] = [];
   private destroy$ = new Subject<void>();
+  items: MenuItem[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -170,7 +179,6 @@ export class ChatMessageManagerComponent implements OnDestroy {
   }
 
 
-  items: MenuItem[] | undefined;
 
   abrirHistorial() {
     this.showHistorial = true;
@@ -209,6 +217,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
           this.chatDetail.attention.id === payload.assistanceId
         ) {
           this.chatDetail.status = payload.status;
+          this.chatDetail.attention.status = payload.attentionStatus;
           if (payload.status === 'completado') {
             this.completionEventReceived = true;
             this.router.navigate([], {
@@ -219,6 +228,14 @@ export class ChatMessageManagerComponent implements OnDestroy {
               queryParamsHandling: '',
             });
           }
+        }
+      });
+    this.channelRoomSocketService.onAttentionDetailModified()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: ChannelRoomAssistance) => {
+        if(message.assistanceId == this.chatDetail?.attention.id)
+        {
+          this.loadChatData()
         }
       });
 
@@ -242,10 +259,10 @@ export class ChatMessageManagerComponent implements OnDestroy {
     .onAdvisorChanged()
     .pipe(takeUntil(this.destroy$))
     .subscribe((message: AdvisorChangedDto) => {
-      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId;
+      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId && message.attentionId == this.chatDetail.attention.id;
       if(hasChannelRoomWithAdvisorChanged)
       {
-
+        this.loadChatData();
       }
     });
     this.channelRoomSocketService
@@ -283,50 +300,10 @@ export class ChatMessageManagerComponent implements OnDestroy {
             this.handleScrollDown();
           });
         }
+        if(!this.chatDetail?.agentAssigned?.id) return
         this.channelRoomSocketService.onChatViewed(this.channelRoomId);
       }
     });
-
-    this.items = [
-      {
-        label: 'Acciones del Chat',
-        items: [
-          {
-            label: 'Finalizar Atención',
-            icon: 'pi pi-check-circle',
-            command: () => this.finalizeConversation(),
-          },
-          {
-            label: 'Transferir caso',
-            icon: 'pi pi-users',
-            command: () => this.openTransferModal(),
-          },
-          {
-            label: 'Establecer Prioridad',
-            icon: 'pi pi-flag',
-            command: () => this.openChannelStatusModal(),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: 'Detalle de atención',
-            icon: 'pi pi-refresh',
-            command: () => this.showFormDetail(),
-          },
-          {
-            label: 'Enviar al correo',
-            icon: 'pi pi-refresh',
-            command: () => this.sendEmailWithConversation(),
-          },
-          {
-            label: 'Ver historial de chats',
-            icon: 'pi pi-refresh',
-            command: () => this.abrirHistorial(),
-          },
-        ],
-      },
-    ];
   }
 
 
@@ -377,7 +354,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
       window.URL.revokeObjectURL((link as HTMLAnchorElement).href);
     });
 
-    this.items = undefined;
+    this.items = [];
 
   }
 
@@ -698,9 +675,19 @@ export class ChatMessageManagerComponent implements OnDestroy {
     }
   }
 
-  getChannelStatusTag(status?: ChatDetail['status']): string {
+  getChannelStatusTag(status?: ChatDetail['attention']['status']): string {
     if (!status) return 'secondary';
-    return ChannelStatusTag[status];
+    return ChannelAttentionStatusTagType[status];
+  }
+
+  getChannelStatusTrad(status?: ChatDetail['attention']['status']): string {
+    if (!status) return 'secondary';
+    return ChannelAttentionStatusTag[status];
+  }
+
+  getChannelStatusReverse(status?: ChatStatus): ChannelAttentionStatus {
+    if (!status) return 'in_progress';
+    return ChannelAttentionStatusReverse[status];
   }
 
   loadChatData() {
@@ -727,8 +714,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
           this.chatDetail = response;
           this.loadPredefinedResponses();
 
-          if (this.chatDetail.messages.length && this.chatDetail?.agentAssigned?.id) {
-            this.channelRoomSocketService.onChatViewed(response.channelRoomId);
+          if (this.chatDetail.messages.length) {
+            if(response?.agentAssigned?.id)
+            {
+              this.channelRoomSocketService.onChatViewed(response.channelRoomId);
+            }
 
             requestAnimationFrame(() => {
               this.scrollToBottomInstant();
@@ -739,8 +729,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
                 this.isNearBottom = true;
               }, 300);
             });
-            this.items = this.getItemsByStatus(response.status);
           }
+          this.items = this.getItemsByStatus(response.status);
         },
         error: (error) => {
           console.error('Error loading chat data:', error);
@@ -753,69 +743,45 @@ export class ChatMessageManagerComponent implements OnDestroy {
   }
 
   private getItemsByStatus(status: ChatStatus) {
+    let commonItems = [
+      { label: 'Enviar al correo', icon: 'pi pi-refresh', command: () => this.sendEmailWithConversation() },
+      { label: 'Ver historial de chats', icon: 'pi pi-refresh', command: () => this.abrirHistorial() },
+    ];
+    if(this.chatDetail && !this.chatDetail?.attention?.attentionDetail && !this.chatDetail?.attention?.consultTypeId)
+    {
+      commonItems.unshift({ label: 'Detalle de atención', icon: 'pi pi-refresh', command: () => this.showFormDetail() })
+    }
 
+    if (status === 'completado') return commonItems;
 
-    if (status === 'completado') {
-      return [
-        {
-          label: 'Detalle de atención',
-          icon: 'pi pi-refresh',
-          command: () => this.showFormDetail(),
-        },
-        {
-          label: 'Enviar al correo',
-          icon: 'pi pi-refresh',
-          command: () => this.sendEmailWithConversation(),
-        },
-        {
-          label: 'Ver historial de chats',
-          icon: 'pi pi-refresh',
-          command: () => this.abrirHistorial(),
-        },
+    if (!this.chatDetail?.agentAssigned?.id) {
+      let items = [
+        { label: 'Finalizar Atención', icon: 'pi pi-check-circle', command: () => this.finalizeConversation() },
+        ...commonItems,
       ];
+      if(!['administrador','supervisor'].includes(this.authStore.user()?.role?.name??''))
+      {
+        items.splice(1, 0, { label: 'Asignarme este caso', icon: 'pi pi-users', command: () => this.assignMyself() })
+      }else{
+        items.splice(1, 0, { label: 'Transferir caso', icon: 'pi pi-users', command: () => this.openTransferModal()})
+      }
+      return items;
     }
 
     return [
       {
         label: 'Acciones del Chat',
         items: [
-          {
-            label: 'Finalizar Atención',
-            icon: 'pi pi-check-circle',
-            command: () => this.finalizeConversation(),
-          },
-          {
-            label: 'Transferir caso',
-            icon: 'pi pi-users',
-            command: () => this.openTransferModal(),
-          },
-          {
-            label: 'Establecer Prioridad',
-            icon: 'pi pi-flag',
-            command: () => this.openChannelStatusModal(),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: 'Detalle de atención',
-            icon: 'pi pi-refresh',
-            command: () => this.showFormDetail(),
-          },
-          {
-            label: 'Enviar al correo',
-            icon: 'pi pi-refresh',
-            command: () => this.sendEmailWithConversation(),
-          },
-          {
-            label: 'Ver historial de chats',
-            icon: 'pi pi-refresh',
-            command: () => this.abrirHistorial(),
-          },
+          { label: 'Finalizar Atención', icon: 'pi pi-check-circle', command: () => this.finalizeConversation() },
+          { label: 'Transferir caso', icon: 'pi pi-users', command: () => this.openTransferModal() },
+          { label: 'Establecer Prioridad', icon: 'pi pi-flag', command: () => this.openChannelStatusModal() },
+          { separator: true },
+          ...commonItems,
         ],
       },
     ];
   }
+
 
   private scrollToBottomSmooth() {
     if (this.messagesContainer) {
@@ -1196,6 +1162,30 @@ export class ChatMessageManagerComponent implements OnDestroy {
     this.updatingStatus = false;
   }
 
+  assignMyself()
+  {
+    if(!this.authStore?.user()?.id || !this.chatDetail?.channelRoomId) return
+    this.channelRoomService.transferToAdvisor(this.chatDetail.channelRoomId, this.authStore.user()!.id)
+      .subscribe((response: IBaseResponseDto) =>{
+        if(response.success)
+        {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Asignación del caso',
+            detail: "Te has asignado correctamente este caso.",
+            life: 5000,
+          });
+          this.loadChatData();
+          return
+        }
+        if(response?.error)
+        {
+          console.log(response.error)
+        }
+        this.msg.error("No se pudo transferirte este caso, por un error de servidor.", "Error de servidor", 3000)
+    });
+  }
+
   updateChatStatus() {
     if (!this.selectedNewStatus || !this.chatDetail) return;
 
@@ -1205,6 +1195,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
       assistanceId: this.chatDetail.attention.id,
       channelRoomId: this.chatDetail.channelRoomId,
       status: this.selectedNewStatus,
+      attentionStatus: this.getChannelStatusReverse(this.selectedNewStatus)
     };
     this.channelRoomService.changeChannelRoomStatus(payload).subscribe({
       next: (response) => {
