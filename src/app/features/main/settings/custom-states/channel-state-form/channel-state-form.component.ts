@@ -117,7 +117,7 @@ export class ChannelStateFormComponent implements OnInit {
       this.formData.setValue({
         name: item.name,
         description: item.description,
-        color: item.color,
+        color: item.color?.substring(0, 7) ?? '#000000',
         categoryId: item.categoryId,
       });
     }

@@ -129,7 +129,7 @@ export class AssistanceStateFormComponent implements OnInit {
       this.formData.setValue({
         name: item.name,
         description: item.description,
-        color: item.color,
+        color: item.color?.substring(0, 7) ?? '#000000',
         icon: item.icon,
         categoryId: item.categoryId,
       });

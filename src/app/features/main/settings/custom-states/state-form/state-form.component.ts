@@ -26,6 +26,7 @@ import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-canc
 import { ChannelStateStore } from '@stores/channel-state.store';
 import { CategoryChannelStore } from '@stores/category-channel.store';
 import { CategoryChannel } from '@models/category-channel.model';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 
 @Component({
   selector: 'app-state-form',
@@ -39,6 +40,7 @@ import { CategoryChannel } from '@models/category-channel.model';
     TextareaModule,
     SelectModule,
     ButtonCancelComponent,
+    ButtonSaveComponent
   ],
   templateUrl: './state-form.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -49,10 +51,6 @@ export class StateFormComponent implements OnInit {
   private readonly msg = inject(MessageGlobalService);
   public readonly config = inject(DynamicDialogConfig);
   readonly storeCampania = inject(CampaignStateStore);
-  readonly assistanceStateStore = inject(AssistanceStateStore);
-
-  readonly channelStateStore = inject(ChannelStateStore);
-
   readonly categoryChannelStore = inject(CategoryChannelStore);
 
   formCampaign = new FormGroup({
@@ -69,42 +67,6 @@ export class StateFormComponent implements OnInit {
     }),
   });
 
-  formAssistance = new FormGroup({
-    name: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    description: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-    }),
-    color: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    categoryId: new FormControl<number | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-  });
-
-  formChannel = new FormGroup({
-    name: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    description: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-    }),
-    color: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    categoryId: new FormControl<number | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-  });
-
   id!: number;
   tipoEstado!: number;
 
@@ -116,99 +78,8 @@ export class StateFormComponent implements OnInit {
     return this.storeCampania.loading();
   }
 
-  get loadingAtencion(): boolean {
-    return this.assistanceStateStore.loading();
-  }
-
-  get loadingCanal(): boolean {
-    return this.assistanceStateStore.loading();
-  }
-
-  // Atención
-  private resetOnSuccessEffect1 = effect(() => {
-    const item = this.assistanceStateStore.selectedItem();
-    const error = this.assistanceStateStore.error();
-    const action = this.assistanceStateStore.lastAction();
-
-    // Manejo de errores
-    if (error) {
-      console.log('error', error);
-      this.msg.error(
-        error ??
-          '¡Ups, ocurrió un error inesperado al guardar el ¡Estado Atención!'
-      );
-      return; // Salimos si hay un error
-    }
-
-    if (action === 'created' || action === 'updated') {
-      this.msg.success(
-        action === 'created'
-          ? '¡Estado de Atención creado exitosamente!'
-          : '¡Estado de Atención actualizado exitosamente!'
-      );
-
-      this.assistanceStateStore.clearSelected();
-      this.ref.close(true);
-      return;
-    }
-
-    // Si hay un item seleccionado, se carga en el formulario
-    if (item) {
-      this.id = item.id ?? null;
-      // let colorValue = item.color ?? undefined;
-      // if (colorValue.startsWith('#') && colorValue.length === 9) {
-      //   colorValue = colorValue.substring(0, 7);
-      // }
-      this.formAssistance.setValue({
-        name: item.name ?? undefined,
-        description: item.description ?? undefined,
-        color: item.color,
-        categoryId: item.categoryId,
-      });
-    }
-  });
-
-  // Canales
-  private resetOnSuccessEffect2 = effect(() => {
-    const item = this.channelStateStore.selectedItem();
-    const error = this.channelStateStore.error();
-    const action = this.channelStateStore.lastAction();
-
-    // Manejo de errores
-    if (error) {
-      console.log('error', error);
-      this.msg.error(
-        error ??
-          '¡Ups, ocurrió un error inesperado al guardar el ¡Estado Canal!'
-      );
-      return; // Salimos si hay un error
-    }
-
-    if (action === 'created' || action === 'updated') {
-      this.msg.success(
-        action === 'created'
-          ? '¡Estado Canal creado exitosamente!'
-          : '¡Estado Canal actualizado exitosamente!'
-      );
-
-      this.channelStateStore.clearSelected();
-      this.ref.close(true);
-      return;
-    }
-
-    if (item) {
-      this.id = item.id ?? null;
-      this.formChannel.setValue({
-        name: item.name,
-        description: item.description,
-        color: item.color,
-        categoryId: item.categoryId,
-      });
-    }
-  });
-
   // Campaña
-  private resetOnSuccessEffect3 = effect(() => {
+  private resetOnSuccessEffect = effect(() => {
     const item = this.storeCampania.selectedItem();
     const error = this.storeCampania.error();
     const action = this.storeCampania.lastAction();
@@ -239,11 +110,10 @@ export class StateFormComponent implements OnInit {
     // Si hay un item seleccionado, se carga en el formulario
     if (item) {
       this.id = item.id ?? null;
-
       this.formCampaign.setValue({
         name: item.name,
         description: item.description,
-        color: item.color,
+        color: item.color?.substring(0, 7) ?? '#000000',
       });
     }
   });
@@ -251,30 +121,15 @@ export class StateFormComponent implements OnInit {
   ngOnInit(): void {
     this.tipoEstado = this.config.data;
     this.categoryChannelStore.loadAll();
+    console.log('TIPO ESTADO', this.tipoEstado);
   }
 
-  save() {
-    if (this.tipoEstado == 2) {
-      const form = this.formCampaign.value;
-      if (this.id) {
-        this.storeCampania.update(this.id, { id: this.id, ...form });
-      } else {
-        this.storeCampania.create(form);
-      }
-    } else if (this.tipoEstado == 1) {
-      const form = this.formAssistance.value;
-      if (this.id) {
-        this.assistanceStateStore.update(this.id, { id: this.id, ...form });
-      } else {
-        this.assistanceStateStore.create(form);
-      }
+  onSubmit() {
+    const form = this.formCampaign.value;
+    if (this.id) {
+      this.storeCampania.update(this.id, { id: this.id, ...form });
     } else {
-      const form = this.formChannel.value;
-      if (this.id) {
-        this.channelStateStore.update(this.id, { id: this.id, ...form });
-      } else {
-        this.channelStateStore.create(form);
-      }
+      this.storeCampania.create(form);
     }
   }
 

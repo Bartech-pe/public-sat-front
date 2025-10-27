@@ -161,6 +161,9 @@ export class ChannelsComponent {
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
+      if (res) {
+        this.loadData();
+      }
     });
   }
 
