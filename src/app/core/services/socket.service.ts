@@ -38,15 +38,27 @@ export class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Conectado al servidor Socket.IO');
+      console.log('Conectado al servidor Socket.IO');
     });
 
     this.socket.on('disconnect', () => {
-      console.warn('⚠️ Desconectado del servidor Socket.IO');
+      console.warn('Desconectado del servidor Socket.IO');
+    });
+
+    this.socket.on('reconnect', (attempt) => {
+      console.log(`Reconectado al servidor en intento ${attempt}`);
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('Error al reconectar:', error);
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('Error en Socket.IO:', error);
     });
 
     this.socket.on('respuesta', (data: any) => {
-      console.log('📩 Respuesta del servidor:', data);
+      console.log('Respuesta del servidor:', data);
     });
 
     this.socket.on('email.request', (paload: { userId: number }) => {
@@ -58,10 +70,15 @@ export class SocketService {
       this.requestUserPhoneStateSubject.next(paload);
     });
 
+    this.socket.on('phone.call.request', (payload: { userId: number }) => {
+      console.log('Solicitud de llamada recibida:', payload);
+      this.requestPhoneCallSubject.next(payload);
+    });
+
     // Escuchar progreso
     this.socket.on('portfolio-progress', (data) => {
       console.log(
-        `📊 Cartera ${data.portfolioId}: ${(
+        `Cartera ${data.portfolioId}: ${(
           (data.processed / data.total) *
           100
         ).toFixed(2)}% (${data.processed}/${data.total})`

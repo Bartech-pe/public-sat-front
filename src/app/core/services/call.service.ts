@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@envs/environments';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
-import { CallHistory, ICallFilter } from '@models/call.model';
+import { CallHistory, CallItem, ICallFilter } from '@models/call.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -14,29 +14,22 @@ export class CallService {
   constructor(private http: HttpClient) {}
 
   getQuickResponses(
-    query: ICallFilter
-  ): Observable<PaginatedResponse<CallHistory>> {
-    const params = Object.entries(query)
-      .filter(
-        ([_, value]) => value !== undefined && value !== null && value !== ''
-      )
-      .reduce(
-        (httpParams, [key, value]) => httpParams.set(key, value.toString()),
-        new HttpParams()
-      );
-    return this.http.get<any>(this.basePath, { params });
+    limit?: number,
+    offset?: number,
+    q?: Record<string, any>
+  ): Observable<PaginatedResponse<CallItem>> {
+    const query = q ? `q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    const limitQ = limit ? `limit=${limit}&` : '';
+    const offsetQ = limit ? `offset=${offset}&` : '';
+    return this.http.get<PaginatedResponse<CallItem>>(
+      `${this.basePath}?${limitQ}${offsetQ}${query}`
+    );
+    // return this.http.get<any>(this.basePath, { params });
   }
 
-  getStateStatus(query: ICallFilter) {
-    const params = Object.entries(query)
-      .filter(
-        ([_, value]) => value !== undefined && value !== null && value !== ''
-      )
-      .reduce(
-        (httpParams, [key, value]) => httpParams.set(key, value.toString()),
-        new HttpParams()
-      );
-    return this.http.get<any>(this.basePath + '/statesCount', { params });
+  getStateStatus(q: Record<string, any>) {
+    const query = q ? `?q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    return this.http.get<any>(`${this.basePath}/statesCount${query}`);
   }
 
   getAdvisors() {

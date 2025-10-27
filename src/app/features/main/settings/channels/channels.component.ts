@@ -36,7 +36,7 @@ import { CardModule } from 'primeng/card';
     TableModule,
     PaginatorComponent,
     ButtonSaveComponent,
-    ButtonEditComponent,
+    // ButtonEditComponent,
     BtnDeleteComponent,
     BtnCustomComponent,
   ],
@@ -161,6 +161,9 @@ export class ChannelsComponent {
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
+      if (res) {
+        this.loadData();
+      }
     });
   }
 

@@ -80,17 +80,12 @@
     <!-- Botones -->
     <div class="flex justify-self-end pt-2 gap-4">
       <button-cancel (click)="onCancel()" />
-      <p-button
-        type="submit"
-        size="small"
+      <button-save
         [label]="id ? 'Actualizar' : 'Guardar'"
-        styleClass="w-full"
-        severity="primary"
-        [disabled]="formCampaign.invalid || loadingCampania"
-      >
-        <iconify-icon [icon]="'ci:save'" class="text-xl" />
-      </p-button>
+        [loading]="loading"
+        [disabled]="formCampaign.invalid"
+        (click)="onSubmit()"
+      />
     </div>
   </form>
 </div>
-

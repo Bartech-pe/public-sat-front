@@ -21,6 +21,7 @@ import { TabsModule } from 'primeng/tabs';
 import { SupervisionComponent } from './supervision/supervision.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { CardModule } from 'primeng/card';
 
 type ViewType = 'supervisor' | 'ended-calls';
 
@@ -35,8 +36,9 @@ type ViewType = 'supervisor' | 'ended-calls';
     BreadcrumbModule,
     SelectModule,
     DatePickerModule,
-    EndedCallsComponent,
+    CardModule,
     TabsModule,
+    EndedCallsComponent,
     SupervisionComponent,
   ],
   templateUrl: './call-management.component.html',

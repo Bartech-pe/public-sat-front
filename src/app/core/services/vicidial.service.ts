@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '@envs/environments';
-import { CampaignData } from '@models/campaign.model';
+import { CampaignData, CampaignResumenMultype } from '@models/campaign.model';
 export interface ProgresoCampania {
   agentes_conectados: number;
   llamadas_pendientes: number;
@@ -76,6 +76,11 @@ export class VicidialService {
       .pipe(catchError(this.handleError));
   }
 
+  getByIdCampaignResumenMultype(id: any): Observable<CampaignResumenMultype> {
+     return this.http.get<CampaignResumenMultype>(`${this.baseUrl}central/listasMultiple/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
   create(data: any, endpoint: string): Observable<any> {
      
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
@@ -96,6 +101,22 @@ export class VicidialService {
 
     
       return this.http.post<any>(`${this.baseUrl}central/listas`, formData).pipe(catchError(this.handleError));
+  
+  }
+
+  
+  createlistaMultiple(data: any, file: File): Observable<any> {
+      const formData = new FormData();
+      
+      Object.keys(data).forEach(key => {
+        if (data[key] !== undefined && data[key] !== null) {
+          formData.append(key, data[key]);
+        }
+      });
+
+      formData.append('file', file, file.name);
+
+      return this.http.post<any>(`${this.baseUrl}central/listasMultiple`, formData).pipe(catchError(this.handleError));
   
   }
 

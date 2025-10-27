@@ -23,10 +23,10 @@ export class GmailService {
     return this.http.post(`${this.baseUrl}/generateGmailCredential`, data);
   }
 
-  // Conectar correo
-  loginWithGoogle(): void {
+  // Conectar correol
+  loginWithGoogle(mail: string = ""): void {
     this.http
-      .post<{ authUrl: string }>(`${this.baseUrl}/loginCredential`, {})
+      .post<{ authUrl: string }>(`${this.baseUrl}/loginCredential`, {email: mail})
       .subscribe({
         next: (res) => {
           let authUrl = res.authUrl;

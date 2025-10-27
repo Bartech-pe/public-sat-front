@@ -48,3 +48,14 @@ export interface CampaignData {
   resumen: CampaignResumen;
   detalle: CampaignDetalle[];
 }
+
+export interface CampaignResumenMultype {
+  crm_campaign_id: string;
+  total_leads: number;
+  pending: number;
+  generating: number;
+  generated: number;
+  uploading: number;
+  uploaded: number;
+  failed: number;
+}

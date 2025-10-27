@@ -68,17 +68,29 @@
             </td>
             <td class="w-32">
               <div class="flex justify-center items-center gap-1">
-                <btn-custom
+                <!-- <btn-custom
                   severity="contrast"
                   icon="lucide:users"
                   tooltip="Añadir agentes"
                   (click)="assignment(item)"
-                />
+                /> -->
+                <p-overlaybadge
+                  [value]="item.users?.length"
+                  severity="info"
+                  badgeSize="small"
+                >
+                  <btn-custom
+                    severity="contrast"
+                    icon="lucide:users"
+                    tooltip="Añadir agentes"
+                    (click)="assignment(item)"
+                  />
+                </p-overlaybadge>
               </div>
             </td>
             <td class="w-28">
               <div class="flex justify-center items-center gap-1">
-                <button-edit (click)="edit(item)" />
+                <!-- <button-edit (click)="edit(item)" /> -->
                 <btn-delete (click)="remove(item)" />
               </div>
             </td>

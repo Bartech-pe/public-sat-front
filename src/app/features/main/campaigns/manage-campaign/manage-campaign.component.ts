@@ -28,6 +28,7 @@ import { ScheduleService } from '@services/schedule.service';
 import { CampaignService } from '@services/campaign.service';
 import { Campaign } from '@models/campaign.model';
 import { CampaignDetalleComponent } from './campaign-detalle/campaign-detalle.component';
+import { MultiCampaignAudioComponent } from './multi-campaign-audio/multi-campaign-audio.component';
 
 @Component({
   selector: 'app-manage-campaign',
@@ -55,6 +56,7 @@ export class ManageMampaignComponent {
   campaniaListFiltradas: Campaign[] = [];
   filtroNombre: string = '';
   openModal: boolean = false;
+  openModalMultipy: boolean = false;
   openModalDetalle: boolean = false;
   private readonly msg = inject(MessageGlobalService);
 
@@ -124,6 +126,22 @@ export class ManageMampaignComponent {
     });
   }
 
+  addNewMultiple(){
+      this.openModalMultipy = true;
+      const ref = this.dialogService.open(MultiCampaignAudioComponent, {
+        header: 'Sube tu Excel, elige variables y arma un mensaje único. ¡Fácil y rápido!',
+        styleClass: 'modal-8xl',
+        modal: true,
+        dismissableMask: false,
+        closable: true,
+      });
+
+      ref.onClose.subscribe((res) => {
+        this.openModalMultipy = false;
+        this.loadData();
+      });
+  }
+
   menuAbierto: number | null = null;
 
   toggleMenu(id: number) {
@@ -149,7 +167,7 @@ export class ManageMampaignComponent {
   }
 
   edit(registro: any) {
-    console.log(registro);
+   
     this.campaignStore.loadById(registro.id);
     this.openModal = true;
     const ref = this.dialogService.open(CreateCampaignComponent, {

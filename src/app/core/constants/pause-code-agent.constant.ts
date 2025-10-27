@@ -30,6 +30,6 @@ export enum ChannelPhoneState {
   QUEUE = 19,
   INCALL = 17,
   PAUSED = 18,
-  CLOSER = 15,
+  DISPO = 15,
   OFFLINE = 16,
 }

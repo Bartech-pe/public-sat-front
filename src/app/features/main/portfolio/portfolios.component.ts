@@ -34,6 +34,7 @@ import { CardModule } from 'primeng/card';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { TimeRemainingPipe } from '@pipes/time-remaining.pipe';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { ManagedDownloadComponent } from './managed-download/managed-download.component';
 @Component({
   selector: 'app-portfolios',
   imports: [
@@ -230,6 +231,19 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
         this.loadData();
       }
     });
+  }
+
+  managedDownload() {
+    const ref = this.dialogService.open(ManagedDownloadComponent, {
+      header: 'Descargar gestionado',
+      styleClass: 'modal-md',
+      modal: true,
+      focusOnShow: false,
+      dismissableMask: false,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res) => {});
   }
 
   verDetalle(item: Portfolio) {

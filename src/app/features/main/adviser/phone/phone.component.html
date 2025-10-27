@@ -1,24 +1,24 @@
 <div class="flex flex-col gap-4 px-3 pb-2">
   <ng-container *ngIf="isLogged; else elseTemplate">
-    <p-card *ngIf="!isInCall && !isInWrap" class="w-full rounded-md shadow-xl">
+    <p-card *ngIf="!isInCall && !isInDispo" class="w-full rounded-md shadow-xl">
       <h2 class="text-lg font-semibold border-b pb-2 text-sky-700">
         Estado Actual
       </h2>
-      <div class="flex flex-col items-center justify-center py-6">
+      <div class="flex flex-col items-center justify-center py-4 gap-4">
         <h3
-          [ngClass]="['text-2xl font-bold text-center mb-4', estado.textColor]"
+          [ngClass]="['text-2xl font-bold text-center', currentState.textColor]"
         >
           <span class="flex items-center justify-center gap-2">
-            <iconify-icon [icon]="estado.icon" class="text-2xl" />
-            {{ estado.label }}
+            <iconify-icon [icon]="currentState.icon" class="text-2xl" />
+            {{ currentState.label }}
           </span>
         </h3>
-        <div class="flex items-center justify-center gap-12 mb-6">
+        <div class="flex items-center justify-center gap-12">
           <div class="text-center">
             <p class="text-xl font-mono">
               {{
-                lastCallInfo?.updatedAt
-                  ? (lastCallInfo?.updatedAt | date : "hh:mm:ss .a")
+                callInfo?.updatedAt
+                  ? (callInfo?.updatedAt | date : "hh:mm:ss .a")
                   : "--:--"
               }}
             </p>
@@ -26,49 +26,51 @@
           </div>
           <div class="text-center">
             <p class="text-xl font-mono">
-              {{ lastCallInfo?.callsToday ?? "0" }}
+              {{ callInfo?.callsToday ?? "0" }}
             </p>
             <p class="text-sm text-gray-500">Llamadas hoy</p>
           </div>
         </div>
-        <div class="flex gap-4">
-          <p-button
+        <div class="grid grid-cols-2 gap-4">
+          <btn-custom
             *ngIf="isInPaused"
-            size="small"
             label="Cambiar a Disponible"
             severity="success"
-            [raised]="true"
+            icon="lucide:phone-call"
+            [text]="false"
+            styleClass="!w-full"
             (click)="changeAvailable()"
-            styleClass="!rounded-full !shadow-none"
-          >
-            <iconify-icon [icon]="'heroicons-outline:pause'" class="text-xl" />
-          </p-button>
-          <p-button
+          />
+          <btn-custom
             *ngIf="!isInPaused"
-            size="small"
             label="Solicitar Pausa"
             severity="warn"
-            [raised]="true"
+            icon="lucide:circle-pause"
+            [text]="false"
+            styleClass="!w-full"
             (click)="requestPause()"
-            styleClass="!rounded-full !shadow-none"
-          >
-            <iconify-icon [icon]="'heroicons-outline:pause'" class="text-xl" />
-          </p-button>
-          <p-button
-            size="small"
+          />
+          <btn-custom
             label="Desconectar"
             severity="danger"
-            [raised]="true"
+            icon="lucide:phone-off"
+            [text]="false"
+            styleClass="!w-full"
             (click)="onLogout()"
-            styleClass="!rounded-full !shadow-none"
-          >
-            <iconify-icon [icon]="'lucide:phone-off'" class="text-xl" />
-          </p-button>
+          />
+        </div>
+        <div *ngIf="isInPaused" class="flex gap-4">
+          <btn-custom
+            label="Cambiar código de pausa"
+            severity="primary"
+            [text]="true"
+            (click)="requestPause()"
+          />
         </div>
       </div>
     </p-card>
 
-    <ng-container *ngIf="isInCall || isInWrap || isInQueue">
+    <ng-container *ngIf="isInCall || isInDispo">
       <div class="grid grid-cols-1 gap-4">
         <!-- Reconocimiento de llamada -->
 
@@ -76,80 +78,59 @@
           [styleClass]="
             loadingCitizen
               ? '!bg-sky-200 text-sky-700'
-              : isInWrap
+              : isInDispo
               ? '!bg-yellow-200 text-yellow-800'
               : !existCitizen
               ? '!bg-red-200 text-red-800'
               : '!bg-green-20 text-green-700'
           "
         >
-          <div class="flex flex-col space-y-4">
-            <div
-              class="w-full rounded-lg p-3 text-center shadow transition-colors"
-            >
-              <p class="text-lg font-medium mb-2 text-gray-600">
+          <div class="grid grid-cols-1 gap-2">
+            <div class="flex justify-center items-center gap-2">
+              <p class="text-lg font-medium text-gray-600">
                 {{
-                  !this.isInWrap
+                  !this.isInDispo
                     ? labelCall
-                    : `Llamada finalizada ${(lastCallInfo?.updatedAt | timeAgo | lowercase)}`
+                    : `Llamada finalizada ${(callInfo?.updatedAt | timeAgo | lowercase)}`
                 }}
               </p>
-              <div
-                class="text-2xl font-bold flex justify-center items-center gap-2"
-              >
-                <iconify-icon
-                  [icon]="
-                    isInWrap
-                      ? 'mdi:phone-off-outline'
-                      : loadingCitizen
-                      ? 'svg-spinners:bars-rotate-fade'
-                      : !existCitizen
-                      ? 'gg:danger'
-                      : 'gg:check-o'
-                  "
-                  class="text-2xl"
-                ></iconify-icon>
+            </div>
 
-                {{ callInfo?.phoneNumber ?? lastCallInfo?.phoneNumber }}
-              </div>
+            <div
+              class="text-2xl font-bold flex justify-center items-center gap-2"
+            >
+              <iconify-icon
+                [icon]="
+                  isInDispo
+                    ? 'mdi:phone-off-outline'
+                    : loadingCitizen
+                    ? 'svg-spinners:bars-rotate-fade'
+                    : !existCitizen
+                    ? 'gg:danger'
+                    : 'gg:check-o'
+                "
+                class="text-2xl"
+              ></iconify-icon>
+
+              {{ callInfo?.phoneNumber }}
             </div>
           </div>
         </p-card>
 
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <!-- Control de Llamada -->
-          <div>
-            <div class="grid grid-cols-1 gap-6">
-              <p-card *ngIf="existCitizen" styleClass="!bg-white">
-                <ng-template #header>
-                  <div class="px-5 pt-4 grid grid-cols-1 gap-2">
-                    <div class="flex gap-2">
-                      <p>Ciudadano:</p>
-                      <h2 class="text-lg font-semibold text-gray-800">
-                        {{ citizen?.vcontacto ?? "no encontrado" }}
-                      </h2>
-                    </div>
-                    <div class="w-full border-t border-slate-300"></div>
-                  </div>
-                </ng-template>
-
-                <div class="grid grid-cols-1">
-                  <p class="font-medium text-gray-800">
-                    N° {{ citizen?.vtipDoc }}
-                  </p>
-                  <p>{{ citizen?.vdocIde }}</p>
-                </div>
-              </p-card>
-              <p-card
-                [styleClass]="
-                  isInPaused
-                    ? '!bg-white'
-                    : '!bg-orange-50 border border-yellow-300'
-                "
-              >
-                <ng-template #header>
-                  <div class="px-5 pt-4 grid grid-cols-1 gap-2">
-                    <h2 class="text-lg font-semibold text-gray-800">
+          <div class="grid grid-cols-1 gap-4">
+            <p-card
+              [styleClass]="
+                isInPaused
+                  ? '!bg-white'
+                  : '!bg-orange-50 border border-yellow-300'
+              "
+            >
+              <ng-template #header>
+                <div class="pt-3 grid grid-cols-1 gap-2">
+                  <div class="px-5">
+                    <h4 class="text-lg font-semibold text-gray-800">
                       {{
                         isInCall
                           ? this.isInPark
@@ -157,197 +138,254 @@
                             : "Control de Llamada"
                           : "Llamada finalizada"
                       }}
-                    </h2>
-                    <div class="w-full border-t border-slate-300"></div>
+                    </h4>
                   </div>
-                </ng-template>
-                <div class="grid grid-cols-1 gap-2">
-                  <div class="grid grid-cols-1 gap-1">
-                    <p>
-                      Tiempo transcurrido:
-                      <strong>{{
-                        isInCall
-                          ? (callInfo?.entryDate | timeElapsed)
-                          : (lastCallInfo?.seconds | duration)
-                      }}</strong>
-                    </p>
-                    <p>
-                      Hora de inicio:
-                      <strong>{{
-                        callInfo?.entryDate ?? lastCallInfo?.entryDate
-                          | date : "hh:mm:ss"
-                      }}</strong>
-                    </p>
-                  </div>
-                  <div class="flex gap-2 justify-end">
-                    <btn-custom
-                      *ngIf="isInCall"
-                      label="Enviar a encuesta"
-                      severity="primary"
-                      icon="fluent:video-person-call-32-regular"
-                      [text]="false"
-                    />
-                    <btn-custom
-                      *ngIf="isInCall"
-                      [label]="this.isInPark ? 'Reanudar' : 'Aparcar'"
-                      severity="primary"
-                      icon="fluent:call-pause-20-regular"
-                      [text]="false"
-                      (click)="parkCall()"
-                    />
-                    <btn-custom
-                      *ngIf="isInCall"
-                      label="Transferir"
-                      severity="primary"
-                      icon="fluent:call-transfer-16-filled"
-                      [text]="false"
-                      (click)="transferCall()"
-                    />
-                    <btn-custom
-                      *ngIf="isInCall"
-                      label="Finalizar"
-                      severity="danger"
-                      icon="tdesign:call-off-filled"
-                      [text]="false"
-                      (click)="endCall()"
-                    />
-                  </div>
+                  <div class="w-full border-t border-slate-300"></div>
                 </div>
-              </p-card>
-            </div>
-          </div>
+              </ng-template>
+              <div class="grid grid-cols-1 gap-2">
+                <div class="grid grid-cols-1">
+                  <p>
+                    Ciudadano:
+                    <strong>
+                      {{ citizen?.vcontacto ?? "no encontrado" }}
+                    </strong>
+                  </p>
 
-          <p-card class="grid grid-cols-1">
-            <form [formGroup]="formDataAtencion" class="grid grid-cols-1 gap-6">
-              <p-fieldset legend="Registro de Atención">
-                <div class="flex flex-col gap-2">
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium" for="nameRole">
-                      Tipo de Consulta: <span class="text-xs">*</span>
-                    </label>
-                    <p-select
-                      id="roleuserId"
-                      [options]="consultTypeList"
-                      optionLabel="name"
-                      optionValue="id"
-                      formControlName="consultTypeId"
-                      placeholder="Seleccione..."
-                      styleClass="capitalize"
-                      panelStyleClass="capitalize"
-                      appendTo="body"
-                    />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium" for="name">
-                      Nombre <span class="text-xs">*</span>
-                    </label>
-                    <input id="name" pInputText formControlName="name" />
-                    <div
-                      *ngIf="
-                        formDataAtencion.controls.name.invalid &&
-                        formDataAtencion.controls.name.touched
-                      "
-                    >
-                      <small
-                        *ngIf="formDataAtencion.controls.name.errors?.['required']"
-                        >El nombre es requerido.</small
-                      >
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium" for="tipDoc">
-                      Tipo de Documento: <span class="text-xs">*</span>
-                    </label>
-                    <p-select
-                      id="roleuserId"
-                      [options]="typeIdeDocList"
-                      optionLabel="code"
-                      optionValue="code"
-                      formControlName="tipDoc"
-                      placeholder="Seleccione..."
-                      appendTo="body"
-                    />
-                    <div
-                      *ngIf="
-                        formDataAtencion.controls.tipDoc.invalid &&
-                        formDataAtencion.controls.tipDoc.touched
-                      "
-                    >
-                      <small
-                        *ngIf="formDataAtencion.controls.tipDoc.errors?.['required']"
-                        >El tipo de documento es requerido.</small
-                      >
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium" for="docIde">
-                      Numero de Documento: <span class="text-xs">*</span>
-                    </label>
-                    <input id="docIde" pInputText formControlName="docIde" />
-                    <div
-                      *ngIf="
-                        formDataAtencion.controls.docIde.invalid &&
-                        formDataAtencion.controls.docIde.touched
-                      "
-                    >
-                      <small
-                        *ngIf="formDataAtencion.controls.docIde.errors?.['required']"
-                        >El numero de documento es requerido.</small
-                      >
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium" for="detail">
-                      Detalle de la atención:
-                    </label>
-                    <textarea
-                      id="detail"
-                      rows="2"
-                      cols="30"
-                      pTextarea
-                      formControlName="detail"
-                    ></textarea>
-                  </div>
+                  <p>
+                    {{ citizen?.vtipDoc }}:
+                    <strong>
+                      {{ citizen?.vdocIde }}
+                    </strong>
+                  </p>
                 </div>
-              </p-fieldset>
-              <div class="flex justify-between items-center gap-4">
-                <div>
-                  <div *ngIf="isInWrap" class="flex items-center gap-2">
-                    <p-checkbox
-                      [(ngModel)]="abandoned"
-                      inputId="abandoned"
-                      binary="true"
-                      [ngModelOptions]="{ standalone: true }"
-                    >
-                    </p-checkbox>
-                    <label for="recordatorio" class="text-sm -mb-1">
-                      Marcar la llamada como abandonada
-                    </label>
-                  </div>
+                <div class="w-full border-t border-slate-300"></div>
+                <div class="grid grid-cols-1 gap-1">
+                  <p>
+                    Duración:
+                    <strong>{{
+                      isInCall
+                        ? (callInfo?.entryDate | timeElapsed)
+                        : (callInfo?.callSeconds | duration)
+                    }}</strong>
+                  </p>
+                  <p>
+                    Hora de inicio:
+                    <strong>
+                      {{ callInfo?.entryDate | date : "hh:mm:ss" }}
+                    </strong>
+                  </p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 justify-end">
                   <btn-custom
-                    *ngIf="isInWrap"
-                    label="Solo finalizar atención"
+                    *ngIf="isInCall"
+                    label="Enviar a encuesta"
+                    severity="primary"
+                    icon="fluent:video-person-call-32-regular"
+                    [text]="false"
+                    (click)="transferSurvey()"
+                  />
+                  <btn-custom
+                    *ngIf="isInCall"
+                    [label]="this.isInPark ? 'Reanudar' : 'Aparcar'"
+                    severity="primary"
+                    icon="fluent:call-pause-20-regular"
+                    [text]="false"
+                    (click)="parkCall()"
+                  />
+                  <btn-custom
+                    *ngIf="isInCall"
+                    label="Transferir"
+                    severity="primary"
+                    icon="fluent:call-transfer-16-filled"
+                    [text]="false"
+                    (click)="transferCall()"
+                  />
+                  <btn-custom
+                    *ngIf="isInCall"
+                    label="Finalizar"
                     severity="danger"
                     icon="tdesign:call-off-filled"
                     [text]="false"
-                    (click)="endAssistance()"
-                  />
-                  <button-save
-                    [label]="isInCall ? 'Guardar' : 'Guardar y finalizar'"
-                    [loading]="loading"
-                    [disabled]="formDataAtencion.invalid"
-                    (click)="onSubmitAtencion()"
+                    (click)="endCall()"
                   />
                 </div>
               </div>
-            </form>
-          </p-card>
+            </p-card>
+            <p-card>
+              <ng-template #header>
+                <div class="pt-3 grid grid-cols-1 gap-2">
+                  <div class="px-5">
+                    <h4 class="text-xl font-bold text-gray-800">
+                      Registro de atención
+                    </h4>
+                    <p class="text-xs text-gray-600">
+                      Registra el resultado de la llamada
+                    </p>
+                  </div>
+                  <div class="w-full border-t border-slate-300"></div>
+                </div>
+              </ng-template>
+              <div class="grid grid-cols-1">
+                <form
+                  [formGroup]="formDataAtencion"
+                  class="grid grid-cols-1 gap-6"
+                >
+                  <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium" for="nameRole">
+                        Tipo de Consulta: <span class="text-xs">*</span>
+                      </label>
+                      <p-select
+                        id="roleuserId"
+                        [options]="consultTypeList"
+                        optionLabel="name"
+                        optionValue="code"
+                        formControlName="consultTypeCode"
+                        placeholder="Seleccione..."
+                        styleClass="capitalize"
+                        panelStyleClass="capitalize"
+                        appendTo="body"
+                      />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium" for="tipDoc">
+                          Tipo de Documento: <span class="text-xs">*</span>
+                        </label>
+                        <p-select
+                          id="roleuserId"
+                          [options]="typeIdeDocList"
+                          optionLabel="code"
+                          optionValue="code"
+                          formControlName="tipDoc"
+                          placeholder="Seleccione..."
+                          appendTo="body"
+                        />
+                        <div
+                          *ngIf="
+                            formDataAtencion.controls.tipDoc.invalid &&
+                            formDataAtencion.controls.tipDoc.touched
+                          "
+                        >
+                          <small
+                            *ngIf="formDataAtencion.controls.tipDoc.errors?.['required']"
+                            >El tipo de documento es requerido.</small
+                          >
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium" for="docIde">
+                          Numero de Documento: <span class="text-xs">*</span>
+                        </label>
+                        <input
+                          id="docIde"
+                          pInputText
+                          formControlName="docIde"
+                        />
+                        <div
+                          *ngIf="
+                            formDataAtencion.controls.docIde.invalid &&
+                            formDataAtencion.controls.docIde.touched
+                          "
+                        >
+                          <small
+                            *ngIf="formDataAtencion.controls.docIde.errors?.['required']"
+                            >El numero de documento es requerido.</small
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium" for="name">
+                        Nombre completo <span class="text-xs">*</span>
+                      </label>
+                      <input id="name" pInputText formControlName="name" />
+                      <div
+                        *ngIf="
+                          formDataAtencion.controls.name.invalid &&
+                          formDataAtencion.controls.name.touched
+                        "
+                      >
+                        <small
+                          *ngIf="formDataAtencion.controls.name.errors?.['required']"
+                          >El nombre es requerido.</small
+                        >
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium" for="detail">
+                        Detalle de la atención:
+                      </label>
+                      <textarea
+                        id="detail"
+                        rows="2"
+                        cols="30"
+                        pTextarea
+                        formControlName="detail"
+                      ></textarea>
+                    </div>
+                    <div *ngIf="isInDispo" class="flex items-center gap-2">
+                      <p-checkbox
+                        [(ngModel)]="pauseAgent"
+                        inputId="pauseAgent"
+                        binary="true"
+                        [ngModelOptions]="{ standalone: true }"
+                      >
+                      </p-checkbox>
+                      <label for="recordatorio" class="text-sm -mb-1">
+                        Pausar asesor al terminar la atención
+                      </label>
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="isInDispo"
+                    class="flex justify-end items-center gap-4"
+                  >
+                    <div class="flex gap-2">
+                      <btn-custom
+                        label="Solo finalizar atención"
+                        severity="danger"
+                        icon="tdesign:call-off-filled"
+                        [text]="false"
+                        (click)="endAssistance()"
+                      />
+                      <button-save
+                        [label]="'Guardar y finalizar'"
+                        [loading]="loading"
+                        [disabled]="formDataAtencion.invalid"
+                        (click)="onSubmitAtencion()"
+                      />
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </p-card>
+          </div>
+
+          <div class="col-span-2">
+            <p-card>
+              <ng-template #header>
+                <div class="pt-3 grid grid-cols-1 gap-2">
+                  <div class="px-5">
+                    <h4 class="text-xl font-bold text-gray-800">
+                      Sistema de Consulta Unificada
+                    </h4>
+                    <p class="text-xs text-gray-600">
+                      Consulta toda la información de contribuyentes de manera
+                      centralizada
+                    </p>
+                  </div>
+                  <div class="w-full border-t border-slate-300"></div>
+                </div>
+              </ng-template>
+              <app-unified-query-system></app-unified-query-system>
+            </p-card>
+          </div>
         </div>
       </div>
-
-      <!-- SECCION - SECCION - SECCION - SECCION -SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - SECCION - -->
     </ng-container>
   </ng-container>
   <ng-template #elseTemplate>
@@ -456,7 +494,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <btn-custom
                 [label]="'Cancelar'"
                 [text]="false"
@@ -481,10 +519,10 @@
     </p-card>
   </ng-template>
 
-  <p-card>
+  <p-card *ngIf="!isInCall && !isInDispo">
     <ng-template #header>
-      <div class="px-5 pt-4 grid grid-cols-1 gap-2">
-        <div>
+      <div class="pt-3 grid grid-cols-1 gap-2">
+        <div class="px-5">
           <h1 class="text-2xl font-bold text-gray-800">
             Sistema de Consulta Unificada
           </h1>
@@ -510,7 +548,6 @@
         size="small"
         label="Intranet SAT"
         [raised]="true"
-        (click)="addNew()"
         styleClass="w-full !rounded-full !shadow-none"
         severity="info"
       >
@@ -524,7 +561,6 @@
         size="small"
         label="SGD"
         severity="info"
-        (click)="addNew()"
         styleClass="w-full !rounded-full !shadow-none"
         [raised]="true"
       >
@@ -538,7 +574,6 @@
         size="small"
         label="SIAT"
         severity="info"
-        (click)="addNew()"
         styleClass="w-full !rounded-full !shadow-none"
         [raised]="true"
       >
@@ -552,7 +587,6 @@
         size="small"
         label="Web SAT"
         severity="info"
-        (click)="addNew()"
         styleClass="w-full !rounded-full !shadow-none"
         [raised]="true"
       >

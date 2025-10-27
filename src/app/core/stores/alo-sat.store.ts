@@ -17,6 +17,7 @@ export interface AloSat {
   userStates: VicidialUser[];
   state: ChannelState | undefined;
   pauseCode: string | undefined;
+  campaignId: string | undefined;
   callInfo: any | undefined;
   lastCallInfo: any | undefined;
   citizen: CitizenInfo | undefined;
@@ -28,6 +29,7 @@ const initialState: AloSat = {
   userStates: [],
   state: undefined,
   pauseCode: undefined,
+  campaignId: undefined,
   callInfo: undefined,
   lastCallInfo: undefined,
   citizen: undefined,
@@ -66,15 +68,18 @@ export const AloSatStore = signalStore(
           .agentStatus()
           .pipe(
             tap({
-              next: (res: { state: ChannelState; pauseCode: string }) => {
+              next: (res: {
+                state: ChannelState;
+                pauseCode: string;
+                campaignId: string;
+              }) => {
                 patchState(store, {
                   state: res.state,
                   pauseCode: res.pauseCode,
+                  campaignId: res.campaignId,
                 });
-                if (res.state.id === ChannelPhoneState.INCALL) {
+                if (res.state.id !== ChannelPhoneState.OFFLINE) {
                   this.getCallInfo();
-                } else {
-                  this.getLastCallInfo();
                 }
               },
               error: (err) =>
@@ -126,50 +131,50 @@ export const AloSatStore = signalStore(
           )
           .subscribe();
       },
-      getLastCallInfo() {
-        service
-          .getLastCallInfo()
-          .pipe(
-            tap({
-              next: (res: any) => {
-                patchState(store, {
-                  lastCallInfo: res,
-                });
-                patchState(store, {
-                  citizen: undefined,
-                  loadingCitizen: true,
-                });
-                if (store.pauseCode() === VicidialPauseCode.WRAP) {
-                  externalCitizenService
-                    .getCitizenInformation({
-                      psiTipConsulta: 1,
-                      piValPar1: res?.phoneNumber,
-                      pvValPar2: 'empty',
-                    })
-                    .subscribe({
-                      next: (res) => {
-                        patchState(store, {
-                          citizen: res[0],
-                          loadingCitizen: false,
-                        });
-                      },
-                      error: (e) => {
-                        patchState(store, {
-                          citizen: undefined,
-                          loadingCitizen: false,
-                        });
-                      },
-                    });
-                }
-              },
-              error: (err) =>
-                patchState(store, {
-                  error: err?.error?.message,
-                }),
-            })
-          )
-          .subscribe();
-      },
+      // getLastCallInfo() {
+      //   service
+      //     .getLastCallInfo()
+      //     .pipe(
+      //       tap({
+      //         next: (res: any) => {
+      //           patchState(store, {
+      //             lastCallInfo: res,
+      //           });
+      //           patchState(store, {
+      //             citizen: undefined,
+      //             loadingCitizen: true,
+      //           });
+      //           if (store.pauseCode() === VicidialPauseCode.WRAP) {
+      //             externalCitizenService
+      //               .getCitizenInformation({
+      //                 psiTipConsulta: 1,
+      //                 piValPar1: res?.phoneNumber,
+      //                 pvValPar2: 'empty',
+      //               })
+      //               .subscribe({
+      //                 next: (res) => {
+      //                   patchState(store, {
+      //                     citizen: res[0],
+      //                     loadingCitizen: false,
+      //                   });
+      //                 },
+      //                 error: (e) => {
+      //                   patchState(store, {
+      //                     citizen: undefined,
+      //                     loadingCitizen: false,
+      //                   });
+      //                 },
+      //               });
+      //           }
+      //         },
+      //         error: (err) =>
+      //           patchState(store, {
+      //             error: err?.error?.message,
+      //           }),
+      //       })
+      //     )
+      //     .subscribe();
+      // },
     };
   })
 );

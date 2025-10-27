@@ -68,7 +68,7 @@ export class AudioSettingsComponent {
   public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
 
-  readonly departmentStore = inject(DepartmentStore);
+  readonly departmentStore = inject(DepartmentStore); 
 
   get departmentList(): Department[] {
       return this.departmentStore.items();

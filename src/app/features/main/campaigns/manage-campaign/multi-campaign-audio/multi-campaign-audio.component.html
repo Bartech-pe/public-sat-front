@@ -1,0 +1,148 @@
+
+<div class=" from-white to-blue-50/50 rounded-3xl shadow-2xl p-8 space-y-8 reveal">
+
+  <form (ngSubmit)="submitForm()" class="space-y-6">
+     <!-- Paso 1: Campaña -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-blue-100 reveal" style="animation-delay: 0.1s;">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Selecciona Campaña</label>
+                        <p-dropdown
+                        [options]="listCampaignVicidial" optionLabel="campaign_name"
+                        [(ngModel)]="selectedCampaign" name="selectedCampaign"
+                        optionValue="campaign_id" placeholder="Selecciona un campaña"
+                        class="w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300" appendTo="body"
+                        [filter]="true" [showClear]="true" filterPlaceholder="Buscar Campaña..." (onChange)="onCampaignChange($event)"
+                        ></p-dropdown>
+                  </div>
+
+                  <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Selecciona Área</label>
+                       <p-dropdown
+                              [options]="departmentList"
+                              [(ngModel)]="selectedArea"
+                              name="selectedArea"
+                              optionLabel="name"
+                              optionValue="id"
+                              placeholder="Selecciona área..."
+                              [filter]="true"
+                              styleClass="w-full"
+                              [showClear]="true"
+                              appendTo="body"
+                        ></p-dropdown>
+                  </div>
+            </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 reveal" style="animation-delay: 0.4s;">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">ID Lista</label>
+                        <input type="number" pInputText [(ngModel)]="listId" name="listId" placeholder="Ingresa el ID de la lista" class="w-full" />
+                  </div>
+
+                  <div class="md:col-span-1 bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal" style="animation-delay: 0.6s;">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Nombre Lista</label>
+                        <input pInputText  [(ngModel)]="name" name="name" placeholder="Nombre del mensaje" class="w-full" />
+                  </div>
+
+                  <div class="md:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-100 reveal" style="animation-delay: 0.7s;">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Descripción Lista</label>
+                        <input pInputText  [(ngModel)]="description" name="description" rows="3" placeholder="Describe el propósito..." class="w-full"/>
+                  </div>
+            </div>
+      </div>
+
+    <!-- Paso 2: Upload Excel -->
+    <div class="bg-white rounded-2xl p-6 shadow-lg border border-green-100 reveal" style="animation-delay: 0.2s;">
+      <label class="block text-sm font-bold text-gray-700 mb-2">Sube tu Excel (para variables)</label>
+      <p-fileUpload
+        #fileUpload
+        chooseLabel="Seleccionar Excel"
+        uploadLabel="Subir"
+        cancelLabel="Cancelar"
+        [maxFileSize]="10000000"
+        accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        [showUploadButton]="false"
+        [showCancelButton]="false"
+        (onSelect)="onFileUpload($event)"
+        styleClass="w-full"
+        *ngIf="!loading"
+      >
+            <ng-template pTemplate="content">
+                  <div class="border-2 border-dashed border-gray-300 hover:border-green-400 transition-all duration-300 rounded-2xl bg-gray-50 hover:bg-green-50 cursor-pointer p-10 text-center">
+                        <i class="pi pi-file-excel text-4xl text-green-500 mb-2"></i>
+                        <p class="text-gray-600">Arrastra tu archivo Excel aquí o haz clic para seleccionar.</p>
+                  </div>
+            </ng-template>
+      </p-fileUpload>
+
+      <p-fieldset legend="Contenido SMS" *ngIf="excelHeaders.length > 0">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Contactos -->
+          <div>
+            <label for="idContacto" class="block text-sm font-medium mb-1" >Variables <span class="text-xs">*</span></label>
+            <p-dropdown
+              [options]="excelHeaders"
+              [(ngModel)]="variable"
+              name="variable"
+              placeholder="Seleccionar Variable"
+              class="w-full mb-2"
+              appendTo="body"
+              (onChange)="insertVariable($event)"
+            ></p-dropdown>
+          </div>
+
+          <div>
+            <label for="idContacto" class="block text-sm font-medium mb-1"
+              >Contactos de Destino <span class="text-xs">*</span></label
+            >
+            <p-dropdown
+              [options]="excelHeaders"
+              [(ngModel)]="contact"
+              name="contact"
+              placeholder="Seleccionar Contacto"
+              class="w-full mb-2"
+              appendTo="body"
+            ></p-dropdown>
+            <div class="text-xs text-blue-500 text-right">
+              Seleccionar la columna que contenga los números móviles
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Mensaje -->
+          <div>
+            <label for="mensaje" class="block text-sm font-medium mb-1"
+              >Mensaje <span class="text-xs">*</span></label
+            >
+            <textarea
+              id="mensaje"
+              rows="3"
+              [(ngModel)]="messageText"
+              name="messageText"
+              placeholder="Ingrese el mensaje de texto"
+              #mensajeInput
+              (input)="charCount = mensajeInput.value.length"
+              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base p-2 resize-none"
+            ></textarea>
+            <div class="text-xs text-blue-500 text-right">
+              {{ charCount || 0 }} Caracteres
+            </div>
+          </div>
+        </div>
+      </p-fieldset>
+
+
+    </div>
+
+   
+
+    <!-- Submit Button -->
+    <div class="pt-4 flex justify-end space-x-2" >
+        <button-cancel (click)="onCancel()" />
+        <p-button (click)="submitForm()" size="small" styleClass="w-full" severity="primary">
+          <iconify-icon [icon]="'ci:save'" class="text-xl" />
+          Guardar
+        </p-button>
+      </div>
+  </form>
+</div>

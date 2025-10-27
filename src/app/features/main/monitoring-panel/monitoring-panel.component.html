@@ -14,11 +14,11 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- Box 1 - ALÓ SAT no tiene endpoint -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-1">
-        <h3 class="text-lg font-semibold text-gray-700">Aló SAT</h3>
+        <h3 class="text-lg font-semibold text-gray-700 ml-4">Aló SAT</h3>
         <!-- Si hay datos, mostrarlos -->
         <div class="space-y-1 px-4">
           @for (item of aloSatCount; track $index) {
@@ -31,6 +31,13 @@
             </div>
           </div>
           }
+
+          <div class="flex items-center gap-2">
+            <p class="text-xl font-bold">
+              {{ aloSatTotal ?? "-" }}
+            </p>
+            <p class="text-sm text-gray-500">Llamadas totales</p>
+          </div>
 
           <!-- <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-green-600">
@@ -46,12 +53,7 @@
             <p class="text-sm text-gray-500">Llamadas perdidas</p>
           </div>
 
-          <div class="flex items-center gap-2">
-            <p class="text-xl font-bold text-indigo-600">
-              {{ viciCount.llamadasTotales ?? "-" }}
-            </p>
-            <p class="text-sm text-gray-500">Total</p>
-          </div> -->
+           -->
         </div>
 
         <!-- Template de carga -->
@@ -64,7 +66,7 @@
     <!-- Box 2 - CORREO -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-2">
-        <h3 class="text-lg font-semibold text-gray-700">Correo</h3>
+        <h3 class="text-lg font-semibold text-gray-700 ml-4">Correo</h3>
         <div class="space-y-1 px-4" *ngIf="mailCount; else loadingMail">
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-green-600">
@@ -94,7 +96,7 @@
     <!-- Box 3 - CHAT SAT -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-2">
-        <h3 class="text-lg font-semibold text-gray-700">Chat SAT</h3>
+        <h3 class="text-lg font-semibold text-gray-700 ml-4">Chat SAT</h3>
         <div class="space-y-1 px-4" *ngIf="chatCount; else loadingChat">
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-blue-600">
@@ -130,7 +132,7 @@
     <!-- Box 4 - CHATBOT -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-2">
-        <h3 class="text-lg font-semibold text-gray-700">Chatbot</h3>
+        <h3 class="text-lg font-semibold text-gray-700 ml-4">Chatbot</h3>
         <div class="space-y-1 px-4" *ngIf="chatCount; else loadingChatbot">
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-blue-600">
@@ -157,9 +159,10 @@
       </div>
     </p-card>
   </div>
-  <!-- CONTADORES -->
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- CONTADORES -->
+  <!-- Primera fila -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     <!-- 🔹 Caja 1 -->
     <p-card styleClass="h-full">
       <div class="flex flex-col justify-center items-center">
@@ -194,7 +197,7 @@
   </div>
 
   <!-- Segunda fila -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     <!-- 🔹 Caja 5 -->
     <p-card styleClass="h-full">
       <div class="flex flex-col justify-center items-center">
@@ -265,7 +268,6 @@
       </p-tablist>
 
       <!-- TABLAS -->
-
       <p-tabpanels>
         <!-- ALÓ SAT -->
         <p-tabpanel [value]="'alosat'">
@@ -567,7 +569,7 @@
                   <div
                     class="flex justify-center items-center text-xs uppercase"
                   >
-                    Atenciones
+                    Detalles
                   </div>
                 </th>
 
@@ -594,23 +596,24 @@
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ item.percentage | percent }}
+                    {{ item.percentage }}%
                   </div>
                 </td>
 
                 <td>
-                  <div class="flex justify-center items-center gap-2">
-                    <!-- BOTÓN ATENCIONES -->
-                    <div class="relative">
-                      <button
-                        (click)="togglePopup(i, 'atenciones', advisor.userId)"
-                        class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
-                      >
-                        Atenciones
-                      </button>
+                  <!-- BOTÓN ATENCIONES -->
+                  <div class="flex justify-center gap-2">
+                    <btn-custom
+                      severity="info"
+                      [text]="false"
+                      [outlined]="true"
+                      label="Atenciones"
+                      (click)="loadAttentionDetail(item.userId, $event)"
+                    />
+                  </div>
 
-                      <!-- POPUP ATENCIONES -->
-                      <div
+                  <!-- POPUP ATENCIONES -->
+                  <!-- <div
                         *ngIf="
                           popupActivo?.index === i &&
                           popupActivo?.tipo === 'atenciones'
@@ -695,9 +698,7 @@
                         >
                           Cerrar
                         </button>
-                      </div>
-                    </div>
-                  </div>
+                      </div> -->
                 </td>
                 <td>
                   <p-select
@@ -742,7 +743,7 @@
 
         <!-- CHAT SAT -->
         <p-tabpanel [value]="'chatsat'">
-          <table
+          <!-- <table
             class="table-auto w-full border-collapse border border-gray-300 text-sm"
           >
             <thead class="bg-yellow-100">
@@ -762,7 +763,6 @@
                 <td class="border p-2">{{ advisor.percentage }}%</td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
-                    <!-- BOTÓN ATENCIONES -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'atenciones', advisor.userId)"
@@ -771,7 +771,6 @@
                         Atenciones
                       </button>
 
-                      <!-- POPUP ATENCIONES -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -863,12 +862,99 @@
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table> -->
+          <p-table [value]="chatAdvisors">
+            <ng-template #header>
+              <tr>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Asesor
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Promedio atención
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Efectividad
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Detalles
+                  </div>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-advisor>
+              <tr>
+                <td>
+                  <div class="flex justify-start text-sm">
+                    {{ advisor.name }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.avgDurationMinutes }} min
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.percentage }}%
+                  </div>
+                </td>
+
+                <td>
+                  <div class="flex justify-center gap-2">
+                    <btn-custom
+                      severity="info"
+                      [text]="false"
+                      [outlined]="true"
+                      label="Atenciones"
+                      (click)="loadAttentionDetail(advisor.userId, $event)"
+                    />
+                  </div>
+                </td>
+                <!-- <td>
+                    <p-select
+                      id="userStateId"
+                      [options]="userMailStates"
+                      optionLabel="name"
+                      optionValue="id"
+                      [(ngModel)]="item.channelStateId"
+                      class="!rounded-full min-w-48"
+                      placeholder="Estado"
+                      (onChange)="changeChannelState(item.userId, $event.value)"
+                      appendTo="body"
+                    />
+                  </td> -->
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr>
+                <td colspan="100">
+                  <div class="text-center text-sm font-light p-4">
+                    No se encontraron asesores asignados a ChatSAT.
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         </p-tabpanel>
 
         <!-- WHATSAPP -->
         <p-tabpanel [value]="'whatsapp'">
-          <table
+          <!-- <table
             class="table-auto w-full border-collapse border border-gray-300 text-sm"
           >
             <thead class="bg-green-100">
@@ -894,7 +980,6 @@
                 <td class="border p-2">{{ advisor.percentage }}%</td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
-                    <!-- BOTÓN ATENCIONES -->
                     <div class="relative">
                       <button
                         (click)="togglePopup(i, 'atenciones', advisor.userId)"
@@ -903,7 +988,6 @@
                         Atenciones
                       </button>
 
-                      <!-- POPUP ATENCIONES -->
                       <div
                         *ngIf="
                           popupActivo?.index === i &&
@@ -995,7 +1079,115 @@
                 </td>
               </tr>
             </tbody>
-          </table>
+          </table> -->
+
+          <p-table [value]="wspAdvisors">
+            <ng-template #header>
+              <tr>
+                <th>
+                  <div
+                    class="flex justify-start items-center text-xs uppercase"
+                  >
+                    Asesor
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Teléfono
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Promedio atención
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Duración total
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Efectividad
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Detalles
+                  </div>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-advisor>
+              <tr>
+                <td>
+                  <div class="flex justify-start text-sm">
+                    {{ advisor.name }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.phoneNumber }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.avgDurationMinutes }} min
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.totalDurationMinutes | duration }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.percentage }}%
+                  </div>
+                </td>
+                <!-- <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.average | duration }}
+                  </div>
+                </td> -->
+                <!-- <td>
+                  <div class="flex justify-center text-sm">
+                    {{ advisor.efectividad | percent }}
+                  </div>
+                </td> -->
+                <td class="border p-2 relative">
+                  <div class="flex justify-center gap-2">
+                    <btn-custom
+                      severity="info"
+                      [text]="false"
+                      [outlined]="true"
+                      label="Atenciones"
+                      (click)="loadAttentionDetail(advisor.userId, $event)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr>
+                <td colspan="100">
+                  <div class="text-center text-sm font-light p-4">
+                    No se encontraron asesores de WhatsApp.
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

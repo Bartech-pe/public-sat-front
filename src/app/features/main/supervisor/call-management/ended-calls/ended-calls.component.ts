@@ -30,6 +30,7 @@ import { DurationPipe } from '@pipes/duration.pipe';
 import { merge, tap } from 'rxjs';
 import { SocketService } from '@services/socket.service';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { AloSatService } from '@services/alo-sat.service';
 
 @Component({
   selector: 'app-ended-calls',
@@ -52,43 +53,34 @@ import { PaginatorComponent } from '@shared/paginator/paginator.component';
 export class EndedCallsComponent implements OnInit {
   private readonly socketService = inject(SocketService);
 
+  private readonly aloSatService = inject(AloSatService);
+
   constructor(
     private callService: CallService,
     private callStateService: CallStateService,
     private amiService: AmiService
-  ) {
-    effect(() => {
-      const request: ICallFilter = {
-        limit: this.limit(),
-        offset: this.offset(),
-        search: this.activeSearch() || undefined,
-        advisor: this.activeAdvisorFilter() || undefined,
-        startDate: this.activeStartDateFilter() || undefined,
-        endDate: this.activeEndDateFilter() || undefined,
-        stateId: this.activeStateFilter() || undefined,
-      };
-      this.getCalls(request);
-      this.getTotals(request);
-    });
-  }
-  items = signal<CallHistory[]>([]);
-  states = signal<ICallStateItem[]>([]);
+  ) {}
+  items = signal<CallItem[]>([]);
+  states = signal<
+    { statusId: string; statusName: string; campaignId: string }[]
+  >([]);
   advisors = signal<IAdvisor[]>([]);
   total = signal<ICallStates[]>([]);
-  activeSearch = signal<string>('');
+  activeSearch = signal<string | undefined>(undefined);
   limit = signal<number>(50);
   offset = signal<number>(0);
   totalItems?: number = 0;
 
-  activeStartDateFilter = signal<Date | null>(null);
-  activeEndDateFilter = signal<Date | null>(null);
-  activeStateFilter = signal<number | null>(null);
-  activeAdvisorFilter = signal<string | null>(null);
-  activeDateFilter = signal<Date | null>(null);
+  activeStartDateFilter = signal<Date | undefined>(undefined);
+  activeEndDateFilter = signal<Date | undefined>(undefined);
+  activeStateFilter = signal<string | undefined>(undefined);
+  activeAdvisorFilter = signal<number | undefined>(undefined);
+  activeDateFilter = signal<Date | undefined>(undefined);
 
   ngOnInit() {
-    this.getStates();
     this.getAdvisors();
+    this.loadData();
+    this.loadDispositions();
     merge(
       this.socketService.onUserPhoneStateRequest(),
       this.socketService.onRequestPhoneCallSubject()
@@ -99,7 +91,7 @@ export class EndedCallsComponent implements OnInit {
       });
   }
 
-  getTotals(request: ICallFilter) {
+  getTotals(request: Record<string, any>) {
     this.callService.getStateStatus(request).subscribe((response) => {
       // this.total.set(response)
       console.log(response);
@@ -107,38 +99,53 @@ export class EndedCallsComponent implements OnInit {
     });
   }
 
-  getCalls(request: ICallFilter) {
-    this.callService.getQuickResponses(request).subscribe((res) => {
+  getCalls(limit?: number, offset?: number, q?: Record<string, any>) {
+    this.callService.getQuickResponses(limit, offset, q).subscribe((res) => {
       this.items.set(res.data);
       this.totalItems = res.total;
     });
   }
 
-  getStates() {
-    this.callStateService.getCategories().subscribe((response) => {
-      this.states.set(response);
-    });
-  }
-
   getAdvisors() {
     this.callService.getAdvisors().subscribe((response: any) => {
-      response.push({ id: null, displayName: 'Todos' });
       this.advisors.set(response);
     });
   }
 
+  search() {
+    this.offset.set(0);
+    this.loadData();
+  }
+
+  clear() {
+    this.offset.set(0);
+    this.activeSearch.set(undefined);
+    this.activeAdvisorFilter.set(undefined);
+    this.activeStateFilter.set(undefined);
+    this.activeEndDateFilter.set(undefined);
+    this.activeStartDateFilter.set(undefined);
+    this.loadData();
+  }
+
   loadData() {
-    const request: ICallFilter = {
-      limit: this.limit(),
-      offset: this.offset(),
+    const userId = this.activeAdvisorFilter();
+    const request: Record<string, any> = {
       search: this.activeSearch() || undefined,
-      advisor: this.activeAdvisorFilter() || undefined,
+      userIds: !!userId ? [userId] : undefined,
       startDate: this.activeStartDateFilter() || undefined,
       endDate: this.activeEndDateFilter() || undefined,
       stateId: this.activeStateFilter() || undefined,
     };
-    this.getCalls(request);
+    this.getCalls(this.limit(), this.offset(), request);
     this.getTotals(request);
+  }
+
+  loadDispositions() {
+    this.aloSatService.findAllCallDisposition().subscribe({
+      next: (data) => {
+        this.states.set(data);
+      },
+    });
   }
 
   onPageChange(event: { limit: number; offset: number }) {

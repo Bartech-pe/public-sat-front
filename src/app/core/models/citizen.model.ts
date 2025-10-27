@@ -14,5 +14,5 @@ export interface CitizenContact {
   label?: string;
   value: string;
   isAdditional: boolean;
-  status: boolean;
+  status?: boolean;
 }

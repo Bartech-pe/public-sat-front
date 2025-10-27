@@ -10,6 +10,7 @@ import { CallTimerService } from './call-timer.service';
 import { CitizenInfo, ExternalCitizenService } from './externalCitizen.service';
 import { ChannelState } from '@models/channel-state.model';
 import { VicidialUser } from '@models/user.model';
+import { ChannelAssistance } from '@models/channel-assistance.model';
 
 @Injectable({
   providedIn: 'root',
@@ -108,6 +109,19 @@ export class AloSatService {
     );
   }
 
+  findAllCampaignPauseCodes(campaignId?: string) {
+    return this.http.post<{ pauseCode: string; pauseCodeName: string }[]>(
+      `${this.basePath}/campaign-pause-codes`,
+      { campaignId }
+    );
+  }
+
+  findAllCallDisposition(campaignId?: string) {
+    return this.http.post<
+      { statusId: string; statusName: string; campaignId: string }[]
+    >(`${this.basePath}/call-disposition`, { campaignId });
+  }
+
   agentLogin(campaignId: string, inboundGroups: string) {
     return this.http.post<any>(`${this.basePath}/agent-login`, {
       campaignId,
@@ -119,24 +133,18 @@ export class AloSatService {
     return this.http.get<any>(`${this.basePath}/agent-relogin`);
   }
 
-  startKeepalive() {
-    this.stopKeepalive();
-    this.timer = setInterval(() => this.agentStatus(), 1000);
-  }
-
-  stopKeepalive() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-  }
-
   private _loadCitizens = false;
 
-  agentStatus(): Observable<{ state: ChannelState; pauseCode: string }> {
-    return this.http.get<{ state: ChannelState; pauseCode: string }>(
-      `${this.basePath}/agent-status`
-    );
+  agentStatus(): Observable<{
+    state: ChannelState;
+    pauseCode: string;
+    campaignId: string;
+  }> {
+    return this.http.get<{
+      state: ChannelState;
+      pauseCode: string;
+      campaignId: string;
+    }>(`${this.basePath}/agent-status`);
   }
 
   loadAllStates(): Observable<VicidialUser[]> {
@@ -144,12 +152,13 @@ export class AloSatService {
   }
 
   getCallInfo(): Observable<any[]> {
+    console.log('getCallInfo');
     return this.http.get<any>(`${this.basePath}/call-info`);
   }
 
-  getLastCallInfo(): Observable<any[]> {
-    return this.http.get<any>(`${this.basePath}/last-call-info`);
-  }
+  // getLastCallInfo(): Observable<any[]> {
+  //   return this.http.get<any>(`${this.basePath}/last-call-info`);
+  // }
 
   loadingCitizen: boolean = false;
 
@@ -198,7 +207,10 @@ export class AloSatService {
     return this.http.get<any>(`${this.basePath}/end-call/${userId}`);
   }
 
-  pauseAgent(pauseCode: VicidialPauseCode | '', concluded: boolean = false) {
+  pauseAgent(
+    pauseCode: VicidialPauseCode | undefined,
+    concluded: boolean = false
+  ) {
     return this.http.post<any>(`${this.basePath}/pause-agent`, {
       pauseCode,
       concluded,
@@ -217,7 +229,41 @@ export class AloSatService {
     return this.http.post<any>(`${this.basePath}/park-call`, { putOn });
   }
 
+  transferSurvey(dial: 'd1' | 'd2' | 'd3' | 'd4' | 'd5') {
+    return this.http.post<any>(`${this.basePath}/transfer-survey`, { dial });
+  }
+
+  updateDispo(dispoChoice: string, pauseAgent: boolean) {
+    return this.http.post<any>(`${this.basePath}/update-dispo`, {
+      dispoChoice,
+      pauseAgent,
+    });
+  }
+
+  alosatAssistance(dto: ChannelAssistance, pauseAgent: boolean) {
+    return this.http.post<any>(`${this.basePath}/alosat-assistance`, {
+      ...dto,
+      pauseAgent,
+    });
+  }
+
   resumeAgent() {
     return this.http.get<any>(`${this.basePath}/resume-agent`);
+  }
+
+  confExtenCheck() {
+    return this.http.get<any>(`${this.basePath}/conf-exten-check`);
+  }
+
+  startKeepAlive() {
+    this.stopKeepAlive();
+    this.timer = setInterval(() => this.confExtenCheck(), 2000);
+  }
+
+  stopKeepAlive() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
   }
 }

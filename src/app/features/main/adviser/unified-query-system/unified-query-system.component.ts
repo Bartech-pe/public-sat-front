@@ -1,7 +1,19 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, Input, OnInit, signal } from "@angular/core";
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  inject,
+  Input,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { DialogService, DynamicDialogConfig, DynamicDialogModule } from 'primeng/dynamicdialog';
-import { BreakComponent } from "../phone/break/break.component";
+import {
+  DialogService,
+  DynamicDialogConfig,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
+import { BreakComponent } from '../phone/break/break.component';
 import { CommonModule } from '@angular/common';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -25,7 +37,7 @@ import { CallTimerService } from '@services/call-timer.service';
 import { TextareaModule } from 'primeng/textarea';
 import { FieldsetModule } from 'primeng/fieldset';
 import { TableModule } from 'primeng/table';
-import { TransferCallComponent } from "../phone/transfer-call/transfer-call.component";
+import { TransferCallComponent } from '../phone/transfer-call/transfer-call.component';
 import { OmnicanalidadService } from '@services/api-sat/omnicanalidad.service';
 import { SaldomaticoService } from '@services/api-sat/saldomatico.service';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -55,15 +67,15 @@ import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
 import { DurationPipe } from '@pipes/duration.pipe';
-import { ChannelAttentionService } from "@services/channel-attention.service";
-import { ChannelCitizenService } from "@services/channel-citizen.service";
-import { IAttentionRecord } from "@interfaces/features/main/unified-query-system/attentionRecord.interface";
-import { QueryHistoryComponent } from "@shared/modal/query-history/query-history.component";
+import { ChannelAttentionService } from '@services/channel-attention.service';
+import { ChannelCitizenService } from '@services/channel-citizen.service';
+import { IAttentionRecord } from '@interfaces/features/main/unified-query-system/attentionRecord.interface';
+import { QueryHistoryComponent } from '@shared/modal/query-history/query-history.component';
 
 @Component({
   selector: 'app-unified-query-system',
   imports: [
-      CommonModule,
+    CommonModule,
     BreadcrumbModule,
     FormsModule,
     ReactiveFormsModule,
@@ -80,7 +92,7 @@ import { QueryHistoryComponent } from "@shared/modal/query-history/query-history
     ButtonModule,
     CardModule,
     BtnCustomComponent,
-    DynamicDialogModule
+    DynamicDialogModule,
   ],
   providers: [DialogService],
   templateUrl: './unified-query-system.component.html',
@@ -88,8 +100,7 @@ import { QueryHistoryComponent } from "@shared/modal/query-history/query-history
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class UnifiedQuerySistemComponent implements OnInit {
-
-  @Input  () documentToSearch?: string;
+  @Input() documentToSearch?: string;
 
   openModal: boolean = false;
 
@@ -98,15 +109,9 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   public readonly config = inject(DynamicDialogConfig, { optional: true });
 
-  private readonly aloSatService = inject(AloSatService);
-
   private readonly dialogService = inject(DialogService);
 
-  private readonly externalCitizenService = inject(ExternalCitizenService);
-
   private readonly authStore = inject(AuthStore);
-
-  private readonly store = inject(ChannelAssistanceStore);
 
   private readonly aloSatStore = inject(AloSatStore);
 
@@ -119,8 +124,6 @@ export class UnifiedQuerySistemComponent implements OnInit {
   private readonly omnicanalidadService = inject(OmnicanalidadService);
 
   private readonly saldomaticoService = inject(SaldomaticoService);
-
-  private readonly socketService = inject(SocketService);
 
   readonly consultTypeStore = inject(ConsultTypeStore);
 
@@ -179,53 +182,6 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   getPauseCodeValue(code: string): string {
     return pauseCodeAgent.find((p) => p.code === code)?.name!;
-  }
-
-  get estado(): any {
-    let icon = 'heroicons-outline:pause';
-    let label = 'PAUSADO';
-    let textColor = 'text-red-600';
-    switch (this.userState?.id) {
-      case ChannelPhoneState.PAUSED:
-        icon = 'heroicons-outline:pause';
-        label =
-          this.userState?.name +
-          (this.pauseCode
-            ? ` - ${this.getPauseCodeValue(this.pauseCode)}`
-            : ' - Inicial');
-        textColor = 'text-sky-600';
-        break;
-      case ChannelPhoneState.CLOSER:
-        icon = 'icon-park-outline:check-one';
-        label = this.userState?.name;
-        textColor = 'text-teal-600';
-        break;
-      case ChannelPhoneState.QUEUE:
-        icon = 'lsvg-spinners:12-dots-scale-rotate';
-        label = this.userState?.name;
-        textColor = 'text-orange-600';
-        break;
-      case ChannelPhoneState.INCALL:
-        icon = 'svg-spinners:bars-scale';
-        label = this.userState?.name;
-        textColor = 'text-green-600';
-        break;
-      case ChannelPhoneState.READY:
-        icon = 'svg-spinners:gooey-balls-1';
-        label = this.userState?.name;
-        textColor = 'text-green-600';
-        break;
-      default:
-        icon = 'line-md:loading-alt-loop';
-        label = 'DESCONECTADO';
-        textColor = 'text-red-600';
-        break;
-    }
-    return {
-      icon,
-      label,
-      textColor,
-    };
   }
 
   get isAloSat(): boolean {
@@ -309,34 +265,9 @@ export class UnifiedQuerySistemComponent implements OnInit {
       this.searchText.set(doc);
       this.search();
     }
-    this.consultTypeStore.loadAll();
-    this.typeIdeDocStore.loadAll();
-    if (this.isAloSat) {
-      this.aloSatStore.getState();
-      this.aloSatService.getCallInfo();
-      this.getCampaigns();
-    }
-
-    merge(
-      this.socketService.onUserPhoneStateRequest(),
-      this.socketService.onRequestPhoneCallSubject()
-    )
-      .pipe(
-        filter((data) => data.userId === this.user.id),
-        tap((data) => console.log('Socket event', data))
-      )
-      .subscribe(() => this.aloSatStore.getState());
   }
 
   ngOnDestroy(): void {}
-
-  getCampaigns() {
-    this.aloSatService.getCampaignsByUser().subscribe({
-      next: (data) => {
-        this.listCampaigns = data;
-      },
-    });
-  }
 
   filterCommunications() {
     const filteredTable = this.tableChannelAllAttentions.filter(
@@ -352,47 +283,57 @@ export class UnifiedQuerySistemComponent implements OnInit {
           this.tableComunicaciones = data;
         },
       });
-      this.channelAssistanceService.findByDocIdentityTyped(this.searchText()).subscribe({
-        next: (data) => {
-          if(!data) return
-          this.tableChannelAttentionsFiltered = data;
-        },
-      });
+      this.channelAssistanceService
+        .findByDocIdentityTyped(this.searchText())
+        .subscribe({
+          next: (data) => {
+            if (!data) return;
+            this.tableChannelAttentionsFiltered = data;
+          },
+        });
 
-      this.channelCitizenService.getAssistancesByDocumentNumber(this.searchText()).subscribe({
-        next: (response) => {
-          if(response?.success && response?.data && response.data.length)
-          {
-            let channelAttentions: IAttentionRecord[] = response.data.map((attention) => {
-              return {
-                categoryChannel: {
-                  name: attention?.channel,
-                },
-                method: 'CHAT',
-                createdByUser: {
-                  fullName: attention?.advisorIntervention ? attention.user : 'BOT'
-                },
-                citizen: {
-                  name: attention?.email,
-                },
-                createdAt: attention?.startDate ,
-                result: 'Contacto',
-                consultType: {
-                  name: attention?.type,
-                },
-                queryHistory: attention.queryHistory
-              };
-            });
-            this.tableChannelAllAttentions = [...this.tableChannelAllAttentions, ...channelAttentions];
-            this.tableChannelAttentionsFiltered = this.tableChannelAllAttentions
-          }
-        },
-      });
+      this.channelCitizenService
+        .getAssistancesByDocumentNumber(this.searchText())
+        .subscribe({
+          next: (response) => {
+            if (response?.success && response?.data && response.data.length) {
+              let channelAttentions: IAttentionRecord[] = response.data.map(
+                (attention) => {
+                  return {
+                    categoryChannel: {
+                      name: attention?.channel,
+                    },
+                    method: 'CHAT',
+                    createdByUser: {
+                      fullName: attention?.advisorIntervention
+                        ? attention.user
+                        : 'BOT',
+                    },
+                    citizen: {
+                      name: attention?.email,
+                    },
+                    createdAt: attention?.startDate,
+                    result: 'Contacto',
+                    consultType: {
+                      name: attention?.type,
+                    },
+                    queryHistory: attention.queryHistory,
+                  };
+                }
+              );
+              this.tableChannelAllAttentions = [
+                ...this.tableChannelAllAttentions,
+                ...channelAttentions,
+              ];
+              this.tableChannelAttentionsFiltered =
+                this.tableChannelAllAttentions;
+            }
+          },
+        });
     }
   }
 
-  showQueryHistory(item: IAttentionRecord)
-  {
+  showQueryHistory(item: IAttentionRecord) {
     const ref = this.dialogService.open(QueryHistoryComponent, {
       header: 'Historial de Consultas',
       styleClass: 'modal-3xl',

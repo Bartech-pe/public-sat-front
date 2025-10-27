@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
-import { CampaignData, CampaignDetalle, CampaignResumen } from '@models/campaign.model';
+import { CampaignData, CampaignDetalle, CampaignResumen, CampaignResumenMultype } from '@models/campaign.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { VicidialService } from '@services/vicidial.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -35,21 +35,27 @@ export class CampaignDetalleComponent {
   ) {
 
   }
-
+  dataResumen: CampaignResumenMultype = {} as CampaignResumenMultype;
   called: CampaignResumen = {} as CampaignResumen;
   listCalled: CampaignDetalle[] = [];
   ngOnInit(): void {
 
     if(this.config){
  
-       this.vicidialService.getByIdProgresoList(this.config.data.vdlistId)
+
+      this.vicidialService.getByIdProgresoList(this.config.data.vdlistId)
       .subscribe(res => {
         this.called = res.resumen;
         this.listCalled = res.detalle;
       });
+
+      this.vicidialService.getByIdCampaignResumenMultype(this.config.data.id)
+      .subscribe(res => {
+        this.dataResumen = res;
+      });
     }
 
-  }
+  } 
 
   onCancel() {
     this.ref.close();

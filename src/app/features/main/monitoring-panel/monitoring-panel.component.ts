@@ -166,9 +166,12 @@ export class MonitoringPanelComponent {
 
   userMailStates: ChannelState[] = [];
 
+  pauseCodeList: { pauseCode: string; pauseCodeName: string }[] = [];
+
   ngOnInit() {
     this.loadCounts();
     this.loadChannelStateEmails();
+    this.loadPauseCodes();
 
     this.originalRoute = this.router.url.split('?')[0];
     console.log('Ruta original:', this.originalRoute);
@@ -277,9 +280,7 @@ export class MonitoringPanelComponent {
 
   get usersReady(): number {
     return this.userList.filter(
-      (user: VicidialUser) =>
-        user?.channelState?.id === ChannelPhoneState.READY ||
-        user?.channelState?.id === ChannelPhoneState.CLOSER
+      (user: VicidialUser) => user?.channelState?.id === ChannelPhoneState.READY
     ).length;
   }
 
@@ -313,12 +314,10 @@ export class MonitoringPanelComponent {
         icon = 'heroicons-outline:pause';
         label =
           userState?.name +
-          (!!pauseCode
-            ? ` - ${this.getPauseCodeValue(pauseCode)}`
-            : ' - Inicial');
+          (pauseCode ? ` - ${this.getPauseCodeValue(pauseCode)}` : '');
         textColor = 'text-sky-600';
         break;
-      case ChannelPhoneState.CLOSER:
+      case ChannelPhoneState.DISPO:
         icon = 'icon-park-outline:check-one';
         label = userState?.name;
         textColor = 'text-teal-600';
@@ -350,8 +349,20 @@ export class MonitoringPanelComponent {
     };
   }
 
+  loadPauseCodes() {
+    this.aloSatService.findAllCampaignPauseCodes().subscribe({
+      next: (data) => {
+        this.pauseCodeList = data;
+      },
+    });
+  }
+
   getPauseCodeValue(code: string): string {
-    return pauseCodeAgent.find((p) => p.code === code)?.name!;
+    return code == 'LOGIN'
+      ? 'Inicial'
+      : this.pauseCodeList.find(
+          (p) => p.pauseCode.toLowerCase() === code.toLowerCase()
+        )?.pauseCodeName!;
   }
 
   /** CHATS / WSP / MAIL*/

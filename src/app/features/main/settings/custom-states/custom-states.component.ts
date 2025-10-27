@@ -219,6 +219,7 @@ export class CustomStatesComponent {
   }
 
   EditarCampaignState(state: CampaignState) {
+    console.log("ESTADO EDIT", state);
     this.campaignStateStore.loadById(state.id);
     this.openModal = true;
     const ref = this.dialogService.open(StateFormComponent, {

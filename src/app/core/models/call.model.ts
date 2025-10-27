@@ -4,10 +4,10 @@ export interface ICallFilter {
   limit: number;
   offset: number;
   search?: string;
-  advisor?: string | null; // Cambió de advisorId a advisor
+  userIds?: number[]; // Cambió de advisorId a advisor
   startDate?: Date | null; // Cambió de start_date a startDate
   endDate?: Date | null; // Cambió de end_date a endDate
-  stateId?: number; // Si lo usas más adelante
+  stateId?: string; // Si lo usas más adelante
 }
 export interface ICallStates {
   name: string;
@@ -17,16 +17,14 @@ export interface ICallStates {
 }
 
 export interface CallItem {
-  recording_id: number;
-  full_name: string;
-  user: string;
-  lead_id: number;
+  recordingId: number;
+  user: User;
+  leadId: number;
   filename: string;
-  location: string;
-  start_time: string; // ISO date string
-  length_in_sec: number;
-  phone_number: string;
-  list_id: number;
+  recordingLocation: string;
+  callDate: Date; // ISO date string
+  lengthInSec: number;
+  phoneNumber: string;
 }
 
 export interface ICallStateItem {

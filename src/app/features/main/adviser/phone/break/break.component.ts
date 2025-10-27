@@ -18,13 +18,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import {
   pauseCodeAgent,
   VicidialPauseCode,
 } from '@constants/pause-code-agent.constant';
 import { AloSatService } from '@services/alo-sat.service';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 
 @Component({
   selector: 'app-break',
@@ -37,6 +38,7 @@ import { AloSatService } from '@services/alo-sat.service';
     ReactiveFormsModule,
     InputTextModule,
     TagModule,
+    BtnCustomComponent,
   ],
   templateUrl: './break.component.html',
   styles: ``,
@@ -54,18 +56,35 @@ export class BreakComponent implements OnInit {
 
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
 
+  private readonly dialogService: DialogService = inject(DialogService);
+
   private readonly aloSatService = inject(AloSatService);
 
-  listaMotivos = pauseCodeAgent.filter(
-    (p) =>
-      ![VicidialPauseCode.WRAPUP, VicidialPauseCode.WRAP].includes(
-        p.code as VicidialPauseCode
-      )
-  ).sort((a, b) => a.name.localeCompare(b.name));;
+  pauseCodeList: { pauseCode: string; pauseCodeName: string }[] = [];
 
   submited: boolean = false;
 
-  ngOnInit(): void {}
+  currentState: any;
+
+  ngOnInit(): void {
+    const instance = this.dialogService.getInstance(this.ref);
+
+    const data = instance.data;
+
+    if (data) {
+      const { campaignId, currentState } = data;
+      this.currentState = currentState;
+      this.loadPauseCodes(campaignId);
+    }
+  }
+
+  loadPauseCodes(campaignId: string) {
+    this.aloSatService.findAllCampaignPauseCodes(campaignId).subscribe({
+      next: (data) => {
+        this.pauseCodeList = data;
+      },
+    });
+  }
 
   onSubmit() {
     this.submited = true;

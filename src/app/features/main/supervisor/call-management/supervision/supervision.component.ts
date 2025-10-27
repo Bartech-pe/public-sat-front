@@ -128,7 +128,7 @@ export class SupervisionComponent implements OnInit {
             : ' - Inicial');
         textColor = 'text-sky-600';
         break;
-      case ChannelPhoneState.CLOSER:
+      case ChannelPhoneState.DISPO:
         icon = 'icon-park-outline:check-one';
         label = userState?.name;
         textColor = 'text-teal-600';
