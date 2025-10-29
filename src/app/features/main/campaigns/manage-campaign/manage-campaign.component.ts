@@ -29,6 +29,7 @@ import { CampaignService } from '@services/campaign.service';
 import { Campaign } from '@models/campaign.model';
 import { CampaignDetalleComponent } from './campaign-detalle/campaign-detalle.component';
 import { MultiCampaignAudioComponent } from './multi-campaign-audio/multi-campaign-audio.component';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 
 @Component({
   selector: 'app-manage-campaign',
@@ -41,7 +42,7 @@ import { MultiCampaignAudioComponent } from './multi-campaign-audio/multi-campai
     FormsModule,
     BreadcrumbModule,
     ButtonDetailComponent,
-    // BtnDeleteComponent,
+    BtnDeleteComponent,
     ButtonSaveComponent,
     OverlayPanelModule,
     // ButtonProgressComponent,
@@ -192,34 +193,7 @@ export class ManageMampaignComponent {
             <p class='text-center'> Esta acción no se puede deshacer. </p>
           </div>`,
       () => {
-        // if (registro.id_tipo_campania == 3) {
-          this.campaignStore.delete(registro.id);
-        //   this.vicidialService
-        //     .eliminarCampania(registro.campaniaId)
-        //     .subscribe((res) => {
-        //       if (res.status == 'not_found') {
-        //         this.msg.error(
-        //           'No existe una campaña con ese campaign_id : ' +
-        //             registro.campaniaId
-        //         );
-        //       } else {
-        //         this.msg.success(
-        //           'La Campaña fue eliminado correctamente en Vicidial, ' +
-        //             registro.name
-        //         );
-        //         this.scheduleService.deleteByCampain(registro.id).subscribe(
-        //           (res) => {
-        //             this.campaignStore.delete(registro.id);
-        //           },
-        //           (err) => {
-        //             this.campaignStore.delete(registro.id);
-        //           }
-        //         );
-        //       }
-        //     });
-        // } else {
-        //   this.campaignStore.delete(registro.id);
-        // }
+        this.campaignStore.delete(registro.id);
       }
     );
   }
@@ -230,7 +204,6 @@ export class ManageMampaignComponent {
       .then(() => {
         registro.copiado = true;
 
-        // Volver a "copiar" después de 5 segundos
         setTimeout(() => {
           registro.copiado = false;
         }, 1000);
