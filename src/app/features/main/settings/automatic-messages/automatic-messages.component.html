@@ -18,7 +18,7 @@
     <p-tablist>
       <p-tab [value]="0" class="flex items-center">
         <iconify-icon [icon]="'line-md:chat'" class="text-xl" />
-        <span>ChatSAT</span>
+        <span>Telefónico</span>
       </p-tab>
       <p-tab [value]="1" class="flex items-center"
         ><iconify-icon [icon]="'line-md:email'" class="text-xl" />
@@ -26,22 +26,21 @@
       </p-tab>
       <p-tab [value]="2" class="flex items-center">
         <iconify-icon [icon]="'ic:outline-whatsapp'" class="text-xl" />
-        <span>WhatsApp</span>
+        <span>Chatsat</span>
       </p-tab>
       <p-tab [value]="3" class="flex items-center">
         <iconify-icon [icon]="'line-md:telegram'" class="text-xl" />
-        <span>Telegram</span>
+        <span>WhatsApp</span>
       </p-tab>
     </p-tablist>
     <p-tabpanels>
-      <!-- ChatSAT -->
       <p-tabpanel [value]="0">
         <div class="flex justify-between items-center py-4">
-          <h3 class="font-bold text-xl">Tipos de Mensaje - ChatSAT</h3>
+          <h3 class="font-bold text-xl">Tipos de Mensaje - Telefónico</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div
-            *ngFor="let item of mensajesChat"
+            *ngFor="let item of mensajesTelefonico"
             class="border border-gray-400 rounded-lg p-4 shadow-2xl space-y-1"
           >
             <div class="flex items-center gap-2">
@@ -131,11 +130,11 @@
       <!-- WhatsApp -->
       <p-tabpanel [value]="2">
         <div class="flex justify-between items-center py-4">
-          <h3 class="font-bold text-xl">Tipos de Mensaje - WhatsApp</h3>
+          <h3 class="font-bold text-xl">Tipos de Mensaje - Chatsat</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div
-            *ngFor="let item of mensajesWhatsApp"
+            *ngFor="let item of mensajesChatsat"
             class="border border-gray-400 rounded-lg p-4 shadow-2xl space-y-1"
           >
             <div class="flex items-center gap-2">
@@ -178,11 +177,11 @@
       <!-- Telegram -->
       <p-tabpanel [value]="3">
         <div class="flex justify-between items-center py-4">
-          <h3 class="font-bold text-xl">Tipos de Mensaje - Telegram</h3>
+          <h3 class="font-bold text-xl">Tipos de Mensaje - Whatsapp</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div
-            *ngFor="let item of mensajesTelegram"
+            *ngFor="let item of mensajesWhatsapp"
             class="border border-gray-400 rounded-lg p-4 shadow-2xl space-y-1"
           >
             <div class="flex items-center gap-2">
@@ -225,7 +224,6 @@
     </p-tabpanels>
   </p-tabs>
 </div>
-
 <!-- Modal Editar Mensaje Aut -->
 <p-dialog
   [(visible)]="displayEditarMensaje"
@@ -236,6 +234,7 @@
 >
   <form [formGroup]="formData" (ngSubmit)="onSubmit()">
     <div class="flex flex-col gap-2">
+      <!-- Campo Nombre -->
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium" for="nameUser">
           Título del mensaje <span class="text-xs">*</span>
@@ -251,27 +250,62 @@
           </small>
         </div>
       </div>
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" for="displayNameUser">
+
+      <!-- FormArray de Descripciones -->
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-medium">
           Contenido del mensaje <span class="text-xs">*</span>
         </label>
-        <textarea
-          id="descriptionConsulta"
-          rows="2"
-          cols="30"
-          pTextarea
-          formControlName="description"
-        ></textarea>
-        <div
-          *ngIf="
-            formData.controls.description.invalid && formData.controls.description.touched
-          "
-        >
-          <small *ngIf="formData.controls.description.errors?.['required']">
-            El mensaje es requerido.
-          </small>
+
+        <div *ngFor="let description of descriptions.controls; let i = index" class="flex flex-col w-full gap-2">
+          <div class="flex items-center w-full gap-2">
+            <div class="flex-1">
+              <textarea
+                [id]="'descriptionConsulta_' + i"
+                rows="2"
+                cols="30"
+                pTextarea
+                class="w-full"
+                [formControl]="description"
+                placeholder="Ingrese el contenido del mensaje"
+              ></textarea>
+              <div *ngIf="description.invalid && description.touched">
+                <small *ngIf="description.errors?.['required']" class="text-red-500">
+                  El mensaje es requerido.
+                </small>
+              </div>
+            </div>
+
+
+            <!-- Botón para eliminar (solo si hay más de 1) -->
+            <!-- <button
+              *ngIf="descriptions.length > 1"
+              type="button"
+              pButton
+              class="p-button-rounded p-button-danger p-button-text"
+              (click)="removeDescription(i)"
+              title="Eliminar mensaje"
+            ></button> -->
+            <btn-delete (click)="removeDescription(i)" />
+          </div>
+        </div>
+
+        <!-- Botón para agregar más campos -->
+        <div class="flex justify-start">
+          <p-button
+            type="button"
+            size="small"
+            label="Agregar mensaje"
+            severity="secondary"
+            styleClass="!rounded-full !shadow-none"
+            (onClick)="addDescription()"
+          >
+            <iconify-icon [icon]="'ic:baseline-plus'" class="text-lg" />
+          </p-button>
         </div>
       </div>
+
+      <!-- Toggle Status -->
       <div class="flex items-center gap-2 py-1">
         <p-toggleswitch formControlName="status" inputId="activeRole" />
         <label class="text-sm font-medium pb-1.5" for="activeRole">{{
@@ -279,6 +313,8 @@
         }}</label>
       </div>
     </div>
+
+    <!-- Botones de acción -->
     <div class="flex justify-self-end pt-4 gap-4">
       <button-cancel (click)="displayEditarMensaje = false" />
       <p-button

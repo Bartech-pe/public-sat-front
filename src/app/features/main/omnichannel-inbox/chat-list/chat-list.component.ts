@@ -226,7 +226,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((payload: ChannelRoomAssistance) => {
         const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
-        if(this.authStore.user()?.id === payload.userId)
+        if(this.authStore.user()?.id === payload.userId || ['supervisor','administrador'].includes(this.authStore.user()?.role?.name??''))
         {
           this.showHelpRequest(payload);
           this.loadChatList();

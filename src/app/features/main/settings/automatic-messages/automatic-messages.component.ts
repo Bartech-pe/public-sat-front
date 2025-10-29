@@ -8,14 +8,17 @@ import {
   signal,
 } from '@angular/core';
 import {
+  FormArray,
   FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ConsConsultasComponent } from '@features/main/reports/cons-consultas/cons-consultas.component';
 import { AutomaticMessage } from '@models/automatic-message.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { BtnEditSquareComponent } from '@shared/buttons/btn-edit-square/btn-edit-square.component';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { AutomaticMessageStore } from '@stores/automatic-message.store';
@@ -42,6 +45,7 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
     ButtonModule,
     TabsModule,
     TagModule,
+    BtnDeleteComponent,
     CommonModule,
     AvatarModule,
     BadgeModule,
@@ -69,10 +73,12 @@ export class AutomaticMessagesComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    description: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
+    descriptions: new FormArray<FormControl<string>>([
+      new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      })
+    ]),
     status: new FormControl<boolean>(true, {
       nonNullable: true,
       validators: [Validators.required],
@@ -94,7 +100,7 @@ export class AutomaticMessagesComponent implements OnInit {
     return this.storeMensaje.items();
   }
 
-  get mensajesChat(): AutomaticMessage[] {
+  get mensajesTelefonico(): AutomaticMessage[] {
     return this.listadoMensajesAut.filter((m) => m.categoryId === 1);
   }
 
@@ -102,16 +108,39 @@ export class AutomaticMessagesComponent implements OnInit {
     return this.listadoMensajesAut.filter((m) => m.categoryId === 2);
   }
 
-  get mensajesWhatsApp(): AutomaticMessage[] {
+  get mensajesChatsat(): AutomaticMessage[] {
     return this.listadoMensajesAut.filter((m) => m.categoryId === 3);
   }
 
-  get mensajesTelegram(): AutomaticMessage[] {
+  get mensajesWhatsapp(): AutomaticMessage[] {
     return this.listadoMensajesAut.filter((m) => m.categoryId === 4);
+  }
+
+  // Getter para acceder al FormArray
+  get descriptions(): FormArray<FormControl<string>> {
+    return this.formData.get('descriptions') as FormArray<FormControl<string>>;
+  }
+
+  // Agregar un nuevo campo de descripción
+  addDescription(): void {
+    this.descriptions.push(
+      new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      })
+    );
+  }
+
+  // Eliminar un campo de descripción
+  removeDescription(index: number): void {
+    if (this.descriptions.length > 1) {
+      this.descriptions.removeAt(index);
+    }
   }
 
   private resetOnSuccessEffect = effect(() => {
     const item = this.storeMensaje.selectedItem();
+
     const error = this.storeMensaje.error();
     const action = this.storeMensaje.lastAction();
 
@@ -121,7 +150,7 @@ export class AutomaticMessagesComponent implements OnInit {
       this.msg.error(
         error ?? '¡Ups, ocurrió un error inesperado al guardar el mensaje!'
       );
-      return; // Salimos si hay un error
+      return;
     }
 
     // Si se ha creado o actualizado correctamente
@@ -146,9 +175,39 @@ export class AutomaticMessagesComponent implements OnInit {
     // Si hay un item seleccionado, se carga en el formulario
     if (!this.submited && item) {
       this.id = item.id ?? null;
+      // Limpiar el FormArray antes de cargar nuevos datos
+      this.descriptions.clear();
+
+      // Si description es un array, cargar cada elemento
+      if (Array.isArray(item.message_descriptions)) {
+        item.message_descriptions.forEach((desc: string) => {
+          this.descriptions.push(
+            new FormControl<string>(desc, {
+              nonNullable: true,
+              validators: [Validators.required],
+            })
+          );
+        });
+      } else if (item.message_descriptions) {
+        // Si es un string, agregarlo como único elemento
+        this.descriptions.push(
+          new FormControl<string>(item.message_descriptions, {
+            nonNullable: true,
+            validators: [Validators.required],
+          })
+        );
+      } else {
+        // Si no hay description, agregar un campo vacío
+        this.descriptions.push(
+          new FormControl<string>('', {
+            nonNullable: true,
+            validators: [Validators.required],
+          })
+        );
+      }
+
       this.formData.patchValue({
         name: item.name ?? '',
-        description: item.description ?? '',
         status: item.status!,
       });
     }
@@ -160,25 +219,63 @@ export class AutomaticMessagesComponent implements OnInit {
 
   loadData() {
     this.storeMensaje.loadAll();
+
   }
 
   onEdit(item: AutomaticMessage): void {
     this.mensajeSeleccionado = item;
     this.id = item.id ?? null;
+    // Limpiar el FormArray
+    this.descriptions.clear();
 
+    // Cargar las descripciones
+    if (Array.isArray(item.descriptions)) {
+      item.descriptions.forEach((desc: any) => {
+        this.descriptions.push(
+          new FormControl<string>(desc.description, {
+            nonNullable: true,
+            validators: [Validators.required],
+          })
+        );
+      });
+    } else if (item.descriptions) {
+      this.descriptions.push(
+        new FormControl<string>(item.descriptions, {
+          nonNullable: true,
+          validators: [Validators.required],
+        })
+      );
+    } else {
+      this.descriptions.push(
+        new FormControl<string>('', {
+          nonNullable: true,
+          validators: [Validators.required],
+        })
+      );
+    }
     this.formData.patchValue({
       name: item.name ?? '',
-      description: item.description ?? '',
       status: item.status ?? true,
     });
+    console.log(this.formData)
 
     this.displayEditarMensaje = true;
   }
 
   resetForm() {
-    this.formData.reset({
+    // Limpiar el FormArray
+    this.descriptions.clear();
+
+    // Agregar un campo vacío
+    this.descriptions.push(
+      new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      })
+    );
+
+    this.formData.patchValue({
       name: '',
-      description: undefined,
       status: true,
     });
   }
@@ -190,8 +287,14 @@ export class AutomaticMessagesComponent implements OnInit {
   onSubmit() {
     this.submited = true;
     const form = this.formData.value;
+    console.log(form);
     if (this.id) {
-      this.storeMensaje.update(this.id, { id: this.id, ...form });
+      this.storeMensaje.update(this.id, {
+        id: this.id,
+        name: form.name,
+        message_descriptions: form.descriptions,
+        status: form.status
+      });
     }
   }
 }
