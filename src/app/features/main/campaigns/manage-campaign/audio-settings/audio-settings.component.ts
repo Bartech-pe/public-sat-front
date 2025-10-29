@@ -317,12 +317,14 @@ export class AudioSettingsComponent {
     this.loading = true;
 
     try {
-        const randomNumber = Math.floor(Math.random() * 100);
-        const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
-        this.name_archivo = `${name_clear}.wav`;
+        
 
         // Si hay un nuevo audio grabado o cargado
         if (this.audioBlob) {
+          const randomNumber = Math.floor(Math.random() * 100);
+          const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
+          this.name_archivo = `${name_clear}.wav`;
+
           const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
           const file = new File([wavBlob], this.name_archivo, { type: 'audio/wav' });
 
@@ -340,9 +342,12 @@ export class AudioSettingsComponent {
             },
           });
         } else {
-        
+
+          const nameWithoutExtension = this.nameAudioOrigin.split('.').slice(0, -1).join('.');
+
           this.msg.info('No se detectó nuevo audio, actualizando solo el nombre.');
-          this.actualizarCampania(name_clear);
+          this.actualizarCampania(nameWithoutExtension);
+        
         }
       } catch (err) {
         console.error(err);
@@ -401,9 +406,6 @@ export class AudioSettingsComponent {
         if (campaign) {
 
           this.campania = campaign;
-
-          console.log( this.campania);
-
           this.formlist.campaign_name = campaign.campaign_name; 
  
         }
@@ -415,16 +417,19 @@ export class AudioSettingsComponent {
             } else {
               this.audioUrlAudio = '';
             }
-        })
+        });
         
         this.vicidialService.getlistCampania(selectedCampaingId).subscribe(res=>{
           this.listListVicidial= res;
-        })
+        });
+
     }
   }
 
+  nameAudioOrigin:string='';
   onAudioChange(event: any) {
     const selectedAudio = event.value;
+    this.nameAudioOrigin= event.value;
     this.audioUrlAudio = environment.urlTextoAudioreproducir + selectedAudio;
     setTimeout(() => {
       this.audioPlayer?.nativeElement.play().catch(err => console.log('No se pudo reproducir automáticamente:', err));

@@ -26,8 +26,8 @@ export class EmailComponent {
   name: string = 'SAT - Mail';
   email: string = 'demo.correo.sat@gmail.com';
   clientId: string =
-    '';
-  clientSecret: string = '';
+    '939529555095-qnmku0pv44d3nt52r9ermof67509ceiu.apps.googleusercontent.com';
+  clientSecret: string = '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';
   topicName: string = 'email-notifications';
   projectId: string = 'sat-crm-dev';
 
