@@ -1,4 +1,6 @@
-<div *ngFor="let msg of messages" class="mb-3 group relative">
+<div *ngFor="let msg of messages" 
+     class="mb-4 group relative animate-in fade-in duration-300 slide-in-from-bottom-2"
+     [attr.data-sender]="msg.isSender">
   <!-- Contenedor de alineación general -->
   <div
     class="flex w-full"
@@ -9,7 +11,7 @@
   >
     <!-- Contenedor interno -->
     <div
-      class="flex flex-col max-w-[70%]"
+      class="flex flex-col max-w-[75%] lg:max-w-[70%]"
       [ngClass]="{
         'items-end text-right': msg.isSender,
         'items-start text-left': !msg.isSender
@@ -17,27 +19,39 @@
     >
       <!-- 🧾 Nombre -->
       <div
-        *ngIf="msg.sender"
-        class="text-xs font-medium mb-1"
+        *ngIf="msg.sender && !msg.isSender"
+        class="text-xs font-semibold mb-1.5 px-1"
         [ngClass]="{
           'text-gray-500': !msg.isSender,
-          'text-gray-300': msg.isSender
+          'text-blue-300': msg.isSender
         }"
+        role="img" aria-label="Nombre del remitente"
       >
-        {{ msg.isSender ? 'Tú' : (msg.sender?.displayName || msg.sender?.name || 'Usuario') }}
+        {{ msg.sender?.displayName || msg.sender?.name || 'Usuario' }}
       </div>
 
       <!-- Burbuja del mensaje -->
       <div
-        class="rounded-2xl px-4 py-2 shadow-md break-words"
+        class="relative rounded-2xl px-4 py-3 shadow-sm break-words transition-all duration-200 hover:shadow-md"
         [ngClass]="{
-          'bg-blue-500 text-white rounded-br-none': msg.isSender,
-          'bg-gray-100 text-gray-800 rounded-bl-none': !msg.isSender
+          'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-sm': msg.isSender,
+          'bg-white border border-gray-200 rounded-bl-sm': !msg.isSender
         }"
+        role="article" [attr.aria-label]="'Mensaje de ' + (msg.isSender ? 'ti' : 'otro usuario')"
       >
+        <!-- Icono sutil en esquina para tipo de mensaje -->
+        <div class="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+             [ngClass]="{ 'bg-green-100 text-green-600 -left-2 -right-auto': !msg.isSender }">
+          <ng-container [ngSwitch]="msg.type">
+            <span *ngSwitchCase="'text'">T</span>
+            <iconify-icon *ngSwitchCase="'image'" icon="mdi:image" width="12"></iconify-icon>
+            <iconify-icon *ngSwitchCase="'video'" icon="mdi:video" width="12"></iconify-icon>
+          </ng-container>
+        </div>
+
         <ng-container [ngSwitch]="msg.type">
           <!-- Texto -->
-          <div *ngSwitchCase="'text'" class="whitespace-pre-wrap">
+          <div *ngSwitchCase="'text'" class="whitespace-pre-wrap leading-relaxed">
             {{ msg.content }}
           </div>
 
@@ -45,15 +59,17 @@
           <div *ngSwitchCase="'image'" class="flex flex-col">
             <img
               [src]="apiUrlImage + msg.resourceUrl"
-              alt="Imagen"
-              class="rounded-xl max-w-full max-h-60 mb-1 border border-gray-300"
+              [alt]="msg.content || 'Imagen adjunta'"
+              class="rounded-xl max-w-full max-h-64 object-cover mb-2 border border-gray-200 shadow-sm transition-transform duration-200 hover:scale-105 cursor-pointer"
+              loading="lazy"
+       
             />
             <div
               *ngIf="msg.content"
-              class="text-xs"
+              class="text-xs italic mt-1 px-1"
               [ngClass]="{
-                'text-gray-700': !msg.isSender,
-                'text-gray-100': msg.isSender
+                'text-gray-600': !msg.isSender,
+                'text-blue-100': msg.isSender
               }"
             >
               {{ msg.content }}
@@ -64,20 +80,59 @@
           <div *ngSwitchCase="'video'" class="flex flex-col">
             <video
               controls
-              class="rounded-xl max-w-full max-h-60 border border-gray-300 mb-1"
+              preload="metadata"
+              class="rounded-xl max-w-full max-h-64 object-cover border border-gray-200 shadow-sm mb-2"
+              [poster]="msg.thumbnailUrl || null"
             >
               <source [src]="msg.resourceUrl" type="video/mp4" />
               Tu navegador no soporta video.
             </video>
             <div
               *ngIf="msg.content"
-              class="text-xs"
+              class="text-xs italic mt-1 px-1"
               [ngClass]="{
-                'text-gray-700': !msg.isSender,
-                'text-gray-100': msg.isSender
+                'text-gray-600': !msg.isSender,
+                'text-blue-100': msg.isSender
               }"
             >
               {{ msg.content }}
+            </div>
+          </div>
+
+          <!-- Archivo -->
+          <div *ngSwitchCase="'file'" class="flex flex-col">
+            <a
+              [href]="apiUrlImage + msg.resourceUrl"
+              [download]="apiUrlImage + msg.resourceUrl || 'archivo'"
+              class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors mb-2 cursor-pointer"
+              [ngClass]="{ 'bg-blue-50 border-blue-200': msg.isSender }"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0"
+                   [ngClass]="{ 'bg-blue-200': msg.isSender }">
+                <iconify-icon icon="mdi:file-document-outline" width="24" class="text-gray-600"
+                              [ngClass]="{ 'text-blue-600': msg.isSender }"></iconify-icon>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm truncate" [ngClass]="{
+                  'text-gray-800': !msg.isSender,
+                  'text-blue-800': msg.isSender
+                }">
+                  {{ msg.content || 'Archivo adjunto' }}
+                </p>
+                <p class="text-xs text-gray-500">Descargar archivo</p>
+              </div>
+            </a>
+            <div
+              *ngIf="msg.description"
+              class="text-xs italic mt-1 px-1"
+              [ngClass]="{
+                'text-gray-600': !msg.isSender,
+                'text-blue-100': msg.isSender
+              }"
+            >
+              {{ msg.description }}
             </div>
           </div>
 
@@ -89,28 +144,28 @@
 
         <!-- Hora + check -->
         <div
-          class="text-[10px] mt-1 flex items-center gap-1"
+          class="text-xs mt-2 flex items-center justify-between pt-1 border-t border-opacity-20 border-white/20"
           [ngClass]="{
-            'justify-end text-gray-200': msg.isSender,
-            'justify-start text-gray-500': !msg.isSender
+            'text-blue-200': msg.isSender,
+            'text-gray-500': !msg.isSender
           }"
         >
-          {{ msg.createdAt | date : "shortTime" }}
-
+          <span class="flex-1">{{ msg.createdAt | date : "shortTime" }}</span>
           <ng-container *ngIf="msg.isSender">
-            <iconify-icon
-              *ngIf="!msg.isRead"
-              icon="mdi:check"
-              width="14"
-              class="text-white opacity-50"
-            ></iconify-icon>
-
-            <iconify-icon
-              *ngIf="msg.isRead"
-              icon="mdi:check-all"
-              width="14"
-              class="text-blue-300"
-            ></iconify-icon>
+            <div class="flex items-center gap-0.5 ml-auto">
+              <iconify-icon
+                *ngIf="!msg.isRead"
+                icon="mdi:check"
+                width="12"
+                class="text-white opacity-60 transition-colors"
+              ></iconify-icon>
+              <iconify-icon
+                *ngIf="msg.isRead"
+                icon="mdi:check-all"
+                width="12"
+                class="text-blue-200 animate-pulse"
+              ></iconify-icon>
+            </div>
           </ng-container>
         </div>
       </div>
@@ -119,25 +174,32 @@
       <button
         *ngIf="msg.isSender"
         type="button"
-        class="absolute -left-6 top-5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        class="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 hover:scale-110"
         (click)="menu.toggle($event); selectedMessage = msg"
+        aria-label="Opciones del mensaje"
       >
-        <iconify-icon
-          icon="ci:more-vertical"
-          width="18"
-          class="text-gray-500 hover:text-black"
-        ></iconify-icon>
+        <div class="w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50">
+          <iconify-icon
+            icon="ci:more-vertical"
+            width="16"
+            class="text-gray-500"
+          ></iconify-icon>
+        </div>
       </button>
     </div>
   </div>
 </div>
 
 <!-- Menú contextual -->
-<p-overlayPanel #menu [dismissable]="true">
-  <button
-    class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
-    (click)="eliminarMensaje(selectedMessage!)"
-  >
-    Eliminar
-  </button>
+<p-overlayPanel #menu [dismissable]="true" class="shadow-xl rounded-xl overflow-hidden">
+  <div class="py-1 bg-white border border-gray-200">
+    <button
+      class="block w-full text-left px-4 py-3 hover:bg-red-50 hover:text-red-600 text-sm font-medium transition-colors flex items-center gap-2"
+      (click)="eliminarMensaje(selectedMessage!)"
+    >
+      <iconify-icon icon="mdi:delete-outline" width="18"></iconify-icon>
+      Eliminar mensaje
+    </button>
+    <!-- Opcional: Agregar más opciones aquí, e.g., Copiar, Reenviar -->
+  </div>
 </p-overlayPanel>

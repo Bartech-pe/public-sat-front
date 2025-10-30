@@ -35,7 +35,7 @@ import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
 export class ChatMessageListComponent {
   @Input() messages: ChatMessage[] = [];
 
-  apiUrlImage = environment.apiUrl;
+  apiUrlImage = environment.apiUrl.replace(/\/$/, '');
 
   readonly chatMessageService: ChatMessageService = inject(ChatMessageService);
 

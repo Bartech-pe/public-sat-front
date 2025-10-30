@@ -167,26 +167,7 @@
             </svg>
             Enviar notificación al supervisor
           </button>
-          <!--<button
-                class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition">
-                <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
-                Borrar notificaciones
-            </button>-->
 
-          <p-splitButton
-            label="Listo!"
-            [model]="items"
-            severity="secondary"
-            (onClick)="resolver()"
-            class="p-button-sm text-xs"
-          ></p-splitButton>
-
-          <!-- <button
-            (click)="emojiPopoverButones.toggle($event)"
-            class="p-2 bg-gray-100 hover:bg-gray-200 rounded-md"
-          >
-            <iconify-icon icon="ci:more-vertical" width="16"> </iconify-icon>
-          </button> -->
         </div>
       </div>
 
@@ -226,14 +207,15 @@
       </div>
 
       <!-- Caja de entrada -->
-      <div class="border-t border-slate-200 bg-blue-50 px-4 py-3">
-        <chat-message-button
-          [(message)]="newMessage"
-          (send)="sendMessage($event)"
-          (fileUpload)="handleFile($event)"
-        ></chat-message-button>
-      </div>
-
+        <ng-container *ngIf="disabledButton">
+              <div class="border-t border-slate-200 bg-blue-50 px-4 py-3">
+                <chat-message-button
+                  [(message)]="newMessage"
+                  (send)="sendMessage($event)"
+                  (fileUpload)="handleFile($event)"
+                ></chat-message-button>
+              </div>
+        </ng-container>
       <p-popover #emojiPopoverNewMessage>
         <div class="flex flex-col gap-2 w-full p-2">
           <div class="relative">

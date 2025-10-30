@@ -160,11 +160,9 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       content: chat,
       chatRoomId: this.selectedChatId,
       isRead: false,
-      //senderId: currentUser.id,
-      //agregar el campo comentadoa rriba en el back para que este lo reciba correctamente y 
-      //los mensajes se rendericen con el mensaje y no dependa de la carga, agregar tambien en el handlerFile.
-      //agregar la vista de las imagenes y archivos para que puedan mostrarse en el mensaje y renderizarse correctamente.
     };
+
+    console.log(newMessage);
 
     this.chatMessageService
       .registerMessage(newMessage)
@@ -203,10 +201,26 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       // Mostramos la imagen localmente (si lo usas en tu UI)
       this.previewImage = previewUrl;
 
+       let type: string = 'file'; // valor por defecto
+
+      if (file.type.startsWith('image/')) {
+        type = 'image';
+      } else if (file.type.startsWith('video/')) {
+        type = 'video';
+      } else if (file.type.startsWith('audio/')) {
+        type = 'audio';
+      } else if (file.type === '' && file.name.endsWith('.wav')) {
+        // algunos navegadores no detectan bien .wav
+        type = 'audio';
+      } else if (file.type === 'text/plain') {
+        type = 'text';
+      }
+      console.log(type);
+      
       // Armamos el FormData para el backend
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', 'image');
+      formData.append('type', type);
       formData.append('content', ''); // requerido aunque vacío
       formData.append('chatRoomId', this.selectedChatId.toString());
       formData.append('isRead', 'false');
@@ -215,6 +229,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       this.chatMessageService.registerMessageImagen(formData).subscribe({
         next: (response: any) => {
           // el backend devuelve el mensaje completo con resourceUrl asignado
+          response.isSender = true;
           if (response?.resourceUrl) {
             response.isSender = true;
             this.socketService.sendMessage(response);
@@ -324,89 +339,91 @@ export class InboxViewComponent implements OnInit, OnDestroy {
   infoUserGroup: any = {};
   openedChats: any[] = [];
   infoUsers?: UserSender;
-viewMessages(chat: any) {
-  // Reiniciamos estados anteriores
-  this.infoUserGroup = null;
-  this.infoUsers = undefined;
-  this.selectedChatId = chat.id;
+  disabledButton:boolean = false;
+  viewMessages(chat: any) {
+    // Reiniciamos estados anteriores
+    this.disabledButton = false;
+    this.infoUserGroup = null;
+    this.infoUsers = undefined;
+    this.selectedChatId = chat.id;
 
-  // Identificamos si es grupo o chat directo
-  if (chat.isGroup) {
-    this.infoUserGroup = chat;
-  } else {
-    this.infoUsers = this.getMessageUser(chat);
+    // Identificamos si es grupo o chat directo
+    if (chat.isGroup) {
+      this.infoUserGroup = chat;
+    } else {
+      this.infoUsers = this.getMessageUser(chat);
+    }
+
+    // Verificamos usuario actual antes de continuar
+    const currentUserId = this.userCurrent?.id;
+    if (!currentUserId) {
+      console.warn('⚠️ No se encontró el usuario actual al cargar mensajes.');
+      return;
+    }
+    this.disabledButton = true;
+    // 🚀 Obtenemos los mensajes y procesamos correctamente el "isSender" y el "sender"
+    this.chatMessageService.getRoomMessages(chat.id).subscribe({
+      next: (response) => {
+        const currentUser = this.userCurrent!;
+
+        this.listMessageChatRoom = response.map((msg: any) => {
+          const senderId = msg.senderId ?? msg.sender?.id ?? 0;
+
+          // Determinar si el mensaje es del usuario actual
+          const isSender = senderId === currentUser.id;
+
+          // Asegurar que todos los mensajes tengan la propiedad sender completa
+          const sender = msg.sender ?? {
+            id: senderId,
+            name: isSender ? currentUser.name : 'Usuario',
+            displayName: isSender ? currentUser.displayName : 'Usuario',
+            email: isSender ? currentUser.email : '',
+            avatarUrl: isSender ? currentUser.avatarUrl : null,
+            roleId: isSender ? currentUser.roleId : 0,
+            verified: false,
+            status: true,
+            createdAt: '',
+            updatedAt: '',
+          };
+
+          return {
+            ...msg,
+            senderId,
+            sender,
+            isSender,
+          };
+        });
+
+        // ✅ Asegurar que los mensajes de otros también se mantengan visibles
+        // (sin filtrarlos ni sobreescribir openedChats)
+        const exists = this.openedChats.find((c) => c.id === chat.id);
+        if (!exists) {
+          const nuevoChat = {
+            ...chat,
+            mensajesflotante: this.listMessageChatRoom,
+            minimized: false,
+            newMessage: '',
+          };
+          this.openedChats.push(nuevoChat);
+        } else {
+          exists.mensajesflotante = this.listMessageChatRoom;
+        }
+
+        // Guardamos estado y actualizamos el chat seleccionado
+        localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
+        this.chatMessageService.setSelectedChat(this.openedChats);
+
+        // Forzar scroll al final
+        setTimeout(() => {
+          this.forceScrollToBottom = true;
+        }, 100);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar mensajes:', err);
+        this.msg.error('Error al obtener los mensajes de la sala');
+      },
+    });
   }
-
-  // Verificamos usuario actual antes de continuar
-  const currentUserId = this.userCurrent?.id;
-  if (!currentUserId) {
-    console.warn('⚠️ No se encontró el usuario actual al cargar mensajes.');
-    return;
-  }
-
-  // 🚀 Obtenemos los mensajes y procesamos correctamente el "isSender" y el "sender"
-  this.chatMessageService.getRoomMessages(chat.id).subscribe({
-    next: (response) => {
-      const currentUser = this.userCurrent!;
-
-      this.listMessageChatRoom = response.map((msg: any) => {
-        const senderId = msg.senderId ?? msg.sender?.id ?? 0;
-
-        // Determinar si el mensaje es del usuario actual
-        const isSender = senderId === currentUser.id;
-
-        // Asegurar que todos los mensajes tengan la propiedad sender completa
-        const sender = msg.sender ?? {
-          id: senderId,
-          name: isSender ? currentUser.name : 'Usuario',
-          displayName: isSender ? currentUser.displayName : 'Usuario',
-          email: isSender ? currentUser.email : '',
-          avatarUrl: isSender ? currentUser.avatarUrl : null,
-          roleId: isSender ? currentUser.roleId : 0,
-          verified: false,
-          status: true,
-          createdAt: '',
-          updatedAt: '',
-        };
-
-        return {
-          ...msg,
-          senderId,
-          sender,
-          isSender,
-        };
-      });
-
-      // ✅ Asegurar que los mensajes de otros también se mantengan visibles
-      // (sin filtrarlos ni sobreescribir openedChats)
-      const exists = this.openedChats.find((c) => c.id === chat.id);
-      if (!exists) {
-        const nuevoChat = {
-          ...chat,
-          mensajesflotante: this.listMessageChatRoom,
-          minimized: false,
-          newMessage: '',
-        };
-        this.openedChats.push(nuevoChat);
-      } else {
-        exists.mensajesflotante = this.listMessageChatRoom;
-      }
-
-      // Guardamos estado y actualizamos el chat seleccionado
-      localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
-      this.chatMessageService.setSelectedChat(this.openedChats);
-
-      // Forzar scroll al final
-      setTimeout(() => {
-        this.forceScrollToBottom = true;
-      }, 100);
-    },
-    error: (err) => {
-      console.error('❌ Error al cargar mensajes:', err);
-      this.msg.error('Error al obtener los mensajes de la sala');
-    },
-  });
-}
 
 
 
