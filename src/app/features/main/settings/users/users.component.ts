@@ -28,6 +28,7 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
 import { VicidialUserComponent } from './user-vicidial/user-vicidial.component';
 import { CardModule } from 'primeng/card';
 import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-users',
@@ -46,6 +47,7 @@ import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
     ButtonEditComponent,
     TitleSatComponent,
     BtnDeleteComponent,
+    PaginatorComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './users.component.html',
@@ -107,6 +109,12 @@ export class UsersComponent implements OnInit {
 
   loadData() {
     this.store.loadAll(this.limit(), this.offset());
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadData();
   }
 
   getInitial(user: User) {

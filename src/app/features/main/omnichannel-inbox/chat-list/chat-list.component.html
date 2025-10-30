@@ -303,7 +303,7 @@
                     tooltipPosition="top"
                   ></iconify-icon>
 
-                  <iconify-icon
+                  <!-- <iconify-icon
                     *ngIf="['whatsapp', 'chatsat'].includes(chat.channel)"
                     icon="{{
                       chat.botStatus === 'active'
@@ -330,7 +330,7 @@
                       'text-green-500': chat.attention.status === 'closed'
                     }"
                     pTooltip="{{ chat.attention.status | titlecase }}"
-                  ></iconify-icon>
+                  ></iconify-icon> -->
                       <iconify-icon
                         *ngIf="['whatsapp','chatsat'].includes(chat.channel)"
                         icon="{{chat.botStatus === 'active' ? 'lucide:bot': 'lucide:bot-off'}}"
@@ -348,7 +348,7 @@
                           'text-red-500': chat.attention.status === 'priority',
                           'text-green-500': chat.attention.status === 'closed'
                         }"
-                        pTooltip="{{chat.attention.status | titlecase}}"
+                        pTooltip="{{getChannelStatusLabel(chat.attention.status) | titlecase}}"
                       ></iconify-icon>
 
                   @if (chat?.unreadCount && chat?.unreadCount > 0 &&

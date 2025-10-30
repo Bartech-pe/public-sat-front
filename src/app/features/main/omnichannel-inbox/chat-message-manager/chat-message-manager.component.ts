@@ -23,6 +23,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import {
   AdvisorChangedDto,
+  BotStatusChangedDto,
   ChannelAttentionStatus,
   ChannelAttentionStatusReverse,
   ChannelAttentionStatusTag,
@@ -254,6 +255,20 @@ export class ChatMessageManagerComponent implements OnDestroy {
           } as ChatDetail;
         }
       });
+
+      this.channelRoomSocketService.onBotRepliesStatusChanged()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: BotStatusChangedDto) => {
+        if(this.chatDetail)
+        {
+          let botRepliesChanged = message.channelRoomId == this.chatDetail?.channelRoomId;
+          if(botRepliesChanged)
+          {
+            this.chatDetail.botStatus = message.botReplies ? 'active': 'paused'
+          }
+        }
+      });
+
 
     this.channelRoomSocketService
     .onAdvisorChanged()

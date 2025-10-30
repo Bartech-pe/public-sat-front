@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, HostListener, inject, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AdvisorChangedDto, BotStatusChangedDto, ChannelLogo, ChannelMessage, ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, Channels, ChannelStatusIcon, ChannelStatusTag, ChatListInbox, ChatStatus, LastMessageReceived, MessageStatus } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import { AdvisorChangedDto, BotStatusChangedDto, ChannelAttentionStatusReverseTag, ChannelAttentionStatusTag, ChannelLogo, ChannelMessage, ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, Channels, ChannelStatusIcon, ChannelStatusTag, ChatListInbox, ChatStatus, LastMessageReceived, MessageStatus } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 import { ChannelRoomAssistance, ChannelRoomSocketService } from '@services/channel-room-socket.service';
 import { ChannelRoomService, GetChannelSummaryDto } from '@services/channel-room.service';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
@@ -82,7 +82,7 @@ export class ChatListComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   selectedFilter: FilterOptions | null = { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' };
   filterOptions: FilterOptions[] = [
-    { label: 'Todos', value: 'all', icon: 'pi pi-envelope' },
+    { label: 'Disponibles ', value: 'all', icon: 'pi pi-envelope' },
     { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' },
     { label: 'Leídos', value: 'read', icon: 'pi pi-check' },
     { label: 'No resueltos', value: 'pendiente', icon: 'pi pi-exclamation-circle' },
@@ -350,10 +350,24 @@ export class ChatListComponent implements OnInit, OnDestroy {
         this.chatListInbox.unshift(chat);
 
       } else {
-        if((
-            ['supervisor', 'administrador']
-              .includes(this.authStore.user()?.role?.name??'') || this.selectedFilter?.value == 'all' || this.authStore.user()?.id == message?.advisor?.id)
-            && message?.attention?.status !== 'closed' && (['unread', 'all'].includes(this.selectedFilter?.value?? '') || this.selectedFilter?.value == message.status))
+
+        if (
+          (
+            this.selectedFilter?.value === 'all' ||
+            this.authStore.user()?.id === message?.advisor?.id ||
+            ['supervisor', 'administrador'].includes(this.authStore.user()?.role?.name ?? '')
+          ) &&
+          message?.attention?.status !== 'closed' &&
+          (
+            this.selectedFilter?.value === 'all' || (
+              message.advisor?.id != null &&
+              (
+                ['unread', 'all'].includes(this.selectedFilter?.value ?? '') ||
+                this.selectedFilter?.value === this.getChannelAttentionStatusReverseTag(message.attention.status)
+              )
+            )
+          )
+        )
         {
           let model : ChatListInbox = {
             unreadCount : message.unreadCount || 1,
@@ -437,6 +451,15 @@ export class ChatListComponent implements OnInit, OnDestroy {
   getChannelStatusIcon(channel: ChatListInbox['attention']['status']): string {
     return ChannelStatusIcon[channel] || 'fxemoji:question';
   }
+
+  getChannelStatusLabel(channel: ChatListInbox['attention']['status']): string {
+    return ChannelAttentionStatusTag[channel] || '';
+  }
+
+  getChannelAttentionStatusReverseTag(status: ChatListInbox['attention']['status']): string {
+    return ChannelAttentionStatusReverseTag[status] || 'pendiente';
+  }
+
 
   @HostListener('window:resize')
   onResize() {

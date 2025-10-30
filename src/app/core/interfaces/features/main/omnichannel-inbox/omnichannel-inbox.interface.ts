@@ -18,6 +18,8 @@ export enum ChannelStatusIcon  {
     closed = 'icon-park-outline:check-one',
 }
 
+
+
 export enum ChannelStatusTag  {
     pendiente = 'warning',
     prioridad = 'danger',
@@ -38,6 +40,12 @@ export enum ChannelAttentionStatusReverse  {
     completado = 'closed'
 }
 
+export enum ChannelAttentionStatusReverseTag  {
+    in_progress= 'pendiente',
+    identity_verification= 'pendiente',
+    priority= 'prioridad',
+    closed= 'completado'
+}
 
 export enum ChannelAttentionStatusTagType  {
     identity_verification = 'info',
