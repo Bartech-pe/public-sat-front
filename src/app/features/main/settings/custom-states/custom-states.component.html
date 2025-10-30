@@ -9,10 +9,11 @@
       <p
         class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
       >
-        Configura y perzonaliza todos los estados de los asesores
+        Configura y personaliza todos los estados de los asesores
       </p>
     </div>
   </div>
+
   <div>
     <p-tabs lazy [value]="viewValue()">
       <p-tablist>
@@ -107,7 +108,7 @@
                         <div>
                           <p-tag
                             class="text-xs"
-                            [value]="item.inmutable ? 'Base' : 'Perzonalizado'"
+                            [value]="item.inmutable ? 'Base' : 'Personalizado'"
                             [severity]="
                               item.inmutable ? 'secondary' : 'primary'
                             "
@@ -122,9 +123,7 @@
                           </p-tag>
                         </div>
                         <div class="flex gap-2">
-                          <btn-edit-square
-                            (onClick)="editChannelState(item)"
-                          />
+                          <btn-edit-square (onClick)="editChannelState(item)" />
                           <btn-delete
                             [text]="false"
                             [disabled]="item.inmutable"
@@ -198,7 +197,7 @@
                         <div>
                           <p-tag
                             class="text-xs"
-                            [value]="item.inmutable ? 'Base' : 'Perzonalizado'"
+                            [value]="item.inmutable ? 'Base' : 'Personalizado'"
                             [severity]="
                               item.inmutable ? 'secondary' : 'primary'
                             "
@@ -218,6 +217,7 @@
                           />
                           <btn-delete
                             [text]="false"
+                            [disabled]="item.inmutable"
                             (onClick)="deleteAssistanceState(item)"
                           />
                         </div>
@@ -267,7 +267,7 @@
                   <div>
                     <p-tag
                       class="text-xs"
-                      [value]="item.type == true ? 'Base' : 'Perzonalizado'"
+                      [value]="item.type == true ? 'Base' : 'Personalizado'"
                       [severity]="item.type == true ? 'secondary' : 'primary'"
                       ><iconify-icon
                         *ngIf="item.type == true"
@@ -285,6 +285,7 @@
                     <btn-edit-square (onClick)="EditarCampaignState(item)" />
                     <btn-delete
                       [text]="false"
+                      [disabled]="item.inmutable"
                       (onClick)="eliminarCampaignState(item)"
                     />
                   </div>

@@ -55,17 +55,33 @@
             >
               <ng-template pTemplate="header">
                 <tr>
-                  <th>Título</th>
-                  <th>Código Corto</th>
-                  <th class="bg-[#16236e] text-white">Contenido</th>
+                  <th>
+                    <div
+                      class="flex justify-start items-center text-xs uppercase"
+                    >
+                      Título
+                    </div>
+                  </th>
+                  <th class="bg-[#16236e] text-white">
+                    <div
+                      class="flex justify-center items-center text-xs uppercase"
+                    >
+                      Contenido
+                    </div>
+                  </th>
                   <th class="text-right w-28"></th>
                 </tr>
               </ng-template>
 
               <ng-template pTemplate="body" let-item>
                 <tr>
-                  <td>{{ item.title }}</td>
-                  <td>{{ item.code }}</td>
+                  <td>
+                    <div class="flex flex-col">
+                      <h5 class="text-sm font-medium capitalize">
+                        {{ item.title }}
+                      </h5>
+                    </div>
+                  </td>
                   <td>
                     <div class="flex items-center space-x-2">
                       <div [innerHTML]="item.content"></div>
@@ -75,6 +91,30 @@
                     <div class="flex justify-center items-center gap-1">
                       <button-edit (click)="edit(item)" />
                       <btn-delete (click)="remove(item)" />
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr>
+                  <td colspan="100">
+                    <div class="text-center text-sm font-light p-4">
+                      No existen respuestas predefinidas.
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template #footer>
+                <tr>
+                  <td colspan="100">
+                    <div class="flex justify-center items-center">
+                      <sat-paginator
+                        [totalItems]="totalItems"
+                        [limit]="limit()"
+                        [offset]="offset()"
+                        [limitOptions]="[10, 25, 50]"
+                        (pageChange)="onPageChange($event)"
+                      />
                     </div>
                   </td>
                 </tr>

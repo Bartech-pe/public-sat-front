@@ -24,6 +24,8 @@ import { CategoryChannel } from '@models/category-channel.model';
 import { SelectModule } from 'primeng/select';
 import { ChipModule } from 'primeng/chip';
 import { EditorModule } from 'primeng/editor';
+import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 @Component({
   selector: 'app-form-predefined',
   imports: [
@@ -36,6 +38,8 @@ import { EditorModule } from 'primeng/editor';
     ChipModule,
     EditorModule,
     ButtonModule,
+    ButtonCancelComponent,
+    ButtonSaveComponent,
   ],
   templateUrl: './form-predefined.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -54,10 +58,6 @@ export class FormPredefinedComponent {
   }
 
   formData = new FormGroup({
-    code: new FormControl<string>('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
     title: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
@@ -114,7 +114,7 @@ export class FormPredefinedComponent {
     if (item) {
       this.id = item.id;
       this.formData.setValue({
-        code: item.code,
+        // code: item.code,
         title: item.title,
         content: item.content,
         keywords: item.keywords,
@@ -125,7 +125,7 @@ export class FormPredefinedComponent {
 
   ngOnInit(): void {}
 
-  save() {
+  onSubmit() {
     const form = this.formData.value;
     if (this.id) {
       this.store.update(this.id, { id: this.id, ...form });

@@ -34,6 +34,7 @@ import { TabsModule } from 'primeng/tabs';
     ButtonEditComponent,
     BtnDeleteComponent,
     ButtonSaveComponent,
+    PaginatorComponent
   ],
   templateUrl: './predefined-responses.component.html',
   styles: ``,
@@ -41,7 +42,7 @@ import { TabsModule } from 'primeng/tabs';
 export class PredefinedResponsesComponent {
   title: string = 'Respuestas predefinidas';
   descripcion: string =
-    "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación. Los agentes pueden escribir el carácter '/' seguido por el código corto para insertar una respuesta predefinida durante una conversación.";
+    "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación";
 
   createButtonLabel: string = 'Nueva Respuesta';
 
@@ -87,7 +88,7 @@ export class PredefinedResponsesComponent {
       console.log('error', error);
       this.msg.error(
         error ??
-          '¡Ups, ocurrió un error inesperado al eliminar el respuesta predefinida!'
+          '¡Ups, ocurrió un error inesperado al eliminar la respuesta predefinida!'
       );
       return; // Salimos si hay un error
     }
@@ -118,6 +119,7 @@ export class PredefinedResponsesComponent {
 
   addNew() {
     this.openModal = true;
+    this.store.clearSelected();
     const ref = this.dialogService.open(FormPredefinedComponent, {
       header: 'Nueva Respuesta Predefinida ',
       styleClass: 'modal-lg',
