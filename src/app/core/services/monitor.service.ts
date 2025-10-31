@@ -88,10 +88,16 @@ export class MonitorService {
    * @param start Fecha inicio (YYYY-MM-DD)
    * @param finish Fecha fin (YYYY-MM-DD)
    */
-  getStateDetailsByAdvisor(agent: number): Observable<any[]> {
+  getStateDetailsByAdvisor(agent: number): Observable<{
+    states: any[];
+    total: number;
+  }> {
     const url = `${this.baseUrl}/stateDetailsByAdvisor/${agent}`;
     console.log('📡 Llamando a:', url); // te mostrará la URL final en consola
-    return this.http.get<any[]>(url);
+    return this.http.get<{
+      states: any[];
+      total: number;
+    }>(url);
   }
 
   /**

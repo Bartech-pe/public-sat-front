@@ -1,14 +1,23 @@
 <div class="px-4 py-3" [ngClass]="getReplyClass(reply)">
-  <div class="flex justify-between items-center">
-    <!-- Texto a la izquierda -->
-    <span
-      [ngClass]="[
-        'font-semibold text-sm border rounded-full px-2',
-        replyTag.border
-      ]"
-    >
-      {{ replyTag.label }}
-    </span>
+  <div class="flex justify-between items-center px-4 py-3 -mx-4 -my-3">
+    <div class="flex items-center gap-3">
+      <!-- Texto a la izquierda -->
+      <span
+        [ngClass]="[
+          'font-semibold text-sm border rounded-full px-2',
+          replyTag.border
+        ]"
+      >
+        {{ replyTag.label }}
+      </span>
+      <!-- Encabezado del reply -->
+      <div class="text-sm text-gray-500 mb-1">
+        <span class="font-medium">{{ reply.name || reply.from }}</span>
+        <span class="font-light"> <{{ !!reply.name ? reply.from : "" }}></span>
+        —
+        {{ reply.createdAt | date : "dd MMM yyyy, h:mm a" }}
+      </div>
+    </div>
 
     <!-- Botones a la derecha -->
     <div *ngIf="showReplyBtns" class="flex gap-2">
@@ -16,61 +25,60 @@
         severity="secondary"
         tooltip="Responder"
         icon="entypo:reply"
-        (click)="onReplyClick()"
+        (click)="$event.stopPropagation(); onReplyClick()"
       />
       <btn-custom
         severity="secondary"
         tooltip="Reenviar"
         icon="entypo:forward"
-        (click)="forwardMail(reply.id)"
+        (click)="$event.stopPropagation(); forwardMail(reply.id)"
       />
     </div>
   </div>
 
-  <!-- Mensaje alineado a la izquierda -->
-  <p class="mt-1">
-    {{ reply.message }}
-  </p>
+  <!-- Cuerpo del reply -->
+  <app-mail-viewer
+    [safeMailHtml]="getSafeContent(reply.content, reply.attachments)"
+  />
 
-  <!-- Encabezado del reply -->
-  <div class="text-sm text-gray-500 mb-1">
-    <span class="font-medium">{{ reply.from }}</span> —
-    {{ reply.createdAt | date : "dd MMM yyyy, h:mm a" }}
-  </div>
+  @if (!!reply.repliedTo) {
+  <btn-custom
+    icon="pepicons-pencil:dots-x"
+    severity="contrast"
+    [tooltip]="
+      reply.repliedTo.show
+        ? 'Ocultar contenido expandido'
+        : 'Mostrar contenido comprimido'
+    "
+    (click)="reply.repliedTo.show = !reply.repliedTo.show"
+  />
+  @if (!!reply.repliedTo.show) {
+  <app-mail-viewer [safeMailHtml]="getReplyContent(reply.repliedTo)" />
+  } }
 
-  <!-- ✅ Cuerpo del reply -->
+  <!-- Archivos adjuntos del reply -->
   <div
-    class="text-gray-800 leading-relaxed whitespace-pre-line"
-    [innerHTML]="getSafeContent(reply.body)"
-  ></div>
-
-  <!-- 📎 Archivos adjuntos del reply -->
-  <div *ngIf="reply.attachments?.length" class="mt-2 space-y-1">
-    <div
-      *ngFor="let file of reply.attachments"
-      class="flex items-center gap-2 text-sm text-gray-600"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-      >
-        <path
-          fill="#777"
-          d="M14.59 2.59a2 2 0 0 0-2.83 0L5 9.34a4.5 4.5 0 0 0 6.36
-                            6.36l6.36-6.36a2 2 0 0 0-2.83-2.83l-6.36
-                            6.36a.5.5 0 0 1-.71-.71l6.36-6.36a1 1 0 0
-                            1 1.41 1.41l-6.36 6.36a2.5 2.5 0 0
-                            1-3.54-3.54l6.76-6.76z"
+    *ngIf="hasAttachments(reply.attachments)"
+    class="mt-2 space-y-2 text-slate-800"
+  >
+    <p class="font-semibold">Archivos adjuntos</p>
+    <div *ngFor="let file of getAttachments(reply.attachments)">
+      <div class="flex items-center gap-1 text-sm px-4">
+        <iconify-icon
+          [icon]="obtenerIconoPorMime(mimeType)"
+          class="!text-red-700"
         />
-      </svg>
-      <a [href]="file.url" [download]="file.name" class="hover:underline">{{
-        file.name
-      }}</a>
-      <span class="text-xs text-gray-400">
-        ({{ file.size | number }} bytes)
-      </span>
+        <a
+          [href]="file.realUrl"
+          [download]="file.filename"
+          class="hover:underline"
+        >
+          {{ file.filename }}
+        </a>
+        <span class="text-xs text-gray-400">
+          ({{ file.size | number }} bytes)
+        </span>
+      </div>
     </div>
   </div>
 
@@ -205,9 +213,9 @@
                           <p class="font-medium">
                             {{ response.title }}
                           </p>
-                          <div
-                            [innerHTML]="getSafeContent(response.content)"
-                          ></div>
+                          <app-mail-viewer
+                            [safeMailHtml]="getSafeContent(response.content)"
+                          />
                         </div>
                       </li>
                       @if (predefinedResponseList.length == 0) {

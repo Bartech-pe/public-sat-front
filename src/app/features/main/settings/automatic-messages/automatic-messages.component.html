@@ -1,4 +1,4 @@
-<div class="space-y-4 px-3">
+<div class="grid grid-cols-1 gap-4">
   <!-- Encabezado -->
   <div class="bg-gray-50 shadow-lg rounded-xl p-4">
     <h5 class="text-2xl font-semibold">
@@ -16,25 +16,25 @@
   <!-- Tabs de canales -->
   <p-tabs [value]="value">
     <p-tablist>
-      <p-tab [value]="0" class="flex items-center">
+      <!-- <p-tab [value]="0" class="flex items-center">
         <iconify-icon [icon]="'line-md:phone'" class="text-xl" />
         <span>Telefónico</span>
       </p-tab>
       <p-tab [value]="1" class="flex items-center"
         ><iconify-icon [icon]="'line-md:email'" class="text-xl" />
         <span>Email</span>
-      </p-tab>
-      <p-tab [value]="2" class="flex items-center">
+      </p-tab> -->
+      <p-tab [value]="0" class="flex items-center">
         <iconify-icon [icon]="'line-md:chat'" class="text-xl" />
         <span>Chatsat</span>
       </p-tab>
-      <p-tab [value]="3" class="flex items-center">
+      <p-tab [value]="1" class="flex items-center">
         <iconify-icon [icon]="'ic:outline-whatsapp'" class="text-xl" />
         <span>WhatsApp</span>
       </p-tab>
     </p-tablist>
     <p-tabpanels>
-      <p-tabpanel [value]="0">
+      <!-- <p-tabpanel [value]="0">
         <div class="flex justify-between items-center py-4">
           <h3 class="font-bold text-xl">Tipos de Mensaje - Telefónico</h3>
         </div>
@@ -79,9 +79,9 @@
             </div>
           </div>
         </div>
-      </p-tabpanel>
+      </p-tabpanel> -->
       <!-- Email -->
-      <p-tabpanel [value]="1">
+      <!-- <p-tabpanel [value]="1">
         <div class="flex justify-between items-center py-4">
           <h3 class="font-bold text-xl">Tipos de Mensaje - Email</h3>
         </div>
@@ -126,9 +126,9 @@
             </div>
           </div>
         </div>
-      </p-tabpanel>
+      </p-tabpanel> -->
       <!-- WhatsApp -->
-      <p-tabpanel [value]="2">
+      <p-tabpanel [value]="0">
         <div class="flex justify-between items-center py-4">
           <h3 class="font-bold text-xl">Tipos de Mensaje - Chatsat</h3>
         </div>
@@ -175,7 +175,7 @@
         </div>
       </p-tabpanel>
       <!-- Telegram -->
-      <p-tabpanel [value]="3">
+      <p-tabpanel [value]="1">
         <div class="flex justify-between items-center py-4">
           <h3 class="font-bold text-xl">Tipos de Mensaje - Whatsapp</h3>
         </div>

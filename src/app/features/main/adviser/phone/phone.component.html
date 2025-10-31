@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4 px-3 pb-2">
+<div class="grid grid-cols-1 gap-4">
   <ng-container *ngIf="isLogged; else elseTemplate">
     <p-card *ngIf="!isInCall && !isInDispo" class="w-full rounded-md shadow-xl">
       <h2 class="text-lg font-semibold border-b pb-2 text-sky-700">
@@ -143,27 +143,34 @@
                   <div class="w-full border-t border-slate-300"></div>
                 </div>
               </ng-template>
-              <div class="grid grid-cols-1 gap-2">
-                <div class="grid grid-cols-1">
+              <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-1 text-sm">
+                  @if (!loadingCitizen) {
                   <p>
                     Ciudadano:
-                    <strong>
+                    <strong class="text-base">
                       {{ citizen?.vcontacto ?? "no encontrado" }}
                     </strong>
                   </p>
 
-                  <p>
+                  <p *ngIf="!!citizen">
                     {{ citizen?.vtipDoc }}:
-                    <strong>
+                    <strong class="text-base">
                       {{ citizen?.vdocIde }}
                     </strong>
                   </p>
-                </div>
-                <div class="w-full border-t border-slate-300"></div>
-                <div class="grid grid-cols-1 gap-1">
+                  } @else {
+                  <div class="flex justify-center items-center gap-2 py-2">
+                    <iconify-icon
+                      [icon]="'svg-spinners:bars-rotate-fade'"
+                      class="text-2xl"
+                    ></iconify-icon>
+                    Buscando ciudadano...
+                  </div>
+                  }
                   <p>
                     Duración:
-                    <strong>{{
+                    <strong class="text-base">{{
                       isInCall
                         ? (callInfo?.entryDate | timeElapsed)
                         : (callInfo?.callSeconds | duration)
@@ -171,44 +178,57 @@
                   </p>
                   <p>
                     Hora de inicio:
-                    <strong>
+                    <strong class="text-base">
                       {{ callInfo?.entryDate | date : "hh:mm:ss" }}
                     </strong>
                   </p>
                 </div>
-                <div class="flex gap-2 justify-end">
-                  <btn-custom
-                    *ngIf="isInCall"
-                    label="Enviar a encuesta"
-                    severity="primary"
-                    icon="fluent:video-person-call-32-regular"
-                    [text]="false"
-                    (click)="transferSurvey()"
-                  />
-                  <btn-custom
-                    *ngIf="isInCall"
-                    [label]="this.isInPark ? 'Reanudar' : 'Aparcar'"
-                    severity="primary"
-                    icon="fluent:call-pause-20-regular"
-                    [text]="false"
-                    (click)="parkCall()"
-                  />
-                  <btn-custom
-                    *ngIf="isInCall"
-                    label="Transferir"
-                    severity="primary"
-                    icon="fluent:call-transfer-16-filled"
-                    [text]="false"
-                    (click)="transferCall()"
-                  />
-                  <btn-custom
-                    *ngIf="isInCall"
-                    label="Finalizar"
-                    severity="danger"
-                    icon="tdesign:call-off-filled"
-                    [text]="false"
-                    (click)="endCall()"
-                  />
+                <div
+                  *ngIf="isInCall"
+                  class="flex flex-col lg:flex-row gap-2 items-center justify-end"
+                >
+                  <div class="w-full grid grid-cols-2 gap-2">
+                    <btn-custom
+                      label="Encuesta"
+                      severity="primary"
+                      icon="fluent:video-person-call-32-regular"
+                      [text]="false"
+                      styleClass="w-full"
+                      tooltip="Enviar a encuesta"
+                      (click)="transferSurvey()"
+                    />
+                    <btn-custom
+                      [label]="this.isInPark ? 'Reanudar' : 'Aparcar'"
+                      severity="primary"
+                      icon="fluent:call-pause-20-regular"
+                      [text]="false"
+                      styleClass="w-full"
+                      [tooltip]="
+                        this.isInPark ? 'Reanudar llamada' : 'Aparcar llamada'
+                      "
+                      (click)="parkCall()"
+                    />
+                  </div>
+                  <div class="w-full grid grid-cols-2 gap-2">
+                    <btn-custom
+                      label="Transferir"
+                      severity="primary"
+                      icon="fluent:call-transfer-16-filled"
+                      [text]="false"
+                      styleClass="w-full"
+                      tooltip="Transferir llamada"
+                      (click)="transferCall()"
+                    />
+                    <btn-custom
+                      label="Finalizar"
+                      severity="danger"
+                      icon="tdesign:call-off-filled"
+                      [text]="false"
+                      styleClass="w-full"
+                      tooltip="Finalizar llamada"
+                      (click)="endCall()"
+                    />
+                  </div>
                 </div>
               </div>
             </p-card>
@@ -381,7 +401,9 @@
                   <div class="w-full border-t border-slate-300"></div>
                 </div>
               </ng-template>
-              <app-unified-query-system></app-unified-query-system>
+              <app-unified-query-system
+                [documentToSearch]="citizen?.vdocIde"
+              ></app-unified-query-system>
             </p-card>
           </div>
         </div>

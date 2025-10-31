@@ -23,190 +23,189 @@
   </p-card>
 </ng-container>
 <ng-template #elseTemplate>
-  <div class="px-3">
-    <div class="grid grid-cols-1 gap-4">
-      <!-- Encabezado -->
-      <p-card>
-        <div class="flex justify-between">
-          <app-title-sat [showDesc]="false" />
-        </div>
-        <p
-          class="text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
-        >
-          Sectorista: {{ name }} {{ officeFullName }}
-        </p>
-      </p-card>
-
-      <!-- Fila 1: Totales -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
-        <p-card *ngFor="let item of cardItems; let i = index">
-          <div class="flex justify-center items-center gap-4">
-            <p
-              [ngClass]="{
-                'text-center font-bold text-3xl': true,
-                'text-green-600': i === 1,
-                'text-red-600': i === 2
-              }"
-            >
-              {{ item.total }}
-            </p>
-            <p class="text-center font-light text-sm">{{ item.label }}</p>
-          </div>
-        </p-card>
+  <div class="grid grid-cols-1 gap-4">
+    <!-- Encabezado -->
+    <p-card>
+      <div class="flex justify-between">
+        <app-title-sat [showDesc]="false" />
       </div>
+      <p
+        class="text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+      >
+        Sectorista: {{ name }} {{ officeFullName }}
+      </p>
+    </p-card>
 
-      <!-- Fila 2: Cartera Actual + Recordatorios -->
-      <div class="grid grid-cols-1 gap-6">
-        <!-- Cartera Actual -->
-        <p-card>
-          <div class="grid lg:grid-cols-4 gap-4">
-            <div class="grid grid-cols-1 gap-3 pr-4 border-r border-slate-300">
-              <h4 class="font-medium">Cartera Actual</h4>
-              <div class="h-full flex flex-col gap-0.5">
-                <p-select
-                  [options]="portfolioList"
-                  [(ngModel)]="portfolioId"
-                  placeholder="Seleccionar"
-                  optionValue="id"
-                  optionLabel="name"
-                  class="!rounded-full"
-                  (onChange)="selectPortfolio()"
-                ></p-select>
-              </div>
-              <div class="min-h-[42px]">
-                <ng-container *ngIf="!!portfolioSelected">
-                  <p
-                    class="text-center italic p-2 border border-slate-300 rounded-3xl"
-                  >
-                    Periodo:
-                    {{
-                      !!portfolioSelected
-                        ? (portfolioSelected?.dateStart | date : "dd/MM/yyyy") +
-                          " - " +
-                          (portfolioSelected?.dateEnd | date : "dd/MM/yyyy")
-                        : ""
-                    }}
-                  </p>
-                </ng-container>
-              </div>
+    <!-- Fila 1: Totales -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
+      <p-card *ngFor="let item of cardItems; let i = index">
+        <div class="flex justify-center items-center gap-4">
+          <p
+            [ngClass]="{
+              'text-center font-bold text-3xl': true,
+              'text-green-600': i === 1,
+              'text-red-600': i === 2
+            }"
+          >
+            {{ item.total }}
+          </p>
+          <p class="text-center font-light text-sm">{{ item.label }}</p>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Fila 2: Cartera Actual + Recordatorios -->
+    <div class="grid grid-cols-1 gap-6">
+      <!-- Cartera Actual -->
+      <p-card>
+        <div class="grid lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 gap-3 pr-4 border-r border-slate-300">
+            <h4 class="font-medium">Cartera Actual</h4>
+            <div class="h-full flex flex-col gap-0.5">
+              <p-select
+                [options]="portfolioList"
+                [(ngModel)]="portfolioId"
+                placeholder="Seleccionar"
+                optionValue="id"
+                optionLabel="name"
+                class="!rounded-full"
+                (onChange)="selectPortfolio()"
+              ></p-select>
             </div>
-            <div class="col-span-3" *ngIf="!!portfolioSelected">
-              <div class="flex flex-col gap-3">
-                <h4 class="font-medium">Filtros de búsqueda</h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div class="col-span-2">
-                    <input
-                      pInputText
-                      [(ngModel)]="searchText"
-                      placeholder="Buscar por contribuyente, código, celular..."
-                      class="!rounded-full w-full"
-                    />
-                  </div>
-                  <p-select
-                    [options]="taxpayerTypes"
-                    [(ngModel)]="tipoContribSelected"
-                    placeholder="Tipo de contribuyente..."
-                    class="!rounded-full"
-                    [showClear]="true"
-                  ></p-select>
-                  <p-select
-                    [options]="estados"
-                    [(ngModel)]="estadoSelected"
-                    placeholder="Estado de gestión..."
-                    class="!rounded-full"
-                    [showClear]="true"
-                  ></p-select>
-                  <div class="col-span-3">
+            <div class="min-h-[42px]">
+              <ng-container *ngIf="!!portfolioSelected">
+                <p
+                  class="text-center italic p-2 border border-slate-300 rounded-3xl"
+                >
+                  Periodo:
+                  {{
+                    !!portfolioSelected
+                      ? (portfolioSelected?.dateStart | date : "dd/MM/yyyy") +
+                        " - " +
+                        (portfolioSelected?.dateEnd | date : "dd/MM/yyyy")
+                      : ""
+                  }}
+                </p>
+              </ng-container>
+            </div>
+          </div>
+          <div class="col-span-3" *ngIf="!!portfolioSelected">
+            <div class="flex flex-col gap-3">
+              <h4 class="font-medium">Filtros de búsqueda</h4>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="col-span-2">
+                  <input
+                    pInputText
+                    [(ngModel)]="searchText"
+                    placeholder="Buscar por contribuyente, código, celular..."
+                    class="!rounded-full w-full"
+                  />
+                </div>
+                <p-select
+                  [options]="taxpayerTypes"
+                  [(ngModel)]="tipoContribSelected"
+                  placeholder="Tipo de contribuyente..."
+                  class="!rounded-full"
+                  [showClear]="true"
+                ></p-select>
+                <p-select
+                  [options]="estados"
+                  [(ngModel)]="estadoSelected"
+                  placeholder="Estado de gestión..."
+                  class="!rounded-full"
+                  [showClear]="true"
+                ></p-select>
+                <div class="col-span-3">
+                  <div class="grid grid-cols-2 gap-4">
                     <div class="grid grid-cols-2 gap-4">
-                      <div class="grid grid-cols-2 gap-4">
-                        <p-select
-                          [options]="segments"
-                          [(ngModel)]="segmentSelected"
-                          placeholder="Segmento..."
-                          class="!rounded-full"
-                          [showClear]="true"
-                        ></p-select>
-                        <p-select
-                          [options]="profiles"
-                          [(ngModel)]="profileSelected"
-                          placeholder="Perfil..."
-                          class="!rounded-full"
-                          [showClear]="true"
-                        ></p-select>
+                      <p-select
+                        [options]="segments"
+                        [(ngModel)]="segmentSelected"
+                        placeholder="Segmento..."
+                        class="!rounded-full"
+                        [showClear]="true"
+                      ></p-select>
+                      <p-select
+                        [options]="profiles"
+                        [(ngModel)]="profileSelected"
+                        placeholder="Perfil..."
+                        class="!rounded-full"
+                        [showClear]="true"
+                      ></p-select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-30">
+                        <p class="font-semibold text-gray-700 text-sm">
+                          Rango Deuda:
+                        </p>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <div class="w-30">
-                          <p class="font-semibold text-gray-700 text-sm">
-                            Rango Deuda:
-                          </p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                          <p-inputnumber
-                            [(ngModel)]="debtFrom"
-                            [showButtons]="true"
-                            inputId="debtFrom"
-                            mode="currency"
-                            currency="PEN"
-                            locale="es-PE"
-                            (onInput)="onDebtChange('from', $event)"
-                            [step]="100"
-                            [min]="0"
-                            placeholder="Desde..."
-                            styleClass="!w-full !rounded-full"
-                            inputStyleClass="!w-full !rounded-full"
-                            incrementButtonClass="!w-6 !rounded-full mr-1.5"
-                            decrementButtonClass="!w-6 !rounded-full mr-1.5"
-                            class="!w-full"
-                          />
-                          <p-inputnumber
-                            [(ngModel)]="debtTo"
-                            [showButtons]="true"
-                            inputId="debtTo"
-                            mode="currency"
-                            currency="PEN"
-                            locale="es-PE"
-                            (onInput)="onDebtChange('to', $event)"
-                            [step]="100"
-                            [min]="debtFrom() + 100"
-                            placeholder="Hasta..."
-                            styleClass="!w-full !rounded-full"
-                            inputStyleClass="!w-full !rounded-full"
-                            incrementButtonClass="!w-6 !rounded-full mr-1.5"
-                            decrementButtonClass="!w-6 !rounded-full mr-1.5"
-                            class="!w-full"
-                          />
-                        </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <p-inputnumber
+                          [(ngModel)]="debtFrom"
+                          [showButtons]="true"
+                          inputId="debtFrom"
+                          mode="currency"
+                          currency="PEN"
+                          locale="es-PE"
+                          (onInput)="onDebtChange('from', $event)"
+                          [step]="100"
+                          [min]="0"
+                          placeholder="Desde..."
+                          styleClass="!w-full !rounded-full"
+                          inputStyleClass="!w-full !rounded-full"
+                          incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                          decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                          class="!w-full"
+                        />
+                        <p-inputnumber
+                          [(ngModel)]="debtTo"
+                          [showButtons]="true"
+                          inputId="debtTo"
+                          mode="currency"
+                          currency="PEN"
+                          locale="es-PE"
+                          (onInput)="onDebtChange('to', $event)"
+                          [step]="100"
+                          [min]="debtFrom() + 100"
+                          placeholder="Hasta..."
+                          styleClass="!w-full !rounded-full"
+                          inputStyleClass="!w-full !rounded-full"
+                          incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                          decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                          class="!w-full"
+                        />
                       </div>
                     </div>
                   </div>
-                  <div class="grid grid-cols-2 gap-2 items-center">
-                    <p-button
-                      severity="contrast"
-                      size="small"
-                      (click)="search()"
-                      label="Filtrar"
-                      rounded
-                      styleClass="w-full"
-                    />
+                </div>
+                <div class="grid grid-cols-2 gap-2 items-center">
+                  <p-button
+                    severity="contrast"
+                    size="small"
+                    (click)="search()"
+                    label="Filtrar"
+                    rounded
+                    styleClass="w-full"
+                  />
 
-                    <p-button
-                      severity="danger"
-                      variant="outlined"
-                      size="small"
-                      (click)="clear()"
-                      label="Limpiar"
-                      rounded
-                      styleClass="w-full"
-                    />
-                  </div>
+                  <p-button
+                    severity="danger"
+                    variant="outlined"
+                    size="small"
+                    (click)="clear()"
+                    label="Limpiar"
+                    rounded
+                    styleClass="w-full"
+                  />
                 </div>
               </div>
             </div>
           </div>
-        </p-card>
+        </div>
+      </p-card>
 
-        <!-- Recordatorios -->
-        <!-- <p-card *ngIf="!!portfolioSelected">
+      <!-- Recordatorios -->
+      <!-- <p-card *ngIf="!!portfolioSelected">
           <div class="min-h-[132px] flex flex-col gap-3">
             <h4 class="font-medium flex items-center gap-2">
               <svg
@@ -243,197 +242,196 @@
             </div>
           </div>
         </p-card> -->
-      </div>
+    </div>
 
-      <ng-container *ngIf="!!portfolioSelected">
-        <!-- Fila 4: Tabla -->
-        <p-card>
-          <p-table
-            [value]="portfolioDetail"
-            [scrollable]="true"
-            scrollHeight="calc(100vh - 595px)"
-          >
-            <ng-template pTemplate="header">
-              <tr>
-                <th>
-                  <div class="text-center text-xs">Código</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Tipo Doc. Ide.</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">N° Doc. Ide.</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Contribuyente</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Tipo de contribuyente</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Segmento</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Perfil</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Deuda Inicial</div>
-                </th>
-                <!-- <th>
+    <ng-container *ngIf="!!portfolioSelected">
+      <!-- Fila 4: Tabla -->
+      <p-card>
+        <p-table
+          [value]="portfolioDetail"
+          [scrollable]="true"
+          scrollHeight="calc(100vh - 595px)"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>
+                <div class="text-center text-xs">Código</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tipo Doc. Ide.</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">N° Doc. Ide.</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Contribuyente</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Tipo de contribuyente</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Segmento</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Perfil</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Deuda Inicial</div>
+              </th>
+              <!-- <th>
                   <div class="text-center text-xs">Deuda Actual</div>
                 </th> -->
-                <th>
-                  <div class="text-center text-xs">Email</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Whatsapp</div>
-                </th>
-                <th>
-                  <div class="text-center text-xs">Estado</div>
-                </th>
-                <th></th>
-              </tr>
-            </ng-template>
+              <th>
+                <div class="text-center text-xs">Email</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Whatsapp</div>
+              </th>
+              <th>
+                <div class="text-center text-xs">Estado</div>
+              </th>
+              <th></th>
+            </tr>
+          </ng-template>
 
-            <ng-template pTemplate="body" let-item>
-              <tr>
-                <td>
-                  <div
-                    class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                  >
-                    {{ item?.code }}
-                  </div>
-                </td>
-                <td>
-                  <p class="w-16 text-center text-xs font-normal">
-                    {{ item?.tipDoc }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-center text-sm font-normal">
-                    {{ item?.docIde }}
-                  </p>
-                </td>
-                <td>
-                  <div
-                    class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                    tooltipPosition="top"
-                    tooltipStyleClass="text-xs !p-0.5"
-                    [pTooltip]="item?.taxpayerName"
-                  >
-                    {{ item?.taxpayerName }}
-                  </div>
-                </td>
-                <td>
-                  <div
-                    class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                  >
-                    {{ item?.taxpayerType }}
-                  </div>
-                </td>
-                <td>
-                  <div class="text-sm text-center">
-                    {{ item?.segment }}
-                  </div>
-                </td>
-                <td>
-                  <div class="text-sm text-center">{{ item?.profile }}</div>
-                </td>
-                <td>
-                  <div class="text-sm text-end">
-                    {{ item?.debt | currency }}
-                  </div>
-                </td>
-                <!-- <td>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <div
+                  class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.code }}
+                </div>
+              </td>
+              <td>
+                <p class="w-16 text-center text-xs font-normal">
+                  {{ item?.tipDoc }}
+                </p>
+              </td>
+              <td>
+                <p class="text-center text-sm font-normal">
+                  {{ item?.docIde }}
+                </p>
+              </td>
+              <td>
+                <div
+                  class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                  tooltipPosition="top"
+                  tooltipStyleClass="text-xs !p-0.5"
+                  [pTooltip]="item?.taxpayerName"
+                >
+                  {{ item?.taxpayerName }}
+                </div>
+              </td>
+              <td>
+                <div
+                  class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {{ item?.taxpayerType }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm text-center">
+                  {{ item?.segment }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm text-center">{{ item?.profile }}</div>
+              </td>
+              <td>
+                <div class="text-sm text-end">
+                  {{ item?.debt | currency }}
+                </div>
+              </td>
+              <!-- <td>
                   <div class="text-sm text-end">
                     {{ item?.currentDebt ?? 0 | currency }}
                   </div>
                 </td> -->
-                <td>
-                  <div
-                    class="flex cursor-pointer items-center justify-center gap-2 text-xs"
+              <td>
+                <div
+                  class="flex cursor-pointer items-center justify-center gap-2 text-xs"
+                >
+                  @if (getEmailContacts(item.citizenContacts)?.[0]?.value) {
+                  <span
+                    class="flex items-center gap-1"
+                    (click)="copyEmail(getEmailContacts(item.citizenContacts)?.[0]?.value)"
                   >
-                    @if (getEmailContacts(item.citizenContacts)?.[0]?.value) {
-                    <span
-                      class="flex items-center gap-1"
-                      (click)="copyEmail(getEmailContacts(item.citizenContacts)?.[0]?.value)"
-                    >
-                      {{ getEmailContacts(item.citizenContacts)?.[0]?.value }}
-                      <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
-                    </span>
-                    }
-                  </div>
-                </td>
-                <td>
-                  <div class="text-xs text-center w-28">
-                    @if(getWhatsappContacts(item.citizenContacts)?.[0]?.value){
-                    <a
-                      [href]="'https://wa.me/' + cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value)"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-blue-500 hover:underline"
-                    >
-                      {{ cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value) | phoneFormat }}
-                    </a>
-                    }
-                  </div>
-                </td>
-                <td>
-                  <div class="flex justify-center items-center">
-                    <p-chip
-                      class="!text-xs text-center !px-0.5 !py-1 border"
-                      [ngClass]="{
-                        '!bg-[#d1f7d6] !text-[#2e7d32] !border-[#2e7d32]':
-                          item?.status,
-                        '!bg-[#fff4cd] !text-[#c49000] !border-[#c49000]':
-                          !item?.status
-                      }"
-                    >
-                      <div class="w-20">
-                        {{ !item?.status ? "Sin Gestionar" : "Gestionado" }}
-                      </div>
-                    </p-chip>
-                  </div>
-                </td>
-                <td>
-                  <div class="flex items-center justify-center gap-2">
-                    <btn-custom-square
-                      severity="primary"
-                      label="Gestionar"
-                      [type]="undefined"
-                      (onClick)="completeManagement(item)"
-                    />
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template #emptymessage>
-              <tr>
-                <td colspan="100">
-                  <div class="text-center text-sm font-light p-4">
-                    No tienes asignaciones en la cartera seleccionada.
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template #footer>
-              <tr>
-                <td colspan="100">
-                  <div class="flex justify-center items-center">
-                    <sat-paginator
-                      [totalItems]="totalItems"
-                      [limit]="limit()"
-                      [offset]="offset()"
-                      [limitOptions]="[10, 25, 50, 100]"
-                      (pageChange)="onPageChange($event)"
-                    />
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </p-card>
-      </ng-container>
-    </div>
+                    {{ getEmailContacts(item.citizenContacts)?.[0]?.value }}
+                    <iconify-icon [icon]="'mynaui:copy'" class="text-sm" />
+                  </span>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="text-xs text-center w-28">
+                  @if(getWhatsappContacts(item.citizenContacts)?.[0]?.value){
+                  <a
+                    [href]="'https://wa.me/' + cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-blue-500 hover:underline"
+                  >
+                    {{ cleanWhatsapp(getWhatsappContacts(item.citizenContacts)?.[0]?.value) | phoneFormat }}
+                  </a>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="flex justify-center items-center">
+                  <p-chip
+                    class="!text-xs text-center !px-0.5 !py-1 border"
+                    [ngClass]="{
+                      '!bg-[#d1f7d6] !text-[#2e7d32] !border-[#2e7d32]':
+                        item?.status,
+                      '!bg-[#fff4cd] !text-[#c49000] !border-[#c49000]':
+                        !item?.status
+                    }"
+                  >
+                    <div class="w-20">
+                      {{ !item?.status ? "Sin Gestionar" : "Gestionado" }}
+                    </div>
+                  </p-chip>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <btn-custom-square
+                    severity="primary"
+                    label="Gestionar"
+                    [type]="undefined"
+                    (onClick)="completeManagement(item)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="100">
+                <div class="text-center text-sm font-light p-4">
+                  No tienes asignaciones en la cartera seleccionada.
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="100">
+                <div class="flex justify-center items-center">
+                  <sat-paginator
+                    [totalItems]="totalItems"
+                    [limit]="limit()"
+                    [offset]="offset()"
+                    [limitOptions]="[10, 25, 50, 100]"
+                    (pageChange)="onPageChange($event)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </ng-container>
   </div>
 </ng-template>

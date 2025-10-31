@@ -8,7 +8,7 @@ import { DepartmentStore } from '@stores/department.store';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { FieldsetModule } from 'primeng/fieldset';
 
 import { TableModule } from 'primeng/table';
@@ -29,9 +29,8 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     ButtonModule,
     FieldsetModule,
     InputTextModule,
-    DropdownModule,
+    SelectModule,
     ButtonCancelComponent,
-    DropdownModule,
     TableModule,
     FileUploadModule
   ],

@@ -1,150 +1,93 @@
-<h5 class="font-bold text-xl mb-2">Canal de Correo Electrónico</h5>
-<p class="font-normal text-sm text-gray-600 mb-4">
-  Integra tu correo electrónico para enviar y recibir mensajes desde tu bandeja
-  de entrada.
-</p>
+<div class="grid grid-cols-1 gap-4">
+  <h5 class="font-bold text-xl">Canal de Correo Electrónico</h5>
+  <p class="font-normal text-sm text-gray-600">
+    Integra tu correo electrónico para enviar y recibir mensajes desde tu
+    bandeja de entrada.
+  </p>
 
-<p-stepper [value]="1" class="basis-[50rem]" [linear]="true">
-  <p-step-list>
-    <p-step [value]="1">Crear credenciales</p-step>
-    <p-step [value]="2">Conectar correo</p-step>
-  </p-step-list>
-  <p-step-panels>
-    <p-step-panel [value]="1">
-      <ng-template #content let-activateCallback="activateCallback">
-        <!-- Inputs -->
-        <div class="grid grid-cols-1 gap-2">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Nombre del canal</label
-            >
-            <input
-              [(ngModel)]="name"
-              class="p-inputtext p-component w-full"
-              pInputText
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Correo</label
-            >
-            <input
-              [(ngModel)]="email"
-              type="email"
-              placeholder="ejemplo@gmail.com"
-              class="p-inputtext p-component w-full"
-              pInputText
-            />
-          </div>
+  <div class="grid grid-cols-1 gap-2">
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Nombre del canal</label
+      >
+      <input
+        [(ngModel)]="name"
+        class="p-inputtext p-component w-full"
+        pInputText
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Correo</label
+      >
+      <input
+        [(ngModel)]="email"
+        type="email"
+        placeholder="ejemplo@gmail.com"
+        class="p-inputtext p-component w-full"
+        pInputText
+      />
+    </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Client ID</label
-            >
-            <textarea
-              rows="3"
-              cols="30"
-              pTextarea
-              [(ngModel)]="clientId"
-              class="w-full"
-            ></textarea>
-          </div>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Client ID</label
+      >
+      <textarea
+        rows="3"
+        cols="30"
+        pTextarea
+        [(ngModel)]="clientId"
+        class="w-full"
+      ></textarea>
+    </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Client Secret</label
-            >
-            <input
-              [(ngModel)]="clientSecret"
-              type="text"
-              placeholder="Tu Client Secret"
-              class="p-inputtext p-component w-full"
-              pInputText
-            />
-          </div>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Client Secret</label
+      >
+      <input
+        [(ngModel)]="clientSecret"
+        type="text"
+        placeholder="Tu Client Secret"
+        class="p-inputtext p-component w-full"
+        pInputText
+      />
+    </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Topic Name</label
-            >
-            <input
-              [(ngModel)]="topicName"
-              type="text"
-              placeholder="email-notifications"
-              class="p-inputtext p-component w-full"
-              pInputText
-            />
-          </div>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Topic Name</label
+      >
+      <input
+        [(ngModel)]="topicName"
+        type="text"
+        placeholder="email-notifications"
+        class="p-inputtext p-component w-full"
+        pInputText
+      />
+    </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Project ID</label
-            >
-            <input
-              [(ngModel)]="projectId"
-              type="text"
-              placeholder="tu-proyecto"
-              class="p-inputtext p-component w-full"
-              pInputText
-            />
-          </div>
-        </div>
-        <div class="flex pt-6 justify-end">
-          <button-save
-            [label]="id ? 'Actualizar credencial' : 'Crear credencial'"
-            icon="material-symbols:mail-lock-outline"
-            [disabled]="invalid"
-            (click)="createCredential(activateCallback)"
-          />
-        </div>
-      </ng-template>
-    </p-step-panel>
-
-    <p-step-panel [value]="2">
-      <ng-template #content let-activateCallback="activateCallback">
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1"
-              >Correo</label
-            >
-            <input
-              [(ngModel)]="email"
-              type="email"
-              placeholder="ejemplo@gmail.com"
-              class="p-inputtext p-component w-full"
-              readonly
-              disabled
-              pInputText
-            />
-          </div>
-        </div>
-        <div class="flex pt-6 justify-end">
-          <button-save
-            label="Conectar correo"
-            icon="lets-icons:e-mail"
-            (click)="connectEmail()"
-          />
-        </div>
-      </ng-template>
-    </p-step-panel>
-  </p-step-panels>
-</p-stepper>
-
-<div class="w-full space-y-4">
-  <!-- Botones -->
-  <!-- <div class="pt-4 space-y-3">
-    <p-button
-      label="Crear Credencial"
-      icon="pi pi-plus"
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"
+        >Project ID</label
+      >
+      <input
+        [(ngModel)]="projectId"
+        type="text"
+        placeholder="tu-proyecto"
+        class="p-inputtext p-component w-full"
+        pInputText
+      />
+    </div>
+  </div>
+  <div class="flex gap-2 justify-end">
+    <button-cancel (click)="onCancel()" />
+    <button-save
+      [label]="id ? 'Actualizar canal de correo' : 'Crear canal de correo'"
+      icon="material-symbols:mail-lock-outline"
+      [disabled]="invalid"
       (click)="createCredential()"
-      class="w-full p-button-success p-button-rounded"
-    ></p-button>
-
-    <p-button
-      label="Conectar Correo"
-      icon="pi pi-envelope"
-      (click)="connectEmail()"
-      class="w-full p-button-info p-button-rounded"
-    ></p-button>
-  </div> -->
+    />
+  </div>
 </div>

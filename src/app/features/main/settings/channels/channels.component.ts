@@ -66,7 +66,9 @@ export class ChannelsComponent {
   }
 
   get listInboxes(): Inbox[] {
-    return this.store.items().filter(x => !['instagram', 'messenger'].includes(x.name));
+    return this.store
+      .items()
+      .filter((x) => !['instagram', 'messenger'].includes(x.name));
   }
 
   private resetOnSuccessEffect = effect(() => {
@@ -109,7 +111,7 @@ export class ChannelsComponent {
     // this.store.clearSelected();
     this.openModal = true;
     const ref = this.dialogService.open(InboxFormComponent, {
-      header: 'Nueva entrada',
+      header: 'Nueva canal',
       styleClass: 'modal-lg',
       maskStyleClass: 'backdrop-blur-sm',
       modal: true,

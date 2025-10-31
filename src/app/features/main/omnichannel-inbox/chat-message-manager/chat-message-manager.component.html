@@ -672,23 +672,31 @@ completionEventReceived){
                 'text-gray-400': message.sender.fromCitizen
               }"
             >
-              {{ message.time }}
+              {{ message.timestamp | date:'dd/MM/yyyy HH:mm' }}
             </span>
-            @if(!message.sender.fromCitizen && !['whatsapp',
-            'chatsat'].includes(chatDetail.channel)){
-            <iconify-icon
-              [icon]="'mdi:face-agent'"
-              class="text-xl text-blue-100"
-            >
-            </iconify-icon>
-            } @if (!message.sender.fromCitizen && ['whatsapp',
-            'chatsat'].includes(chatDetail.channel)) {
-            <iconify-icon
-              [icon]="message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'"
-              class="text-xl text-blue-100"
-            >
-            </iconify-icon>
-            }
+            <div>
+
+              @if(!message.sender.fromCitizen && !['whatsapp',
+              'chatsat'].includes(chatDetail.channel)){
+                <iconify-icon
+                  [icon]="'mdi:face-agent'"
+                  class="text-xl text-blue-100"
+                >
+                </iconify-icon>
+                } @if (!message.sender.fromCitizen && ['whatsapp',
+                'chatsat'].includes(chatDetail.channel)) {
+                <iconify-icon
+                  [icon]="message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'"
+                  class="text-xl text-blue-100"
+                >
+                </iconify-icon>
+              }
+              <!-- <iconify-icon
+                  [icon]="message.status == 'read' ? 'line-md:check-all' : 'line-md:check'"
+                  class="text-xl text-blue-100"
+                >
+              </iconify-icon> -->
+            </div>
           </div>
         </div>
       </div>

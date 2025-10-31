@@ -14,14 +14,14 @@
         *ngIf="existCitizen"
         class="flex flex-wrap items-center gap-4 text-sm text-gray-600"
       >
-        <p>
+        <div class="flex gap-1 items-center">
           <span class="font-medium">{{ citizen?.vtipDoc }}</span>
           {{ citizen?.vdocIde }}
-        </p>
-        <p>
+        </div>
+        <div class="flex gap-1 items-center">
           <iconify-icon icon="mdi:phone" class="text-base"></iconify-icon>
-          {{ callInfo?.phoneNumber ?? lastCallInfo?.phoneNumber }}
-        </p>
+          {{ citizen?.vnumTel }}
+        </div>
       </div>
     </div>
     <div class="flex justify-end items-center gap-2">
@@ -56,9 +56,7 @@
   </div>
   <p-tabs [value]="tabSelected">
     <p-tablist>
-      <p-tab [value]="0" class="flex items-center">
-        <span>Deudas</span></p-tab
-      >
+      <p-tab [value]="0" class="flex items-center"> <span>Deudas</span></p-tab>
       <p-tab [value]="1" class="flex items-center">
         <span>Trámites y solicitudes</span>
       </p-tab>
@@ -178,9 +176,7 @@
                 <tr>
                   <td colspan="100" class="text-center p-6">
                     <div class="flex flex-col items-center text-gray-500">
-                      <i
-                        class="pi pi-folder-open text-6xl text-gray-400"
-                      ></i>
+                      <i class="pi pi-folder-open text-6xl text-gray-400"></i>
                       <p class="text-sm font-medium mt-3">
                         Sin registro de deudas
                       </p>
@@ -266,9 +262,7 @@
                 <tr>
                   <td colspan="100" class="text-center p-6">
                     <div class="flex flex-col items-center text-gray-500">
-                      <i
-                        class="pi pi-folder-open text-6xl text-gray-400"
-                      ></i>
+                      <i class="pi pi-folder-open text-6xl text-gray-400"></i>
                       <p class="text-sm font-medium mt-3">
                         Sin registro de deudas
                       </p>
@@ -775,9 +769,7 @@
                   <tr>
                     <td colspan="100" class="text-center p-6">
                       <div class="flex flex-col items-center text-gray-500">
-                        <i
-                          class="pi pi-folder-open text-6xl text-gray-400"
-                        ></i>
+                        <i class="pi pi-folder-open text-6xl text-gray-400"></i>
                         <p class="text-sm font-medium mt-3">
                           Sin comunicaciones
                         </p>
@@ -791,14 +783,13 @@
               <div class="flex justify-start items-center gap-2 mb-2">
                 <p-select
                   id="channelCommunication"
-                  [options]="listCanalesComunicacion"
-                  optionLabel="label"
-                  optionValue="code"
+                  [options]="listCategoryChannels"
+                  optionLabel="name"
+                  optionValue="id"
                   [(ngModel)]="channelSelected"
                   placeholder="Seleccionar canal"
                   appendTo="body"
                   [style]="{ 'min-width': '200px' }"
-                  (onChange)="filterCommunications()"
                 />
               </div>
 
@@ -876,44 +867,43 @@
                         {{ item?.citizen?.name }}
                       </p>
                     </td>
-                    @if(item?.queryHistory)
-                    {
-                      <td class="flex justify-center">
-                        <btn-custom
-                          severity="success"
-                          icon="icon-park-outline:history-query"
-                          tooltip="Ver historial de consultas"
-                          (click)="showQueryHistory(item)"
-                        />
-                      </td>
-                    }@else
-                    {
-                      <td>
-                        <p class="text-sm font-light text-center">
-                          {{ item?.detail }}
-                        </p>
-                      </td>
+                    @if(item?.queryHistory) {
+                    <td class="flex justify-center">
+                      <btn-custom
+                        severity="success"
+                        icon="icon-park-outline:history-query"
+                        tooltip="Ver historial de consultas"
+                        (click)="showQueryHistory(item)"
+                      />
+                    </td>
+                    }@else {
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.detail }}
+                      </p>
+                    </td>
                     }
                     <td>
                       <p class="text-sm font-light text-center">
                         {{ item?.createdByUser?.fullName }}
                       </p>
                     </td>
-                    @if(!['chatsat', 'whatsapp'].includes(item?.categoryChannel?.name) || item?.queryHistory == null)
-                    {
-                      <td>
-                        <div class="flex justify-center">
-                          <btn-custom
-                            severity="success"
-                            icon="lucide:eye"
-                            tooltip="Mostrar información del caso"
-                            [disabled]="!item.informacionCaso"
-                            (click)="showInfoCaso(item)"
-                          />
-                        </div>
-                      </td>
+                    @if(!['chatsat',
+                    'whatsapp'].includes(item?.categoryChannel?.name) ||
+                    item?.queryHistory == null) {
+                    <td>
+                      <div class="flex justify-center">
+                        <btn-custom
+                          severity="success"
+                          icon="lucide:eye"
+                          tooltip="Mostrar información del caso"
+                          [disabled]="!item.informacionCaso"
+                          (click)="showInfoCaso(item)"
+                        />
+                      </div>
+                    </td>
                     }@else {
-                      <td></td>
+                    <td></td>
                     }
                   </tr>
                 </ng-template>
@@ -921,9 +911,7 @@
                   <tr>
                     <td colspan="100" class="text-center p-6">
                       <div class="flex flex-col items-center text-gray-500">
-                        <i
-                          class="pi pi-folder-open text-6xl text-gray-400"
-                        ></i>
+                        <i class="pi pi-folder-open text-6xl text-gray-400"></i>
                         <p class="text-sm font-medium mt-3">
                           Sin comunicaciones
                         </p>

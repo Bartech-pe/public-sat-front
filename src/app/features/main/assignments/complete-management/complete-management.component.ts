@@ -60,6 +60,7 @@ import { ChannelAssistance } from '@models/channel-assistance.model';
 import { CitizenContact } from '@models/citizen.model';
 import { CitizenService } from '@services/citizen.service';
 import { TooltipModule } from 'primeng/tooltip';
+import { UnifiedQuerySistemComponent } from '@features/main/adviser/unified-query-system/unified-query-system.component';
 
 @Component({
   selector: 'app-complete-management',
@@ -86,11 +87,9 @@ import { TooltipModule } from 'primeng/tooltip';
     InputIconModule,
     ButtonModule,
     DatePickerModule,
-    DatePipe,
     PhoneFormatPipe,
     TooltipModule,
     ButtonSaveComponent,
-    BtnCustomComponent,
   ],
   templateUrl: './complete-management.component.html',
   styles: ``,
@@ -459,18 +458,23 @@ export class CompleteManagementComponent implements OnInit {
       .getAssistancesByDocumentNumber(dni)
       .subscribe((response: IBaseResponseDto<IGetAttentionsOfCitizen[]>) => {
         if (response.success && response.data?.length) {
-          let channelAttentions : CitizenAssistance[] = response.data?.map(attention => {
+          let channelAttentions: CitizenAssistance[] = response.data?.map(
+            (attention) => {
               return {
                 channel: attention?.channel,
                 type: attention?.type,
                 method: 'CHAT',
                 user: attention?.advisorIntervention ? attention.user : 'BOT',
                 createdAt: attention?.startDate,
-                result: 'Contacto'
-              }
-          });
+                result: 'Contacto',
+              };
+            }
+          );
 
-          this.tableComunicaciones = [...channelAttentions, ...this.tableComunicaciones];
+          this.tableComunicaciones = [
+            ...channelAttentions,
+            ...this.tableComunicaciones,
+          ];
           this.tableAllComunicaciones = this.tableComunicaciones;
         }
       });
@@ -788,6 +792,8 @@ export class CompleteManagementComponent implements OnInit {
     } else {
       this.store.create({
         portfolioDetailId: this.portfolioDetail?.id!,
+        tipDoc: this.portfolioDetail?.tipDoc,
+        docIde: this.portfolioDetail?.docIde,
         result: 'Verificación de pago',
         verifyPayment: true,
       } as CitizenAssistance);

@@ -106,7 +106,7 @@ export class CitizenInformationComponent implements OnInit {
 
   // Métodos para acciones
   onReloadData(): void {
-    console.log('Reload data clicked');
+    this.getContactData()
   }
 
   onDocumentClick(): void {

@@ -110,7 +110,7 @@ export interface ChannelMessage
     sender: ChannelSender;
     attachments: MessageAttachment[],
     timestamp?: Date;
-    time: string;
+    time?: string;
 }
 
 export interface ChannelSender
@@ -143,7 +143,7 @@ export interface LastMessageReceived
     message: string;
     status: MessageStatus;
     citizen: channelCitizen;
-    time: string;
+    time: Date;
     fromMe: boolean;
 }
 export interface channelCitizen{
@@ -237,7 +237,7 @@ export interface NewMessage{
 	  sender: ChannelUser;
     attachments: MessageAttachment[]
     status: 'read' | 'unread';
-    time: string;
+    time: Date;
     fromMe: boolean;
 }
 

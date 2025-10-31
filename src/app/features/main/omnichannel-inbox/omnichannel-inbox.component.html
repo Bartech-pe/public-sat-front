@@ -77,17 +77,14 @@
   <section
     class="w-full h-[calc(100%-80px)] flex flex-col lg:flex-row gap-4 overflow-y-auto lg:overflow-hidden"
   >
-    <!-- Sidebar izquierdo - Chat List -->
-    <aside class="w-full lg:w-100 h-[300px] flex-none overflow-hidden">
+    <aside class="w-full min-w-[20em] lg:w-100 h-full flex-none overflow-hidden">
       <app-chat-list></app-chat-list>
     </aside>
 
-    <!-- Chat principal -->
     <div class="flex-1 min-w-0 h-full overflow-hidden">
       <app-chat-message-manager></app-chat-message-manager>
     </div>
 
-    <!-- Columna derecha (solo en pantallas grandes) -->
     <aside class="w-90 h-full overflow-hidden hidden 2xl:block">
       <app-citizen-information></app-citizen-information>
     </aside>

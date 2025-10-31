@@ -1,12 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@envs/environments';
+import { PaginatedResponse } from '@interfaces/paginated-response.interface';
+import { ForwardCenterMail } from '@models/mail-forward.model';
+import { MailDto } from '@models/mail.model';
 import { Observable } from 'rxjs';
-
-interface ForwardCenterMail {
-  mailAttentionId: number;
-  from: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +17,10 @@ export class MailService {
   //GET
 
   // leer mensajes
-  getMessages(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/messagesAdvisor`);
+  getMailTickets(): Observable<PaginatedResponse<MailDto>> {
+    return this.http.get<PaginatedResponse<MailDto>>(
+      `${this.baseUrl}/messagesAdvisor`
+    );
   }
 
   /**

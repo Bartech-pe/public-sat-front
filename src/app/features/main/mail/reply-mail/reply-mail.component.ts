@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  CUSTOM_ELEMENTS_SCHEMA,
   EventEmitter,
   inject,
   Input,
@@ -18,6 +19,9 @@ import { EditorModule } from 'primeng/editor';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { FormForwardComponent } from '../form-forward/form-forward.component';
 import { MailService } from '@services/mail.service';
+import { environment } from '@envs/environments';
+import { MailViewerComponent } from '../mail-viewer/mail-viewer.component';
+import { fileIcons } from '@utils/mail.utils';
 
 interface Reply {
   id: number;
@@ -36,11 +40,20 @@ interface Reply {
 @Component({
   selector: 'app-reply-mail',
   standalone: true,
-  imports: [CommonModule, BtnCustomComponent, EditorModule, PopoverModule],
+  imports: [
+    CommonModule,
+    BtnCustomComponent,
+    EditorModule,
+    PopoverModule,
+    MailViewerComponent,
+    BtnCustomComponent,
+  ],
   templateUrl: './reply-mail.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ReplyMailComponent {
+  mediaUrl: string = environment.apiUrl;
+
   @ViewChild('responses') responses!: Popover;
 
   @Input() mailId?: number;
@@ -131,17 +144,136 @@ export class ReplyMailComponent {
     return `${tag.bg} ${tag.border} ${tag.text} border rounded-lg p-2`;
   }
 
-  getSafeContent(body?: string | null): SafeHtml {
-    // 🔹 Si viene vacío, devolvemos un fallback claro
+  private escapeRegex(s: string): string {
+    // Escapa caracteres especiales para construir RegExp dinámico
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  getSafeContent(
+    body?: string,
+    attachments: any[] = [],
+    dateReply?: string
+  ): string {
+    // Si viene vacío, devolvemos un fallback claro
     if (!body || body.trim() === '') {
-      return this.sanitizer.bypassSecurityTrustHtml('<i>(sin contenido)</i>');
+      return '<i>(sin contenido)</i>';
     }
 
-    // 🔹 Limpiamos el contenido antes de confiarlo
+    // Limpia el contenido (tu función existente)
     const cleaned = this.cleanBody(body);
 
-    // 🔹 Retornamos como HTML seguro
-    return this.sanitizer.bypassSecurityTrustHtml(cleaned);
+    // Usaremos cleanHtml para aplicar los reemplazos incrementalmente
+    let cleanHtml = cleaned;
+
+    // Normalizar base URL (quita slash final si lo tiene)
+    const base = this.mediaUrl ? this.mediaUrl.replace(/\/$/, '') : '';
+
+    attachments.forEach((att) => {
+      // Soportar varias claves posibles: attachmentGmailId, cid, id, etc.
+      const cidId = att.cid;
+      const publicUrl = att.publicUrl;
+
+      if (cidId && publicUrl) {
+        // Construir URL segura uniendo sin duplicar '/'
+        const realUrl = `${base}/${publicUrl.replace(/^\//, '')}`;
+
+        // Escapar id para usar en RegExp
+        const escaped = this.escapeRegex(cidId);
+
+        // Buscamos cualquier aparición de cid:ID (global)
+        const regex = new RegExp(`cid:${escaped}`, 'g');
+
+        if (cleanHtml.includes(`cid:${escaped}`)) {
+          att.inMessage = true;
+        } else {
+          att.realUrl = realUrl;
+        }
+
+        // Reemplazamos en cleanHtml (no en cleaned)
+        cleanHtml = cleanHtml.replace(regex, realUrl);
+      }
+    });
+
+    return cleanHtml;
+  }
+
+  hasAttachments(attachments: any[]) {
+    return attachments.filter((a) => !a.inMessage).length != 0;
+  }
+
+  getAttachments(attachments: any[]): any[] {
+    return attachments.filter((a) => !a.inMessage);
+  }
+
+  getReplyContent(reply: any): string {
+    const chain: any[] = [];
+
+    // Recorremos hacia atrás para obtener toda la cadena
+    let current = reply;
+    while (current) {
+      chain.unshift(current); // insertamos al inicio para invertir el orden
+      current = current.repliedTo;
+    }
+
+    // Ahora la lista está en orden: [mensaje original, respuesta1, respuesta2, ...]
+    let html = '';
+
+    for (const msg of chain) {
+      const safe = this.getSafeContent(msg.content, msg.attachments);
+
+      const date = new Date(msg.date);
+      const formattedDate = date.toLocaleDateString('es-PE', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      const formattedTime = date.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      if (!html) {
+        // mensaje más antiguo, solo contenido
+        html = `
+        <div class="gmail_quote gmail_quote_container">
+          <div dir="ltr" class="gmail_attr">
+            El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
+            (<a href="mailto:${msg.from}">${msg.from}</a>) escribió:
+          </div>
+          <blockquote class="gmail_quote gmail_quote_block">
+            ${safe}
+          </blockquote>
+        </div>`;
+      } else {
+        // mensaje que responde a otro
+        html = `
+        <div class="gmail_quote">
+          <div dir="ltr" class="gmail_attr">
+            El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
+            (<a href="mailto:${msg.from}">${msg.from}</a>) escribió:
+          </div>
+          <blockquote class="gmail_quote gmail_quote_block">
+            ${safe}
+            ${html}
+          </blockquote>
+        </div>`;
+
+        //         return `
+        //   ${quoted}
+        //   <div class="gmail_quote gmail_quote_container">
+        //     <div dir="ltr" class="gmail_attr">
+        //       El ${formatted}, ${reply.name} <a href="mailto:${reply.from}">${reply.from}</a> escribió:
+        //     </div>
+        //     <blockquote class="gmail_quote">
+        //       ${html}
+        //     </blockquote>
+        //   </div>
+        // `;
+      }
+    }
+
+    return html;
   }
 
   cleanBody(raw: string): string {
@@ -173,7 +305,7 @@ export class ReplyMailComponent {
     const mailId = this.reply()?.mailAttentionId;
     if (!mailId) return;
 
-    // 🚫 ya no mandamos this.replyTarget al backend
+    // ya no mandamos this.replyTarget al backend
     this.mailService.replyEmail(mailId, this.replyText).subscribe({
       next: (res) => {
         console.log('✅ Respuesta guardada en backend:', res);
@@ -206,5 +338,11 @@ export class ReplyMailComponent {
         this.replyMode = null;
       }
     });
+  }
+
+  // iconMapper.ts
+  obtenerIconoPorMime(mimetype: string): string {
+    // Devuelve un ícono genérico si no hay coincidencia
+    return fileIcons[mimetype] || 'mdi:file';
   }
 }

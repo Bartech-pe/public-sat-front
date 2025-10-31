@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { HolidayService } from '@services/holiday.service';
 import { Holiday } from '@models/holiday.model';
+import { da } from 'date-fns/locale';
 
 export interface Holidays {
   id: number;
@@ -52,19 +53,22 @@ export class HolidaysComponent implements OnInit {
 
   ngOnInit(): void {
     this.getdate(new Date());
+    this.getHolidays();
   }
 
   events: CalendarEvent[] = [];
 
-  // getHolidays() {
-  //   this.holidayService.getAll().subscribe((res) => {
-  //     this.events = res.data.map((e: any) => ({
-  //       ...e,
-  //       start: new Date(e.start),
-  //       end: e.end ? new Date(e.end) : undefined,
-  //     }));
-  //   });
-  // }
+  getHolidays() {
+    this.holidayService.getAll().subscribe((res:any) => {
+      this.events = res.map((e: any) => ({
+        ...e,
+        title: e.title,
+        start: new Date(e.startTime),
+        end:  new Date(e.endTime),
+        meta: { id: e.id }
+      }));
+    });
+  }
 
   cols = [
     { field: 'title', header: 'Nombre' },
@@ -84,70 +88,89 @@ export class HolidaysComponent implements OnInit {
   handleEvent(action: string, event: CalendarEvent): void {
     console.log(action, event);
   }
+
   getdate(day: Date) {
     this.holidayService.getByDate(day).subscribe((response) => {
-      if (response) {
-        this.newHolidaysDate = response.startTime;
-        this.newHolidaysTitle = response.title;
-        this.newHolidaysDescription = response.description;
-        this.isloaded = true;
-      } else {
-        this.isloaded = false;
-      }
+        if (response) {
+          this.newHolidaysDate = response.startTime;
+          this.newHolidaysTitle = response.title;
+          this.newHolidaysDescription = response.description;
+          this.isloaded = true;
+        } else {
+          this.isloaded = false;
+        }
     });
   }
-  dayClicked(day: any) {
-    console.log('Día clicado', day);
-
-    // 🔴 forzar que no se abra la franja negra
+  
+  idCalendario:any;
+  dayClicked({ date, events }: { date: Date; events: any[] }): void {
+    // Cierra el día activo (por ejemplo, colapsa el calendario expandido)
     this.activeDayIsOpen = false;
-    this.getdate(day.date);
 
-    // abrir modal de nuevo holidays
-    this.newHolidaysDate = day.date;
+    // Ejecuta alguna función personalizada si es necesario
+    this.getdate(date);
+
+    // Prepara el modal para crear/editar feriado
+    this.newHolidaysDate = date;
     this.newHolidaysTitle = '';
     this.newHolidaysDescription = '';
     this.displayDialog = true;
+
+    // Si hay eventos existentes en ese día, toma el primero
+    if (events && events.length > 0) {
+      const event = events[0];
+
+      // Guarda el ID del evento (para editar o eliminar)
+      this.idCalendario = event.meta?.id || event.id || '';
+
+      // Si quieres también precargar el título o descripción:
+      this.newHolidaysTitle = event.title || '';
+      this.newHolidaysDescription = event.meta?.description || '';
+    } else {
+      // Si no hay eventos, resetea el ID
+      this.idCalendario = '';
+    }
+
   }
 
   eventTimesChanged(event: any) {
     console.log('Cambio en evento', event);
   }
 
-  deleteEvent(eventToDelete: CalendarEvent) {
+  deleteEvent(eventToDelete: any) {
+    console.log(eventToDelete);
+    this.holidayService.delete(eventToDelete?.id).subscribe((response) => {
+        this.cancelDialog(); this.getHolidays();
+    });
+    
     this.events = this.events.filter((e) => e !== eventToDelete);
     this.refresh.next();
   }
 
   closeOpenMonthViewDay() {
     this.activeDayIsOpen = false;
+    
   }
 
-  // -------------------------
-  // Guardar nuevo holidays
-  // -------------------------
+  loadData() {
+    
+  }
+
   saveHolidays() {
-    /*if (this.newHolidaysDate && this.newHolidaysTitle.trim()) {
-      this.events = [
-        ...this.events,
-        {
-          start: this.newHolidaysDate,
-          title: this.newHolidaysTitle,
-          color: { primary: '#0d9488', secondary: '#ccfbf1' },
-          meta: {
-            description: this.newHolidaysDescription,
-          },
-        },
-      ];
-      this.refresh.next();
-      this.displayDialog = false;
-    }*/
+
     const create: Holiday = {
-      startTime: this.newHolidaysDate ?? new Date(),
-      title: this.newHolidaysTitle,
-      description: this.newHolidaysDescription,
+        startTime: this.newHolidaysDate ?? new Date(),
+        title: this.newHolidaysTitle,
+        description: this.newHolidaysDescription,
     };
-    this.holidayService.create(create).subscribe((response) => {});
+
+    if(this.idCalendario){
+       this.holidayService.update(this.idCalendario, { id: this.idCalendario, ...create }).subscribe((response) => {this.cancelDialog(); this.getHolidays();});
+    }else{
+       this.holidayService.create(create).subscribe((response) => {this.cancelDialog(); this.getHolidays();});
+    }
+
+   
   }
 
   cancelDialog() {

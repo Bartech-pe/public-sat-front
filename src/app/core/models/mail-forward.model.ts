@@ -1,5 +1,5 @@
 export interface ForwardCenterMail {
   mailAttentionId: number;
-  from: string;
+  from?: string;
   message?: string;
 }

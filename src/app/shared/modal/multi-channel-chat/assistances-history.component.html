@@ -160,7 +160,7 @@
                     @if (asistencia.startDate) {
                       <div class="flex items-center text-normal text-gray-600">
                         <iconify-icon icon="mdi:calendar" class="mr-2"></iconify-icon>
-                        <span >{{ asistencia.startDate }}</span>
+                        <span >{{ asistencia.startDate | date:'dd/MM/yyyy HH:mm'}}</span>
                       </div>
                     }
                     <div class="flex items-center text-normal text-gray-600">
@@ -231,7 +231,7 @@
                 <div class="flex items-center space-x-4 text-sm text-gray-600">
                   <span>{{ asistenciaSeleccionada.messages?.length || 0 }} mensajes</span>
                   @if (asistenciaSeleccionada.startDate) {
-                    <span>{{ asistenciaSeleccionada.startDate }}</span>
+                    <span>{{ asistenciaSeleccionada.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
                   }
                 </div>
               </div>

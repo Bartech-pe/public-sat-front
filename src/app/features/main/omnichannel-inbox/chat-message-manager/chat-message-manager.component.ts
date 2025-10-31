@@ -123,7 +123,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
   chatDetail: ChatDetail | null = null;
   advisors: getAdvisorsResponseDto[] = [];
   channelRoomId: number | null = null;
-  assintanceId: number | null = null;
+  attentionId: number | null = null;
   messageText: string = '';
   completionEventReceived: boolean = false;
   isLoading: boolean = false;
@@ -199,8 +199,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
       }
       const channelRoomId = params.get('channelRoomId');
       this.channelRoomId = Number(channelRoomId);
-      const assintanceId = params.get('assistanceId');
-      this.assintanceId = Number(assintanceId);
+      const attentionId = params.get('assistanceId');
+      this.attentionId = Number(attentionId);
       this.loadChatData();
     });
     setInterval(() => {
@@ -217,6 +217,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
           this.chatDetail?.channelRoomId === payload.channelRoomId &&
           this.chatDetail.attention.id === payload.assistanceId
         ) {
+          console.log(payload)
           this.chatDetail.status = payload.status;
           this.chatDetail.attention.status = payload.attentionStatus;
           if (payload.status === 'completado') {
@@ -244,15 +245,11 @@ export class ChatMessageManagerComponent implements OnDestroy {
     .onAdvisorRequest()
     .pipe(takeUntil(this.destroy$))
     .subscribe((payload: ChannelRoomAssistance) => {
-        if (
+      if (
           this.channelRoomId === payload.channelRoomId &&
-          this.assintanceId === payload.assistanceId
+          this.attentionId === payload.assistanceId
         ) {
-          this.chatDetail = {
-            ...this.chatDetail,
-            botStatus: 'paused',
-            status: 'prioridad',
-          } as ChatDetail;
+            this.loadChatData();
         }
       });
 
@@ -274,7 +271,8 @@ export class ChatMessageManagerComponent implements OnDestroy {
     .onAdvisorChanged()
     .pipe(takeUntil(this.destroy$))
     .subscribe((message: AdvisorChangedDto) => {
-      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId && message.attentionId == this.chatDetail.attention.id;
+      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId
+      && message.attentionId == this.chatDetail.attention.id;
       if(hasChannelRoomWithAdvisorChanged)
       {
         this.loadChatData();
@@ -288,7 +286,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
       if (
         this.channelRoomId === message.channelRoomId &&
-        this.assintanceId === message.attention.id
+        this.attentionId === message.attention.id
       ) {
         this.chatDetail?.messages.push({
           id: messageIncoming.id,
@@ -305,7 +303,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
             isAgent: messageIncoming.sender.isAgent,
           },
           status: messageIncoming.status,
-          time: messageIncoming.time,
+          timestamp: messageIncoming.time,
         });
 
         if (!this.isNearBottom) {
@@ -362,7 +360,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
     this.selectedImage = null;
     this.selectedNewStatus = null;
     this.channelRoomId = null;
-    this.assintanceId = null;
+    this.attentionId = null;
 
     const links = document.querySelectorAll('a[href^="blob:"]');
     links.forEach(link => {
@@ -470,7 +468,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
       this.channelRoomService
         .getChatData(
           this.channelRoomId as number,
-          this.assintanceId as number,
+          this.attentionId as number,
           15,
           oldestMessage.timestamp
         )
@@ -714,14 +712,14 @@ export class ChatMessageManagerComponent implements OnDestroy {
     this.isNearBottom = true;
     this.isLoading = true;
 
-    if (!this.channelRoomId || !this.assintanceId) {
+    if (!this.channelRoomId || !this.attentionId) {
       return;
     }
 
     this.channelRoomService
       .getChatData(
         this.channelRoomId as number,
-        this.assintanceId as number,
+        this.attentionId as number,
         30
       )
       .subscribe({
@@ -1337,7 +1335,9 @@ export class ChatMessageManagerComponent implements OnDestroy {
   backToList() {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { channel: this.route.snapshot.queryParams['channel'] },
+      queryParams: {
+        channel: this.route.snapshot.queryParams['channel'],
+      },
       queryParamsHandling: '',
     });
   }

@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 gap-4 px-3">
+<div class="grid grid-cols-1 gap-4">
   <!-- Encabezado -->
   <div class="bg-gray-50 shadow rounded-xl p-4">
     <div class="flex justify-between items-center">
@@ -16,7 +16,11 @@
 
   <section class="grid grid-cols-1 gap-2">
     <p-card>
-      <p-table [value]="listRoles">
+      <p-table
+        [value]="listRoles"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 19.5rem)"
+      >
         <ng-template #header>
           <tr>
             <th>

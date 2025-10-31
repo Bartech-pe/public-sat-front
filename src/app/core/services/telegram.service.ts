@@ -26,12 +26,12 @@ interface TelegramAuthRequest
   providedIn: 'root'
 })
 export class TelegramService {
-  private readonly url = `${environment.channelConnectorApiUrl}`;
+  private readonly url = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) { }
 
   sendCodeAuth(request: TelegramAuthRequest): Observable<TelegramAuthResponse> {
-    return this.http.post<TelegramAuthResponse>(`${this.url}telegram/init`, {...request, force: true})
+    return this.http.post<TelegramAuthResponse>(`${this.url}v1/telegram/init`, {...request, force: true})
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);
@@ -42,7 +42,7 @@ export class TelegramService {
 
   createAuthSession(request: TelegramAuthRequest): Observable<TelegramAuthResponse>
   {
-    return this.http.post<TelegramAuthResponse>(`${this.url}telegram/confirm-code`, request)
+    return this.http.post<TelegramAuthResponse>(`${this.url}v1/telegram/confirm-code`, request)
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);

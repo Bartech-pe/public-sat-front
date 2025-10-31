@@ -68,16 +68,18 @@
         <div *ngSwitchCase="'grid'">
           <div [ngSwitch]="view">
             <mwl-calendar-month-view
-              *ngSwitchCase="CalendarView.Month"
-              [viewDate]="viewDate"
-              [events]="events"
-              [refresh]="refresh"
-              [activeDayIsOpen]="activeDayIsOpen"
-              (dayClicked)="dayClicked($event.day)"
-              (eventClicked)="handleEvent('Clicked', $event.event)"
-              (eventTimesChanged)="eventTimesChanged($event)"
-            >
+                *ngSwitchCase="CalendarView.Month"
+                [viewDate]="viewDate"
+                [events]="events"
+                [refresh]="refresh"
+                [activeDayIsOpen]="activeDayIsOpen"
+                [eventTemplate]="eventTemplate" 
+                (dayClicked)="dayClicked($event.day)"
+                (eventClicked)="handleEvent('Clicked', $event.event)"
+                (eventTimesChanged)="eventTimesChanged($event)"
+              >
             </mwl-calendar-month-view>
+
 
             <mwl-calendar-week-view
               *ngSwitchCase="CalendarView.Week"
@@ -102,28 +104,84 @@
         </div>
 
         <!-- Vista lista -->
-        <div *ngSwitchCase="'list'">
-          aqui
-          <p-table [value]="events" [columns]="cols" stripedRows>
-            <ng-template pTemplate="header" let-columns>
-              <tr>
-                <th *ngFor="let col of columns">{{ col.header }}</th>
-              </tr>
-            </ng-template>
+     <div class="w-full bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mt-5">
+          <!-- Tabla -->
+          <div class="overflow-x-auto">
+            <p-table
+              [value]="events"
+              [columns]="cols"
+              stripedRows
+              [tableStyle]="{'min-width': '600px'}"
+              [rowHover]="true"
+              [paginator]="true"
+              [rows]="10"
+              class="w-full"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+            >
+              <ng-template pTemplate="header" let-columns>
+                <tr class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
+                  <th *ngFor="let col of columns" 
+                      class="text-left py-4 px-6 font-bold text-gray-800 text-sm uppercase tracking-wide cursor-default">
+                    {{ col.header }}
+                  </th>
+                </tr>
+              </ng-template>
 
-            <ng-template pTemplate="body" let-item>
-              <tr>
-                <td>{{ item.title }}</td>
-                <td>{{ item.start | date: "dd MMM yyyy" }}</td>
-                <td>{{ item.end | date: "dd MMM yyyy" }}</td>
-                <td>
-                  <button (click)="deleteEvent(item)" class="text-red-600">
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="cols.length" class="py-12 text-center">
+                    <div class="flex flex-col items-center gap-3 text-gray-500">
+                      <iconify-icon icon="mdi:calendar-off-outline" width="48" class="text-gray-300"></iconify-icon>
+                      <p class="text-lg font-medium">No hay eventos</p>
+                      <p class="text-sm">¡Programa algo emocionante!</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-item let-ri="rowIndex">
+                <tr class="transition-all duration-200 hover:bg-blue-50 hover:shadow-inner border-b border-gray-100 last:border-b-0">
+                  <td class="py-4 px-6">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                        <iconify-icon icon="mdi:calendar-today" width="20" class="text-white"></iconify-icon>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-gray-900 text-base truncate">{{ item.title }}</p>
+                        <p *ngIf="item.description" class="text-sm text-gray-600 truncate max-w-64">{{ item.description }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 text-sm">
+                    <span class="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-full font-medium shadow-sm">
+                      <iconify-icon icon="mdi:play" width="14" class="text-green-600"></iconify-icon>
+                      {{ item.start | date: "dd MMM yyyy" }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-sm">
+                    <span *ngIf="item.end" class="inline-flex items-center gap-2 px-3 py-2 bg-orange-100 text-orange-800 rounded-full font-medium shadow-sm">
+                      <iconify-icon icon="mdi:stop" width="14" class="text-orange-600"></iconify-icon>
+                      {{ item.end | date: "dd MMM yyyy" }}
+                    </span>
+                    <span *ngIf="!item.end" class="text-gray-500 italic bg-gray-100 px-3 py-2 rounded-full text-xs">
+                      Sin fin definido
+                    </span>
+                  </td>
+                  <td class="py-4 px-6">
+                    <button 
+                      (click)="deleteEvent(item)" 
+                      class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 shadow-sm"
+                      [pTooltip]="'Eliminar evento'" tooltipPosition="top"
+                    >
+                      <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
+                     
+                    </button>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
         </div>
       </div>
     </div>

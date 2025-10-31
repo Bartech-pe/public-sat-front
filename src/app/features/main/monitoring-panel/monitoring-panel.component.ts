@@ -428,12 +428,9 @@ export class MonitoringPanelComponent {
   loadStateDetails(userId: number, e: any): void {
     this.monitorService.getStateDetailsByAdvisor(userId).subscribe({
       next: (data) => {
-        this.stateDetails = data;
+        this.stateDetails = data.states;
         this.opStates.toggle(e);
-        this.totalDurationStates = data.reduce(
-          (acc, debt) => acc + debt.duration,
-          0
-        );
+        this.totalDurationStates = data.total;
       },
       error: (err) => {
         console.error('Error al cargar detalles de estados', err);

@@ -1,7 +1,6 @@
 import {
   Component,
   signal,
-  computed,
   ViewChild,
   ElementRef,
   inject,
@@ -15,6 +14,7 @@ import {
   FormBuilder,
   FormGroup,
   FormControl,
+  Validators,
 } from '@angular/forms';
 import { GmailService } from '@services/gmail.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +26,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '@services/auth.service';
 import { environment } from '@envs/environments';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { UserStore } from '@stores/user.store';
 import { User } from '@models/user.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
@@ -34,7 +33,7 @@ import { ChannelStateService } from '@services/channel-state.service';
 import { ChannelState } from '@models/channel-state.model';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { DialogModule } from 'primeng/dialog';
+import { Dialog, DialogModule } from 'primeng/dialog';
 import { FormAssistanceComponent } from './form-assistance/form-assistance.component';
 import { DialogService } from 'primeng/dynamicdialog';
 import { AssistanceStateService } from '@services/assistance-state.service';
@@ -50,69 +49,30 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { PredefinedResponsesService } from '@services/predefined.service';
 import { PredefinedResponses } from '@models/predefined-response.model';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { CalendarCommonModule } from 'angular-calendar';
+import { CardModule } from 'primeng/card';
+import { TooltipModule } from 'primeng/tooltip';
+import { TableModule } from 'primeng/table';
+import {
+  AutoCompleteCompleteEvent,
+  AutoCompleteModule,
+} from 'primeng/autocomplete';
 import { ReplyMailComponent } from './reply-mail/reply-mail.component';
 import { SocketService } from '@services/socket.service';
 import { FormSignatureComponent } from './form-signature/form-signature.component';
 import { EmailSignatureService } from '@services/email-signature.service';
-import { SplitButtonModule } from 'primeng/splitbutton';
-import { CalendarCommonModule } from 'angular-calendar';
-import { CardModule } from 'primeng/card';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { Reply } from '@models/mail-reply.model';
 import { ForwardCenterMail } from '@models/mail-forward.model';
-import { TooltipModule } from 'primeng/tooltip';
-
-interface Mail {
-  id: number;
-  mailAttentionId?: number;
-  from: string;
-  to: string;
-  name: string;
-  subject: string;
-  body: string;
-  createdAt?: Date;
-  starred: boolean;
-  read: boolean;
-  hasAttachment?: boolean;
-  sizeMB: number;
-  folder: 'inbox' | 'sent' | 'drafts' | 'spam' | 'trash'; // 👈 sin open/closed
-  selected?: boolean;
-
-  // 👉 Campos nuevos
-  advisor?: User;
-  state?: AssistanceState; // estado viene del backend
-  showMore?: boolean;
-  replies?: Reply[];
-
-  closed?: boolean;
-  deleted?: boolean;
-}
-
-interface MailDto {
-  id: number;
-  from?: string;
-  to?: string;
-  subject?: string;
-  content?: string;
-  body?: string;
-  date?: string;
-  state?: AssistanceState;
-  replies?: {
-    id: number;
-    from: string;
-    body?: string;
-    content?: string;
-    date?: string;
-  }[];
-}
-
-interface CenterEmail {
-  to: string[];
-  subject: string;
-  content: string;
-  mailAttentionId?: number;
-}
+import { MailDto } from '@models/mail.model';
+import { FileViewerComponent } from './file-viewer/file-viewer.component';
+import { fileIcons } from '@utils/mail.utils';
+import { DatePickerModule } from 'primeng/datepicker';
 
 interface OptionView {
+  id?: number;
   key: MailType;
   label: string;
   icon: string;
@@ -140,15 +100,23 @@ interface OptionView {
     PopoverModule,
     CardModule,
     SplitButtonModule,
-    BtnCustomComponent,
-    ReplyMailComponent,
     CalendarCommonModule,
     TooltipModule,
+    IconFieldModule,
+    TableModule,
+    InputIconModule,
+    Dialog,
+    DatePickerModule,
+    AutoCompleteModule,
+    BtnCustomComponent,
+    ReplyMailComponent,
   ],
   templateUrl: './mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MailComponent implements OnInit {
+  mediaUrl: string = environment.apiUrl;
+
   @ViewChild('responses') responses!: Popover;
 
   private readonly roleIdAdministrador = environment.roleIdAdministrador;
@@ -180,6 +148,54 @@ export class MailComponent implements OnInit {
   userStateId!: number;
 
   predefinedResponseList: PredefinedResponses[] = [];
+
+  searcherVisible: boolean = false;
+
+  emailList: any[] = [
+    {
+      name: 'Erik Huaman Guiop',
+      email: 'erik.huaman@bartech.pe',
+    },
+    {
+      name: 'Adela Rimarachin',
+      email: 'adela.heredia@gmail.com',
+    },
+  ];
+
+  emailItemsFrom: any[] = [];
+
+  emailItemsTo: any[] = [];
+
+  searchForm = new FormGroup({
+    from: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.email],
+    }),
+    to: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.email],
+    }),
+    subject: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [],
+    }),
+    contain: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [],
+    }),
+    startDate: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [],
+    }),
+    endDate: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [],
+    }),
+    stateId: new FormControl<number | undefined>(undefined, {
+      nonNullable: true,
+      validators: [],
+    }),
+  });
 
   quillModules = {
     toolbar: {
@@ -250,26 +266,29 @@ export class MailComponent implements OnInit {
 
   showLoginMessage = false;
 
-  replyingTo: Mail | null = null;
+  replyingTo: MailDto | undefined = undefined;
   isReplying = false;
 
   isForwardMode = false;
-  forwardTo = '';
-  forwardSubject = '';
-  forwardText = '';
-  forwardBody = '';
-  forwardFrom = '';
-  forwardMailAttentionId: number | null = null;
+  forwardTo?: string;
+  forwardSubject?: string;
+  forwardText?: string;
+  forwardBody?: string;
+  forwardFrom?: string;
+  forwardMailAttentionId: number | undefined = undefined;
 
   formatBarVisible = false;
   showFormatting = false;
 
   filterVisible = signal(false);
-  selectedMail = signal<Mail | null>(null);
+  selectedMail = signal<MailDto | undefined>(undefined);
+
+  selectedMessages = signal<MailDto[]>([]);
 
   currentView = signal<MailType>('inbox');
 
-  replyText = '';
+  replyText?: string;
+  firstMail = signal<MailDto | undefined>(undefined);
   attachments: any[] = [];
 
   optionViews: OptionView[] = [
@@ -376,6 +395,7 @@ export class MailComponent implements OnInit {
             const state = data.find((d) => d.id === stateId);
 
             if (state) {
+              view.id = state.id;
               view.icon = state.icon ?? view.icon;
               view.textColor = getContrastColor(state.color);
               view.bgColor = state.color;
@@ -402,33 +422,33 @@ export class MailComponent implements OnInit {
     });
   }
 
-  private mapMail(item: any): Mail {
-    return {
-      id: item.id,
-      mailAttentionId: item.mailAttentionId,
-      from: item.from || 'Desconocido',
-      name: item.name,
-      to: item.to || '',
-      subject: item.subject || '(sin asunto)',
-      body: item.body || item.content || '',
-      createdAt: item.createdAt,
-      starred: false,
-      read: false,
-      folder: 'inbox',
-      sizeMB: 1,
-      selected: false,
-      advisor: item.advisor,
-      state: item.state,
-      showMore: false,
-      replies: (item.replies || []).map((r: any) => ({
-        id: r.id,
-        from: r.from,
-        body: r.body || r.content || '',
-        createdAt: r.createdAt,
-        type: (r.type as Reply['type']) || 'CIUDADANO',
-      })),
-    };
-  }
+  // private mapMail(item: any): MailDto {
+  //   return {
+  //     id: item.id,
+  //     mailAttentionId: item.id,
+  //     from: item.from || 'Desconocido',
+  //     name: item.name,
+  //     to: item.to || '',
+  //     subject: item.subject || '(sin asunto)',
+  //     body: item.body || item.content || '',
+  //     createdAt: item.createdAt,
+  //     starred: false,
+  //     read: false,
+  //     folder: 'inbox',
+  //     sizeMB: 1,
+  //     selected: false,
+  //     advisor: item.advisor,
+  //     state: item.state,
+  //     showMore: false,
+  //     replies: (item.replies || []).map((r: any) => ({
+  //       id: r.id,
+  //       from: r.from,
+  //       body: r.body || r.content || '',
+  //       createdAt: r.createdAt,
+  //       type: (r.type as Reply['type']) || 'CIUDADANO',
+  //     })),
+  //   };
+  // }
 
   trackById(index: number, reply: Reply) {
     return reply.id;
@@ -462,30 +482,30 @@ export class MailComponent implements OnInit {
   }
 
   addReply() {
-    if (!this.replyText.trim()) return;
+    if (!this.replyText!.trim()) return;
 
-    const reply: Reply = {
-      id: Date.now(),
-      from: 'demo.correo.sat@gmail.com',
-      body: this.replyText,
-      date: new Date(),
-      attachments: this.attachments.map((a) => ({
-        name: a.name,
-        size: a.size,
-        url: URL.createObjectURL(a.file),
-      })),
-      type: 'ASESOR',
-    };
+    // const reply: Reply = {
+    //   id: Date.now(),
+    //   from: 'demo.correo.sat@gmail.com',
+    //   body: this.replyText,
+    //   date: new Date(),
+    //   attachments: this.attachments.map((a) => ({
+    //     name: a.name,
+    //     size: a.size,
+    //     url: URL.createObjectURL(a.file),
+    //   })),
+    //   type: 'ASESOR',
+    // };
 
-    const current = this.selectedMail();
-    if (current) {
-      current.replies = [...(current.replies || []), reply];
-      this.selectedMail.set({ ...current });
-    }
+    // const current = this.selectedMail();
+    // if (current) {
+    //   // current.replies = [...(current.replies || []), reply];
+    //   this.selectedMail.set({ ...current });
+    // }
 
-    this.replyText = '';
-    this.attachments = [];
-    this.isReplying = false;
+    // this.replyText?: string;
+    // this.attachments = [];
+    // this.isReplying = false;
   }
 
   selectResponse(event: any) {
@@ -515,32 +535,17 @@ export class MailComponent implements OnInit {
     }
   }
 
-  openMail(mail: Mail) {
-    const id = mail.mailAttentionId;
+  openMail(mail: MailDto) {
+    const id = mail.id;
     if (!id) return;
 
     this.selectedMail.set(mail);
+    this.firstMail.set(undefined);
 
     this.mailService.getMessageDetail(id).subscribe({
-      next: (detail: any[]) => {
-        if (!detail || detail.length === 0) return;
-
-        // Convertimos todo en un hilo de mensajes
-        const thread: Reply[] = detail.map((d) => ({
-          id: d.id,
-          from: d.from,
-          body: d.content || d.body || '',
-          date: new Date(d.date),
-          attachments: d.files || [],
-          type: (d.type as Reply['type']) || 'CIUDADANO', // <--- aquí también
-          createdAt: d.createdAt,
-        }));
-
-        this.selectedMail.set({
-          ...mail,
-          body: thread[0]?.body || '(sin contenido)',
-          replies: thread.slice(1), // 👈 los demás son respuestas
-        });
+      next: (data: MailDto[]) => {
+        this.firstMail.set(data[0]);
+        this.selectedMessages.set(data);
       },
     });
   }
@@ -586,111 +591,48 @@ export class MailComponent implements OnInit {
     return this.authService.hasRole([this.roleIdAsesor]);
   }
 
-  get filteredMails(): Mail[] {
-    const query = this.searchQuery().toLowerCase();
-    const all = this.mails();
-
-    return all.filter((mail) => {
-      // 🔎 filtro por asunto
-      const subject = mail.subject?.toLowerCase() ?? '';
-
-      // 📧 filtro por remitente (correo "from")
-      const from = mail.from?.toLowerCase() ?? '';
-
-      const matchesQuery =
-        !query || subject.includes(query) || from.includes(query);
-
-      // 👤 filtro por asesor (si hay seleccionados)
-      const matchesAdvisor =
-        !this.selectedUsers.length ||
-        (mail.advisor && this.selectedUsers.includes(mail.advisor.id));
-
-      return matchesQuery && matchesAdvisor;
-    });
-  }
-
-  connectAccount() {
-    this.gmailService.loginWithGoogle();
-  }
-
-  mails = signal<Mail[]>([]);
+  mails = signal<MailDto[]>([]);
 
   loadMails() {
-    // const user = this.authService.getUser();
+    this.allSelected = false;
+    this.mailService.getMailTickets().subscribe({
+      next: (res) => {
+        // const mapped = res.data;
 
-    // // Si es ASESOR, carga sus tickets + los no asignados
-    // if (this.authService.hasRole([this.roleIdAsesor]) && user?.id) {
-    //   this.mailService.getTicketsByAdvisor(user.id).subscribe({
-    //     next: (assigned: MailDto[]) => {
-    //       this.mailService.getMessagesNoAdvisor().subscribe({
-    //         next: (unassigned: MailDto[]) => {
-    //           const all = [...assigned, ...unassigned];
-    //           const mapped = all.map((item) => this.mapMail(item));
-    //           const view = this.currentView();
+        // const view = this.currentView();
 
-    //           const filtered = mapped.filter((m) => {
-    //             if (view === 'inbox') {
-    //               return m.folder === 'inbox' || m.status === 'unassigned';
-    //             } else if (['sent', 'drafts', 'spam', 'trash'].includes(view)) {
-    //               return m.folder === view;
-    //             } else if (['open', 'closed', 'unassigned'].includes(view)) {
-    //               return m.status === view;
-    //             } else {
-    //               return true;
-    //             }
-    //           });
+        // const filtered = mapped.filter((m) => {
+        //   if (view === 'inbox') {
+        //     return (
+        //       m.folder === 'inbox' ||
+        //       m.state?.id === mailEnumToState[MailEnum.UNASSIGNED]
+        //     );
+        //   } else if (['sent', 'drafts', 'spam', 'trash'].includes(view)) {
+        //     return m.folder === view;
+        //   } else if (
+        //     [
+        //       'open',
+        //       'closed',
+        //       'attention',
+        //       'pendding',
+        //       'noWish',
+        //       'unassigned',
+        //     ].includes(view)
+        //   ) {
+        //     return m.state?.id === mailEnumToState[view];
+        //   } else {
+        //     return true;
+        //   }
+        // });
 
-    //           this.mails.set(filtered);
-    //         },
-    //         error: (err) =>
-    //           console.error('❌ Error obteniendo correos sin asignar', err),
-    //       });
-    //     },
-    //     error: (err) =>
-    //       console.error('❌ Error obteniendo tickets por ASESOR', err),
-    //   });
-    //   return;
-    // }
-
-    // Si es admin o supervisor, carga todos los mensajes
-    this.mailService.getMessages().subscribe({
-      next: (res: MailDto[]) => {
-        const mapped = res.map((item) => this.mapMail(item));
-
-        const view = this.currentView();
-
-        const filtered = mapped.filter((m) => {
-          if (view === 'inbox') {
-            return (
-              m.folder === 'inbox' ||
-              m.state?.id === mailEnumToState[MailEnum.UNASSIGNED]
-            );
-          } else if (['sent', 'drafts', 'spam', 'trash'].includes(view)) {
-            return m.folder === view;
-          } else if (
-            [
-              'open',
-              'closed',
-              'attention',
-              'pendding',
-              'noWish',
-              'unassigned',
-            ].includes(view)
-          ) {
-            return m.state?.id === mailEnumToState[view];
-          } else {
-            return true;
-          }
-        });
-
-        this.mails.set(filtered);
+        this.mails.set(res.data);
       },
       error: (err) => console.error('❌ Error cargando mensajes', err),
     });
   }
 
   setView(view: MailType) {
-    this.selectedMail.set(null);
+    this.selectedMail.set(undefined);
     this.router.navigate([this.originalRoute], {
       queryParams: { view },
     });
@@ -704,7 +646,7 @@ export class MailComponent implements OnInit {
 
     // Crear FormData
     const formData = new FormData();
-    formData.append('to', this.replyTo.trim()); // backend espera string, él mismo convierte en array
+    formData.append('to', this.replyTo!.trim()); // backend espera string, él mismo convierte en array
     formData.append('subject', this.replySubject);
     formData.append('content', this.replyText);
     formData.append('mailAttentionId', ''); // vacío por ahora
@@ -727,10 +669,10 @@ export class MailComponent implements OnInit {
     });
   }
 
-  replyMode: 'reply' | 'compose' | 'forward' | null = null;
-  replyTarget: 'CIUDADANO' | 'Interno' | null = null;
-  replyTo = '';
-  replySubject = '';
+  replyMode: 'reply' | 'compose' | 'forward' | undefined = undefined;
+  replyTarget: 'CIUDADANO' | 'Interno' | undefined = undefined;
+  replyTo?: string;
+  replySubject?: string;
 
   startReply() {
     this.replyMode = 'reply';
@@ -771,20 +713,20 @@ export class MailComponent implements OnInit {
   }
 
   sendReply() {
-    if (!this.replyText.trim() || !this.selectedMail()) return;
+    if (!this.replyText!.trim() || !this.selectedMail()) return;
 
-    const mailId = this.selectedMail()?.mailAttentionId;
+    const mailId = this.selectedMail()?.id;
     if (!mailId) return;
 
     // 🚫 ya no mandamos this.replyTarget al backend
-    this.mailService.replyEmail(mailId, this.replyText).subscribe({
+    this.mailService.replyEmail(mailId, this.replyText!).subscribe({
       next: (res) => {
         console.log('✅ Respuesta guardada en backend:', res);
 
         this.replyText = '';
         this.attachments = [];
         this.isReplying = false;
-        this.replyTarget = null;
+        this.replyTarget = undefined;
         this.cancelReply();
       },
       error: (err) => {
@@ -794,13 +736,13 @@ export class MailComponent implements OnInit {
   }
 
   cancelReply() {
-    this.replyMode = null;
+    this.replyMode = undefined;
     this.replyText = '';
     this.replyTo = '';
     this.replySubject = '';
   }
 
-  reply(mail?: Mail) {
+  reply(mail?: MailDto) {
     const targetMail = mail || this.selectedMail();
     if (!targetMail) return;
 
@@ -832,17 +774,48 @@ export class MailComponent implements OnInit {
     return raw.replace(/<[^>]*>/g, '').slice(0, 100) || '(sin contenido)';
   }
 
-  getSafeContent(body?: string | null): SafeHtml {
-    // 🔹 Si viene vacío, devolvemos un fallback claro
+  private escapeRegex(s: string): string {
+    // Escapa caracteres especiales para construir RegExp dinámico
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  getSafeContent(body?: string, attachments: any[] = []): string {
+    // Si viene vacío, devolvemos un fallback claro
     if (!body || body.trim() === '') {
-      return this.sanitizer.bypassSecurityTrustHtml('<i>(sin contenido)</i>');
+      return '<i>(sin contenido)</i>';
     }
 
-    // 🔹 Limpiamos el contenido antes de confiarlo
+    // Limpia el contenido (tu función existente)
     const cleaned = this.cleanBody(body);
 
-    // 🔹 Retornamos como HTML seguro
-    return this.sanitizer.bypassSecurityTrustHtml(cleaned);
+    // Usaremos cleanHtml para aplicar los reemplazos incrementalmente
+    let cleanHtml = cleaned;
+
+    // Normalizar base URL (quita slash final si lo tiene)
+    const base = this.mediaUrl ? this.mediaUrl.replace(/\/$/, '') : '';
+
+    attachments.forEach((att) => {
+      // Soportar varias claves posibles: attachmentGmailId, cid, id, etc.
+      const cidId = att.cid;
+      const publicUrl = att.publicUrl;
+
+      if (cidId && publicUrl) {
+        // Construir URL segura uniendo sin duplicar '/'
+        const realUrl = `${base}/${publicUrl.replace(/^\//, '')}`;
+
+        // Escapar id para usar en RegExp
+        const escaped = this.escapeRegex(cidId);
+
+        // Buscamos cualquier aparición de cid:ID (global)
+        const regex = new RegExp(`cid:${escaped}`, 'g');
+
+        // Reemplazamos en cleanHtml (no en cleaned)
+        cleanHtml = cleanHtml.replace(regex, realUrl);
+      }
+    });
+
+    // Retornamos como HTML seguro
+    return cleanHtml;
   }
 
   cleanBody(raw: string): string {
@@ -860,7 +833,7 @@ export class MailComponent implements OnInit {
     // 👇 Quitar solo ">" que estén solos en la línea (dejando espacios o salto)
     cleaned = cleaned.replace(/^>\s*$/gm, '');
 
-    return cleaned.trim() || '(sin contenido)';
+    return cleaned!.trim() || '(sin contenido)';
   }
 
   safeBody: SafeHtml = '';
@@ -953,22 +926,22 @@ export class MailComponent implements OnInit {
   }
 
   // Buscador
-  searchQuery = signal('');
+  searchText = signal<string | undefined>(undefined);
 
   // 👉 Saber si hay correos seleccionados
   get hasSelection(): boolean {
-    return this.filteredMails.filter((item) => item.selected).length != 0;
+    return this.mails().filter((item) => item.selected).length != 0;
   }
 
-  toggleStar(mail: Mail) {
-    mail.starred = !mail.starred;
-    this.mails.set([...this.mails()]);
-  }
+  // toggleStar(mail: MailDto) {
+  //   mail.starred = !mail.starred;
+  //   this.mails.set([...this.mails()]);
+  // }
 
-  toggleRead(mail: Mail) {
-    mail.read = !mail.read;
-    this.mails.set([...this.mails()]);
-  }
+  // toggleRead(mail: MailDto) {
+  //   mail.read = !mail.read;
+  //   this.mails.set([...this.mails()]);
+  // }
 
   /** 🔄 Refrescar mensajes (simulado, aquí iría tu servicio al backend) */
   refreshMessages() {
@@ -1029,7 +1002,7 @@ export class MailComponent implements OnInit {
   }
 
   /** Seleccionar/deseleccionar un correo */
-  toggleSelect(mail: Mail) {
+  toggleSelect(mail: MailDto) {
     this.mails.update((mails) =>
       mails.map((m) => (m.id === mail.id ? { ...m, selected: !m.selected } : m))
     );
@@ -1042,10 +1015,10 @@ export class MailComponent implements OnInit {
   /** Poner correos seleccionados en Atención */
   attentionSelected() {
     const mailAttentionIds = this.selectedMail()
-      ? [this.selectedMail()?.mailAttentionId!]
+      ? [this.selectedMail()?.id!]
       : this.mails()
-          .filter((m) => m.selected && m.mailAttentionId)
-          .map((item) => item.mailAttentionId!);
+          .filter((m) => m.selected && m.id)
+          .map((item) => item.id!);
 
     if (mailAttentionIds.length === 0) {
       console.warn('⚠️ No hay correos seleccionados para poner en atención');
@@ -1056,9 +1029,7 @@ export class MailComponent implements OnInit {
       this.mailService.attentionTicket(id).subscribe({
         next: () => {
           this.mails.update((mails) =>
-            mails.map((m) =>
-              m.mailAttentionId === id ? { ...m, status: 'attention' } : m
-            )
+            mails.map((m) => (m.id === id ? { ...m, status: 'attention' } : m))
           );
         },
         error: (err) => {
@@ -1071,10 +1042,10 @@ export class MailComponent implements OnInit {
   /** Marcar correos seleccionados como No Wish */
   noWishSelected() {
     const mailAttentionIds = this.selectedMail()
-      ? [this.selectedMail()?.mailAttentionId!]
+      ? [this.selectedMail()?.id!]
       : this.mails()
-          .filter((m) => m.selected && m.mailAttentionId)
-          .map((item) => item.mailAttentionId!);
+          .filter((m) => m.selected && m.id)
+          .map((item) => item.id!);
 
     if (mailAttentionIds.length === 0) {
       console.warn('⚠️ No hay correos seleccionados para marcar como No Wish');
@@ -1085,9 +1056,7 @@ export class MailComponent implements OnInit {
       this.mailService.noWishTicket(id).subscribe({
         next: () => {
           this.mails.update((mails) =>
-            mails.map((m) =>
-              m.mailAttentionId === id ? { ...m, status: 'noWish' } : m
-            )
+            mails.map((m) => (m.id === id ? { ...m, status: 'noWish' } : m))
           );
         },
         error: (err) => {
@@ -1114,10 +1083,10 @@ export class MailComponent implements OnInit {
     ref.onClose.subscribe((res) => {
       if (res) {
         const mailAttentionIds = this.selectedMail()
-          ? [this.selectedMail()?.mailAttentionId!]
+          ? [this.selectedMail()?.id!]
           : this.mails()
               .filter((m) => m.selected)
-              .map((item) => item.mailAttentionId!);
+              .map((item) => item.id!);
 
         this.mailService.closeMultipleTicket(mailAttentionIds).subscribe({
           next: () => {
@@ -1147,67 +1116,67 @@ export class MailComponent implements OnInit {
 
   moveMenuOpen = false;
 
-  /** Mover correos seleccionados a una carpeta */
-  moveSelected(folder: Mail['folder']) {
-    console.log('📂 Moviendo a:', folder);
-    this.mails.update((mails) =>
-      mails.map((m) => (m.selected ? { ...m, folder, selected: false } : m))
-    );
-  }
+  // /** Mover correos seleccionados a una carpeta */
+  // moveSelected(folder: MailDto['folder']) {
+  //   console.log('📂 Moviendo a:', folder);
+  //   this.mails.update((mails) =>
+  //     mails.map((m) => (m.selected ? { ...m, folder, selected: false } : m))
+  //   );
+  // }
 
-  /** Archivar correos seleccionados */
-  archiveSelected() {
-    this.moveSelected('drafts');
-  }
+  // /** Archivar correos seleccionados */
+  // archiveSelected() {
+  //   this.moveSelected('drafts');
+  // }
 
-  /** Marcar como spam */
-  markAsSpam() {
-    this.moveSelected('spam');
-  }
+  // /** Marcar como spam */
+  // markAsSpam() {
+  //   this.moveSelected('spam');
+  // }
 
-  /** Aplicar selección según opción del menú */
-  applySelection(
-    option:
-      | 'all'
-      | 'none'
-      | 'read'
-      | 'unread'
-      | 'starred'
-      | 'unstarred'
-      | 'open'
-      | 'attention'
-      | 'closed'
-      | 'unassigned'
-  ) {
-    this.mails.update((mails) =>
-      mails.map((m) => {
-        switch (option) {
-          case 'all':
-            return { ...m, selected: true };
-          case 'none':
-            return { ...m, selected: false };
-          case 'read':
-            return { ...m, selected: m.read };
-          case 'unread':
-            return { ...m, selected: !m.read };
-          case 'starred':
-            return { ...m, selected: m.starred };
-          case 'unstarred':
-            return { ...m, selected: !m.starred };
-          // case 'open':
-          //   return { ...m, selected: m.status === 'open' };
-          // case 'closed':
-          //   return { ...m, selected: m.status === 'closed' };
-          // case 'unassigned':
-          //   return { ...m, selected: m.status === 'unassigned' };
-          default:
-            return m;
-        }
-      })
-    );
+  // /** Aplicar selección según opción del menú */
+  // applySelection(
+  //   option:
+  //     | 'all'
+  //     | 'none'
+  //     | 'read'
+  //     | 'unread'
+  //     | 'starred'
+  //     | 'unstarred'
+  //     | 'open'
+  //     | 'attention'
+  //     | 'closed'
+  //     | 'unassigned'
+  // ) {
+  //   this.mails.update((mails) =>
+  //     mails.map((m) => {
+  //       switch (option) {
+  //         case 'all':
+  //           return { ...m, selected: true };
+  //         case 'none':
+  //           return { ...m, selected: false };
+  //         case 'read':
+  //           return { ...m, selected: m.read };
+  //         case 'unread':
+  //           return { ...m, selected: !m.read };
+  //         case 'starred':
+  //           return { ...m, selected: m.starred };
+  //         case 'unstarred':
+  //           return { ...m, selected: !m.starred };
+  //         // case 'open':
+  //         //   return { ...m, selected: m.status === 'open' };
+  //         // case 'closed':
+  //         //   return { ...m, selected: m.status === 'closed' };
+  //         // case 'unassigned':
+  //         //   return { ...m, selected: m.status === 'unassigned' };
+  //         default:
+  //           return m;
+  //       }
+  //     })
+  //   );
 
-    this.selectMenuOpen = false; // cerrar el menú después de seleccionar
-  }
+  //   this.selectMenuOpen = false; // cerrar el menú después de seleccionar
+  // }
 
   setSelectedAt(index: number, checked: boolean) {
     this.mails.update((mails) => {
@@ -1224,7 +1193,7 @@ export class MailComponent implements OnInit {
   }
 
   /** Seleccionar un correo para verlo */
-  selectMail(mail: Mail) {
+  selectMail(mail: MailDto) {
     this.selectedMail.set(mail);
 
     // 🔹 Pedir el detalle actualizado
@@ -1245,7 +1214,7 @@ export class MailComponent implements OnInit {
 
   /** Volver a la lista */
   backToList() {
-    this.selectedMail.set(null);
+    this.selectedMail.set(undefined);
   }
 
   isDetailsOpen = false;
@@ -1280,8 +1249,8 @@ export class MailComponent implements OnInit {
     this.showMoreDetail = !this.showMoreDetail;
   }
 
-  linkText = '';
-  linkUrl = '';
+  linkText?: string;
+  linkUrl?: string;
   showLinkDialog = false;
 
   linkForm = new FormGroup({
@@ -1326,35 +1295,35 @@ export class MailComponent implements OnInit {
   }
 
   // Cambiar estado (open <-> closed)
-  toggleStatus(mail: Mail) {
+  toggleStatus(mail: MailDto) {
     // mail.status = mail.status === 'open' ? 'closed' : 'open';
     this.mails.set([...this.mails()]);
   }
 
   // Acciones de botones
-  assignAdvisor(mail: Mail) {
+  assignAdvisor(mail: MailDto) {
     console.log('👤 Asignar ASESOR a:', mail);
     // Aquí podrías abrir un modal o lista de ASESORes
   }
 
-  openDetails(mail: Mail) {
+  openDetails(mail: MailDto) {
     console.log('📄 Ver detalles de:', mail);
     this.selectMail(mail);
   }
 
-  /** Abrir/cerrar menú de acciones (⋮) */
-  toggleMore(mail: Mail) {
-    this.mails.update((mails) =>
-      mails.map(
-        (m) =>
-          m.id === mail.id
-            ? { ...m, showMore: !m.showMore }
-            : { ...m, showMore: false } // cierra otros menús
-      )
-    );
-  }
+  // /** Abrir/cerrar menú de acciones (⋮) */
+  // toggleMore(mail: MailDto) {
+  //   this.mails.update((mails) =>
+  //     mails.map(
+  //       (m) =>
+  //         m.id === mail.id
+  //           ? { ...m, showMore: !m.showMore }
+  //           : { ...m, showMore: false } // cierra otros menús
+  //     )
+  //   );
+  // }
 
-  onDeleteMail(mail: Mail) {
+  onDeleteMail(mail: MailDto) {
     console.log('🗑 Eliminar:', mail.subject);
     this.mails.update((mails) => mails.filter((m) => m.id !== mail.id));
   }
@@ -1372,11 +1341,11 @@ export class MailComponent implements OnInit {
     this.forwardText = mail.body;
     this.forwardBody = '';
     this.forwardFrom = mail.from;
-    this.forwardMailAttentionId = mail.mailAttentionId ?? null;
+    this.forwardMailAttentionId = mail.id ?? null;
   }
 
   sendForward() {
-    if (!this.forwardTo.trim() || !this.forwardMailAttentionId) {
+    if (!this.forwardTo!.trim() || !this.forwardMailAttentionId) {
       alert('Falta el destinatario o el ID del correo para reenviar');
       return;
     }
@@ -1402,34 +1371,34 @@ export class MailComponent implements OnInit {
       next: (res) => {
         console.log('✅ Correo reenviado:', res);
 
-        const newForward: Reply = {
-          id: Date.now(),
-          from: 'demo.correo.sat@gmail.com',
-          body: fullBody, // guardamos todo en historial
-          date: new Date(),
-          attachments: this.attachments.map((a) => ({
-            name: a.name,
-            size: a.size,
-            url: URL.createObjectURL(a.file),
-          })),
-          type: 'REENVIO_INTERNO',
-        };
+        // const newForward: Reply = {
+        //   id: Date.now(),
+        //   from: 'demo.correo.sat@gmail.com',
+        //   body: fullBody, // guardamos todo en historial
+        //   date: new Date(),
+        //   attachments: this.attachments.map((a) => ({
+        //     name: a.name,
+        //     size: a.size,
+        //     url: URL.createObjectURL(a.file),
+        //   })),
+        //   type: 'REENVIO_INTERNO',
+        // };
 
-        // actualizar lista global y seleccionado
-        const updatedMails = this.mails().map((mail) =>
-          mail.mailAttentionId === this.forwardMailAttentionId
-            ? { ...mail, replies: [...(mail.replies || []), newForward] }
-            : mail
-        );
-        this.mails.set(updatedMails);
+        // // actualizar lista global y seleccionado
+        // const updatedMails = this.mails().map((mail) =>
+        //   mail.id === this.forwardMailAttentionId
+        //     ? { ...mail, replies: [...(mail.replies || []), newForward] }
+        //     : mail
+        // );
+        // this.mails.set(updatedMails);
 
-        const current = this.selectedMail();
-        if (current) {
-          this.selectedMail.set({
-            ...current,
-            replies: [...(current.replies || []), newForward],
-          });
-        }
+        // const current = this.selectedMail();
+        // if (current) {
+        //   this.selectedMail.set({
+        //     ...current,
+        //     replies: [...(current.replies || []), newForward],
+        //   });
+        // }
 
         this.cancelForward();
       },
@@ -1445,7 +1414,7 @@ export class MailComponent implements OnInit {
     this.forwardText = '';
     this.attachments = [];
     this.isForwardMode = false;
-    this.forwardMailAttentionId = null;
+    this.forwardMailAttentionId = undefined;
   }
 
   /** Rebalancear carga de correos */
@@ -1469,7 +1438,7 @@ export class MailComponent implements OnInit {
     this.mailService.getTicketsByAdvisor(query).subscribe({
       next: (res: MailDto[]) => {
         console.log('🎯 Tickets del ASESOR', res);
-        this.mails.set(res.map((item) => this.mapMail(item)));
+        this.mails.set(res);
       },
       error: (err) => console.error('❌ Error obteniendo tickets', err),
     });
@@ -1481,7 +1450,7 @@ export class MailComponent implements OnInit {
     this.mailService.getMessagesAdvisorOpen(query).subscribe({
       next: (res: MailDto[]) => {
         console.log('📬 Correos abiertos del ASESOR', res);
-        this.mails.set(res.map((item) => this.mapMail(item)));
+        this.mails.set(res);
       },
       error: (err) => console.error('❌ Error obteniendo abiertos', err),
     });
@@ -1502,5 +1471,44 @@ export class MailComponent implements OnInit {
         this.loadSignature();
       }
     });
+  }
+
+  getPlainTextFromHtml(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  }
+
+  // iconMapper.ts
+  obtenerIconoPorMime(mimetype: string): string {
+    // Devuelve un ícono genérico si no hay coincidencia
+    return fileIcons[mimetype] || 'mdi:file';
+  }
+
+  showFile(attach: any) {
+    this.dialogService.open(FileViewerComponent, {
+      header: 'Ver archivo adjunto',
+      styleClass: 'modal-lg',
+      data: { attach },
+      modal: true,
+      focusOnShow: false,
+      dismissableMask: false,
+      draggable: true,
+      closable: true,
+    });
+  }
+
+  searchEmailFrom(event: AutoCompleteCompleteEvent) {
+    this.emailItemsFrom = this.emailList.filter(
+      (item) =>
+        item.name.includes(event.query) || item.email.includes(event.query)
+    );
+  }
+
+  searchEmailTo(event: AutoCompleteCompleteEvent) {
+    this.emailItemsTo = this.emailList.filter(
+      (item) =>
+        item.name.includes(event.query) || item.email.includes(event.query)
+    );
   }
 }

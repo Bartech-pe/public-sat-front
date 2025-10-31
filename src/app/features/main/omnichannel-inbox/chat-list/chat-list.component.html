@@ -8,25 +8,20 @@
         <h4 class="p-card-title text-lg font-semibold">Lista de chats</h4>
 
         <!-- Estado del usuario -->
-        @if(!['administrador'].includes(getUserRole())) {
+        @if(!['administrador'].includes(getUserRole()) && statusOptions.length > 0 && channel != 'telegram') {
         <div class="flex items-center gap-1">
-          <p>Tu estado:</p>
           <button
             #statusBtn
             pRipple
             (click)="statusMenu.toggle($event)"
-            [ngClass]="{
-              'bg-green-100 border-green-300': userStatus === 'Disponible',
-              'bg-red-100 border-red-300': userStatus !== 'Disponible'
-            }"
-            class="flex items-center gap-2.5 pl-2 py-2 border rounded-lg hover:shadow-md transition-all duration-200"
+            [style.border-color]="statusColor || 'red'"
+            class="flex  items-center gap-2.5 pl-2 py-2 border  rounded-lg hover:shadow-md transition-all duration-200"
           >
             <div
-              [ngClass]="
-                userStatus === 'Disponible' ? 'bg-green-600' : 'bg-red-500'
-              "
+              [style.background-color]="statusColor || 'red'"
               class="w-2.5 h-2.5 rounded-full flex-shrink-0"
             ></div>
+
             <span class="text-sm font-semibold text-gray-800 whitespace-nowrap">
               {{ userStatus }}
             </span>
@@ -36,13 +31,13 @@
             ></iconify-icon>
           </button>
 
-          <p-menu
-            #statusMenu
-            [popup]="true"
-            [model]="statusOptions"
-            appendTo="body"
-            (onItemClick)="changeUserStatus($event)"
-          ></p-menu>
+            <p-menu
+              #statusMenu
+              [popup]="true"
+              [model]="statusOptions"
+              appendTo="body"
+              (onItemClick)="changeUserStatus($event)"
+            ></p-menu>
         </div>
         }
       </div>
@@ -261,9 +256,9 @@
                       chat?.lastMessage?.citizen?.phone | phoneFormat
                   }}
                 </h3>
-                <span class="text-sm text-gray-500 whitespace-nowrap ml-2">{{
-                  chat.lastMessage.time
-                }}</span>
+                <span class="text-sm text-gray-500 whitespace-nowrap ml-2">
+                  {{ chat.lastMessage.time | date:(isToday(chat.lastMessage.time) ? 'HH:mm' : 'dd/MM/yyyy HH:mm') }}
+                </span>
               </div>
               <div class="flex items-start gap-2 mb-2">
                 @if (chat.lastMessage.fromMe) {

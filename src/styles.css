@@ -479,7 +479,15 @@ sidebar-button a:hover iconify-icon {
 }
 
 .p-datatable-tbody > tr > td {
-  @apply !py-1;
+  @apply !py-1.5;
+}
+
+.table-y-lg .p-datatable-tbody > tr > td {
+  @apply !py-2;
+}
+
+.table-x-sm .p-datatable-tbody > tr > td {
+  @apply !px-2;
 }
 
 .p-datatable-tfoot > tr > td {
@@ -500,3 +508,9 @@ sidebar-button a:hover iconify-icon {
 .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
 .float { animation: float 3s ease-in-out infinite; }
 .reveal { animation: reveal 0.6s ease-out forwards; }
+.mwl-calendar-month-view .cal-event {
+  padding: 2px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

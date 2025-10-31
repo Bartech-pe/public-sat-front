@@ -10,11 +10,25 @@
               </label>
 
               <div class="relative">
-                <p-dropdown [(ngModel)]="vidicialId" [options]="listCampaignVicidial" optionLabel="campaign_name"
+                <!-- <p-dropdown [(ngModel)]="vidicialId" [options]="listCampaignVicidial" optionLabel="campaign_name"
                   optionValue="campaign_id" placeholder="Selecciona un campaña"
                   class="w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300" appendTo="body"
                   [filter]="true" [showClear]="true" filterPlaceholder="Buscar Campaña..." (onChange)="onCampaignChange($event)" >
-                </p-dropdown>
+                </p-dropdown> -->
+
+                <p-select
+                  [(ngModel)]="vidicialId"
+                  [options]="listCampaignVicidial"
+                  optionLabel="campaign_name"
+                  optionValue="campaign_id"
+                  placeholder="Selecciona una campaña"
+                  appendTo="body"
+                  [filter]="true"
+                  [showClear]="true"
+                  filterPlaceholder="Buscar campaña..."
+                  class="w-full rounded-lg shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-blue-400"
+                  (onChange)="onCampaignChange($event)">
+                </p-select>
               </div>
 
           
@@ -28,11 +42,11 @@
               </label>
 
               <div class="relative">
-                <p-dropdown id="audioDropdown" [(ngModel)]="name_archivo" [options]="listAudios" optionLabel="audio_filename"
+                <p-select id="audioDropdown" [(ngModel)]="name_archivo" [options]="listAudios" optionLabel="audio_filename"
                   optionValue="audio_filename" placeholder="Selecciona un audio"
                   class="w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300" appendTo="body"
                   [filter]="true" [showClear]="true" filterPlaceholder="Buscar audio..." (onChange)="onAudioChange($event)">
-                </p-dropdown>
+                </p-select>
               </div>
 
               <div *ngIf="audioUrlAudio"
@@ -119,7 +133,7 @@
                 <label for="departmentId" class="block text-sm font-medium mb-1"
                   >Área <span class="text-xs">*</span></label
                 >
-                <p-dropdown
+                <p-select
                   [options]="departmentList"
                   [(ngModel)]="formlist.departmentId"
                   optionLabel="name"
@@ -127,7 +141,7 @@
                   placeholder="Seleccionar Área"
                   class="w-full mb-3"
                   appendTo="body"
-                ></p-dropdown>
+                ></p-select>
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -174,8 +188,6 @@
       </div>
 
    
-      
-
       <div class="pt-4 flex justify-end space-x-2" *ngIf="formlist.list_id">
         <button-cancel (click)="onCancel()" />
         <p-button (click)="guardarlead()" size="small" styleClass="w-full" severity="primary">

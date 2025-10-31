@@ -26,7 +26,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
 import * as XLSX from 'xlsx';
 import { Campaign } from '@models/campaign.model';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { environment } from '@envs/environments';
 import { TableModule } from 'primeng/table';
 import { DepartmentStore } from '@stores/department.store';
@@ -42,7 +42,7 @@ import { Department } from '@models/department.model';
     FieldsetModule,
     InputTextModule,
     ButtonCancelComponent,
-    DropdownModule,
+    SelectModule,
     TableModule,
   ],
   templateUrl: './audio-settings.component.html',

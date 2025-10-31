@@ -7,18 +7,18 @@
              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="mb-6">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Selecciona Campaña</label>
-                        <p-dropdown
+                        <p-select
                         [options]="listCampaignVicidial" optionLabel="campaign_name"
                         [(ngModel)]="selectedCampaign" name="selectedCampaign"
                         optionValue="campaign_id" placeholder="Selecciona un campaña"
                         class="w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300" appendTo="body"
                         [filter]="true" [showClear]="true" filterPlaceholder="Buscar Campaña..." (onChange)="onCampaignChange($event)"
-                        ></p-dropdown>
+                        ></p-select>
                   </div>
 
                   <div class="mb-6">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Selecciona Área</label>
-                       <p-dropdown
+                       <p-select
                               [options]="departmentList"
                               [(ngModel)]="selectedArea"
                               name="selectedArea"
@@ -29,7 +29,7 @@
                               styleClass="w-full"
                               [showClear]="true"
                               appendTo="body"
-                        ></p-dropdown>
+                        ></p-select>
                   </div>
             </div>
 
@@ -80,7 +80,7 @@
           <!-- Contactos -->
           <div>
             <label for="idContacto" class="block text-sm font-medium mb-1" >Variables <span class="text-xs">*</span></label>
-            <p-dropdown
+            <p-select
               [options]="excelHeaders"
               [(ngModel)]="variable"
               name="variable"
@@ -88,21 +88,21 @@
               class="w-full mb-2"
               appendTo="body"
               (onChange)="insertVariable($event)"
-            ></p-dropdown>
+            ></p-select>
           </div>
 
           <div>
             <label for="idContacto" class="block text-sm font-medium mb-1"
               >Contactos de Destino <span class="text-xs">*</span></label
             >
-            <p-dropdown
+            <p-select
               [options]="excelHeaders"
               [(ngModel)]="contact"
               name="contact"
               placeholder="Seleccionar Contacto"
               class="w-full mb-2"
               appendTo="body"
-            ></p-dropdown>
+            ></p-select>
             <div class="text-xs text-blue-500 text-right">
               Seleccionar la columna que contenga los números móviles
             </div>

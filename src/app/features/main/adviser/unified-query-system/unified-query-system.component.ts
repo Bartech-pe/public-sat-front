@@ -1,7 +1,6 @@
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
-  effect,
   inject,
   Input,
   OnInit,
@@ -13,9 +12,7 @@ import {
   DynamicDialogConfig,
   DynamicDialogModule,
 } from 'primeng/dynamicdialog';
-import { BreakComponent } from '../phone/break/break.component';
 import { CommonModule } from '@angular/common';
-import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import {
   FormControl,
@@ -24,20 +21,14 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { AloSatService } from '@services/alo-sat.service';
 import { SelectModule } from 'primeng/select';
-import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import {
   CitizenInfo,
   ExternalCitizenService,
 } from '@services/externalCitizen.service';
-import { AuthStore } from '@stores/auth.store';
-import { filter, merge, Subscription, tap } from 'rxjs';
-import { CallTimerService } from '@services/call-timer.service';
 import { TextareaModule } from 'primeng/textarea';
 import { FieldsetModule } from 'primeng/fieldset';
 import { TableModule } from 'primeng/table';
-import { TransferCallComponent } from '../phone/transfer-call/transfer-call.component';
 import { OmnicanalidadService } from '@services/api-sat/omnicanalidad.service';
 import { SaldomaticoService } from '@services/api-sat/saldomatico.service';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -46,31 +37,20 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TabsModule } from 'primeng/tabs';
 import { CitizenAssistanceService } from '@services/citizen-assistance.service';
 import { CitizenAssistance } from '@models/citizen-assistance.model';
-import { AloSatStore } from '@stores/alo-sat.store';
-import { ChannelState } from '@models/channel-state.model';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
-import {
-  ChannelPhoneState,
-  pauseCodeAgent,
-  VicidialPauseCode,
-} from '@constants/pause-code-agent.constant';
+import { pauseCodeAgent } from '@constants/pause-code-agent.constant';
 import { CardModule } from 'primeng/card';
-import { SocketService } from '@services/socket.service';
-import { User } from '@models/user.model';
-import { TimeAgoPipe } from '@pipes/time-ago.pipe';
 import { ConsultTypeStore } from '@stores/consult-type.store';
 import { TypeIdeDocStore } from '@stores/type-ide-doc.store';
 import { ConsultType } from '@models/consult-type.modal';
 import { TypeIdeDoc } from '@models/type-ide-doc.model';
-import { ChannelAssistanceStore } from '@stores/channel-assistance.store';
-import { ChannelAssistance } from '@models/channel-assistance.model';
 import { ChannelAssistanceService } from '@services/channel-assistance.service';
-import { TimeElapsedPipe } from '@pipes/time-elapsed.pipe';
-import { DurationPipe } from '@pipes/duration.pipe';
-import { ChannelAttentionService } from '@services/channel-attention.service';
 import { ChannelCitizenService } from '@services/channel-citizen.service';
 import { IAttentionRecord } from '@interfaces/features/main/unified-query-system/attentionRecord.interface';
 import { QueryHistoryComponent } from '@shared/modal/query-history/query-history.component';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { CategoryChannelStore } from '@stores/category-channel.store';
+import { CategoryChannel } from '@models/category-channel.model';
 
 @Component({
   selector: 'app-unified-query-system',
@@ -100,7 +80,15 @@ import { QueryHistoryComponent } from '@shared/modal/query-history/query-history
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class UnifiedQuerySistemComponent implements OnInit {
-  @Input() documentToSearch?: string;
+  _documentToSearch?: string;
+  @Input() set documentToSearch(val: string) {
+    this._documentToSearch = val;
+    this.search();
+  }
+
+  get documentToSearch(): string | undefined {
+    return this._documentToSearch;
+  }
 
   openModal: boolean = false;
 
@@ -111,9 +99,7 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   private readonly dialogService = inject(DialogService);
 
-  private readonly authStore = inject(AuthStore);
-
-  private readonly aloSatStore = inject(AloSatStore);
+  private readonly msg = inject(MessageGlobalService);
 
   private readonly citizenAssistanceService = inject(CitizenAssistanceService);
 
@@ -125,11 +111,13 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   private readonly saldomaticoService = inject(SaldomaticoService);
 
-  readonly consultTypeStore = inject(ConsultTypeStore);
+  private readonly externalCitizenService = inject(ExternalCitizenService);
 
-  readonly typeIdeDocStore = inject(TypeIdeDocStore);
+  private readonly categoryChannelStore = inject(CategoryChannelStore);
 
-  motivo: any;
+  private readonly consultTypeStore = inject(ConsultTypeStore);
+
+  private readonly typeIdeDocStore = inject(TypeIdeDocStore);
 
   formData = new FormGroup({
     idCampaign: new FormControl<string | undefined>(undefined, {
@@ -137,12 +125,10 @@ export class UnifiedQuerySistemComponent implements OnInit {
       validators: [Validators.required],
     }),
   });
-  listCanalesComunicacion = [
-    { label: 'CORREO', code: 'email' },
-    { label: 'CHATSAT', code: 'chatsat' },
-    { label: 'WHATSAPP', code: 'whatsapp' },
-  ];
-  listCampaigns: any[] = [];
+
+  get listCategoryChannels(): CategoryChannel[] {
+    return this.categoryChannelStore.items();
+  }
 
   get consultTypeList(): ConsultType[] {
     return this.consultTypeStore.items();
@@ -152,44 +138,8 @@ export class UnifiedQuerySistemComponent implements OnInit {
     return this.typeIdeDocStore.items();
   }
 
-  get isLogged(): boolean {
-    return !!this.userState && this.userState?.id !== ChannelPhoneState.OFFLINE;
-  }
-
-  get agentStatus(): string | undefined {
-    return this.userState?.name;
-  }
-
-  get isInPaused(): boolean {
-    return this.userState?.id === ChannelPhoneState.PAUSED;
-  }
-
-  get isInCall(): boolean {
-    return this.userState?.id === ChannelPhoneState.INCALL;
-  }
-
-  get isInQueue(): boolean {
-    return this.userState?.id === ChannelPhoneState.QUEUE;
-  }
-
-  get isInWrap(): boolean {
-    return this.isInPaused && this.pauseCode === VicidialPauseCode.WRAP;
-  }
-
-  get isInPark(): boolean {
-    return this.isInCall && this.pauseCode === VicidialPauseCode.PARK;
-  }
-
   getPauseCodeValue(code: string): string {
     return pauseCodeAgent.find((p) => p.code === code)?.name!;
-  }
-
-  get isAloSat(): boolean {
-    return this.authStore.user()?.officeId === 1;
-  }
-
-  get user(): User {
-    return this.authStore.user()!;
   }
 
   tabSelected = 0;
@@ -233,103 +183,85 @@ export class UnifiedQuerySistemComponent implements OnInit {
 
   tableTramites: any[] = [];
 
-  searchText = signal('');
+  searchText?: string;
 
-  channelSelected: string = '';
+  channelSelected?: number = 1;
 
   tableComunicaciones: CitizenAssistance[] = [];
 
   tableChannelAllAttentions: IAttentionRecord[] = [];
 
-  tableChannelAttentionsFiltered: IAttentionRecord[] = [];
-
-  get userState(): ChannelState | undefined {
-    return this.aloSatStore.state();
+  get tableChannelAttentionsFiltered(): IAttentionRecord[] {
+    return [
+      ...this.tableChannelAllAttentions,
+      ...this.tableChannelAssistances,
+    ].filter((x) => x.categoryChannel?.id == this.channelSelected);
   }
 
-  get pauseCode(): string | undefined {
-    return this.aloSatStore.pauseCode();
-  }
-
-  get callInfo(): any | undefined {
-    return this.aloSatStore.callInfo();
-  }
-
-  get lastCallInfo(): any | undefined {
-    return this.aloSatStore.lastCallInfo();
-  }
+  tableChannelAssistances: IAttentionRecord[] = [];
 
   ngOnInit(): void {
-    const doc = this.documentToSearch || this.config?.data?.documentToSearch;
+    const doc = this.config?.data?.documentToSearch;
+    this.categoryChannelStore.loadAll();
     if (doc) {
-      this.searchText.set(doc);
+      this.searchText = doc;
       this.search();
     }
   }
 
   ngOnDestroy(): void {}
 
-  filterCommunications() {
-    const filteredTable = this.tableChannelAllAttentions.filter(
-      (x) => x.categoryChannel?.name == this.channelSelected
-    );
-    this.tableChannelAttentionsFiltered = [...filteredTable];
-  }
-
-  getAtenciones() {
-    if (this.searchText()) {
-      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
+  getAtenciones(doc?: string) {
+    if (doc) {
+      this.citizenAssistanceService.findByDocIde(doc).subscribe({
         next: (data) => {
           this.tableComunicaciones = data;
         },
       });
-      this.channelAssistanceService
-        .findByDocIdentityTyped(this.searchText())
-        .subscribe({
-          next: (data) => {
-            if (!data) return;
-            this.tableChannelAttentionsFiltered = data;
-          },
-        });
+      this.channelAssistanceService.findByDocIdentityTyped(doc).subscribe({
+        next: (data) => {
+          if (!data) return;
+          this.tableChannelAssistances = data;
+        },
+      });
 
-      this.channelCitizenService
-        .getAssistancesByDocumentNumber(this.searchText())
-        .subscribe({
-          next: (response) => {
-            if (response?.success && response?.data && response.data.length) {
-              let channelAttentions: IAttentionRecord[] = response.data.map(
-                (attention) => {
-                  return {
-                    categoryChannel: {
-                      name: attention?.channel,
-                    },
-                    method: 'CHAT',
-                    createdByUser: {
-                      fullName: attention?.advisorIntervention
-                        ? attention.user
-                        : 'BOT',
-                    },
-                    citizen: {
-                      name: attention?.email,
-                    },
-                    createdAt: attention?.startDate,
-                    result: 'Contacto',
-                    consultType: {
-                      name: attention?.type,
-                    },
-                    queryHistory: attention.queryHistory,
-                  };
-                }
-              );
-              this.tableChannelAllAttentions = [
-                ...this.tableChannelAllAttentions,
-                ...channelAttentions,
-              ];
-              this.tableChannelAttentionsFiltered =
-                this.tableChannelAllAttentions;
-            }
-          },
-        });
+      this.channelCitizenService.getAssistancesByDocumentNumber(doc).subscribe({
+        next: (response) => {
+          if (response?.success && response?.data && response.data.length) {
+            let channelAttentions: IAttentionRecord[] = response.data.map(
+              (attention) => {
+                return {
+                  categoryChannel: {
+                    name: attention?.channel,
+                  },
+                  method: 'CHAT',
+                  createdByUser: {
+                    fullName: attention?.advisorIntervention
+                      ? attention.user
+                      : 'BOT',
+                  },
+                  citizen: {
+                    name: attention?.email,
+                  },
+                  createdAt: attention?.startDate,
+                  result: 'Contacto',
+                  consultType: {
+                    name: attention?.type,
+                  },
+                  queryHistory: attention.queryHistory,
+                };
+              }
+            );
+
+            console.log('channelAttentions', channelAttentions);
+
+            this.tableChannelAllAttentions = [
+              ...this.tableChannelAllAttentions,
+              ...channelAttentions,
+            ];
+          }
+        },
+      });
     }
   }
 
@@ -347,9 +279,34 @@ export class UnifiedQuerySistemComponent implements OnInit {
     });
   }
 
-  getChannelAssistances() {
-    if (this.searchText()) {
-      this.citizenAssistanceService.findByDocIde(this.searchText()).subscribe({
+  getCitizenSelected(doc?: string) {
+    if (doc) {
+      this.loadingCitizen = true;
+      this.externalCitizenService
+        .getCitizenInformation({
+          psiTipConsulta: 2,
+          piValPar1: !isNaN(Number.parseInt(doc)) && doc.length == 8 ? 2 : 1,
+          pvValPar2: doc,
+        })
+        .subscribe({
+          next: (res) => {
+            this.citizen = res[0];
+            this.existCitizen = res.length != 0;
+            this.loadingCitizen = false;
+          },
+          error: (e) => {
+            this.msg.error(
+              e?.error?.message ||
+                'No se pudo encontrar los datos del ciudadano'
+            );
+          },
+        });
+    }
+  }
+
+  getChannelAssistances(doc?: string) {
+    if (doc) {
+      this.citizenAssistanceService.findByDocIde(doc).subscribe({
         next: (data) => {
           this.tableComunicaciones = data;
         },
@@ -357,127 +314,121 @@ export class UnifiedQuerySistemComponent implements OnInit {
     }
   }
 
-  getImpuestoPredial() {
-    this.saldomaticoService
-      .impuestoPredialInfo(
-        !isNaN(Number.parseInt(this.searchText())) &&
-          this.searchText().length == 8
-          ? 2
-          : this.searchText().length == 7
-          ? 5
-          : 1,
-        this.searchText()
-      )
-      .subscribe({
-        next: (data) => {
-          this.tableImpuestoPredial = data;
-        },
-      });
+  getImpuestoPredial(doc?: string) {
+    if (doc) {
+      this.saldomaticoService
+        .impuestoPredialInfo(
+          !isNaN(Number.parseInt(doc)) && doc.length == 8
+            ? 2
+            : doc.length == 7
+            ? 5
+            : 1,
+          doc
+        )
+        .subscribe({
+          next: (data) => {
+            this.tableImpuestoPredial = data;
+          },
+        });
+    }
   }
 
   getImpuestoVehicular(code?: string) {
-    this.saldomaticoService
-      .impuestoVehicularInfo(
-        !isNaN(Number.parseInt(this.searchText())) &&
-          this.searchText().length == 8
-          ? 2
-          : this.searchText().length == 7
-          ? 5
-          : 1,
-        this.searchText()
-      )
-      .subscribe({
-        next: (data) => {
-          this.tableImpuestoVehicular = data;
-        },
-      });
+    const doc = this.documentToSearch || this.searchText;
+
+    if (doc) {
+      this.saldomaticoService
+        .impuestoVehicularInfo(
+          !isNaN(Number.parseInt(doc)) && doc.length == 8
+            ? 2
+            : doc.length == 7
+            ? 5
+            : 1,
+          doc
+        )
+        .subscribe({
+          next: (data) => {
+            this.tableImpuestoVehicular = data;
+          },
+        });
+    }
   }
 
-  getPapeletaInfo() {
-    this.omnicanalidadService
-      .consultarPapeleta(
-        !isNaN(Number.parseInt(this.searchText())) &&
-          this.searchText().length == 8
-          ? 2
-          : 1,
-        this.searchText()
-      )
-      .subscribe({
-        next: (data) => {
-          this.tablePapeletas = data;
-        },
-      });
+  getPapeletaInfo(doc?: string) {
+    if (doc) {
+      this.omnicanalidadService
+        .consultarPapeleta(
+          !isNaN(Number.parseInt(doc)) && doc.length == 8 ? 2 : 1,
+          doc
+        )
+        .subscribe({
+          next: (data) => {
+            this.tablePapeletas = data;
+          },
+        });
+    }
   }
 
-  getDeuda() {
-    this.omnicanalidadService
-      .consultarMultaAdm(
-        !isNaN(Number.parseInt(this.searchText())) &&
-          this.searchText().length == 8
-          ? 2
-          : 1,
-        this.searchText()
-      )
-      .subscribe({
-        next: (data) => {
-          this.tableDeudas = data;
-        },
-      });
+  getMultaAdm(doc?: string) {
+    if (doc) {
+      console.log('getMultaAdm', doc);
+      this.omnicanalidadService
+        .consultarMultaAdm(
+          !isNaN(Number.parseInt(doc)) && doc.length == 8 ? 2 : 1,
+          doc
+        )
+        .subscribe({
+          next: (data) => {
+            this.tableDeudas = data;
+          },
+        });
+    }
   }
 
-  getTramites() {
-    this.omnicanalidadService
-      .consultarTramite(
-        !isNaN(Number.parseInt(this.searchText())) &&
-          this.searchText().length == 8
-          ? 2
-          : 1,
-        this.searchText()
-      )
-      .subscribe({
-        next: (data) => {
-          this.tableTramites = data;
-        },
-      });
+  getTramites(doc?: string) {
+    if (doc) {
+      this.omnicanalidadService
+        .consultarTramite(
+          !isNaN(Number.parseInt(doc)) && doc.length == 8 ? 2 : 1,
+          doc
+        )
+        .subscribe({
+          next: (data) => {
+            this.tableTramites = data;
+          },
+        });
+    }
   }
 
   search() {
-    this.clear();
-    this.getDeuda();
-    this.getImpuestoPredial();
-    this.getImpuestoVehicular();
-    this.getPapeletaInfo();
-    this.getTramites();
-    this.getAtenciones();
+    const doc = this.documentToSearch || this.searchText;
+    this.clear(false);
+    this.getCitizenSelected(doc);
+    this.getMultaAdm(doc);
+    this.getImpuestoPredial(doc);
+    this.getImpuestoVehicular(doc);
+    this.getPapeletaInfo(doc);
+    this.getTramites(doc);
+    this.getAtenciones(doc);
+    this.getChannelAssistances(doc);
   }
 
-  clear() {
+  clear(force: boolean = true) {
+    if (force) this.searchText = undefined;
+    this.existCitizen = false;
+    this.citizen = undefined;
     this.tableDeudas = [];
     this.tableImpuestoPredial = [];
     this.tablePapeletas = [];
     this.tableTramites = [];
     this.tableComunicaciones = [];
     this.tableChannelAllAttentions = [];
-    this.tableChannelAttentionsFiltered = [];
+    this.tableChannelAssistances = [];
   }
 
-  get loadingCitizen(): boolean {
-    return this.aloSatStore.loadingCitizen();
-  }
+  loadingCitizen: boolean = false;
 
-  get citizen(): CitizenInfo | undefined {
-    return this.aloSatStore.citizen();
-  }
+  citizen?: CitizenInfo;
 
-  get existCitizen(): boolean {
-    return !!this.citizen;
-  }
-
-  get labelCall(): string {
-    return this.loadingCitizen
-      ? 'Reconociendo número entrante'
-      : !this.existCitizen
-      ? 'Número no registrado en el sistema'
-      : 'Número registrado en el sistema';
-  }
+  existCitizen: boolean = false;
 }
