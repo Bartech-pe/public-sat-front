@@ -162,9 +162,15 @@
               </p>
             </td>
             <td>
-              {{ item.carteraDetalle?.code }}
+              <p class="text-sm text-center font-light">
+                {{ item.portfolioDetail?.code }}
+              </p>
             </td>
-            <td>{{ item.carteraDetalle?.taxpayerName }}</td>
+            <td>
+              <p class="text-sm text-center font-light">
+                {{ item.portfolioDetail?.taxpayerName }}
+              </p>
+            </td>
             <!-- <td>{{ item.estado }}</td> -->
             <td *ngIf="activeTab != '1'">
               <p class="text-sm text-center font-light">

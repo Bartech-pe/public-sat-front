@@ -18,7 +18,12 @@
     <!-- Box 1 - ALÓ SAT no tiene endpoint -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-1">
-        <h3 class="text-lg font-semibold text-gray-700 ml-4">Aló SAT</h3>
+        <h3 class="text-lg font-semibold text-gray-700 ml-4">
+          Aló SAT
+          <span class="font-normal">
+            ({{ aloSatTotal ?? "-" }} llamadas totales)
+          </span>
+        </h3>
         <!-- Si hay datos, mostrarlos -->
         <div class="space-y-1 px-4">
           @for (item of aloSatCount; track $index) {
@@ -31,29 +36,6 @@
             </div>
           </div>
           }
-
-          <div class="flex items-center gap-2">
-            <p class="text-xl font-bold">
-              {{ aloSatTotal ?? "-" }}
-            </p>
-            <p class="text-sm text-gray-500">Llamadas totales</p>
-          </div>
-
-          <!-- <div class="flex items-center gap-2">
-            <p class="text-xl font-bold text-green-600">
-              {{ viciCount.llamadasAtendidas ?? "-" }}
-            </p>
-            <p class="text-sm text-gray-500">Llamadas atendidas</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <p class="text-xl font-bold text-yellow-600">
-              {{ viciCount.llamadasPerdidas ?? "-" }}
-            </p>
-            <p class="text-sm text-gray-500">Llamadas perdidas</p>
-          </div>
-
-           -->
         </div>
 
         <!-- Template de carga -->
@@ -160,44 +142,8 @@
     </p-card>
   </div>
 
-  <!-- CONTADORES -->
-  <!-- Primera fila -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <!-- 🔹 Caja 1 -->
-    <p-card styleClass="h-full">
-      <div class="flex flex-col justify-center items-center">
-        <p class="text-sm font-semibold text-gray-600">
-          Llamadas activas actuales:
-        </p>
-        <p class="text-3xl font-bold text-blue-600">
-          {{ usersIncall ?? "-" }}
-        </p>
-      </div>
-    </p-card>
-
-    <!-- 🔹 Caja 2 -->
-    <p-card styleClass="h-full">
-      <div class="flex flex-col justify-center items-center">
-        <p class="text-sm font-semibold text-gray-600">Llamadas timbrando:</p>
-        <p class="text-3xl font-bold text-green-600">
-          {{ aloSatQueueTotal ?? "-" }}
-        </p>
-      </div>
-    </p-card>
-
-    <!-- 🔹 Caja 4 -->
-    <p-card styleClass="h-full">
-      <div class="flex flex-col justify-center items-center">
-        <p class="text-sm font-semibold text-gray-600">Llamadas IVR:</p>
-        <p class="text-3xl font-bold text-yellow-600">
-          {{ vicidialCount?.llamadasEnIvr ?? "-" }}
-        </p>
-      </div>
-    </p-card>
-  </div>
-
   <!-- Segunda fila -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- 🔹 Caja 5 -->
     <p-card styleClass="h-full">
       <div class="flex flex-col justify-center items-center">
@@ -224,6 +170,15 @@
         <p class="text-sm font-semibold text-gray-600">Agentes disponibles:</p>
         <p class="text-3xl font-bold text-pink-600">
           {{ usersReady ?? "-" }}
+        </p>
+      </div>
+    </p-card>
+    <!-- 🔹 Caja 6 -->
+    <p-card styleClass="h-full">
+      <div class="flex flex-col justify-center items-center">
+        <p class="text-sm font-semibold text-gray-600">Agentes en pausa:</p>
+        <p class="text-3xl font-bold text-purple-600">
+          {{ usersInPause ?? "-" }}
         </p>
       </div>
     </p-card>
@@ -591,7 +546,7 @@
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ item.closedAttentions | percent }}
+                    {{ item.closedAttentions }}
                   </div>
                 </td>
                 <td>
@@ -611,94 +566,6 @@
                       (click)="loadAttentionDetail(item.userId, $event)"
                     />
                   </div>
-
-                  <!-- POPUP ATENCIONES -->
-                  <!-- <div
-                        *ngIf="
-                          popupActivo?.index === i &&
-                          popupActivo?.tipo === 'atenciones'
-                        "
-                        class="absolute right-10 mt-2 w-72 bg-white border border-gray-300 shadow-lg rounded-lg p-3 text-sm z-50"
-                      >
-                        <div
-                          *ngIf="
-                            !loadingAttentionDetail && attentionDetail;
-                            else loadingAtencion
-                          "
-                        >
-                          <table class="table-auto w-full border text-xs">
-                            <thead class="bg-blue-50">
-                              <tr>
-                                <th
-                                  colspan="2"
-                                  class="text-center font-semibold py-1 border-b"
-                                >
-                                  Detalle de Atenciones
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Aló SAT
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.alosat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Correo
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.recievedCount }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chat
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chat }}
-                                </td>
-                              </tr>
-                              <tr class="border-b">
-                                <td class="py-1 px-2 font-medium text-gray-700">
-                                  Chatbot
-                                </td>
-                                <td class="py-1 px-2 text-right">
-                                  {{ attentionDetail.chatbot }}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td
-                                  class="py-1 px-2 font-semibold text-gray-900"
-                                >
-                                  Total
-                                </td>
-                                <td
-                                  class="py-1 px-2 font-semibold text-right text-blue-700"
-                                >
-                                  {{ attentionDetail.count }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-
-                        <ng-template #loadingAtencion>
-                          <p class="text-gray-400 text-xs text-center py-3">
-                            Cargando datos...
-                          </p>
-                        </ng-template>
-
-                        <button
-                          (click)="cerrarPopup()"
-                          class="mt-3 w-full text-xs text-gray-500 hover:text-gray-700 border-t pt-2"
-                        >
-                          Cerrar
-                        </button>
-                      </div> -->
                 </td>
                 <td>
                   <p-select

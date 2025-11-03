@@ -236,7 +236,7 @@ export class UnifiedQuerySistemComponent implements OnInit {
                   },
                   method: 'CHAT',
                   createdByUser: {
-                    fullName: attention?.advisorIntervention
+                    displayName: attention?.advisorIntervention
                       ? attention.user
                       : 'BOT',
                   },

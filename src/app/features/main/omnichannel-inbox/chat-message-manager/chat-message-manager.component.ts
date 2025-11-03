@@ -192,7 +192,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
     this.route.queryParamMap
     .pipe(takeUntil(this.destroy$))
     .subscribe((params) => {
-      this.completionEventReceived = false;
+      // this.completionEventReceived = false;
       if (!params.get('channelRoomId') || !params.get('assistanceId')) {
         this.chatDetail = null;
         return;
@@ -221,7 +221,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
           this.chatDetail.status = payload.status;
           this.chatDetail.attention.status = payload.attentionStatus;
           if (payload.status === 'completado') {
-            this.completionEventReceived = true;
+            // this.completionEventReceived = true;
             this.router.navigate([], {
               relativeTo: this.route,
               queryParams: {
@@ -757,9 +757,13 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
   private getItemsByStatus(status: ChatStatus) {
     let commonItems = [
-      { label: 'Enviar al correo', icon: 'pi pi-refresh', command: () => this.sendEmailWithConversation() },
       { label: 'Ver historial de chats', icon: 'pi pi-refresh', command: () => this.abrirHistorial() },
     ];
+    if(this.chatDetail?.channel == 'chatsat')
+    {
+      commonItems.unshift({ label: 'Enviar al correo', icon: 'pi pi-refresh', command: () => this.sendEmailWithConversation() })
+    }
+
     if(this.chatDetail && !this.chatDetail?.attention?.attentionDetail && !this.chatDetail?.attention?.consultTypeId)
     {
       commonItems.unshift({ label: 'Detalle de atención', icon: 'pi pi-refresh', command: () => this.showFormDetail() })

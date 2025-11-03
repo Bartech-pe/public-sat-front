@@ -25,6 +25,7 @@ import { InboxService } from '@services/inbox.service';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
 import { ChannelStateService } from '@services/channel-state.service';
 import { ChannelState } from '@models/channel-state.model';
+import { MarkdownPipe } from '@pipes/markdown.pipe';
 
 
 interface SummaryFilters{
@@ -48,6 +49,7 @@ interface FilterOptions{
     IconField,
     MenuModule,
     // ButtonChannelComponent,
+    MarkdownPipe,
     PhoneFormatPipe,
     ToastModule,
     DividerModule,

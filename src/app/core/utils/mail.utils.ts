@@ -36,3 +36,8 @@ export const fileIcons: Record<string, string> = {
   'application/typescript': 'mdi:language-typescript',
   'application/octet-stream': 'flowbite:file-code-solid',
 };
+
+export const escapeRegex = (s: string): string => {
+    // Escapa caracteres especiales para construir RegExp dinámico
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/',
+  apiUrl: 'https://c2cb72ss-3000.brs.devtunnels.ms/',
   version: '1.0',
   year: '2025',
   roleIdAdministrador: 1,

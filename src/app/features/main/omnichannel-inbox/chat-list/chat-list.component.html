@@ -276,7 +276,7 @@
                 </p>
                 }@else {
                 <p class="text-sm text-gray-600 truncate leading-relaxed">
-                  {{ chat.lastMessage.message }}
+                  {{ chat.lastMessage.message  | markdown}}
                 </p>
                 }
               </div>
@@ -347,7 +347,7 @@
                       ></iconify-icon>
 
                   @if (chat?.unreadCount && chat?.unreadCount > 0 &&
-                  chat?.attention.status !== 'closed') {
+                  chat?.attention.status !== 'closed' && !['administrador', 'supervisor'].includes(getUserRole())) {
                   <div
                     class="bg-red-500 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center animate-pulse"
                   >

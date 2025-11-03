@@ -21,7 +21,9 @@ import { FormForwardComponent } from '../form-forward/form-forward.component';
 import { MailService } from '@services/mail.service';
 import { environment } from '@envs/environments';
 import { MailViewerComponent } from '../mail-viewer/mail-viewer.component';
-import { fileIcons } from '@utils/mail.utils';
+import { escapeRegex, fileIcons } from '@utils/mail.utils';
+import { TimeAgoPipe } from '@pipes/time-ago.pipe';
+import { FormsModule } from '@angular/forms';
 
 interface Reply {
   id: number;
@@ -42,11 +44,13 @@ interface Reply {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     BtnCustomComponent,
     EditorModule,
     PopoverModule,
     MailViewerComponent,
     BtnCustomComponent,
+    TimeAgoPipe,
   ],
   templateUrl: './reply-mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -62,11 +66,7 @@ export class ReplyMailComponent {
 
   @Output() forward = new EventEmitter<void>();
 
-  private readonly sanitizer = inject(DomSanitizer);
-
   private readonly dialogService = inject(DialogService);
-
-  private readonly msg = inject(MessageGlobalService);
 
   private readonly mailService = inject(MailService);
 
@@ -108,7 +108,7 @@ export class ReplyMailComponent {
     },
   };
 
-  replyMode: 'reply' | 'compose' | 'forward' | null = null;
+  replyMode: 'reply' | 'compose' | 'forward' | undefined = undefined;
 
   replyText = '';
 
@@ -120,6 +120,10 @@ export class ReplyMailComponent {
     return (
       this.reply.type === 'CIUDADANO' || this.reply.type === 'RESPUESTA_INTERNA'
     );
+  }
+
+  cancelReply() {
+    this.replyMode = undefined;
   }
 
   loadPredefinedResponseMail() {
@@ -142,11 +146,6 @@ export class ReplyMailComponent {
   getReplyClass(reply: Reply): string {
     const tag = this.replyTags[reply.type];
     return `${tag.bg} ${tag.border} ${tag.text} border rounded-lg p-2`;
-  }
-
-  private escapeRegex(s: string): string {
-    // Escapa caracteres especiales para construir RegExp dinámico
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   getSafeContent(
@@ -178,7 +177,7 @@ export class ReplyMailComponent {
         const realUrl = `${base}/${publicUrl.replace(/^\//, '')}`;
 
         // Escapar id para usar en RegExp
-        const escaped = this.escapeRegex(cidId);
+        const escaped = escapeRegex(cidId);
 
         // Buscamos cualquier aparición de cid:ID (global)
         const regex = new RegExp(`cid:${escaped}`, 'g');
@@ -299,24 +298,21 @@ export class ReplyMailComponent {
     this.replyText = '';
   }
 
-  sendReply() {
-    if (!this.replyText.trim() || !this.reply()) return;
-
-    const mailId = this.reply()?.mailAttentionId;
-    if (!mailId) return;
+  sendReply(threadId: number, mailAttentionId: number) {
+    if (!this.replyText.trim()) return;
 
     // ya no mandamos this.replyTarget al backend
-    this.mailService.replyEmail(mailId, this.replyText).subscribe({
-      next: (res) => {
-        console.log('✅ Respuesta guardada en backend:', res);
-        this.replyMode = null;
-        this.replyText = '';
-        this.attachments = [];
-      },
-      error: (err) => {
-        console.error('❌ Error enviando reply', err);
-      },
-    });
+    this.mailService
+      .replyEmail(mailAttentionId, this.replyText, threadId)
+      .subscribe({
+        next: (res) => {
+          console.log('✅ Respuesta guardada en backend:', res);
+          this.cancelReply();
+        },
+        error: (err) => {
+          console.error('❌ Error enviando reply', err);
+        },
+      });
   }
 
   forwardMail(id: number) {
@@ -335,7 +331,7 @@ export class ReplyMailComponent {
 
     ref.onClose.subscribe((res) => {
       if (res) {
-        this.replyMode = null;
+        this.cancelReply();
       }
     });
   }

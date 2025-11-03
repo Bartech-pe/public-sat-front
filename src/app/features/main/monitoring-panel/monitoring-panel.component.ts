@@ -284,6 +284,12 @@ export class MonitoringPanelComponent {
     ).length;
   }
 
+  get usersInPause(): number {
+    return this.userList.filter(
+      (user: VicidialUser) => user?.channelState?.id === ChannelPhoneState.PAUSED
+    ).length;
+  }
+
   private callInfoEffect = effect(() => {
     const userStates = this.aloSatStore.userStates();
     if (userStates) {

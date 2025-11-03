@@ -21,6 +21,8 @@ export class PaginatorComponent {
   @Input() totalItems = 0;
   @Input() limit = 10;
   @Input() offset = 0;
+  @Input() actuals = 0;
+  @Input() position: 'start' | 'end' | 'center' = 'center';
   @Input() limitOptions: number[] = [];
 
   @Output() pageChange = new EventEmitter<{ limit: number; offset: number }>();

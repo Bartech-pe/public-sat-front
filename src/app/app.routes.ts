@@ -6,6 +6,7 @@ import { settingsRoutes } from '@features/main/settings/settings.routes';
 import { supervisorRoutes } from '@features/main/supervisor/supervisor.routes';
 import { authGuard } from '@guards/auth.guard';
 import { redirectIfLoggedInGuard } from '@guards/redirect-if-logged-in.guard';
+import { serverDownGuard } from '@guards/server-down.guard';
 import { verifyScreenGuard } from '@guards/verify-screen.guard';
 
 export const routes: Routes = [
@@ -192,6 +193,7 @@ export const routes: Routes = [
   },
   {
     path: 'server-down',
+    canActivate: [serverDownGuard],
     loadComponent: () =>
       import('./layouts/server-down/server-down.component').then(
         (c) => c.ServerDownComponent

@@ -70,6 +70,13 @@ import { MailDto } from '@models/mail.model';
 import { FileViewerComponent } from './file-viewer/file-viewer.component';
 import { fileIcons } from '@utils/mail.utils';
 import { DatePickerModule } from 'primeng/datepicker';
+import { ChannelCategories } from '@constants/channel.constant';
+import { MailEditorComponent } from './mail-editor/mail-editor.component';
+import { FormForwardComponent } from './form-forward/form-forward.component';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { UserStore } from '@stores/user.store';
+import { UserService } from '@services/user.service';
+import { TimeAgoPipe } from '@pipes/time-ago.pipe';
 
 interface OptionView {
   id?: number;
@@ -110,6 +117,8 @@ interface OptionView {
     AutoCompleteModule,
     BtnCustomComponent,
     ReplyMailComponent,
+    PaginatorComponent,
+    TimeAgoPipe,
   ],
   templateUrl: './mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -135,6 +144,8 @@ export class MailComponent implements OnInit {
 
   private readonly assistanceStateService = inject(AssistanceStateService);
 
+  private readonly userService = inject(UserService);
+
   private readonly route = inject(ActivatedRoute);
 
   private readonly predefinedResponsesService = inject(
@@ -142,6 +153,11 @@ export class MailComponent implements OnInit {
   );
 
   private readonly emailSignatureService = inject(EmailSignatureService);
+
+  limit = signal(15);
+  offset = signal(0);
+
+  totalItems: number = 0;
 
   userMailStates: ChannelState[] = [];
 
@@ -188,10 +204,6 @@ export class MailComponent implements OnInit {
       validators: [],
     }),
     endDate: new FormControl<string | undefined>(undefined, {
-      nonNullable: true,
-      validators: [],
-    }),
-    stateId: new FormControl<number | undefined>(undefined, {
       nonNullable: true,
       validators: [],
     }),
@@ -247,14 +259,7 @@ export class MailComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  get userList(): User[] {
-    return this.mails()
-      .filter((mail) => !!mail.advisor)
-      .map((mail) => mail.advisor as User)
-      .filter(
-        (user, index, self) => index === self.findIndex((u) => u.id === user.id)
-      );
-  }
+  userList: User[] = [];
 
   selectedUsers: number[] = [];
 
@@ -422,34 +427,6 @@ export class MailComponent implements OnInit {
     });
   }
 
-  // private mapMail(item: any): MailDto {
-  //   return {
-  //     id: item.id,
-  //     mailAttentionId: item.id,
-  //     from: item.from || 'Desconocido',
-  //     name: item.name,
-  //     to: item.to || '',
-  //     subject: item.subject || '(sin asunto)',
-  //     body: item.body || item.content || '',
-  //     createdAt: item.createdAt,
-  //     starred: false,
-  //     read: false,
-  //     folder: 'inbox',
-  //     sizeMB: 1,
-  //     selected: false,
-  //     advisor: item.advisor,
-  //     state: item.state,
-  //     showMore: false,
-  //     replies: (item.replies || []).map((r: any) => ({
-  //       id: r.id,
-  //       from: r.from,
-  //       body: r.body || r.content || '',
-  //       createdAt: r.createdAt,
-  //       type: (r.type as Reply['type']) || 'CIUDADANO',
-  //     })),
-  //   };
-  // }
-
   trackById(index: number, reply: Reply) {
     return reply.id;
   }
@@ -518,11 +495,13 @@ export class MailComponent implements OnInit {
   }
 
   getMyChannelStateEmail() {
-    this.channelStateService.myChannelStateEmail().subscribe({
-      next: (data) => {
-        this.userStateId = data?.id;
-      },
-    });
+    this.channelStateService
+      .myChannelStateByCategoryId(ChannelCategories.MAIL)
+      .subscribe({
+        next: (data) => {
+          this.userStateId = data?.id;
+        },
+      });
   }
 
   changeChannelState() {
@@ -593,42 +572,97 @@ export class MailComponent implements OnInit {
 
   mails = signal<MailDto[]>([]);
 
+  get from() {
+    return this.searchForm.get('from')?.value;
+  }
+
+  get to() {
+    return this.searchForm.get('to')?.value;
+  }
+
+  get subject() {
+    return this.searchForm.get('subject')?.value;
+  }
+
+  get contain() {
+    return this.searchForm.get('contain')?.value;
+  }
+
+  get startDate() {
+    return this.searchForm.get('startDate')?.value;
+  }
+
+  get endDate() {
+    return this.searchForm.get('endDate')?.value;
+  }
+
+  get stateId() {
+    return this.optionViews.find((o) => o.key === this.currentView())?.id;
+  }
+
+  get filterActive(): boolean {
+    return (
+      !!this.from ||
+      !!this.to ||
+      !!this.subject ||
+      !!this.contain ||
+      !!this.startDate ||
+      !!this.endDate
+    );
+  }
+
   loadMails() {
     this.allSelected = false;
-    this.mailService.getMailTickets().subscribe({
+    const request = {
+      userIds: this.selectedUsers.length ? this.selectedUsers : undefined,
+      from: this.from ? this.from : undefined,
+      to: this.to ? this.to : undefined,
+      subject: this.subject ? this.subject : undefined,
+      contain: this.contain ? this.contain : undefined,
+      startDate: this.startDate ? this.startDate : undefined,
+      endDate: this.endDate ? this.endDate : undefined,
+      stateId: this.stateId ? this.stateId : undefined,
+    };
+    this.mailService
+      .getMailTickets(this.limit(), this.offset(), request)
+      .subscribe({
+        next: (res) => {
+          this.mails.set(res.data);
+          this.totalItems = res.total ?? 0;
+          if (this.selectedMail()) {
+            this.selectedMail.set(
+              this.mails().find(
+                (m) =>
+                  m.mailAttentionId === this.selectedMail()?.mailAttentionId
+              )
+            );
+          }
+        },
+        error: (err) => console.error('Error cargando mensajes', err),
+      });
+
+    this.userService.getAll(undefined, undefined, { officeId: 1 }).subscribe({
       next: (res) => {
-        // const mapped = res.data;
-
-        // const view = this.currentView();
-
-        // const filtered = mapped.filter((m) => {
-        //   if (view === 'inbox') {
-        //     return (
-        //       m.folder === 'inbox' ||
-        //       m.state?.id === mailEnumToState[MailEnum.UNASSIGNED]
-        //     );
-        //   } else if (['sent', 'drafts', 'spam', 'trash'].includes(view)) {
-        //     return m.folder === view;
-        //   } else if (
-        //     [
-        //       'open',
-        //       'closed',
-        //       'attention',
-        //       'pendding',
-        //       'noWish',
-        //       'unassigned',
-        //     ].includes(view)
-        //   ) {
-        //     return m.state?.id === mailEnumToState[view];
-        //   } else {
-        //     return true;
-        //   }
-        // });
-
-        this.mails.set(res.data);
+        this.userList = res.data;
       },
-      error: (err) => console.error('❌ Error cargando mensajes', err),
     });
+  }
+
+  searchMails() {
+    this.loadMails();
+    this.searcherVisible = false;
+  }
+
+  clearFilter() {
+    this.searchForm.patchValue({
+      from: undefined,
+      to: undefined,
+      subject: undefined,
+      contain: undefined,
+      startDate: undefined,
+      endDate: undefined,
+    });
+    this.loadMails();
   }
 
   setView(view: MailType) {
@@ -985,7 +1019,7 @@ export class MailComponent implements OnInit {
   }
 
   formatId(id: number, length: number = 5): string {
-    return id.toString().padStart(length, '0');
+    return id?.toString().padStart(length, '0');
   }
 
   /** Seleccionar/deseleccionar todos */
@@ -1021,21 +1055,17 @@ export class MailComponent implements OnInit {
           .map((item) => item.id!);
 
     if (mailAttentionIds.length === 0) {
-      console.warn('⚠️ No hay correos seleccionados para poner en atención');
+      console.warn('No hay correos seleccionados para poner en atención');
       return;
     }
 
-    mailAttentionIds.forEach((id) => {
-      this.mailService.attentionTicket(id).subscribe({
-        next: () => {
-          this.mails.update((mails) =>
-            mails.map((m) => (m.id === id ? { ...m, status: 'attention' } : m))
-          );
-        },
-        error: (err) => {
-          console.error(`❌ Error poniendo en atención el ticket ${id}`, err);
-        },
-      });
+    this.mailService.attentionTicket(mailAttentionIds).subscribe({
+      next: () => {
+        this.msg.success('Enviado a la lista de en atención');
+      },
+      error: (err) => {
+        console.error(`Error poniendo en atención el ticket`, err);
+      },
     });
   }
 
@@ -1048,21 +1078,17 @@ export class MailComponent implements OnInit {
           .map((item) => item.id!);
 
     if (mailAttentionIds.length === 0) {
-      console.warn('⚠️ No hay correos seleccionados para marcar como No Wish');
+      console.warn('No hay correos seleccionados para marcar como No Wish');
       return;
     }
 
-    mailAttentionIds.forEach((id) => {
-      this.mailService.noWishTicket(id).subscribe({
-        next: () => {
-          this.mails.update((mails) =>
-            mails.map((m) => (m.id === id ? { ...m, status: 'noWish' } : m))
-          );
-        },
-        error: (err) => {
-          console.error(`❌ Error marcando como No Wish el ticket ${id}`, err);
-        },
-      });
+    this.mailService.noWishTicket(mailAttentionIds).subscribe({
+      next: () => {
+        this.msg.success('Enviado a la lista de no deseados');
+      },
+      error: (err) => {
+        console.error(`Error marcando como No Wish el ticket`, err);
+      },
     });
   }
 
@@ -1195,26 +1221,13 @@ export class MailComponent implements OnInit {
   /** Seleccionar un correo para verlo */
   selectMail(mail: MailDto) {
     this.selectedMail.set(mail);
-
-    // 🔹 Pedir el detalle actualizado
-    this.mailService.getMessageDetail(mail.id).subscribe((detail) => {
-      const messageDetail = Array.isArray(detail) ? detail[0] : detail;
-
-      if (messageDetail) {
-        this.selectedMail.set({
-          ...mail,
-          body: this.cleanBody(
-            messageDetail?.content || messageDetail?.body || '(sin contenido)'
-          ),
-          replies: messageDetail?.replies || [],
-        });
-      }
-    });
   }
 
   /** Volver a la lista */
   backToList() {
     this.selectedMail.set(undefined);
+    this.loadMails();
+    this.cancelReply();
   }
 
   isDetailsOpen = false;
@@ -1311,37 +1324,28 @@ export class MailComponent implements OnInit {
     this.selectMail(mail);
   }
 
-  // /** Abrir/cerrar menú de acciones (⋮) */
-  // toggleMore(mail: MailDto) {
-  //   this.mails.update((mails) =>
-  //     mails.map(
-  //       (m) =>
-  //         m.id === mail.id
-  //           ? { ...m, showMore: !m.showMore }
-  //           : { ...m, showMore: false } // cierra otros menús
-  //     )
-  //   );
-  // }
-
   onDeleteMail(mail: MailDto) {
     console.log('🗑 Eliminar:', mail.subject);
     this.mails.update((mails) => mails.filter((m) => m.id !== mail.id));
   }
 
   startForwardCompose() {
-    const mail = this.selectedMail();
-    if (!mail) {
-      alert('No hay correo seleccionado para reenviar');
-      return;
-    }
+    const mail = this.firstMail();
 
-    this.isForwardMode = true;
-    this.forwardTo = ''; // lo escribe el usuario
-    this.forwardSubject = mail.subject;
-    this.forwardText = mail.body;
-    this.forwardBody = '';
-    this.forwardFrom = mail.from;
-    this.forwardMailAttentionId = mail.id ?? null;
+    const ref = this.dialogService.open(FormForwardComponent, {
+      header: 'Reenviar',
+      styleClass: 'modal-lg !mb-10 !mr-10',
+      position: 'bottomright',
+      data: {
+        mail: mail,
+      },
+      focusOnShow: false,
+      dismissableMask: false,
+      draggable: true,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res) => {});
   }
 
   sendForward() {
@@ -1473,6 +1477,14 @@ export class MailComponent implements OnInit {
     });
   }
 
+  getName(mail: MailDto) {
+    return mail.isSender
+      ? `Para: ${mail.toName ? mail.toName : mail.to}`
+      : mail.name
+      ? mail.name
+      : mail.from;
+  }
+
   getPlainTextFromHtml(html: string): string {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -1510,5 +1522,25 @@ export class MailComponent implements OnInit {
       (item) =>
         item.name.includes(event.query) || item.email.includes(event.query)
     );
+  }
+
+  writeNewEmail() {
+    this.dialogService.open(MailEditorComponent, {
+      header: 'Mensaje nuevo',
+      styleClass: 'modal-lg !mb-10 !mr-10',
+      position: 'bottomright',
+      modal: false,
+      focusOnShow: false,
+      dismissableMask: false,
+
+      draggable: true,
+      closable: true,
+    });
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadMails();
   }
 }

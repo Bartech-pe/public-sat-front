@@ -17,9 +17,16 @@ export class MailService {
   //GET
 
   // leer mensajes
-  getMailTickets(): Observable<PaginatedResponse<MailDto>> {
+  getMailTickets(
+    limit?: number,
+    offset?: number,
+    q?: Record<string, any>
+  ): Observable<PaginatedResponse<MailDto>> {
+    const query = q ? `q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    const limitQ = limit ? `limit=${limit}&` : '';
+    const offsetQ = limit ? `offset=${offset}&` : '';
     return this.http.get<PaginatedResponse<MailDto>>(
-      `${this.baseUrl}/messagesAdvisor`
+      `${this.baseUrl}/messagesAdvisor?${limitQ}${offsetQ}${query}`
     );
   }
 
@@ -96,10 +103,15 @@ export class MailService {
    * @param mailAttentionId id de la atención (hilo)
    * @param content contenido de la respuesta
    */
-  replyEmail(mailAttentionId: number, content: string): Observable<any> {
+  replyEmail(
+    mailAttentionId: number,
+    content: string,
+    threadId?: number
+  ): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/replyEmailCenter`, {
       mailAttentionId,
       content,
+      threadId,
     });
   }
 
@@ -138,11 +150,10 @@ export class MailService {
    * Poner ticket en Atención
    * @param mailAttentionId id del mail a actualizar
    */
-  attentionTicket(mailAttentionId: number): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/attentionTicket/${mailAttentionId}`,
-      {}
-    );
+  attentionTicket(mailAttentionIds: number[]): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/attentionTicket`, {
+      mailAttentionIds,
+    });
   }
 
   /**
@@ -179,10 +190,9 @@ export class MailService {
    * Marcar un ticket como "No Wish"
    * @param mailAttentionId id del mail a actualizar
    */
-  noWishTicket(mailAttentionId: number): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/noWishTicket/${mailAttentionId}`,
-      {}
-    );
+  noWishTicket(mailAttentionIds: number[]): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/noWishTicket`, {
+      mailAttentionIds,
+    });
   }
 }

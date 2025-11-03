@@ -68,7 +68,7 @@ export class FormAssistanceComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    consultTypeId: new FormControl<number | undefined>(undefined, {
+    consultTypeCode: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -134,7 +134,7 @@ export class FormAssistanceComponent implements OnInit {
       this.formData.reset({
         name: undefined,
         detail: undefined,
-        consultTypeId: undefined,
+        consultTypeCode: undefined,
         categoryId: 2,
         tipDoc: undefined,
         docIde: undefined,

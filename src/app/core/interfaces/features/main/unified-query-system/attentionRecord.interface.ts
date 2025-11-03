@@ -42,7 +42,7 @@ export interface IConsultType {
 export interface IUser {
   id?: number;
   username?: string;
-  fullName?: string;
+  displayName?: string;
   email?: string;
   role?: string;
   createdAt?: string;

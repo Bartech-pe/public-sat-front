@@ -149,6 +149,10 @@ export class SocketService {
     }
   }
 
+  onMessage(callback: (msg: any) => void): void {
+    this.socket?.on('receive_message', callback);
+  }
+
   sendAlertas(msg: any): void {
     if (this.socket && this.isConnected) {
       this.socket.emit('send_alertas', msg);
@@ -175,9 +179,7 @@ export class SocketService {
     this.socket?.on('nueva_alerta', callback);
   }
 
-  onMessage(callback: (msg: any) => void): void {
-    this.socket?.on('receive_message', callback);
-  }
+  
 
   onAlertas(callback: (msg: any) => void): void {
     this.socket?.on('receive_alertas', callback);

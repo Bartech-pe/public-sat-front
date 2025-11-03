@@ -1,12 +1,30 @@
 <div class="grid grid-cols-1 gap-2">
   <!-- Campo destinatario -->
-  <label class="block text-sm font-medium">Reenviar a:</label>
-  <input
-    pInputText
-    type="text"
-    [(ngModel)]="forwardTo"
-    placeholder="correo@ejemplo.com"
-  />
+  <div class="flex items-center gap-2">
+    <div class="w-18">
+      <label class="text-sm"> Reenviar a: </label>
+    </div>
+    <div class="flex-1">
+      <p-autocomplete
+        [(ngModel)]="forwardTo"
+        [suggestions]="emailItemsTo"
+        (completeMethod)="searchEmailTo($event)"
+        optionLabel="email"
+        optionValue="email"
+        class="w-full"
+        styleClass="w-full"
+        inputStyleClass="!rounded-full !w-full"
+        [showClear]="true"
+      >
+        <ng-template let-item #item>
+          <div class="grid grid-cols-1">
+            <p class="text-sm">{{ item.name }}</p>
+            <p class="text-xs">{{ item.email }}</p>
+          </div>
+        </ng-template>
+      </p-autocomplete>
+    </div>
+  </div>
 
   <!-- Campo introducción del usuario -->
   <label class="block text-sm font-medium">Mensaje:</label>
@@ -16,9 +34,7 @@
     [style]="{ minHfeight: '100px' }"
   />
   <label class="block text-sm font-medium"> Mensaje adjunto: </label>
-  <div class="grid grid-cols-1 gap-2 border bg-white text-xs border-slate-200 p-3 rounded">
-    <div [innerHTML]="getSafeContent(forwardText)"></div>
-  </div>
+  <app-mail-viewer [safeMailHtml]="forwardText" />
 
   <div class="flex justify-end gap-4">
     <div class="flex gap-2">

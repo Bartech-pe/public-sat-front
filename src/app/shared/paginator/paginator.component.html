@@ -1,5 +1,12 @@
-<nav *ngIf="totalPages > 1">
-  <div class="flex gap-2 items-center">
+<nav>
+  <div
+    class="flex items-center gap-2"
+    [ngClass]="{
+      'justify-center': position == 'center',
+      'justify-start': position == 'start',
+      'justify-end': position == 'end'
+    }"
+  >
     <btn-custom
       severity="contrast"
       icon="lucide:chevrons-left"

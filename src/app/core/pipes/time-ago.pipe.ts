@@ -21,9 +21,10 @@ export class TimeAgoPipe implements PipeTransform {
     }
 
     // Para 1 minuto o más, usar date-fns normalmente
-    return (
-      'Hace ' +
-      formatDistanceToNow(date, { locale: es, addSuffix: false })
+    return `Hace 
+      ${formatDistanceToNow(date, { locale: es, addSuffix: false })}`.replace(
+      'alrededor de ',
+      ''
     );
   }
 }

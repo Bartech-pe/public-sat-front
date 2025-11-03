@@ -122,22 +122,21 @@ export class InboxViewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadData();
 
+    // this.socketService.joinRoom(this.roomId);
+
     if (this.socketService.isConnected) {
       this.socketService.registerUser(this.userCurrent.id);
     }
 
     this.socketService.onMessage((msg) => {
-      // Normalizar senderId (si viene sender como objeto)
-      msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
+      if(this.idRoomChat ==  msg.chatRoomId){
+          msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
+          msg.isSender = msg.senderId === this.userCurrent.id;
 
-      // Calcular correctamente isSender (sin tocar senderId)
-      msg.isSender = msg.senderId === this.userCurrent.id;
-
-      // Push del mensaje normalizado al array
-      this.listMessageChatRoom.push(msg);
-
-      if (this.userIsAtBottom) {
-        this.forceScrollToBottom = true;
+          this.listMessageChatRoom.push(msg);
+          if (this.userIsAtBottom) {
+            this.forceScrollToBottom = true;
+          }
       }
     });
 
@@ -161,8 +160,6 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       chatRoomId: this.selectedChatId,
       isRead: false,
     };
-
-    console.log(newMessage);
 
     this.chatMessageService
       .registerMessage(newMessage)
@@ -340,8 +337,10 @@ export class InboxViewComponent implements OnInit, OnDestroy {
   openedChats: any[] = [];
   infoUsers?: UserSender;
   disabledButton:boolean = false;
+  idRoomChat=null;
   viewMessages(chat: any) {
-    // Reiniciamos estados anteriores
+
+    this.idRoomChat = chat.id;
     this.disabledButton = false;
     this.infoUserGroup = null;
     this.infoUsers = undefined;
@@ -357,7 +356,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     // Verificamos usuario actual antes de continuar
     const currentUserId = this.userCurrent?.id;
     if (!currentUserId) {
-      console.warn('⚠️ No se encontró el usuario actual al cargar mensajes.');
+   
       return;
     }
     this.disabledButton = true;

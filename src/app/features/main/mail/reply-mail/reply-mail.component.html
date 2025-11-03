@@ -1,5 +1,5 @@
 <div class="px-4 py-3" [ngClass]="getReplyClass(reply)">
-  <div class="flex justify-between items-center px-4 py-3 -mx-4 -my-3">
+  <div class="flex justify-between items-start">
     <div class="flex items-center gap-3">
       <!-- Texto a la izquierda -->
       <span
@@ -11,28 +11,47 @@
         {{ replyTag.label }}
       </span>
       <!-- Encabezado del reply -->
-      <div class="text-sm text-gray-500 mb-1">
-        <span class="font-medium">{{ reply.name || reply.from }}</span>
-        <span class="font-light"> <{{ !!reply.name ? reply.from : "" }}></span>
-        —
-        {{ reply.createdAt | date : "dd MMM yyyy, h:mm a" }}
+      <div class="grid grid-cols-1">
+        <div class="text-sm text-gray-500">
+          <span class="font-medium">{{
+            reply.name ? reply.name : reply.from
+          }}</span>
+          <span *ngIf="!!reply.name" class="font-light">
+            <{{ reply.from }}></span
+          >
+        </div>
+        <div class="text-xs text-gray-500 font-light">
+          para
+          <span class="font-normal">{{
+            reply.toName ? reply.toName : reply.to
+          }}</span>
+          <span *ngIf="!!reply.toName" class="font-light">
+            <{{ reply.to }}></span
+          >
+        </div>
       </div>
     </div>
 
     <!-- Botones a la derecha -->
-    <div *ngIf="showReplyBtns" class="flex gap-2">
-      <btn-custom
-        severity="secondary"
-        tooltip="Responder"
-        icon="entypo:reply"
-        (click)="$event.stopPropagation(); onReplyClick()"
-      />
-      <btn-custom
-        severity="secondary"
-        tooltip="Reenviar"
-        icon="entypo:forward"
-        (click)="$event.stopPropagation(); forwardMail(reply.id)"
-      />
+    <div class="flex items-start gap-4">
+      <div class="text-xs text-gray-500">
+        {{ reply.createdAt | date : "dd MMM yyyy, h:mm a" }}
+        <span class="font-light"> ({{ reply.createdAt | timeAgo }}) </span>
+      </div>
+      <div *ngIf="showReplyBtns" class="flex gap-2">
+        <btn-custom
+          severity="secondary"
+          tooltip="Responder"
+          icon="entypo:reply"
+          (click)="$event.stopPropagation(); onReplyClick()"
+        />
+        <btn-custom
+          severity="secondary"
+          tooltip="Reenviar"
+          icon="entypo:forward"
+          (click)="$event.stopPropagation(); forwardMail(reply.id)"
+        />
+      </div>
     </div>
   </div>
 
@@ -102,12 +121,33 @@
     </ng-container>
 
     <div class="border border-gray-300 rounded-lg shadow-sm">
-      <div class="p-4 bg-white rounded-lg">
+      <div class="p-4 bg-white text-base text-gray-800 rounded-lg">
         <p-editor
           [(ngModel)]="replyText"
           placeholder="Escribe un mensaje para acompañar el reenvío..."
           [style]="{ height: '100px' }"
-        />
+        >
+          <ng-template #header>
+            <span class="ql-formats">
+              <button type="button" class="ql-bold" aria-label="Bold"></button>
+              <button
+                type="button"
+                class="ql-italic"
+                aria-label="Italic"
+              ></button>
+              <button
+                type="button"
+                class="ql-underline"
+                aria-label="Underline"
+              ></button>
+              <button
+                type="button"
+                class="ql-image"
+                aria-label="Image"
+              ></button>
+            </span>
+          </ng-template>
+        </p-editor>
       </div>
 
       <div
@@ -166,7 +206,7 @@
           <div class="relative flex">
             <button
               type="button"
-              (click)="handleSend()"
+              (click)="sendReply(reply.id, reply.mailAttentionId)"
               class="bg-[#375f95] text-white px-4 py-2 rounded-l-full hover:bg-[#263f61]"
             >
               Enviar
