@@ -987,25 +987,24 @@ completionEventReceived){
             </div>
           </div>
         </p-overlayPanel>
-        <p-button
-          severity="secondary"
-          size="large"
-          [outlined]="true"
-          [disabled]="
-            ['whatsapp', 'chatsat'].includes(chatDetail.channel)
-              ? chatDetail.botStatus == 'active'
-              : false
-          "
-          (onClick)="predefinedOp.toggle($event)"
-          pTooltip="Respuestas predefinidas"
-          tooltipPosition="top"
-          #trigger
-        >
-          <iconify-icon
-            [icon]="'heroicons-outline:chat-bubble-left-right'"
-            class="text-xl"
-          ></iconify-icon>
-        </p-button>
+        @if(['whatsapp', 'chatsat'].includes(chatDetail.channel))
+        {
+          <p-button
+            severity="secondary"
+            size="large"
+            [outlined]="true"
+            [disabled]="['whatsapp', 'chatsat'].includes(chatDetail.channel) ? chatDetail.botStatus == 'active' : false"
+            (onClick)="predefinedOp.toggle($event)"
+            pTooltip="Respuestas predefinidas"
+            tooltipPosition="top"
+            #trigger
+          >
+            <iconify-icon
+              [icon]="'heroicons-outline:chat-bubble-left-right'"
+              class="text-xl"
+            ></iconify-icon>
+          </p-button>
+        }
         <p-button
           severity="contrast"
           size="large"

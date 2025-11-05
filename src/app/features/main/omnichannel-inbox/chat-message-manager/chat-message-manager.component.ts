@@ -201,6 +201,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
       this.channelRoomId = Number(channelRoomId);
       const attentionId = params.get('assistanceId');
       this.attentionId = Number(attentionId);
+      this.messageText = ""
       this.loadChatData();
     });
     setInterval(() => {

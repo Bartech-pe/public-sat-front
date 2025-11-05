@@ -18,18 +18,18 @@
     <!-- Box 1 - ALÓ SAT no tiene endpoint -->
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-1">
-        <h3 class="text-lg font-semibold text-gray-700 ml-4">
-          Aló SAT
-          <span class="font-normal">
-            ({{ aloSatTotal ?? "-" }} llamadas totales)
-          </span>
-        </h3>
+        <div class="grid grid-cols-1">
+          <h3 class="text-lg font-semibold text-gray-700">Aló SAT</h3>
+          <p class="font-normal text-xs italic">
+            {{ aloSatTotal ?? "0" }} llamadas totales
+          </p>
+        </div>
         <!-- Si hay datos, mostrarlos -->
-        <div class="space-y-1 px-4">
+        <div class="px-4">
           @for (item of aloSatCount; track $index) {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <p class="text-xl font-bold">
+              <p class="text-xl font-medium">
                 {{ item.total }}
               </p>
               <p class="text-sm text-gray-500">{{ item.callStateName }}</p>
@@ -115,22 +115,22 @@
     <p-card styleClass="h-full">
       <div class="grid grid-cols-1 gap-2">
         <h3 class="text-lg font-semibold text-gray-700 ml-4">Chatbot</h3>
-        <div class="space-y-1 px-4" *ngIf="chatCount; else loadingChatbot">
+        <div class="space-y-1 px-4" *ngIf="wspCount; else loadingChatbot">
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-blue-600">
-              {{ chatCount.botCount ?? "-" }}
+              {{ wspCount.botCount ?? "-" }}
             </p>
             <p class="text-sm text-gray-500">Atendidos Bot</p>
           </div>
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-green-600">
-              {{ chatCount.agentCount ?? "-" }}
+              {{ wspCount.agentCount ?? "-" }}
             </p>
             <p class="text-sm text-gray-500">Atendidos por Agente</p>
           </div>
           <div class="flex items-center gap-2">
             <p class="text-xl font-bold text-indigo-600">
-              {{ chatCount.total ?? "-" }}
+              {{ wspCount.total ?? "-" }}
             </p>
             <p class="text-sm text-gray-500">Total</p>
           </div>
@@ -576,7 +576,7 @@
                     [(ngModel)]="item.channelStateId"
                     class="!rounded-full min-w-48"
                     placeholder="Estado"
-                    (onChange)="changeChannelState(item.userId, $event.value)"
+                    (onChange)="changeEmailState(item.userId, $event.value)"
                     appendTo="body"
                   />
                 </td>
@@ -623,16 +623,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let advisor of chatAdvisors; let i = index">
+              <tr *ngFor="let item of chatAdvisors; let i = index">
                 <td class="border p-2">Chat</td>
-                <td class="border p-2">{{ advisor.name }}</td>
-                <td class="border p-2">{{ advisor.avgDurationMinutes }} min</td>
-                <td class="border p-2">{{ advisor.percentage }}%</td>
+                <td class="border p-2">{{ item.name }}</td>
+                <td class="border p-2">{{ item.avgDurationMinutes }} min</td>
+                <td class="border p-2">{{ item.percentage }}%</td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
                     <div class="relative">
                       <button
-                        (click)="togglePopup(i, 'atenciones', advisor.userId)"
+                        (click)="togglePopup(i, 'atenciones', item.userId)"
                         class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
                       >
                         Atenciones
@@ -770,21 +770,21 @@
                 </th>
               </tr>
             </ng-template>
-            <ng-template #body let-advisor>
+            <ng-template #body let-item>
               <tr>
                 <td>
                   <div class="flex justify-start text-sm">
-                    {{ advisor.name }}
+                    {{ item.name }}
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.avgDurationMinutes }} min
+                    {{ item.avgDurationMinutes }} min
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.percentage }}%
+                    {{ item.percentage }}%
                   </div>
                 </td>
 
@@ -795,7 +795,7 @@
                       [text]="false"
                       [outlined]="true"
                       label="Atenciones"
-                      (click)="loadAttentionDetail(advisor.userId, $event)"
+                      (click)="loadAttentionDetail(item.userId, $event)"
                     />
                   </div>
                 </td>
@@ -808,7 +808,7 @@
                     [(ngModel)]="item.channelStateId"
                     class="!rounded-full min-w-48"
                     placeholder="Estado"
-                    (onChange)="changeChannelState(item.userId, $event.value)"
+                    (onChange)="changeChatState(item.userId, $event.value)"
                     appendTo="body"
                   />
                 </td>
@@ -843,20 +843,20 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let advisor of wspAdvisors; let i = index">
+              <tr *ngFor="let item of wspAdvisors; let i = index">
                 <td class="border p-2">WhatsApp</td>
-                <td class="border p-2">{{ advisor.name }}</td>
-                <td class="border p-2">{{ advisor.phoneNumber }}</td>
-                <td class="border p-2">{{ advisor.avgDurationMinutes }} min</td>
+                <td class="border p-2">{{ item.name }}</td>
+                <td class="border p-2">{{ item.phoneNumber }}</td>
+                <td class="border p-2">{{ item.avgDurationMinutes }} min</td>
                 <td class="border p-2">
-                  {{ advisor.totalDurationMinutes }} min
+                  {{ item.totalDurationMinutes }} min
                 </td>
-                <td class="border p-2">{{ advisor.percentage }}%</td>
+                <td class="border p-2">{{ item.percentage }}%</td>
                 <td class="border p-2 relative">
                   <div class="flex gap-2">
                     <div class="relative">
                       <button
-                        (click)="togglePopup(i, 'atenciones', advisor.userId)"
+                        (click)="togglePopup(i, 'atenciones', item.userId)"
                         class="flex items-center gap-2 rounded-full border border-blue-600 px-3 py-1 text-xs font-medium shadow-sm text-blue-600 hover:bg-blue-100 transition"
                       >
                         Atenciones
@@ -1009,41 +1009,41 @@
                 </th>
               </tr>
             </ng-template>
-            <ng-template #body let-advisor>
+            <ng-template #body let-item>
               <tr>
                 <td>
                   <div class="flex justify-start text-sm">
-                    {{ advisor.name }}
+                    {{ item.name }}
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.phoneNumber }}
+                    {{ item.phoneNumber }}
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.avgDurationMinutes }} min
+                    {{ item.avgDurationMinutes }} min
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.totalDurationMinutes | duration }}
+                    {{ item.totalDurationMinutes | duration }}
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.percentage }}%
+                    {{ item.percentage }}%
                   </div>
                 </td>
                 <!-- <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.average | duration }}
+                    {{ item.average | duration }}
                   </div>
                 </td> -->
                 <!-- <td>
                   <div class="flex justify-center text-sm">
-                    {{ advisor.efectividad | percent }}
+                    {{ item.efectividad | percent }}
                   </div>
                 </td> -->
                 <td class="border p-2 relative">
@@ -1053,7 +1053,7 @@
                       [text]="false"
                       [outlined]="true"
                       label="Atenciones"
-                      (click)="loadAttentionDetail(advisor.userId, $event)"
+                      (click)="loadAttentionDetail(item.userId, $event)"
                     />
                   </div>
                 </td>
@@ -1066,7 +1066,7 @@
                     [(ngModel)]="item.channelStateId"
                     class="!rounded-full min-w-48"
                     placeholder="Estado"
-                    (onChange)="changeChannelState(item.userId, $event.value)"
+                    (onChange)="changeWspState(item.userId, $event.value)"
                     appendTo="body"
                   />
                 </td>

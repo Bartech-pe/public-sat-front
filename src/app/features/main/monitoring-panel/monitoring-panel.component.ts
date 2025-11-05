@@ -203,7 +203,7 @@ export class MonitoringPanelComponent {
     });
   }
 
-  changeChannelState(userId: number, stateId: number) {
+  changeEmailState(userId: number, stateId: number) {
     console.log('userId', userId);
     console.log('stateId', stateId);
 
@@ -212,6 +212,34 @@ export class MonitoringPanelComponent {
         next: () => {
           this.msg.success('Estado actualizado');
           this.loadMailMonitoring();
+        },
+      });
+    }
+  }
+
+  changeChatState(userId: number, stateId: number) {
+    console.log('userId', userId);
+    console.log('stateId', stateId);
+
+    if (stateId) {
+      this.mailService.changeChatState(userId, stateId).subscribe({
+        next: () => {
+          this.msg.success('Estado actualizado');
+          this.loadChatAdvisors();
+        },
+      });
+    }
+  }
+
+  changeWspState(userId: number, stateId: number) {
+    console.log('userId', userId);
+    console.log('stateId', stateId);
+
+    if (stateId) {
+      this.mailService.changeWspState(userId, stateId).subscribe({
+        next: () => {
+          this.msg.success('Estado actualizado');
+          this.loadWspAdvisors();
         },
       });
     }
@@ -226,8 +254,6 @@ export class MonitoringPanelComponent {
   loadCounts() {
     this.loadAlosatMonitoring();
     this.loadMailMonitoring();
-    this.loadChatCount();
-    this.loadWspCount();
     this.loadVicidialReport();
     this.loadChatAdvisors();
     this.loadWspAdvisors();
@@ -386,25 +412,6 @@ export class MonitoringPanelComponent {
         )?.pauseCodeName!;
   }
 
-  /** CHATS / WSP / MAIL*/
-  loadChatCount(): void {
-    this.loadingChatCount = true;
-    this.monitorService.getCountChat().subscribe({
-      next: (res) => (this.chatCount = res),
-      error: (err) => console.error('Error al cargar conteo de chats:', err),
-      complete: () => (this.loadingChatCount = false),
-    });
-  }
-
-  loadWspCount(): void {
-    this.loadingWspCount = true;
-    this.monitorService.getCountWSP().subscribe({
-      next: (res) => (this.wspCount = res),
-      error: (err) => console.error('Error al cargar conteo de WhatsApp:', err),
-      complete: () => (this.loadingWspCount = false),
-    });
-  }
-
   /** TABLAS DE ASESORES */
   loadMailMonitoring(): void {
     this.monitorService.getMonitorAdvisorsMail().subscribe({
@@ -429,12 +436,24 @@ export class MonitoringPanelComponent {
       },
       error: (err) => console.error('Error cargando asesores de chat', err),
     });
+
+    this.monitorService.getCountChat().subscribe({
+      next: (res) => (this.chatCount = res),
+      error: (err) => console.error('Error al cargar conteo de chats:', err),
+      complete: () => (this.loadingChatCount = false),
+    });
   }
 
   loadWspAdvisors(): void {
     this.monitorService.getMonitorAdvisorsChatWsp().subscribe({
       next: (data) => (this.wspAdvisors = data),
       error: (err) => console.error('Error cargando asesores de WhatsApp', err),
+    });
+
+    this.monitorService.getCountWSP().subscribe({
+      next: (res) => (this.wspCount = res),
+      error: (err) => console.error('Error al cargar conteo de WhatsApp:', err),
+      complete: () => (this.loadingWspCount = false),
     });
   }
 

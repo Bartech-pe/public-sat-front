@@ -1,6 +1,7 @@
 export interface ChatWspAdvisor {
   userId: number;
   name: string;
+  channelStateId: number;
   email: string;
   phoneNumber: string;
   updatedAt: string;

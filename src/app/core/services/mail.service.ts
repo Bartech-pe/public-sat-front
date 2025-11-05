@@ -187,6 +187,28 @@ export class MailService {
   }
 
   /**
+   * Cambiar el estado de correos entre asesores
+   *
+   */
+  changeChatState(userId: number, channelStateId: number): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/changeChatState/${userId}/${channelStateId}`,
+      {}
+    );
+  }
+
+  /**
+   * Cambiar el estado de correos entre asesores
+   *
+   */
+  changeWspState(userId: number, channelStateId: number): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/changeWspState/${userId}/${channelStateId}`,
+      {}
+    );
+  }
+
+  /**
    * Marcar un ticket como "No Wish"
    * @param mailAttentionId id del mail a actualizar
    */
