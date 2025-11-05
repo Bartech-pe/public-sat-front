@@ -1543,4 +1543,20 @@ export class MailComponent implements OnInit {
     this.offset.set(event.offset);
     this.loadMails();
   }
+
+  mailIsNotClosed(mail: MailDto): boolean {
+    return mail.state?.id !== MailStates.CLOSED;
+  }
+
+  mailIsNotAttention(mail: MailDto): boolean {
+    return mail.state?.id !== MailStates.ATTENTION;
+  }
+
+  mailIsNotSpam(mail: MailDto): boolean {
+    return mail.state?.id !== MailStates.SPAM;
+  }
+
+  mailIsClosable(mail: MailDto): boolean {
+    return ![MailStates.SPAM].includes(mail.state?.id!);
+  }
 }

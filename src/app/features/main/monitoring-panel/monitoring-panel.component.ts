@@ -166,6 +166,10 @@ export class MonitoringPanelComponent {
 
   userMailStates: ChannelState[] = [];
 
+  userChatStates: ChannelState[] = [];
+
+  userWspStates: ChannelState[] = [];
+
   pauseCodeList: { pauseCode: string; pauseCodeName: string }[] = [];
 
   ngOnInit() {
@@ -185,6 +189,16 @@ export class MonitoringPanelComponent {
     this.channelStateService.channelStateEmail().subscribe({
       next: (data) => {
         this.userMailStates = data;
+      },
+    });
+    this.channelStateService.channelStateChatsat().subscribe({
+      next: (data) => {
+        this.userChatStates = data;
+      },
+    });
+    this.channelStateService.channelStateWhatsapp().subscribe({
+      next: (data) => {
+        this.userWspStates = data;
       },
     });
   }
@@ -286,7 +300,8 @@ export class MonitoringPanelComponent {
 
   get usersInPause(): number {
     return this.userList.filter(
-      (user: VicidialUser) => user?.channelState?.id === ChannelPhoneState.PAUSED
+      (user: VicidialUser) =>
+        user?.channelState?.id === ChannelPhoneState.PAUSED
     ).length;
   }
 

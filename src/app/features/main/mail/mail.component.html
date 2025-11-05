@@ -205,7 +205,11 @@
                   <div>
                     <div class="flex items-center gap-2">
                       <div
-                        class="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm"
+                        class="flex items-center px-2 py-0.5 rounded-full text-xs font-medium shadow-sm"
+                        [ngClass]="{
+                          'bg-blue-100 text-blue-700': firstMail()?.isSender,
+                          'bg-amber-100 text-amber-700': !firstMail()?.isSender
+                        }"
                       >
                         <iconify-icon
                           icon="mdi:ticket-confirmation-outline"
@@ -234,42 +238,31 @@
                     {{ selectedMail()?.state?.name }}
                   </span>
 
-                  <div class="flex items-center gap-2 mr-4">
-                    <!-- <btn-custom
-                      severity="secondary"
-                      tooltip="Responder"
-                      icon="entypo:reply"
-                      (click)="startReply()"
-                    />
+                  <div
+                    *ngIf="mailIsNotClosed(selectedMail())"
+                    class="flex items-center gap-2 mr-4"
+                  >
                     <btn-custom
-                      severity="secondary"
-                      tooltip="Reenviar"
-                      icon="entypo:forward"
-                      (click)="startForwardCompose()"
-                    /> -->
-                    <btn-custom
+                      *ngIf="mailIsClosable(selectedMail())"
                       severity="secondary"
                       tooltip="Cerrar atención"
                       icon="mdi:archive-lock"
                       (click)="closeSelected()"
                     />
                     <btn-custom
+                      *ngIf="mailIsNotAttention(selectedMail())"
                       severity="secondary"
                       tooltip="Cambiar a En atención"
                       icon="bi:person-fill-exclamation"
                       (click)="attentionSelected()"
                     />
                     <btn-custom
+                      *ngIf="mailIsNotSpam(selectedMail())"
                       severity="secondary"
                       tooltip="Enviar a No deseado"
                       icon="ri:spam-fill"
                       (click)="noWishSelected()"
                     />
-                    <!-- <btn-custom
-                severity="secondary"
-                tooltip="Implrimir"
-                icon="ic:round-print"
-              /> -->
                   </div>
                 </div>
               </div>
@@ -890,7 +883,11 @@
                     <div class="flex item-center justify-between gap-1">
                       <div class="flex gap-2">
                         <div
-                          class="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm"
+                          class="flex items-center px-2 py-0.5 rounded-full text-xs font-medium shadow-sm"
+                          [ngClass]="{
+                            'bg-teal-100 text-teal-700': mail?.isSender,
+                            'bg-amber-100 text-amber-700': !mail?.isSender
+                          }"
                         >
                           <iconify-icon
                             icon="mdi:ticket-confirmation-outline"
@@ -904,6 +901,9 @@
                             'font-semibold': !mail.isRead,
                             '!text-gray-600': mail.isRead
                           }"
+                          [pTooltip]="getName(mail)"
+                          tooltipPosition="top"
+                          tooltipStyleClass="!text-xs text-center !font-normal !p-0"
                         >
                           {{ getName(mail) }}
                         </span>

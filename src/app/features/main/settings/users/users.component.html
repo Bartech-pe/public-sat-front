@@ -119,7 +119,15 @@
             </td>
             <td class="w-24">
               <div class="flex justify-center items-center gap-1">
+                <btn-custom
+                  *ngIf="!isAloSat(item)"
+                  severity="contrast"
+                  icon="fluent:channel-share-12-regular"
+                  tooltip="Asignar canales"
+                  [disabled]="true"
+                />
                 <p-overlaybadge
+                  *ngIf="isAloSat(item)"
                   [value]="item.inboxes?.length"
                   severity="info"
                   badgeSize="small"
@@ -135,13 +143,26 @@
             </td>
             <td class="w-16">
               <div class="flex justify-center items-center gap-1">
-                <btn-custom
-                  severity="contrast"
-                  icon="lucide:phone-call"
-                  tooltip="Credenciales VICIdial"
-                  (click)="vicidialParams(item)"
-                  [disabled]="!item.vicidial"
-                />
+                <div
+                  *ngIf="!item.vicidial"
+                  class="p-0.5"
+                  pTooltip="Credenciales VICIdial"
+                  tooltipPosition="top"
+                  tooltipStyleClass="!text-xs text-center !font-normal !p-0"
+                >
+                  <iconify-icon icon="lucide:phone-call" class="text-lg" />
+                </div>
+                <p-overlaybadge *ngIf="item.vicidial" severity="info">
+                  <div
+                    class="p-0.5 cursor-pointer"
+                    pTooltip="Credenciales VICIdial"
+                    tooltipPosition="top"
+                    tooltipStyleClass="!text-xs text-center !font-normal !p-0"
+                    (click)="vicidialParams(item)"
+                  >
+                    <iconify-icon icon="lucide:phone-call" class="text-lg" />
+                  </div>
+                </p-overlaybadge>
               </div>
             </td>
             <td class="w-28">

@@ -726,17 +726,17 @@ export class NewPortfolioComponent implements OnInit {
   onSubmit() {
     if (this.formData.valid) {
       const { departmentId, ...request } = this.formData.value;
-      if (!this.selectedFile) {
-        this.msg.error('Por favor selecciona un archivo primero');
-        return;
-      }
       if (this.id) {
         this.portfolioStore.update(
           this.id,
           { id: this.id, ...request },
-          this.selectedFile
+          this.selectedFile ?? undefined
         );
       } else {
+        if (!this.selectedFile) {
+          this.msg.error('Por favor selecciona un archivo primero');
+          return;
+        }
         if (!this.previewData || this.previewData.length === 0) {
           this.msg.error('Debe agregar al menos un registro antes de guardar.');
           return;

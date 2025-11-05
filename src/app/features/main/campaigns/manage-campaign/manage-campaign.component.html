@@ -73,6 +73,12 @@
                   Nombre Lista<p-sortIcon field="name" />
                 </div>
               </th>
+
+              <th pSortableColumn="type">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Tipo Campaña<p-sortIcon field="type" />
+                </div>
+              </th>
               <th pSortableColumn="campaignType.name">
                 <div class="flex items-center text-xs uppercase gap-4">
                   Nombre Campaña
@@ -121,6 +127,10 @@
               </td>
               <td>
                 <p class="text-sm font-light">{{ registro.name }}</p>
+              </td>
+
+              <td>
+                <p class="text-sm font-light">{{ registro.type === 'I' ? 'Individual' : registro.type === 'M' ? 'Múltiple' : 'Desconocido' }}</p>
               </td>
               <td >
                 <p class="text-sm font-light">

@@ -34,7 +34,7 @@ export class MessageGlobalService {
       acceptLabel: '¡De acuerdo!',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-primary p-button-sm !px-2 !py-1.5 !rounded-full',
-      rejectButtonStyleClass: 'p-button-contrast p-button-sm !px-2 !py-1.5',
+      rejectButtonStyleClass: 'p-button-contrast p-button-sm !px-2 !py-1.5 !rounded-full',
       rejectVisible: !!rejectCallback,
       accept: acceptCallback,
       reject: rejectCallback,

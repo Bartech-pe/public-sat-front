@@ -97,7 +97,7 @@ export class InboxUserFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.storeUser.loadAll();
+    this.storeUser.loadAll(undefined, undefined, { officeId: 1 });
   }
 
   assign() {

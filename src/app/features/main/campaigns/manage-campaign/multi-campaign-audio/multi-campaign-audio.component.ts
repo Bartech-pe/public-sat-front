@@ -176,6 +176,7 @@ export class MultiCampaignAudioComponent implements OnInit{
         list_description: this.description,
         campaign_id: this.selectedCampaign,
         active: 'N',
+        type: 'M',
         departmentId:this.selectedArea,
         campaign_name:this.campaign?.campaign_name,
     }

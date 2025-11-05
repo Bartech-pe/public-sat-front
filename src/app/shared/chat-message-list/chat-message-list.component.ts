@@ -16,7 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
 import { ChatMessageService } from '@services/message.service';
 import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
-
+import { DialogModule } from 'primeng/dialog';
 @Component({
   selector: 'chat-message-list',
   imports: [
@@ -27,6 +27,7 @@ import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
     InputTextModule,
     PopoverModule,
     OverlayPanelModule,
+    DialogModule
   ],
   templateUrl: './chat-message-list.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -36,7 +37,7 @@ export class ChatMessageListComponent {
   @Input() messages: ChatMessage[] = [];
 
   apiUrlImage = environment.apiUrl.replace(/\/$/, '');
-
+  visibleImage: boolean = false;
   readonly chatMessageService: ChatMessageService = inject(ChatMessageService);
 
   selectedMessage: ChatMessage | null = null;
@@ -69,5 +70,12 @@ export class ChatMessageListComponent {
         panelEl.style.top = `${panelEl.offsetTop + 12}px`;
       }
     });
+  }
+
+  urlImage:any="";
+  clickImage(msg:any){
+    this.visibleImage = true;
+    this.urlImage = this.apiUrlImage + msg.resourceUrl
+  
   }
 }

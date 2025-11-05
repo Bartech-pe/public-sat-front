@@ -761,6 +761,13 @@
                     Detalles
                   </div>
                 </th>
+                <th class="w-36">
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Estado
+                  </div>
+                </th>
               </tr>
             </ng-template>
             <ng-template #body let-advisor>
@@ -792,19 +799,19 @@
                     />
                   </div>
                 </td>
-                <!-- <td>
-                    <p-select
-                      id="userStateId"
-                      [options]="userMailStates"
-                      optionLabel="name"
-                      optionValue="id"
-                      [(ngModel)]="item.channelStateId"
-                      class="!rounded-full min-w-48"
-                      placeholder="Estado"
-                      (onChange)="changeChannelState(item.userId, $event.value)"
-                      appendTo="body"
-                    />
-                  </td> -->
+                <td>
+                  <p-select
+                    id="userStateId"
+                    [options]="userChatStates"
+                    optionLabel="name"
+                    optionValue="id"
+                    [(ngModel)]="item.channelStateId"
+                    class="!rounded-full min-w-48"
+                    placeholder="Estado"
+                    (onChange)="changeChannelState(item.userId, $event.value)"
+                    appendTo="body"
+                  />
+                </td>
               </tr>
             </ng-template>
             <ng-template #emptymessage>
@@ -993,6 +1000,13 @@
                     Detalles
                   </div>
                 </th>
+                <th class="w-36">
+                  <div
+                    class="flex justify-center items-center text-xs uppercase"
+                  >
+                    Estado
+                  </div>
+                </th>
               </tr>
             </ng-template>
             <ng-template #body let-advisor>
@@ -1042,6 +1056,19 @@
                       (click)="loadAttentionDetail(advisor.userId, $event)"
                     />
                   </div>
+                </td>
+                <td>
+                  <p-select
+                    id="userStateId"
+                    [options]="userWspStates"
+                    optionLabel="name"
+                    optionValue="id"
+                    [(ngModel)]="item.channelStateId"
+                    class="!rounded-full min-w-48"
+                    placeholder="Estado"
+                    (onChange)="changeChannelState(item.userId, $event.value)"
+                    appendTo="body"
+                  />
                 </td>
               </tr>
             </ng-template>

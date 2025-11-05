@@ -29,6 +29,7 @@ import { VicidialUserComponent } from './user-vicidial/user-vicidial.component';
 import { CardModule } from 'primeng/card';
 import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-users',
@@ -42,6 +43,7 @@ import { PaginatorComponent } from '@shared/paginator/paginator.component';
     AvatarGroupModule,
     BadgeModule,
     OverlayBadgeModule,
+    TooltipModule,
     ButtonSaveComponent,
     BtnCustomComponent,
     ButtonEditComponent,
@@ -115,6 +117,10 @@ export class UsersComponent implements OnInit {
     this.limit.set(event.limit);
     this.offset.set(event.offset);
     this.loadData();
+  }
+
+  isAloSat(user: User): boolean {
+    return user?.officeId === 1;
   }
 
   getInitial(user: User) {
@@ -215,11 +221,10 @@ export class UsersComponent implements OnInit {
   }
 
   vicidialParams(item: User) {
-    this.store.loadById(item.id);
-    this.openModal = true;
-    const ref = this.dialogService.open(VicidialUserComponent, {
+    this.dialogService.open(VicidialUserComponent, {
       header: `Credenciales VICIdial | ${item.name}`,
       styleClass: 'modal-md',
+      data: item.vicidial,
       modal: true,
       focusOnShow: false,
       dismissableMask: false,

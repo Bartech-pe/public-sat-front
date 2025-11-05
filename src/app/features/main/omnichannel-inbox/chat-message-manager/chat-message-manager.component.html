@@ -8,25 +8,26 @@
   >
     <div class="flex items-center space-x-3">
       <p-avatar
-        [image]="
-          'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png'
-        "
-        [className]="'object-cover w-full h-full bg-gray-200'"
-        [size]="'large'"
-        [shape]="'circle'"
+        class="!bg-slate-100 border border-slate-500"
+        size="normal"
+        shape="circle"
       >
+        <iconify-icon
+          icon="fa-solid:user"
+          class="text-xl text-slate-500"
+        ></iconify-icon>
       </p-avatar>
       <!-- Contact Details -->
       <div class="flex flex-col">
-        <span class="font-semibold text-gray-900">Selecciona un chat</span>
-        <div class="flex items-center space-x-2 text-sm">
-          <div class="flex items-center space-x-1">
-            <iconify-icon
-              icon="mdi:chat-outline"
-              class="w-4 h-4 text-gray-400"
-            ></iconify-icon>
-            <span class="text-gray-600">Sin conversación</span>
-          </div>
+        <span class="text-sm font-semibold text-gray-900"
+          >Selecciona un chat</span
+        >
+        <div class="flex items-center space-x-2 text-xs">
+          <iconify-icon
+            icon="mdi:chat-outline"
+            class="text-gray-400"
+          ></iconify-icon>
+          <span class="text-gray-600">Sin conversación</span>
         </div>
       </div>
     </div>
@@ -70,22 +71,24 @@
     class="h-full min-h-0 max-h-full overflow-y-auto overflow-x-hidden p-6 space-y-6 bg-gradient-to-b from-gray-50 to-gray-100"
   >
     <div
-      class="flex flex-col items-center justify-center h-full text-center py-16"
+      class="flex flex-col items-center justify-center h-full text-center py-16 gap-4"
     >
       <div
-        class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6"
+        class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center"
       >
         <iconify-icon
           icon="mdi:chat-outline"
           class="text-4xl text-gray-400"
         ></iconify-icon>
       </div>
-      <h3 class="text-lg font-semibold text-gray-600 mb-2">
-        No hay chat seleccionado
-      </h3>
-      <p class="text-sm text-gray-500 max-w-sm">
-        Selecciona una conversación de la lista para comenzar a chatear.
-      </p>
+      <div class="flex flex-col items-center justify-center">
+        <h3 class="text-sm font-semibold text-gray-600">
+          No hay chat seleccionado
+        </h3>
+        <p class="text-xs text-gray-500 max-w-sm">
+          Selecciona una conversación de la lista para comenzar a chatear.
+        </p>
+      </div>
     </div>
   </section>
   <!-- Footer fijo -->
@@ -337,7 +340,9 @@ completionEventReceived){
           </div>
           <p-tag
             [severity]="getChannelStatusTag(chatDetail.attention.status)"
-            [value]="getChannelStatusTrad(chatDetail!.attention.status) | titlecase"
+            [value]="
+              getChannelStatusTrad(chatDetail!.attention.status) | titlecase
+            "
           ></p-tag>
           <div
             class="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium shadow-sm"
@@ -353,42 +358,56 @@ completionEventReceived){
     </div>
     <!-- Actions -->
     <div class="flex items-center space-x-2">
-      @if(['whatsapp','chatsat'].includes(chatDetail.channel) && chatDetail.attention.status !== 'closed'){
-        @if(chatDetail.botStatus === 'active') {
-          <p-button
-            severity="danger"
-            size="small"
-            [disabled]="!chatDetail.agentAssigned.id"
-            pTooltip="{{!chatDetail.agentAssigned.id ? 'No hay un asesor asignado a este chat.': ''}}"
-            [loading]="false"
-            (onClick)="toggleBotService(false)"
-          >
-            <div class="flex justify-center items-center gap-1">
-              <iconify-icon
-                [icon]="!chatDetail.agentAssigned.id ? 'lucide:lock' : 'lucide:bot-off'"
-                class="text-xl"
-              ></iconify-icon>
-              <div>{{ !chatDetail.agentAssigned.id ? 'Bloqueado' : 'Pausar Bot' }}</div>
-            </div>
-          </p-button>
-          } @else {
-          <p-button
-            size="small"
-            severity="contrast"
-            [disabled]="!chatDetail.agentAssigned.id"
-            [loading]="false"
-            (onClick)="toggleBotService(true)"
-          >
-            <div class="flex justify-center items-center gap-1">
-              <iconify-icon
-                [icon]="!chatDetail.agentAssigned.id ? 'lucide:lock' : 'codicon:debug-start'"
-                class="text-xl"
-              ></iconify-icon>
-              <div>{{ !chatDetail.agentAssigned.id ? 'Bloqueado' : 'Activar Bot' }}</div>
-            </div>
-          </p-button>
-          }
-      }
+      @if(['whatsapp','chatsat'].includes(chatDetail.channel) &&
+      chatDetail.attention.status !== 'closed'){ @if(chatDetail.botStatus ===
+      'active') {
+      <p-button
+        severity="danger"
+        size="small"
+        [disabled]="!chatDetail.agentAssigned.id"
+        pTooltip="{{
+          !chatDetail.agentAssigned.id
+            ? 'No hay un asesor asignado a este chat.'
+            : ''
+        }}"
+        [loading]="false"
+        (onClick)="toggleBotService(false)"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon
+            [icon]="
+              !chatDetail.agentAssigned.id ? 'lucide:lock' : 'lucide:bot-off'
+            "
+            class="text-xl"
+          ></iconify-icon>
+          <div>
+            {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Pausar Bot" }}
+          </div>
+        </div>
+      </p-button>
+      } @else {
+      <p-button
+        size="small"
+        severity="contrast"
+        [disabled]="!chatDetail.agentAssigned.id"
+        [loading]="false"
+        (onClick)="toggleBotService(true)"
+      >
+        <div class="flex justify-center items-center gap-1">
+          <iconify-icon
+            [icon]="
+              !chatDetail.agentAssigned.id
+                ? 'lucide:lock'
+                : 'codicon:debug-start'
+            "
+            class="text-xl"
+          ></iconify-icon>
+          <div>
+            {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Activar Bot" }}
+          </div>
+        </div>
+      </p-button>
+      } }
       <p-menu #menu [model]="items" [popup]="true" />
       <ng-container *ngIf="advisors.length != 0">
         <app-advisor
@@ -672,24 +691,25 @@ completionEventReceived){
                 'text-gray-400': message.sender.fromCitizen
               }"
             >
-              {{ message.timestamp | date:'dd/MM/yyyy HH:mm' }}
+              {{ message.timestamp | date : "dd/MM/yyyy HH:mm" }}
             </span>
             <div>
-
               @if(!message.sender.fromCitizen && !['whatsapp',
               'chatsat'].includes(chatDetail.channel)){
-                <iconify-icon
-                  [icon]="'mdi:face-agent'"
-                  class="text-xl text-blue-100"
-                >
-                </iconify-icon>
-                } @if (!message.sender.fromCitizen && ['whatsapp',
-                'chatsat'].includes(chatDetail.channel)) {
-                <iconify-icon
-                  [icon]="message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'"
-                  class="text-xl text-blue-100"
-                >
-                </iconify-icon>
+              <iconify-icon
+                [icon]="'mdi:face-agent'"
+                class="text-xl text-blue-100"
+              >
+              </iconify-icon>
+              } @if (!message.sender.fromCitizen && ['whatsapp',
+              'chatsat'].includes(chatDetail.channel)) {
+              <iconify-icon
+                [icon]="
+                  message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'
+                "
+                class="text-xl text-blue-100"
+              >
+              </iconify-icon>
               }
               <!-- <iconify-icon
                   [icon]="message.status == 'read' ? 'line-md:check-all' : 'line-md:check'"
@@ -865,7 +885,6 @@ completionEventReceived){
 
         <!-- Predefined Responses Trigger Button -->
 
-
         <!-- Predefined Responses Overlay Panel -->
         <p-overlayPanel
           #predefinedOp
@@ -874,13 +893,22 @@ completionEventReceived){
           [styleClass]="'w-96 shadow-xl'"
           [dismissable]="true"
           [showCloseIcon]="false"
-          [style]="{ 'border-radius': '0.5rem', 'background': 'white', 'border': '1px solid #e5e7eb', 'max-height': '80vh' }"
+          [style]="{
+            'border-radius': '0.5rem',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            'max-height': '80vh'
+          }"
         >
           <div class="flex flex-col h-full max-h-[80vh]">
             <!-- Sticky Header -->
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
+            <div
+              class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 z-10"
+            >
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-gray-900 flex items-center">
+                <h3
+                  class="text-sm font-semibold text-gray-900 flex items-center"
+                >
                   <iconify-icon
                     [icon]="'heroicons-outline:chat-bubble-left-right'"
                     class="text-blue-500 mr-2"
@@ -905,40 +933,56 @@ completionEventReceived){
             </div>
 
             <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-2">
+            <div
+              class="flex-1 overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-2"
+            >
               @if (predefinedResponses && predefinedResponses.length > 0) {
-                <div class="space-y-2">
-                  @for (response of predefinedResponses; track response.id) {
-                    <div
-                      class="p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200"
-                      (click)="onResponseSelected(response); predefinedOp.hide()"
-                      role="button"
-                      tabindex="0"
-                      (keydown.enter)="onResponseSelected(response); predefinedOp.hide()"
-                    >
-                      <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0 mt-1">
-                          <iconify-icon
-                            [icon]="'heroicons-outline:document-text'"
-                            class="text-gray-400 text-lg"
-                          ></iconify-icon>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <h4 class="text-sm font-medium text-gray-900 truncate mb-1">{{ response.title }}</h4>
-                          <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">{{ response.content }}</p>
-                        </div>
-                      </div>
+              <div class="space-y-2">
+                @for (response of predefinedResponses; track response.id) {
+                <div
+                  class="p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200"
+                  (click)="onResponseSelected(response); predefinedOp.hide()"
+                  role="button"
+                  tabindex="0"
+                  (keydown.enter)="
+                    onResponseSelected(response); predefinedOp.hide()
+                  "
+                >
+                  <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 mt-1">
+                      <iconify-icon
+                        [icon]="'heroicons-outline:document-text'"
+                        class="text-gray-400 text-lg"
+                      ></iconify-icon>
                     </div>
-                  }
+                    <div class="flex-1 min-w-0">
+                      <h4
+                        class="text-sm font-medium text-gray-900 truncate mb-1"
+                      >
+                        {{ response.title }}
+                      </h4>
+                      <p
+                        class="text-xs text-gray-600 leading-relaxed line-clamp-3"
+                      >
+                        {{ response.content }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
+                }
+              </div>
               } @else {
-                <div class="flex flex-col items-center justify-center py-8 text-center">
-                  <iconify-icon
-                    [icon]="'heroicons-outline:chat-bubble-left'"
-                    class="text-gray-400 text-4xl mb-2"
-                  ></iconify-icon>
-                  <p class="text-sm text-gray-500 italic">No hay respuestas predefinidas disponibles.</p>
-                </div>
+              <div
+                class="flex flex-col items-center justify-center py-8 text-center"
+              >
+                <iconify-icon
+                  [icon]="'heroicons-outline:chat-bubble-left'"
+                  class="text-gray-400 text-4xl mb-2"
+                ></iconify-icon>
+                <p class="text-sm text-gray-500 italic">
+                  No hay respuestas predefinidas disponibles.
+                </p>
+              </div>
               }
             </div>
           </div>
@@ -947,7 +991,11 @@ completionEventReceived){
           severity="secondary"
           size="large"
           [outlined]="true"
-          [disabled]="['whatsapp', 'chatsat'].includes(chatDetail.channel) ? chatDetail.botStatus == 'active' : false"
+          [disabled]="
+            ['whatsapp', 'chatsat'].includes(chatDetail.channel)
+              ? chatDetail.botStatus == 'active'
+              : false
+          "
           (onClick)="predefinedOp.toggle($event)"
           pTooltip="Respuestas predefinidas"
           tooltipPosition="top"

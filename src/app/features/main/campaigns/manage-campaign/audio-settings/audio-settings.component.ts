@@ -59,6 +59,7 @@ export class AudioSettingsComponent {
     list_description: '',
     campaign_id: '',
     active: 'Y',
+    type:'I',
     departmentId:'',
     campaign_name:'',
     dtoList: [],

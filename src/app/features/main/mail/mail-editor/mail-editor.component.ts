@@ -1,4 +1,4 @@
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import {
   FormControl,
@@ -16,7 +16,7 @@ import {
   AutoCompleteModule,
 } from 'primeng/autocomplete';
 import { CardModule } from 'primeng/card';
-import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { EditorModule } from 'primeng/editor';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -41,13 +41,9 @@ import { TextareaModule } from 'primeng/textarea';
 export class MailEditorComponent {
   private readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
 
-  private readonly config = inject(DynamicDialogConfig);
-
   private readonly msg = inject(MessageGlobalService);
 
   private readonly mailService = inject(MailService);
-
-  private readonly datePipe = inject(DatePipe);
 
   formData = new FormGroup({
     to: new FormControl<string | undefined>(undefined, {
@@ -78,12 +74,6 @@ export class MailEditorComponent {
   ];
 
   emailItemsTo: any[] = [];
-
-  ngOnInit(): void {
-    const { mailId, replyId } = this.config.data;
-
-    console.log(mailId, replyId);
-  }
 
   searchEmailTo(event: AutoCompleteCompleteEvent) {
     this.emailItemsTo = this.emailList.filter(

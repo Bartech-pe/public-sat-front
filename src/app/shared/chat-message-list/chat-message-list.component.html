@@ -62,7 +62,7 @@
               [alt]="msg.content || 'Imagen adjunta'"
               class="rounded-xl max-w-full max-h-64 object-cover mb-2 border border-gray-200 shadow-sm transition-transform duration-200 hover:scale-105 cursor-pointer"
               loading="lazy"
-       
+              (click)="clickImage(msg)"
             />
             <div
               *ngIf="msg.content"
@@ -200,6 +200,15 @@
       <iconify-icon icon="mdi:delete-outline" width="18"></iconify-icon>
       Eliminar mensaje
     </button>
-    <!-- Opcional: Agregar más opciones aquí, e.g., Copiar, Reenviar -->
+  
   </div>
 </p-overlayPanel>
+
+<p-dialog header="Imagen" [modal]="true" [(visible)]="visibleImage" [style]="{ width: '60rem' }">
+       <img
+        [src]="urlImage"
+        alt="Imagen adjunta"
+        class="w-full h-full object-contain bg-black"
+        loading="lazy"
+      />
+</p-dialog>

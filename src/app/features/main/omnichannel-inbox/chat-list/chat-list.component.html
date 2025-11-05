@@ -5,17 +5,18 @@
       class="px-5 pt-5 pb-3 flex-shrink-0 sticky top-0 z-10 bg-white border-b border-gray-100"
     >
       <div class="mb-3 flex items-center justify-between">
-        <h4 class="p-card-title text-lg font-semibold">Lista de chats</h4>
+        <h4 class="p-card-title text-base font-semibold">Lista de chats</h4>
 
         <!-- Estado del usuario -->
-        @if(!['administrador'].includes(getUserRole()) && statusOptions.length > 0 && channel != 'telegram') {
+        @if(!['administrador'].includes(getUserRole()) && statusOptions.length >
+        0 && channel != 'telegram') {
         <div class="flex items-center gap-1">
           <button
             #statusBtn
             pRipple
             (click)="statusMenu.toggle($event)"
             [style.border-color]="statusColor || 'red'"
-            class="flex  items-center gap-2.5 pl-2 py-2 border  rounded-lg hover:shadow-md transition-all duration-200"
+            class="flex items-center gap-2.5 pl-2 py-2 border rounded-lg hover:shadow-md transition-all duration-200"
           >
             <div
               [style.background-color]="statusColor || 'red'"
@@ -31,13 +32,13 @@
             ></iconify-icon>
           </button>
 
-            <p-menu
-              #statusMenu
-              [popup]="true"
-              [model]="statusOptions"
-              appendTo="body"
-              (onItemClick)="changeUserStatus($event)"
-            ></p-menu>
+          <p-menu
+            #statusMenu
+            [popup]="true"
+            [model]="statusOptions"
+            appendTo="body"
+            (onItemClick)="changeUserStatus($event)"
+          ></p-menu>
         </div>
         }
       </div>
@@ -82,7 +83,7 @@
                 (ngModelChange)="loadChatList()"
                 optionLabel="label"
                 fluid="true"
-                [styleClass]="'flex gap-1'"
+                [styleClass]="'flex !text-sm gap-1'"
                 [itemTemplate]="itemTemplate"
                 [disabled]="isLoading"
               />
@@ -171,12 +172,15 @@
         </iconify-icon>
       </div>
 
-      <h3 class="text-lg font-semibold text-gray-400 mb-2">
-        No hay chats disponibles
-      </h3>
-      <p class="text-sm text-center text-gray-400 max-w-xs">
-        Las conversaciones aparecerán aquí cuando los usuarios inicien contacto
-      </p>
+      <div class="flex flex-col justify-center items-center gap-1">
+        <h3 class="text-sm font-semibold text-gray-500">
+          No hay chats disponibles
+        </h3>
+        <p class="text-xs text-center text-gray-400 max-w-xs">
+          Las conversaciones aparecerán aquí cuando los usuarios inicien
+          contacto
+        </p>
+      </div>
 
       <!-- Botón de acción opcional -->
       <button
@@ -257,7 +261,13 @@
                   }}
                 </h3>
                 <span class="text-sm text-gray-500 whitespace-nowrap ml-2">
-                  {{ chat.lastMessage.time | date:(isToday(chat.lastMessage.time) ? 'HH:mm' : 'dd/MM/yyyy HH:mm') }}
+                  {{
+                    chat.lastMessage.time
+                      | date
+                        : (isToday(chat.lastMessage.time)
+                            ? "HH:mm"
+                            : "dd/MM/yyyy HH:mm")
+                  }}
                 </span>
               </div>
               <div class="flex items-start gap-2 mb-2">
@@ -276,7 +286,7 @@
                 </p>
                 }@else {
                 <p class="text-sm text-gray-600 truncate leading-relaxed">
-                  {{ chat.lastMessage.message  | markdown}}
+                  {{ chat.lastMessage.message | markdown }}
                 </p>
                 }
               </div>
@@ -326,28 +336,41 @@
                     }"
                     pTooltip="{{ chat.attention.status | titlecase }}"
                   ></iconify-icon> -->
-                      <iconify-icon
-                        *ngIf="['whatsapp','chatsat'].includes(chat.channel)"
-                        icon="{{chat.botStatus === 'active' ? 'lucide:bot': 'lucide:bot-off'}}"
-                        [ngClass]="{
-                          'text-green-500 ': chat.botStatus === 'active',
-                          'text-red-500': chat.botStatus === 'paused'
-                        }"
-                        pTooltip="{{chat.botStatus === 'active' ? 'Bot activado': 'Bot desactivado'}}"
-                      ></iconify-icon>
-                      <iconify-icon
-                        icon={{getChannelStatusIcon(chat.attention.status)}}
-                        [ngClass]="{
-                          'text-yellow-600': chat.attention.status === 'identity_verification',
-                          'text-yellow-500': chat.attention.status === 'in_progress',
-                          'text-red-500': chat.attention.status === 'priority',
-                          'text-green-500': chat.attention.status === 'closed'
-                        }"
-                        pTooltip="{{getChannelStatusLabel(chat.attention.status) | titlecase}}"
-                      ></iconify-icon>
+                  <iconify-icon
+                    *ngIf="['whatsapp', 'chatsat'].includes(chat.channel)"
+                    icon="{{
+                      chat.botStatus === 'active'
+                        ? 'lucide:bot'
+                        : 'lucide:bot-off'
+                    }}"
+                    [ngClass]="{
+                      'text-green-500 ': chat.botStatus === 'active',
+                      'text-red-500': chat.botStatus === 'paused'
+                    }"
+                    pTooltip="{{
+                      chat.botStatus === 'active'
+                        ? 'Bot activado'
+                        : 'Bot desactivado'
+                    }}"
+                  ></iconify-icon>
+                  <iconify-icon
+                    icon="{{ getChannelStatusIcon(chat.attention.status) }}"
+                    [ngClass]="{
+                      'text-yellow-600':
+                        chat.attention.status === 'identity_verification',
+                      'text-yellow-500':
+                        chat.attention.status === 'in_progress',
+                      'text-red-500': chat.attention.status === 'priority',
+                      'text-green-500': chat.attention.status === 'closed'
+                    }"
+                    pTooltip="{{
+                      getChannelStatusLabel(chat.attention.status) | titlecase
+                    }}"
+                  ></iconify-icon>
 
                   @if (chat?.unreadCount && chat?.unreadCount > 0 &&
-                  chat?.attention.status !== 'closed' && !['administrador', 'supervisor'].includes(getUserRole())) {
+                  chat?.attention.status !== 'closed' && !['administrador',
+                  'supervisor'].includes(getUserRole())) {
                   <div
                     class="bg-red-500 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center animate-pulse"
                   >

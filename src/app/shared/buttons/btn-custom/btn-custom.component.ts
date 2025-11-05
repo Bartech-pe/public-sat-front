@@ -33,7 +33,7 @@ export type ButtonSeverity =
       [severity]="severity !== 'white' ? severity : 'info'"
       [pTooltip]="tooltip"
       tooltipPosition="top"
-      tooltipStyleClass="!text-xs !font-normal !p-0"
+      tooltipStyleClass="!text-xs text-center !font-normal !p-0"
       (click)="onHandler($event)"
       [disabled]="disabled"
       [class]="getBtnClass()"

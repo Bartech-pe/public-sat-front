@@ -21,6 +21,25 @@ export class ChannelStateService extends GenericCrudService<ChannelState> {
     return this.http.put<ChannelState[]>(`${this.url}/channelStateEmail`, {});
   }
 
+  /**
+   * Cambiar el estado de correos entre asesores
+   *
+   */
+  channelStateChatsat(): Observable<ChannelState[]> {
+    return this.http.put<ChannelState[]>(`${this.url}/channelStateChatsat`, {});
+  }
+
+  /**
+   * Cambiar el estado de correos entre asesores
+   *
+   */
+  channelStateWhatsapp(): Observable<ChannelState[]> {
+    return this.http.put<ChannelState[]>(
+      `${this.url}/channelStateWhatsapp`,
+      {}
+    );
+  }
+
   getUserStatusesByChannel(
     channel: string
   ): Observable<IBaseResponseDto<ChannelState[]>> {
