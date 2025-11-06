@@ -49,7 +49,7 @@ interface FilterOptions{
     IconField,
     MenuModule,
     // ButtonChannelComponent,
-    MarkdownPipe,
+    // MarkdownPipe,
     PhoneFormatPipe,
     ToastModule,
     DividerModule,

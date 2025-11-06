@@ -76,6 +76,10 @@ export class PortfoliosComponent implements OnInit, OnDestroy {
   limit = signal(10);
   offset = signal(0);
 
+  get totalItems(): number {
+    return this.portfolioStore.totalItems();
+  }
+
   get listPortfolios(): Portfolio[] {
     return this.portfolioStore.items();
   }

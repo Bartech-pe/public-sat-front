@@ -108,7 +108,7 @@ export class ChannelsComponent {
   }
 
   addNew() {
-    // this.store.clearSelected();
+    this.store.clearSelected();
     this.openModal = true;
     const ref = this.dialogService.open(InboxFormComponent, {
       header: 'Nueva canal',
