@@ -1,15 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GenericCrudService } from '@services/generic/generic-crud.service';
-import { TemplateEmail } from '@models/template-email.model';
+import { EmailTemplate } from '@models/email-template.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class TemplateEmailService extends GenericCrudService<TemplateEmail> {
-
+export class EmailTemplateService extends GenericCrudService<EmailTemplate> {
   constructor(http: HttpClient) {
-    super(http, 'template-email');
+    super(http, 'email-templates');
   }
-  
 }

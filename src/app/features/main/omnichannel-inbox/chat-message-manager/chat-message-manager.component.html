@@ -358,56 +358,56 @@ completionEventReceived){
     </div>
     <!-- Actions -->
     <div class="flex items-center space-x-2">
-      @if(['whatsapp','chatsat'].includes(chatDetail.channel) &&
-      chatDetail.attention.status !== 'closed'){ @if(chatDetail.botStatus ===
-      'active') {
-      <p-button
-        severity="danger"
-        size="small"
-        [disabled]="!chatDetail.agentAssigned.id"
-        pTooltip="{{
-          !chatDetail.agentAssigned.id
-            ? 'No hay un asesor asignado a este chat.'
-            : ''
-        }}"
-        [loading]="false"
-        (onClick)="toggleBotService(false)"
-      >
-        <div class="flex justify-center items-center gap-1">
-          <iconify-icon
-            [icon]="
-              !chatDetail.agentAssigned.id ? 'lucide:lock' : 'lucide:bot-off'
-            "
-            class="text-xl"
-          ></iconify-icon>
-          <div>
-            {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Pausar Bot" }}
-          </div>
-        </div>
-      </p-button>
-      } @else {
-      <p-button
-        size="small"
-        severity="contrast"
-        [disabled]="!chatDetail.agentAssigned.id"
-        [loading]="false"
-        (onClick)="toggleBotService(true)"
-      >
-        <div class="flex justify-center items-center gap-1">
-          <iconify-icon
-            [icon]="
+      @if( chatDetail.attention.status !== 'closed'){
+        @if(chatDetail.botStatus ==='active') {
+          <p-button
+            severity="danger"
+            size="small"
+            [disabled]="!chatDetail.agentAssigned.id"
+            pTooltip="{{
               !chatDetail.agentAssigned.id
-                ? 'lucide:lock'
-                : 'codicon:debug-start'
-            "
-            class="text-xl"
-          ></iconify-icon>
-          <div>
-            {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Activar Bot" }}
+                ? 'No hay un asesor asignado a este chat.'
+                : ''
+            }}"
+            [loading]="false"
+            (onClick)="toggleBotService(false)"
+          >
+            <div class="flex justify-center items-center gap-1">
+              <iconify-icon
+                [icon]="
+                  !chatDetail.agentAssigned.id ? 'lucide:lock' : 'lucide:bot-off'
+                "
+                class="text-xl"
+              ></iconify-icon>
+              <div>
+                {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Pausar Bot" }}
+              </div>
+            </div>
+          </p-button>
+        } @else {
+        <p-button
+          size="small"
+          severity="contrast"
+          [disabled]="!chatDetail.agentAssigned.id"
+          [loading]="false"
+          (onClick)="toggleBotService(true)"
+        >
+          <div class="flex justify-center items-center gap-1">
+            <iconify-icon
+              [icon]="
+                !chatDetail.agentAssigned.id
+                  ? 'lucide:lock'
+                  : 'codicon:debug-start'
+              "
+              class="text-xl"
+            ></iconify-icon>
+            <div>
+              {{ !chatDetail.agentAssigned.id ? "Bloqueado" : "Activar Bot" }}
+            </div>
           </div>
-        </div>
-      </p-button>
-      } }
+        </p-button>
+        }
+      }
       <p-menu #menu [model]="items" [popup]="true" />
       <ng-container *ngIf="advisors.length != 0">
         <app-advisor
@@ -577,7 +577,6 @@ completionEventReceived){
               </div>
             </div>
             }
-            <!-- Vista previa de archivo estilo WhatsApp mejorada -->
             @else {
             <div
               class="bg-white rounded-xl border border-gray-200 p-3 min-w-2xs max-w-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
@@ -694,15 +693,7 @@ completionEventReceived){
               {{ message.timestamp | date : "dd/MM/yyyy HH:mm" }}
             </span>
             <div>
-              @if(!message.sender.fromCitizen && !['whatsapp',
-              'chatsat'].includes(chatDetail.channel)){
-              <iconify-icon
-                [icon]="'mdi:face-agent'"
-                class="text-xl text-blue-100"
-              >
-              </iconify-icon>
-              } @if (!message.sender.fromCitizen && ['whatsapp',
-              'chatsat'].includes(chatDetail.channel)) {
+              @if (!message.sender.fromCitizen ) {
               <iconify-icon
                 [icon]="
                   message.sender.isAgent ? 'mdi:face-agent' : 'lucide:bot'
@@ -870,11 +861,7 @@ completionEventReceived){
               rows="1"
               class="w-full border-0 bg-transparent rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-0 min-h-[44px] max-h-[120px] overflow-y-auto"
               [(ngModel)]="messageText"
-              [disabled]="
-                ['whatsapp', 'chatsat'].includes(chatDetail.channel)
-                  ? chatDetail.botStatus == 'active'
-                  : false
-              "
+              [disabled]="chatDetail.botStatus == 'active'"
               (keydown)="onTextareaKeydown($event)"
               (input)="onTextareaInput($event)"
               style="line-height: 1.4"
@@ -1010,9 +997,7 @@ completionEventReceived){
           size="large"
           [disabled]="
             emptyMessage ||
-            (['whatsapp', 'chatsat'].includes(chatDetail.channel)
-              ? chatDetail.botStatus == 'active'
-              : false)
+            chatDetail.botStatus == 'active'
           "
           [loading]="false"
           (onClick)="sendMessage()"

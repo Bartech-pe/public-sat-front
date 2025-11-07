@@ -1,4 +1,4 @@
-export interface TemplateEmail {
+export interface EmailTemplate {
   id?: number;
   name: string;
   template: string;

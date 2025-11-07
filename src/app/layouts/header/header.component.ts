@@ -22,6 +22,9 @@ import {
 } from '@angular/animations';
 import { SidebarService } from '@services/sidebar.service';
 import { ElementRef, Renderer2 } from '@angular/core';
+import { NotificationService } from '@services/notification.service';
+import { SocketService } from '@services/socket.service';
+import { User } from '@models/user.model';
 
 interface CalendarEvent {
   id: number;
@@ -70,9 +73,17 @@ interface NotificationItem {
   ],
 })
 export class HeaderComponent implements OnInit {
+
+  readonly authStore = inject(AuthStore);
   private readonly store = inject(AuthStore);
-  readonly authService = inject(AuthService);
-  readonly sidebarService = inject(SidebarService);
+  readonly  authService = inject(AuthService);
+  readonly  sidebarService = inject(SidebarService);
+  readonly  notificationService= inject(NotificationService);
+  readonly  socketService = inject(SocketService);
+
+  get userCurrent(): User {
+      return this.authStore.user()!;
+  }
 
   constructor(private elRef: ElementRef, private renderer: Renderer2) {}
 
@@ -107,11 +118,7 @@ export class HeaderComponent implements OnInit {
     },
   ];
 
-  notifications: NotificationItem[] = [
-    { id: 1, text: 'Nuevo mensaje de Juan', date: new Date(), checked: false },
-    { id: 2, text: 'Orden #234 aprobada', date: new Date(), checked: false },
-    { id: 3, text: 'Backup completado', date: new Date(), checked: false },
-  ];
+  notifications: any[] = [];
 
   hasCalendarNotification = this.calendarEvents.length > 0;
 
@@ -125,17 +132,32 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const now = new Date();
-    this.dateHoy = now;
-    this.timeHoy = now;
+      const now = new Date();
+      this.dateHoy = now;
+      this.timeHoy = now;
 
-    this.renderer.listen('window', 'click', (event: Event) => {
-      if (!this.elRef.nativeElement.contains(event.target)) {
-        this.isDropdownOpen = false;
-        this.isCalendarOpen = false;
-        this.isNotificationsOpen = false;
-      }
-    });
+      this.renderer.listen('window', 'click', (event: Event) => {
+        if (!this.elRef.nativeElement.contains(event.target)) {
+          this.isDropdownOpen = false;
+          this.isCalendarOpen = false;
+          this.isNotificationsOpen = false;
+        }
+      });
+
+      this.socketService.onMessage((msg) => {
+        if (msg.senderId != this.userCurrent.id) {
+            msg.senderId = false;
+            this.allNotification();
+        }
+      });
+      
+      this.allNotification();
+  }
+
+  allNotification(){
+    this.notificationService.findAllByuserId().subscribe((res:any) => {
+       this.notifications = res.data;
+    })
   }
 
   get name(): string | undefined {
@@ -181,7 +203,7 @@ export class HeaderComponent implements OnInit {
       this.isCalendarOpen = false;
     }
   }
-
+ 
   // marcar/desmarcar notificación individual
   toggleNotificationChecked(item: NotificationItem): void {
     item.checked = !item.checked;
@@ -190,7 +212,9 @@ export class HeaderComponent implements OnInit {
 
   // marcar todas (opcional)
   markAllAsRead(): void {
-    this.notifications.forEach((n) => (n.checked = true));
+    this.notificationService.allAsReadNotification({}).subscribe((res:any) => {
+        this.allNotification();
+    })
   }
 
   // cantidad de no leídas

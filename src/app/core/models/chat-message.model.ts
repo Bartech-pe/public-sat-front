@@ -9,7 +9,7 @@ export interface Sender {
   status: boolean;
   createdAt: string; // o Date si prefieres
   updatedAt: string;
-}
+} 
 
 export interface ChatMessage {
   id?: number;
@@ -23,4 +23,9 @@ export interface ChatMessage {
   updatedAt?: string;
   sender ?: Sender;
   isSender: boolean;
+}
+
+export interface ChatMessageNotication {
+  userId?: number;
+  message: string;
 }

@@ -10,14 +10,15 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { TableModule } from 'primeng/table';
 import { EmailTemplateComponent } from './email-template/email-template.component';
 import { ManageEmailComponent } from './manage-email/manage-email.component';
-import { CampaignEmailConfigService } from '@services/campaign-email-config.service';
-import { CampaignEmailConfigStore } from '@stores/campaign-email-config.store';
+import { EmailCampaignService } from '@services/email-campaign.service';
+import { EmailCampaignStore } from '@stores/email-campaign.store';
 import { TagModule } from 'primeng/tag';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { Dialog } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ButtonCountComponent } from '@shared/buttons/button-count/button-count.component';
+
 @Component({
   selector: 'app-mail',
   imports: [
@@ -38,8 +39,8 @@ export class MailComponent implements OnInit {
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
 
-  readonly templateEmailStore = inject(CampaignEmailConfigStore);
-  readonly templateEmailService = inject(CampaignEmailConfigService);
+  readonly emailCampaignStore = inject(EmailCampaignStore);
+  readonly emailCampaignService = inject(EmailCampaignService);
 
   listaCampaniasSMS: any[] = [];
   openModal: boolean = true;
@@ -53,7 +54,7 @@ export class MailComponent implements OnInit {
   }
 
   loadData() {
-    this.templateEmailService.getAll().subscribe((res) => {
+    this.emailCampaignService.getAll().subscribe((res) => {
       console.log(res);
       this.listaCampaniasSMS = res.data;
     });
@@ -130,14 +131,14 @@ export class MailComponent implements OnInit {
             <p class='text-center'> Esta acción no se puede deshacer. </p>
           </div>`,
       () => {
-        this.templateEmailService.delete(registro.id);
+        this.emailCampaignService.delete(registro.id);
       }
     );
   }
 
   verResultados(registro: any) {
     this.visible = true;
-    this.templateEmailService.getEmailTemplate(registro.id).subscribe((res) => {
+    this.emailCampaignService.getEmailTemplate(registro.id).subscribe((res) => {
       this.listPreview = res;
     });
   }

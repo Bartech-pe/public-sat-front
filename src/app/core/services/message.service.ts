@@ -4,7 +4,7 @@ import { environment } from '@envs/environments';
 import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
-import { ChatMessage } from '@models/chat-message.model';
+import { ChatMessage, ChatMessageNotication } from '@models/chat-message.model';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
 import { ChatRoom } from '@models/chat-room.model';
 
@@ -57,12 +57,21 @@ export class ChatMessageService {
       );
   }
 
+  
+
 
   registerMessage(body: ChatMessage): Observable<ChatMessage[]> {
     const { isSender, ...dto } = body;
     return this.http.post<ChatMessage[]>(
       `${this.apiUrl}/chat/room/message`,
       dto
+    );
+  }
+
+  registerMessageNotificacion(body: ChatMessageNotication): Observable<ChatMessageNotication[]> {
+    return this.http.post<ChatMessageNotication[]>(
+      `${this.apiUrl}/notifications`,
+      body
     );
   }
 

@@ -34,8 +34,8 @@ import { Dialog } from 'primeng/dialog';
 import { User } from '@models/user.model';
 import { AuthStore } from '@stores/auth.store';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { SmsCampaingService } from '@services/sms-campania.service';
-import { MessagePreview, ShowHeader } from '@models/sms-campaing';
+import { SmsCampaignService } from '@services/sms-campaign.service';
+import { MessagePreview, ShowHeader } from '@models/sms-campaign.model';
 import { CampaignState } from '@models/campaign-state.model';
 import { CampaignStateStore } from '@stores/campaign-state.store';
 import { DepartmentStore } from '@stores/department.store';
@@ -79,7 +79,7 @@ export class FormSmsComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   readonly campaignStateStore = inject(CampaignStateStore);
-  readonly smsCampaingService = inject(SmsCampaingService);
+  readonly smsCampaignService = inject(SmsCampaignService);
   readonly departmentStore = inject(DepartmentStore);
   readonly authStore = inject(AuthStore);
 
@@ -92,7 +92,7 @@ export class FormSmsComponent implements OnInit {
   // Opciones de contactos
   contactos: ShowHeader[] = [];
 
-  listaVistaPrevia:any[] = [];
+  listaVistaPrevia: any[] = [];
 
   columnas: string[] = [];
   previewData: any[] = [];
@@ -106,7 +106,7 @@ export class FormSmsComponent implements OnInit {
     this.formData = this.fb.group({
       name: [undefined, Validators.required],
       senderId: [undefined, Validators.required],
-      contact: [{ value: undefined, disabled: true },Validators.required],
+      contact: [{ value: undefined, disabled: true }, Validators.required],
       variable: [{ value: undefined, disabled: true }],
       message: [undefined, Validators.required],
       countryCode: [this.countryCode],
@@ -115,7 +115,7 @@ export class FormSmsComponent implements OnInit {
     });
     this.loadData();
     if (this.editarCampania) {
-      this.smsCampaingService.findOne(this.config.data).subscribe((res) => {
+      this.smsCampaignService.findOne(this.config.data).subscribe((res) => {
         if (res.showheaders) {
           this.contactos = res.showheaders;
         }
@@ -126,14 +126,16 @@ export class FormSmsComponent implements OnInit {
           countryCode: res.countryCode,
           id_estado_campania: res.id_estado_campania,
           id_area_campania: res.id_area_campania,
-          contact:this.contactos.find((item) => item.label == res.contact)?.value ?? '',
+          contact:
+            this.contactos.find((item) => item.label == res.contact)?.value ??
+            '',
         });
       });
     }
   }
 
   uploadExcelFile(file: File) {
-    this.smsCampaingService.readSMSExcel(file).subscribe({
+    this.smsCampaignService.readSMSExcel(file).subscribe({
       next: (res) => {
         this.contactos = res.showheaders;
         this.rows = res.rows;
@@ -187,22 +189,20 @@ export class FormSmsComponent implements OnInit {
   previewMessage() {
     const values = this.formData.getRawValue();
 
-      if (!values.message || !Array.isArray(this.rows)) return;
+    if (!values.message || !Array.isArray(this.rows)) return;
 
-      // const mensajes = this.rows.map((contacto) => ({
-      //   message: this.renderTemplate(values.message, contacto),
-      //   contact: this.contactos.find((item) => item.value == values.contact)?.label ?? ''
-      // }));
+    // const mensajes = this.rows.map((contacto) => ({
+    //   message: this.renderTemplate(values.message, contacto),
+    //   contact: this.contactos.find((item) => item.value == values.contact)?.label ?? ''
+    // }));
 
-      // console.log('Mensajes personalizados:', mensajes);
+    // console.log('Mensajes personalizados:', mensajes);
 
-      // let quees= this.contactos.find((item) => item.value == values.contact)?.label ??  '';
+    // let quees= this.contactos.find((item) => item.value == values.contact)?.label ??  '';
 
-
-      // console.log(quees);
-      // //     '',)
-      // this.listaVistaPrevia = mensajes;
-
+    // console.log(quees);
+    // //     '',)
+    // this.listaVistaPrevia = mensajes;
 
     const request: MessagePreview = {
       rows: this.rows,
@@ -212,8 +212,7 @@ export class FormSmsComponent implements OnInit {
         '',
     };
 
-
-    this.smsCampaingService.getMessagePreview(request).subscribe((res) => {
+    this.smsCampaignService.getMessagePreview(request).subscribe((res) => {
       this.listaVistaPrevia = res;
     });
   }
@@ -271,14 +270,16 @@ export class FormSmsComponent implements OnInit {
       const update = {
         senderId: request.senderId,
         name: request.name,
-        contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
+        contact:
+          this.contactos.find((item) => item.value == request.contact)?.label ??
+          '',
         message: request.message,
         // departmentId: request.id_area_campania,
         // campaignStateId: request.id_estado_campania,
         countryCode: request.countryCode,
       };
 
-      this.smsCampaingService.update(this.config.data, update).subscribe({
+      this.smsCampaignService.update(this.config.data, update).subscribe({
         next: () => {
           this.msg.success('Campaña SMS actualizada exitosamente');
           this.ref.close(true); // ✅ Se ejecuta correctamente
@@ -295,7 +296,9 @@ export class FormSmsComponent implements OnInit {
     const createBody = {
       senderId: request.senderId,
       name: request.name,
-      contact: this.contactos.find((item) => item.value == request.contact)?.label ??  '',
+      contact:
+        this.contactos.find((item) => item.value == request.contact)?.label ??
+        '',
       message: request.message,
       // departmentId: request.id_area_campania,
       // campaignStateId: request.id_estado_campania,
@@ -304,7 +307,7 @@ export class FormSmsComponent implements OnInit {
       rows: this.rows,
     };
 
-    this.smsCampaingService.create(createBody).subscribe({
+    this.smsCampaignService.create(createBody).subscribe({
       next: (res) => {
         this.msg.success('Campaña SMS enviada exitosamente');
         this.ref.close(true);
@@ -316,7 +319,7 @@ export class FormSmsComponent implements OnInit {
     });
   }
 
-  @ViewChild('mensajeInput') mensajeInput!: ElementRef<HTMLTextAreaElement>
+  @ViewChild('mensajeInput') mensajeInput!: ElementRef<HTMLTextAreaElement>;
   insertVariable(event: any) {
     const variable = event.value;
     if (!variable || !this.mensajeInput) return;
@@ -327,15 +330,13 @@ export class FormSmsComponent implements OnInit {
     const currentMessage = this.formData.get('message')?.value || '';
 
     // Inserta la variable donde está el cursor
-    const newMessage =
-      currentMessage.substring(0, start) +
-     `[${variable}]`
-      currentMessage.substring(end);
+    const newMessage = currentMessage.substring(0, start) + `[${variable}]`;
+    currentMessage.substring(end);
 
     // Actualiza el formControl
     this.formData.patchValue({ message: newMessage });
 
-    console.log( newMessage)
+    console.log(newMessage);
     // Vuelve a enfocar y coloca el cursor al final del texto insertado
     setTimeout(() => {
       textarea.focus();

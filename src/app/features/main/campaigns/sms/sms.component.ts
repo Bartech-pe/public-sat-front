@@ -17,11 +17,10 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
 import { TagModule } from 'primeng/tag';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { SmsCampaningStore } from '@stores/sms-campaing.store';
+import { SmsCampaignStore } from '@stores/sms-campaign.store';
 import { ButtonCountComponent } from '@shared/buttons/button-count/button-count.component';
-import { MessagePreview } from '@models/sms-campaing';
-import { parse } from 'path';
-import { SmsCampaingService } from '@services/sms-campania.service';
+import { MessagePreview } from '@models/sms-campaign.model';
+import { SmsCampaignService } from '@services/sms-campaign.service';
 import { Dialog } from 'primeng/dialog';
 import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
 
@@ -54,10 +53,10 @@ export class SmsComponent implements OnInit {
 
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
-  readonly smsStore = inject(SmsCampaningStore);
+  readonly smsStore = inject(SmsCampaignStore);
 
   listPreview: any[] = [];
-  readonly smsCampaingService = inject(SmsCampaingService);
+  readonly smsCampaignService = inject(SmsCampaignService);
   ngOnInit() {
     this.loadData();
   }
@@ -97,7 +96,7 @@ export class SmsComponent implements OnInit {
       message: item.message,
       contact: item.contact ?? '',
     };
-    this.smsCampaingService.getMessagePreview(request).subscribe((res) => {
+    this.smsCampaignService.getMessagePreview(request).subscribe((res) => {
       this.listPreview = res;
     });
   }

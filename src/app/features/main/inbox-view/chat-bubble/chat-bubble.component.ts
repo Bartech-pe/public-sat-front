@@ -39,6 +39,7 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { ChatService } from '@services/chat.service';
 import { UserService } from '@services/user.service';
+import { NotificationService } from '@services/notification.service';
 
 @Component({
   selector: 'app-chat-bubble',
@@ -77,13 +78,14 @@ export class ChatBubbleComponent {
   readonly userService = inject(UserService);
   private readonly msg = inject(MessageGlobalService);
   readonly chatMessageService = inject(ChatMessageService);
-  readonly dialogService = inject(DialogService);
+  readonly dialogService = inject(DialogService); 
   readonly authStore = inject(AuthStore);
   readonly messageService = inject(MessageService);
   ref: DynamicDialogRef | undefined;
 
   readonly socketService = inject(SocketService);
   readonly chatService = inject(ChatService);
+  readonly  notificationService= inject(NotificationService);
 
   limit = signal(10);
   offset = signal(0);
@@ -94,6 +96,8 @@ export class ChatBubbleComponent {
 
   chatSeleccionado: any = null;
   mensajesSeleccionado: ChatMessage[] = [];
+
+  messageTotal: any[] = [];
 
   selectedUsers: any[] = [];
   filteredList: User[] = [];
@@ -129,11 +133,20 @@ export class ChatBubbleComponent {
     this.socketService.onMessage((msg) => {
       if (msg.senderId != this.userCurrent.id) {
         msg.senderId = false;
+        this.allNotification();
       }
     });
 
+    
+
     // this.loadUnreadMessages();
     // setInterval(() => this.loadUnreadMessages(), 10000);
+  }
+
+  allNotification(){
+    this.notificationService.findAllByuserId().subscribe((res:any) => {
+      this.messageTotal = res.data;
+    })
   }
 
   ngAfterViewInit(): void {
@@ -259,12 +272,15 @@ export class ChatBubbleComponent {
         this.users.set(res.data);
       },
     });
+
     this.chatMessageService
       .getAllWithToken(this.limit(), this.offset())
       .subscribe((response: any) => {
         this.listChatRoom = response.data;
         this.filteredList = [...this.listUsers];
-      });
+    });
+
+    this.allNotification();
   }
 
   onCancel() {

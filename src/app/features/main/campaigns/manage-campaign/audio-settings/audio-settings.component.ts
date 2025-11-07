@@ -25,12 +25,13 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
 import * as XLSX from 'xlsx';
-import { Campaign } from '@models/campaign.model';
 import { SelectModule } from 'primeng/select';
 import { environment } from '@envs/environments';
 import { TableModule } from 'primeng/table';
 import { DepartmentStore } from '@stores/department.store';
 import { Department } from '@models/department.model';
+import { AudioStoreService } from '@services/audio-store.service';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 @Component({
   selector: 'app-audio-settings',
   imports: [
@@ -44,12 +45,14 @@ import { Department } from '@models/department.model';
     ButtonCancelComponent,
     SelectModule,
     TableModule,
+    ButtonSaveComponent
   ],
   templateUrl: './audio-settings.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``,
 })
-export class AudioSettingsComponent {
+export class AudioSettingsComponent implements OnInit {
+  audioDirectory: string = '';
   audioUrl: SafeUrl | null = null;
   audioBlob: Blob | null = null;
   campania!: any;
@@ -59,9 +62,9 @@ export class AudioSettingsComponent {
     list_description: '',
     campaign_id: '',
     active: 'Y',
-    type:'I',
-    departmentId:'',
-    campaign_name:'',
+    type: 'I',
+    departmentId: '',
+    campaign_name: '',
     dtoList: [],
   };
 
@@ -69,15 +72,15 @@ export class AudioSettingsComponent {
   public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
 
-  readonly departmentStore = inject(DepartmentStore); 
+  readonly departmentStore = inject(DepartmentStore);
 
   get departmentList(): Department[] {
-      return this.departmentStore.items();
+    return this.departmentStore.items();
   }
 
-  listAudios:any=[];
-  listListVicidial:any=[];
-  listCampaignVicidial:any=[];
+  listAudios: any = [];
+  listListVicidial: any = [];
+  listCampaignVicidial: any = [];
 
   ttsText: string = '';
   columnas: string[] = [];
@@ -92,27 +95,36 @@ export class AudioSettingsComponent {
     private msg: MessageGlobalService,
     private sanitizer: DomSanitizer,
     public config: DynamicDialogConfig,
-    private vicidialService: VicidialService
+    private vicidialService: VicidialService,
+    private audioStoreService: AudioStoreService
   ) {}
 
   ngOnInit(): void {
-
     this.loadData();
+    this.getDirectoryPath();
+  }
+
+  getDirectoryPath() {
+    this.audioStoreService.getAudioStoreDirectory().subscribe({
+      next: (res) => {
+        this.audioDirectory = res.url;
+      },
+    });
   }
 
   loadData() {
     this.departmentStore.loadAll();
-    this.vicidialService.getlistCampaniaAll().subscribe(res=>{
+    this.vicidialService.getlistCampaniaAll().subscribe((res) => {
       this.listCampaignVicidial = res;
-    })
+    });
 
     this.listAudio();
   }
 
-  listAudio(){
-     this.vicidialService.getAllAudio().subscribe(res=>{
+  listAudio() {
+    this.audioStoreService.getAllAudio().subscribe((res) => {
       this.listAudios = res;
-    })
+    });
   }
 
   descargarPlantilla() {
@@ -124,7 +136,6 @@ export class AudioSettingsComponent {
     this.formlist.dtoList = [];
     this.files = files;
     if (droppedFile.fileEntry.isFile) {
-      
       const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
       this.nameArchivo = droppedFile.relativePath;
       const ext = this.nameArchivo.split('.').pop()?.toLowerCase();
@@ -135,7 +146,6 @@ export class AudioSettingsComponent {
       }
 
       fileEntry.file((file: File) => {
-
         this.selectedFile = file;
         const reader = new FileReader();
 
@@ -209,6 +219,29 @@ export class AudioSettingsComponent {
     }
   }
 
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  onDropZoneClick() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const fileEntry: NgxFileDropEntry = {
+        relativePath: file.name,
+        fileEntry: {
+          isFile: true,
+          isDirectory: false,
+          name: file.name,
+          fullPath: file.name,
+          file: (callback: (file: File) => void) => callback(file),
+        } as FileSystemFileEntry,
+      };
+      this.onFileDropped([fileEntry]); // Reuse existing logic
+    }
+  }
+
   reproducirTexto() {
     const texto = (this.ttsText || '').trim();
 
@@ -250,132 +283,154 @@ export class AudioSettingsComponent {
 
   loading = false;
   async convertToPCM16Mono8k(blob: Blob): Promise<Blob> {
-      const audioCtx = new AudioContext();
-      const arrayBuffer = await blob.arrayBuffer();
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const audioCtx = new AudioContext();
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-      // Re-muestrear a 8 kHz
-      const offlineCtx = new OfflineAudioContext(1, audioBuffer.duration * 8000, 8000);
-      const source = offlineCtx.createBufferSource();
-      source.buffer = audioBuffer;
+    // Re-muestrear a 8 kHz
+    const offlineCtx = new OfflineAudioContext(
+      1,
+      audioBuffer.duration * 8000,
+      8000
+    );
+    const source = offlineCtx.createBufferSource();
+    source.buffer = audioBuffer;
 
-      // Convertir a mono
-      const merger = offlineCtx.createChannelMerger(1);
-      source.connect(merger);
-      merger.connect(offlineCtx.destination);
+    // Convertir a mono
+    const merger = offlineCtx.createChannelMerger(1);
+    source.connect(merger);
+    merger.connect(offlineCtx.destination);
 
-      source.start(0);
-      const renderedBuffer = await offlineCtx.startRendering();
+    source.start(0);
+    const renderedBuffer = await offlineCtx.startRendering();
 
-      // Convertir a WAV PCM 16-bit
-      const wavBlob = this.audioBufferToWavBlob(renderedBuffer);
+    // Convertir a WAV PCM 16-bit
+    const wavBlob = this.audioBufferToWavBlob(renderedBuffer);
 
-      return wavBlob;
+    return wavBlob;
   }
 
   audioBufferToWavBlob(buffer: AudioBuffer): Blob {
-      const numOfChan = 1;
-      const length = buffer.length * numOfChan * 2 + 44;
-      const bufferData = new ArrayBuffer(length);
-      const view = new DataView(bufferData);
+    const numOfChan = 1;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const bufferData = new ArrayBuffer(length);
+    const view = new DataView(bufferData);
 
-      const writeString = (view: DataView, offset: number, str: string) => {
-        for (let i = 0; i < str.length; i++) {
-          view.setUint8(offset + i, str.charCodeAt(i));
-        }
-      };
-
-      const sampleRate = 8000;
-      const numSamples = buffer.length;
-      const channelData = buffer.getChannelData(0);
-      let offset = 0;
-
-      // Escribir cabecera WAV
-      writeString(view, offset, 'RIFF'); offset += 4;
-      view.setUint32(offset, 36 + numSamples * 2, true); offset += 4;
-      writeString(view, offset, 'WAVE'); offset += 4;
-      writeString(view, offset, 'fmt '); offset += 4;
-      view.setUint32(offset, 16, true); offset += 4;
-      view.setUint16(offset, 1, true); offset += 2; // PCM
-      view.setUint16(offset, 1, true); offset += 2; // Mono
-      view.setUint32(offset, sampleRate, true); offset += 4;
-      view.setUint32(offset, sampleRate * 2, true); offset += 4;
-      view.setUint16(offset, 2, true); offset += 2;
-      view.setUint16(offset, 16, true); offset += 2;
-      writeString(view, offset, 'data'); offset += 4;
-      view.setUint32(offset, numSamples * 2, true); offset += 4;
-
-      let pos = 44;
-      for (let i = 0; i < numSamples; i++, pos += 2) {
-        let s = Math.max(-1, Math.min(1, channelData[i]));
-        view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    const writeString = (view: DataView, offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
       }
+    };
 
-      return new Blob([view], { type: 'audio/wav' });
+    const sampleRate = 8000;
+    const numSamples = buffer.length;
+    const channelData = buffer.getChannelData(0);
+    let offset = 0;
+
+    // Escribir cabecera WAV
+    writeString(view, offset, 'RIFF');
+    offset += 4;
+    view.setUint32(offset, 36 + numSamples * 2, true);
+    offset += 4;
+    writeString(view, offset, 'WAVE');
+    offset += 4;
+    writeString(view, offset, 'fmt ');
+    offset += 4;
+    view.setUint32(offset, 16, true);
+    offset += 4;
+    view.setUint16(offset, 1, true);
+    offset += 2; // PCM
+    view.setUint16(offset, 1, true);
+    offset += 2; // Mono
+    view.setUint32(offset, sampleRate, true);
+    offset += 4;
+    view.setUint32(offset, sampleRate * 2, true);
+    offset += 4;
+    view.setUint16(offset, 2, true);
+    offset += 2;
+    view.setUint16(offset, 16, true);
+    offset += 2;
+    writeString(view, offset, 'data');
+    offset += 4;
+    view.setUint32(offset, numSamples * 2, true);
+    offset += 4;
+
+    let pos = 44;
+    for (let i = 0; i < numSamples; i++, pos += 2) {
+      let s = Math.max(-1, Math.min(1, channelData[i]));
+      view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+
+    return new Blob([view], { type: 'audio/wav' });
   }
-  name_archivo:any;
+  name_archivo: any;
   async CargarVicidial() {
     this.loading = true;
 
     try {
-        
+      // Si hay un nuevo audio grabado o cargado
+      if (this.audioBlob) {
+        const randomNumber = Math.floor(Math.random() * 100);
+        const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
+        this.name_archivo = `${name_clear}.wav`;
 
-        // Si hay un nuevo audio grabado o cargado
-        if (this.audioBlob) {
-          const randomNumber = Math.floor(Math.random() * 100);
-          const name_clear = `${this.campania.campaign_id}_${randomNumber}`;
-          this.name_archivo = `${name_clear}.wav`;
+        const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
+        const file = new File([wavBlob], this.name_archivo, {
+          type: 'audio/wav',
+        });
 
-          const wavBlob = await this.convertToPCM16Mono8k(this.audioBlob);
-          const file = new File([wavBlob], this.name_archivo, { type: 'audio/wav' });
+        this.globalService.uploadAudio(file).subscribe({
+          next: (res) => {
+            this.msg.success('Audio subido exitosamente.');
+            this.audioBlob = null;
+            // Luego de subir el audio, actualizamos la campaña
+            this.actualizarCampania(name_clear);
+          },
+          error: (err) => {
+            console.error('Error al subir el audio:', err);
+            this.msg.error('Error al subir el audio.');
+            this.loading = false;
+          },
+        });
+      } else {
+        const nameWithoutExtension = this.nameAudioOrigin
+          .split('.')
+          .slice(0, -1)
+          .join('.');
 
-          this.globalService.uploadAudio(file).subscribe({
-            next: (res) => {
-              this.msg.success('Audio subido exitosamente.');
-              this.audioBlob = null;
-              // Luego de subir el audio, actualizamos la campaña
-              this.actualizarCampania(name_clear);
-            },
-            error: (err) => {
-              console.error('Error al subir el audio:', err);
-              this.msg.error('Error al subir el audio.');
-              this.loading = false;
-            },
-          });
-        } else {
-
-          const nameWithoutExtension = this.nameAudioOrigin.split('.').slice(0, -1).join('.');
-
-          this.msg.info('No se detectó nuevo audio, actualizando solo el nombre.');
-          this.actualizarCampania(nameWithoutExtension);
-        
-        }
-      } catch (err) {
-        console.error(err);
-        this.msg.error('No se pudo procesar el audio.');
-        this.loading = false;
+        this.msg.info(
+          'No se detectó nuevo audio, actualizando solo el nombre.'
+        );
+        this.actualizarCampania(nameWithoutExtension);
       }
+    } catch (err) {
+      console.error(err);
+      this.msg.error('No se pudo procesar el audio.');
+      this.loading = false;
+    }
   }
 
   private actualizarCampania(name_clear: string) {
-      const vdCampaignId = this.campania?.campaign_id;
-      if (!vdCampaignId) {
-        this.msg.error('No se puede editar la campaña: ID no válido.');
-        this.loading = false;
-        return;
-      }
+    const vdCampaignId = this.campania?.campaign_id;
+    if (!vdCampaignId) {
+      this.msg.error('No se puede editar la campaña: ID no válido.');
+      this.loading = false;
+      return;
+    }
 
-      if (!name_clear) {
-        this.msg.error('el nombre de archivo no existe');
-        this.loading = false;
-        return;
-      }
+    if (!name_clear) {
+      this.msg.error('el nombre de archivo no existe');
+      this.loading = false;
+      return;
+    }
 
-      const requestVicidialEdit = {
-        survey_first_audio_file: name_clear,
-      };
+    const requestVicidialEdit = {
+      survey_first_audio_file: name_clear,
+    };
 
-      this.vicidialService.editarCampania(vdCampaignId, requestVicidialEdit).subscribe({
+    this.vicidialService
+      .editarCampania(vdCampaignId, requestVicidialEdit)
+      .subscribe({
         next: (res) => {
           this.msg.success('Campaña actualizada correctamente.');
           this.listAudio();
@@ -390,53 +445,54 @@ export class AudioSettingsComponent {
       });
   }
 
-  reproducirAudio(){
-    environment.urlTextoAudioreproducir
-  }
-
   onCampaignChange(event: any) {
     const selectedCampaingId = event.value;
-    if(selectedCampaingId){
+    if (selectedCampaingId) {
+      this.formlist.campaign_id = selectedCampaingId;
 
-        this.formlist.campaign_id = selectedCampaingId;
+      const campaign = this.listCampaignVicidial.find(
+        (res: any) => res.campaign_id == selectedCampaingId
+      );
 
-        const campaign = this.listCampaignVicidial.find(
-          (res: any) => res.campaign_id == selectedCampaingId
-        );
+      if (campaign) {
+        this.campania = campaign;
+        this.formlist.campaign_name = campaign.campaign_name;
+      }
 
-        if (campaign) {
-
-          this.campania = campaign;
-          this.formlist.campaign_name = campaign.campaign_name; 
- 
-        }
-
-        this.vicidialService.getByIdlistCampania(selectedCampaingId).subscribe(res => {
-            if (res?.survey_first_audio_file) {
-          
-             this.audioUrlAudio =   this.sanitizer.bypassSecurityTrustUrl(`${environment.urlTextoAudioreproducir}${res.survey_first_audio_file}.wav`)
-            } else {
-              this.audioUrlAudio = '';
-            }
-        });
-        
-        this.vicidialService.getlistCampania(selectedCampaingId).subscribe(res=>{
-          this.listListVicidial= res;
+      this.vicidialService
+        .getByIdlistCampania(selectedCampaingId)
+        .subscribe((res) => {
+          if (res?.survey_first_audio_file) {
+            this.audioUrlAudio = this.sanitizer.bypassSecurityTrustUrl(
+              `${this.audioDirectory}${res.survey_first_audio_file}.wav`
+            );
+          } else {
+            this.audioUrlAudio = '';
+          }
         });
 
+      this.audioStoreService
+        .getlistCampania(selectedCampaingId)
+        .subscribe((res) => {
+          this.listListVicidial = res;
+        });
     }
   }
 
-  nameAudioOrigin:string='';
+  nameAudioOrigin: string = '';
   onAudioChange(event: any) {
     const selectedAudio = event.value;
-    this.nameAudioOrigin= event.value;
-    this.audioUrlAudio = environment.urlTextoAudioreproducir + selectedAudio;
+    this.nameAudioOrigin = event.value;
+    this.audioUrlAudio = this.audioDirectory + selectedAudio;
     setTimeout(() => {
-      this.audioPlayer?.nativeElement.play().catch(err => console.log('No se pudo reproducir automáticamente:', err));
+      this.audioPlayer?.nativeElement
+        .play()
+        .catch((err) =>
+          console.log('No se pudo reproducir automáticamente:', err)
+        );
     }, 100);
   }
- 
+
   eliminarArchivo() {
     this.nameArchivo = '';
     this.columnas = [];
@@ -448,13 +504,12 @@ export class AudioSettingsComponent {
   }
 
   guardarlead() {
-
     if (!this.formlist) {
       this.msg.error('No hay información de la lista para guardar');
       return;
     }
 
-      if (!this.selectedFile) {
+    if (!this.selectedFile) {
       this.msg.error('Por favor selecciona un archivo primero');
       return;
     }
@@ -468,14 +523,16 @@ export class AudioSettingsComponent {
       this.msg.error('No hay leads para guardar');
       return;
     }
-    
+
     this.formlist.dtoList = [];
-    this.vicidialService.createlista(this.formlist ,this.selectedFile,).subscribe({
-      next: (res) => {
+    this.audioStoreService
+      .createlista(this.formlist, this.selectedFile)
+      .subscribe({
+        next: (res) => {
           this.msg.success('Leads guardados correctamente');
           this.onCancel();
-      },
-      error: (err) => {},
-    });
+        },
+        error: (err) => {},
+      });
   }
 }

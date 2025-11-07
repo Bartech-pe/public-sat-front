@@ -39,7 +39,7 @@ import { DepartmentStore } from '@stores/department.store';
 import { CampaignTypeStore } from '@stores/campaign-type.store';
 import { CampaignState } from '@models/campaign-state.model';
 import { CampaignType } from '@models/campaign-type.model';
-import { CampaignStore } from '@stores/campaign.store';
+import { AudioCampaignStore } from '@stores/audio-campaign.store';
 import { KeyFilterModule } from 'primeng/keyfilter';
 
 @Component({
@@ -121,7 +121,7 @@ export class CreateCampaignComponent {
     }),
     vdCampaignId: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
-      validators: [Validators.required]
+      validators: [Validators.required],
     }),
     startTime: new FormControl<Date | undefined>(undefined, {
       nonNullable: true,
@@ -149,7 +149,7 @@ export class CreateCampaignComponent {
 
   readonly departmentStore = inject(DepartmentStore);
   readonly campaignTypeStore = inject(CampaignTypeStore);
-  readonly campaignStore = inject(CampaignStore);
+  readonly campaignStore = inject(AudioCampaignStore);
   readonly estadoCampaniaStore = inject(CampaignStateStore);
 
   // readonly campaignService = inject(CampaignService);
@@ -231,11 +231,10 @@ export class CreateCampaignComponent {
     if (item) {
       this.id = item.id;
       this.editarCampania = true;
-         console.log(item)
+      console.log(item);
       this.scheduleService.getByCampain(this.id).subscribe((res) => {
-
         const startDate = item.startTime ? new Date(item.startTime) : null;
-       const endDate = item.endTime ? new Date(item.endTime) : null;
+        const endDate = item.endTime ? new Date(item.endTime) : null;
 
         // this.idCampain = res.id;
         // item.startTime = res.startTime;
@@ -280,14 +279,14 @@ export class CreateCampaignComponent {
       const request = this.formData.getRawValue();
       //request.vdCampaignId = request.vdCampaignId?.toString() ?? '';
 
-
       if (this.id) {
         if (request.campaignTypeId == 3) {
           let requestVicidialEdit = {
             campaign_name: request.name,
           };
 
-          this.vicidialService.editarCampania(request.vdCampaignId!, requestVicidialEdit)
+          this.vicidialService
+            .editarCampania(request.vdCampaignId!, requestVicidialEdit)
             .subscribe((res) => {
               if (res) {
                 if (res.status == 'not_found') {

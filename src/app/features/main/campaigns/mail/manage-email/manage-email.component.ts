@@ -1,4 +1,11 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FileUploadModule } from 'primeng/fileupload';
 import { TableModule } from 'primeng/table';
@@ -6,23 +13,28 @@ import { EditorModule } from 'primeng/editor';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import * as XLSX from 'xlsx';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { DropdownModule } from 'primeng/dropdown';
-import { TemplateEmailStore } from '@stores/template-emial';
-import { TemplateEmailService } from '@services/template-email.service';
-import { TemplateEmail } from '@models/template-email.model';
+import { EmailTemplateStore } from '@stores/email-template.store';
+import { EmailTemplateService } from '@services/email-template.service';
+import { EmailTemplate } from '@models/email-template.model';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { downloadEmailExcel } from '@utils/plantilla-excel';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
-import { AttachmentsEmail } from '@models/campaign-email.model';
 import { DialogModule } from 'primeng/dialog';
-import { CampaignEmailService } from '@services/campaign-email.service';
-import { Console } from 'console';
-import { CampaignEmailConfigService } from '@services/campaign-email-config.service';
+import { EmailCampaignDetailService } from '@services/email-campaign-detail.service';
+import { EmailCampaignService } from '@services/email-campaign.service';
+
 interface Contacto {
   nombre: string;
   email: string;
@@ -30,8 +42,22 @@ interface Contacto {
 
 @Component({
   selector: 'app-manage-email',
-  imports: [CommonModule, ReactiveFormsModule, NgxFileDropModule, NgxFileDropModule, InputTextModule, DropdownModule,
-    FormsModule, FileUploadModule, TableModule,DialogModule, EditorModule, ButtonModule, ButtonDetailComponent,ButtonCancelComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NgxFileDropModule,
+    NgxFileDropModule,
+    InputTextModule,
+    DropdownModule,
+    FormsModule,
+    FileUploadModule,
+    TableModule,
+    DialogModule,
+    EditorModule,
+    ButtonModule,
+    ButtonDetailComponent,
+    ButtonCancelComponent,
+  ],
   providers: [MessageService],
   templateUrl: './manage-email.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -41,13 +67,12 @@ export class ManageEmailComponent {
   previewHtml = signal<string>('');
   adjuntos = signal<File[]>([]);
 
-
-  readonly templateEmailStore = inject(TemplateEmailStore);
-  readonly templateEmailService = inject(TemplateEmailService);
-  readonly campaignEmailService = inject(CampaignEmailService);
-  readonly campaignEmailConfigService = inject(CampaignEmailConfigService);
+  readonly EmailTemplateStore = inject(EmailTemplateStore);
+  readonly EmailTemplateService = inject(EmailTemplateService);
+  readonly emailCampaignDetailService = inject(EmailCampaignDetailService);
+  readonly emailCampaignService = inject(EmailCampaignService);
   // Plantillas predefinidas
-  plantillas: TemplateEmail[] = [];
+  plantillas: EmailTemplate[] = [];
 
   visibletemplate: boolean = false;
   emailForm!: FormGroup;
@@ -59,12 +84,11 @@ export class ManageEmailComponent {
     private messageService: MessageService,
     private msg: MessageGlobalService,
     public config: DynamicDialogConfig,
-    private fb: FormBuilder,) {
-
-  }
+    private fb: FormBuilder
+  ) {}
 
   loadData() {
-    this.templateEmailService.getAll().subscribe((res) => {
+    this.EmailTemplateService.getAll().subscribe((res) => {
       if (res) {
         this.plantillas = res.data;
       }
@@ -80,18 +104,20 @@ export class ManageEmailComponent {
       name: ['', Validators.required],
       asunto: ['', [Validators.required, Validators.minLength(5)]],
       remitente: ['', [Validators.required, Validators.email]],
-      plantilla: ['', Validators.required]
+      plantilla: ['', Validators.required],
     });
   }
 
   private isExcelFile(file: File): boolean {
     const validTypes = [
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
-    return validTypes.includes(file.type) ||
+    return (
+      validTypes.includes(file.type) ||
       file.name.endsWith('.xls') ||
-      file.name.endsWith('.xlsx');
+      file.name.endsWith('.xlsx')
+    );
   }
 
   descargarPlantilla() {
@@ -100,13 +126,13 @@ export class ManageEmailComponent {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-     this.previewData = [];
+    this.previewData = [];
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       if (!this.isExcelFile(file)) {
         return;
       }
-       this.nombreArchivo = file.name;
+      this.nombreArchivo = file.name;
       const reader = new FileReader();
       reader.onload = (e: any) => {
         const data = new Uint8Array(e.target.result);
@@ -142,11 +168,9 @@ export class ManageEmailComponent {
         }
 
         this.previewData = jsonData;
-
       };
 
       reader.readAsArrayBuffer(file);
-
     }
   }
 
@@ -169,15 +193,18 @@ export class ManageEmailComponent {
     const currentPlantilla = this.emailForm.value.plantilla;
     if (currentPlantilla) {
       this.emailForm.patchValue({
-        plantilla: { ...currentPlantilla, template }
+        plantilla: { ...currentPlantilla, template },
       });
     }
   }
 
-  verResultados(template:any){
+  verResultados(template: any) {
     const formhtml = this.emailForm.value;
     this.visibletemplate = true;
-    this.templateshtml = this.renderTemplate(formhtml.plantilla?.template, template)
+    this.templateshtml = this.renderTemplate(
+      formhtml.plantilla?.template,
+      template
+    );
   }
 
   onUploadAdjuntos(event: any) {
@@ -186,10 +213,7 @@ export class ManageEmailComponent {
     this.msg.success(`${nuevosAdjuntos.length} archivo(s) adjunto(s).`);
   }
 
-  async  saveCamping(){
-
-   
-
+  async saveCamping() {
     if (!this.previewData.length) {
       this.msg.error('No hay archivos adjuntos para procesar.');
       return;
@@ -199,61 +223,60 @@ export class ManageEmailComponent {
       // Espera que todos los archivos se conviertan a base64
 
       const archivos = this.adjuntos();
-      
-       const nuevosAdjuntos = archivos.length? await Promise.all(
-          archivos.map(async (file, index) => ({
-            fileName: file.name,
-            fileTypeCode: this.getFileTypeCode(file.name),
-            order: index + 1,
-            base64: await this.fileToBase64(file),
-          }))
-        )
-      : [];
+
+      const nuevosAdjuntos = archivos.length
+        ? await Promise.all(
+            archivos.map(async (file, index) => ({
+              fileName: file.name,
+              fileTypeCode: this.getFileTypeCode(file.name),
+              order: index + 1,
+              base64: await this.fileToBase64(file),
+            }))
+          )
+        : [];
 
       // Obtener datos del formulario
       const form = this.emailForm.value;
 
-      let resquesCamping= {
-        name:form.name,
-        idTemplate:form.plantilla?.id,
+      let resquesCamping = {
+        name: form.name,
+        templateId: form.plantilla?.id,
         campaignStatus: 1,
-        totalRegistration: this.previewData.length
-      }
+        totalRegistered: this.previewData.length,
+      };
 
-      this.campaignEmailConfigService.create(resquesCamping).subscribe( respose => {
-        if(respose){
-              const campaignEmails = this.previewData.map((contacto: any) => ({
-                idCampaignEmailConfig:respose.id,
-                processCode: 2, // Ejemplo, puedes hacerlo dinámico
-                senderCode: 2, // Ejemplo, puedes hacerlo dinámico
-                to: contacto.CORREO,
-                cc: contacto.CORREO,
-                bcc: '',
-                subject: form.asunto,
-                message: this.renderTemplate(form.plantilla?.template, contacto), // personaliza usando el nombre, etc.
-                documentTypeCode: null,
-                documentTypeValue: null,
-                terminalName: 'TERMINAL-01',
-                attachments: nuevosAdjuntos.length ? nuevosAdjuntos : [], // opcional
-              }));
+      this.emailCampaignService.create(resquesCamping).subscribe((respose) => {
+        if (respose) {
+          const emailCampaignDetails = this.previewData.map(
+            (contacto: any) => ({
+              idEmailCampaign: respose.id,
+              processCode: 2, // Ejemplo, puedes hacerlo dinámico
+              senderCode: 2, // Ejemplo, puedes hacerlo dinámico
+              to: contacto.CORREO,
+              cc: contacto.CORREO,
+              bcc: '',
+              subject: form.asunto,
+              message: this.renderTemplate(form.plantilla?.template, contacto), // personaliza usando el nombre, etc.
+              documentTypeCode: null,
+              documentTypeValue: null,
+              terminalName: 'TERMINAL-01',
+              attachments: nuevosAdjuntos.length ? nuevosAdjuntos : [], // opcional
+            })
+          );
 
-
-              this.campaignEmailService.sendCampaignEmail(campaignEmails).subscribe( res=>{
-                console.log(res)
-                    this.ref.close();
-              })
+          this.emailCampaignDetailService
+            .sendEmailCampaign(emailCampaignDetails)
+            .subscribe((res) => {
+              console.log(res);
+              this.ref.close();
+            });
         }
-      })
-
+      });
     } catch (error) {
       console.log('Error procesando archivos:', error);
     }
-
-
-
   }
 
-  
   // Convierte un archivo a base64
   private fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -270,16 +293,22 @@ export class ManageEmailComponent {
   getFileTypeCode(fileName: string): number {
     const extension = fileName.split('.').pop()?.toLowerCase();
     switch (extension) {
-      case 'pdf': return 8;
+      case 'pdf':
+        return 8;
       case 'jpg':
       case 'jpeg':
-      case 'png': return 1;
+      case 'png':
+        return 1;
       case 'xls':
-      case 'xlsx': return 2;
+      case 'xlsx':
+        return 2;
       case 'doc':
-      case 'docx': return 3;
-      case 'txt': return 4;
-      default: return 0; // desconocido
+      case 'docx':
+        return 3;
+      case 'txt':
+        return 4;
+      default:
+        return 0; // desconocido
     }
   }
 
@@ -300,11 +329,7 @@ export class ManageEmailComponent {
   }
 
   removeAdjunto(file: File) {
-    this.adjuntos.set(this.adjuntos().filter(f => f !== file));
-     this.msg.success('Adjunto eliminado'+ file.name );
+    this.adjuntos.set(this.adjuntos().filter((f) => f !== file));
+    this.msg.success('Adjunto eliminado' + file.name);
   }
-
- 
-
-  
 }

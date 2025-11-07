@@ -126,7 +126,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
 
     if (this.socketService.isConnected) {
       this.socketService.registerUser(this.userCurrent.id);
-    }
+    } 
 
     this.socketService.onMessage((msg) => {
       if(this.idRoomChat ==  msg.chatRoomId){
@@ -167,8 +167,142 @@ export class InboxViewComponent implements OnInit, OnDestroy {
         response.isSender = true;
         this.socketService.sendMessage(response);
 
+        let req = {
+          userId: this.idUsuario,
+          message:chat
+        }
+        this.chatMessageService.registerMessageNotificacion(req).subscribe(res =>{ console.log(res) });
         this.forceScrollToBottom = true; 
     });
+  }
+
+   infoUserGroup: any = {};
+  openedChats: any[] = [];
+  infoUsers?: UserSender;
+  disabledButton:boolean = false;
+  idRoomChat=null;
+  idUsuario:any = null;
+  viewMessages(chat: any) {
+    this.idUsuario =   this.getLastMessageIdUser(chat);
+    console.log(this.idUsuario)
+
+    this.idRoomChat = chat.id;
+    this.disabledButton = false;
+    this.infoUserGroup = null;
+    this.infoUsers = undefined;
+    this.selectedChatId = chat.id;
+
+    // Identificamos si es grupo o chat directo
+    if (chat.isGroup) {
+      this.infoUserGroup = chat;
+    } else {
+      this.infoUsers = this.getMessageUser(chat);
+    }
+
+    // Verificamos usuario actual antes de continuar
+    const currentUserId = this.userCurrent?.id;
+    if (!currentUserId) {
+   
+      return;
+    }
+
+    console.log(currentUserId)
+    this.disabledButton = true;
+    // 🚀 Obtenemos los mensajes y procesamos correctamente el "isSender" y el "sender"
+    this.chatMessageService.getRoomMessages(chat.id).subscribe({
+      next: (response) => {
+        const currentUser = this.userCurrent!;
+
+        console.log(currentUser)
+
+        this.listMessageChatRoom = response.map((msg: any) => {
+          const senderId = msg.senderId ?? msg.sender?.id ?? 0;
+
+          // Determinar si el mensaje es del usuario actual
+          const isSender = senderId === currentUser.id;
+
+          // Asegurar que todos los mensajes tengan la propiedad sender completa
+          const sender = msg.sender ?? {
+            id: senderId,
+            name: isSender ? currentUser.name : 'Usuario',
+            displayName: isSender ? currentUser.displayName : 'Usuario',
+            email: isSender ? currentUser.email : '',
+            avatarUrl: isSender ? currentUser.avatarUrl : null,
+            roleId: isSender ? currentUser.roleId : 0,
+            verified: false,
+            status: true,
+            createdAt: '',
+            updatedAt: '',
+          };
+
+          return {
+            ...msg,
+            senderId,
+            sender,
+            isSender,
+          };
+        });
+
+        // ✅ Asegurar que los mensajes de otros también se mantengan visibles
+        // (sin filtrarlos ni sobreescribir openedChats)
+        const exists = this.openedChats.find((c) => c.id === chat.id);
+        if (!exists) {
+          const nuevoChat = {
+            ...chat,
+            mensajesflotante: this.listMessageChatRoom,
+            minimized: false,
+            newMessage: '',
+          };
+          this.openedChats.push(nuevoChat);
+        } else {
+          exists.mensajesflotante = this.listMessageChatRoom;
+        }
+
+        // Guardamos estado y actualizamos el chat seleccionado
+        localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
+        this.chatMessageService.setSelectedChat(this.openedChats);
+
+        // Forzar scroll al final
+        setTimeout(() => {
+          this.forceScrollToBottom = true;
+        }, 100);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar mensajes:', err);
+        this.msg.error('Error al obtener los mensajes de la sala');
+      },
+    });
+  }
+
+
+
+  viewMessage(contact: any) {
+    const body = {
+      name: 'Nuevo Mensaje',
+      userIds: [contact.id],
+      isGroup: false,
+    };
+
+    const roomWithUser = this.listChatRoom.find(
+      (room) =>
+        !room.isGroup && room.users.some((user: any) => user.id === contact.id)
+    );
+    console.log(roomWithUser);
+    if (roomWithUser) {
+      this.viewMessages(roomWithUser);
+    } else {
+      this.chatMessageService.registerRoom(body).subscribe({
+        next: (res) => {
+          if (res) {
+            this.loadData();
+            this.viewMessages(res);
+          }
+        },
+        error: (err) => {
+          console.error(err);
+        },
+      });
+    }
   }
 
   enviarNotificacion() {}
@@ -333,127 +467,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     });
   }
 
-  infoUserGroup: any = {};
-  openedChats: any[] = [];
-  infoUsers?: UserSender;
-  disabledButton:boolean = false;
-  idRoomChat=null;
-  viewMessages(chat: any) {
-
-    this.idRoomChat = chat.id;
-    this.disabledButton = false;
-    this.infoUserGroup = null;
-    this.infoUsers = undefined;
-    this.selectedChatId = chat.id;
-
-    // Identificamos si es grupo o chat directo
-    if (chat.isGroup) {
-      this.infoUserGroup = chat;
-    } else {
-      this.infoUsers = this.getMessageUser(chat);
-    }
-
-    // Verificamos usuario actual antes de continuar
-    const currentUserId = this.userCurrent?.id;
-    if (!currentUserId) {
-   
-      return;
-    }
-    this.disabledButton = true;
-    // 🚀 Obtenemos los mensajes y procesamos correctamente el "isSender" y el "sender"
-    this.chatMessageService.getRoomMessages(chat.id).subscribe({
-      next: (response) => {
-        const currentUser = this.userCurrent!;
-
-        this.listMessageChatRoom = response.map((msg: any) => {
-          const senderId = msg.senderId ?? msg.sender?.id ?? 0;
-
-          // Determinar si el mensaje es del usuario actual
-          const isSender = senderId === currentUser.id;
-
-          // Asegurar que todos los mensajes tengan la propiedad sender completa
-          const sender = msg.sender ?? {
-            id: senderId,
-            name: isSender ? currentUser.name : 'Usuario',
-            displayName: isSender ? currentUser.displayName : 'Usuario',
-            email: isSender ? currentUser.email : '',
-            avatarUrl: isSender ? currentUser.avatarUrl : null,
-            roleId: isSender ? currentUser.roleId : 0,
-            verified: false,
-            status: true,
-            createdAt: '',
-            updatedAt: '',
-          };
-
-          return {
-            ...msg,
-            senderId,
-            sender,
-            isSender,
-          };
-        });
-
-        // ✅ Asegurar que los mensajes de otros también se mantengan visibles
-        // (sin filtrarlos ni sobreescribir openedChats)
-        const exists = this.openedChats.find((c) => c.id === chat.id);
-        if (!exists) {
-          const nuevoChat = {
-            ...chat,
-            mensajesflotante: this.listMessageChatRoom,
-            minimized: false,
-            newMessage: '',
-          };
-          this.openedChats.push(nuevoChat);
-        } else {
-          exists.mensajesflotante = this.listMessageChatRoom;
-        }
-
-        // Guardamos estado y actualizamos el chat seleccionado
-        localStorage.setItem('openedChats', JSON.stringify(this.openedChats));
-        this.chatMessageService.setSelectedChat(this.openedChats);
-
-        // Forzar scroll al final
-        setTimeout(() => {
-          this.forceScrollToBottom = true;
-        }, 100);
-      },
-      error: (err) => {
-        console.error('❌ Error al cargar mensajes:', err);
-        this.msg.error('Error al obtener los mensajes de la sala');
-      },
-    });
-  }
-
-
-
-  viewMessage(contact: any) {
-    const body = {
-      name: 'Nuevo Mensaje',
-      userIds: [contact.id],
-      isGroup: false,
-    };
-
-    const roomWithUser = this.listChatRoom.find(
-      (room) =>
-        !room.isGroup && room.users.some((user: any) => user.id === contact.id)
-    );
-    console.log(roomWithUser);
-    if (roomWithUser) {
-      this.viewMessages(roomWithUser);
-    } else {
-      this.chatMessageService.registerRoom(body).subscribe({
-        next: (res) => {
-          if (res) {
-            this.loadData();
-            this.viewMessages(res);
-          }
-        },
-        error: (err) => {
-          console.error(err);
-        },
-      });
-    }
-  }
+ 
 
   selectedChatId: number = 1;
   newMessage: string = '';
@@ -496,6 +510,14 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       (user: any) => user.id !== this.userCurrent.id
     );
     return otherUser?.name || 'Sin Nombre';
+  }
+
+  getLastMessageIdUser(chat: any): string {
+    if (!chat?.users?.length) return 'Sin Nombre';
+    const otherUser = chat.users.find(
+      (user: any) => user.id !== this.userCurrent.id
+    );
+    return otherUser?.id || '';
   }
 
   getLastMessage(chat: any): string {

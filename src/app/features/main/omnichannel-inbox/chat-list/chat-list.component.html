@@ -9,7 +9,7 @@
 
         <!-- Estado del usuario -->
         @if(!['administrador'].includes(getUserRole()) && statusOptions.length >
-        0 && channel != 'telegram') {
+        0 ) {
         <div class="flex items-center gap-1">
           <button
             #statusBtn
@@ -309,7 +309,6 @@
                   ></iconify-icon>
 
                   <!-- <iconify-icon
-                    *ngIf="['whatsapp', 'chatsat'].includes(chat.channel)"
                     icon="{{
                       chat.botStatus === 'active'
                         ? 'lucide:bot'
@@ -337,7 +336,6 @@
                     pTooltip="{{ chat.attention.status | titlecase }}"
                   ></iconify-icon> -->
                   <iconify-icon
-                    *ngIf="['whatsapp', 'chatsat'].includes(chat.channel)"
                     icon="{{
                       chat.botStatus === 'active'
                         ? 'lucide:bot'

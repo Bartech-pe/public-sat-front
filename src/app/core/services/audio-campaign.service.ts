@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GenericCrudService } from '@services/generic/generic-crud.service';
-import { Campaign } from '@models/campaign.model';
+import { AudioCampaign } from '@models/audio-campaign.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class CampaignService extends GenericCrudService<Campaign> {
+export class AudioCampaignService extends GenericCrudService<AudioCampaign> {
   constructor(http: HttpClient) {
-    super(http, 'campaigns');
+    super(http, 'audio-campaigns');
   }
 }

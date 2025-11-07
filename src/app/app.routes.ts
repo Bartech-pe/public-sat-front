@@ -123,24 +123,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'templates',
-        title: 'SAT | Plantillas',
-        loadComponent: () =>
-          import('@features/main/templates/templates.component').then(
-            (c) => c.TemplatesComponent
-          ),
-        children: [
-          {
-            path: 'my-templates',
-            title: 'SAT | Mis Plantillas',
-            loadComponent: () =>
-              import(
-                '@features/main/templates/my-templates/my-templates.component'
-              ).then((c) => c.MyTemplatesComponent),
-          },
-        ],
-      },
-      {
         path: 'supervisor',
         title: 'SAT | Supervisor',
         loadComponent: () =>
@@ -176,13 +158,6 @@ export const routes: Routes = [
         children: settingsRoutes,
       },
     ],
-  },
-  {
-    path: 'editor',
-    loadComponent: () =>
-      import('./grapes-editor/grapes-editor.component').then(
-        (m) => m.GrapesEditorComponent
-      ),
   },
   {
     path: 'not-found',

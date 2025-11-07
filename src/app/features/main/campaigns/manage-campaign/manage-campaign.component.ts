@@ -6,7 +6,6 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-// import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -20,16 +19,14 @@ import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { AudioSettingsComponent } from './audio-settings/audio-settings.component';
 import { ProgresoCampaniaComponent } from './progreso-campania/progreso-campania.component';
-import { CampaignStore } from '@stores/campaign.store';
-// import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
-import { VicidialService } from '@services/vicidial.service';
+import { AudioCampaignStore } from '@stores/audio-campaign.store';
 import { TagModule } from 'primeng/tag';
-import { ScheduleService } from '@services/schedule.service';
-import { CampaignService } from '@services/campaign.service';
-import { Campaign } from '@models/campaign.model';
+import { AudioCampaignService } from '@services/audio-campaign.service';
+import { AudioCampaign } from '@models/audio-campaign.model';
 import { CampaignDetalleComponent } from './campaign-detalle/campaign-detalle.component';
 import { MultiCampaignAudioComponent } from './multi-campaign-audio/multi-campaign-audio.component';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { AudioStoreService } from '@services/audio-store.service';
 
 @Component({
   selector: 'app-manage-campaign',
@@ -45,7 +42,6 @@ import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.compon
     BtnDeleteComponent,
     ButtonSaveComponent,
     OverlayPanelModule,
-    // ButtonProgressComponent,
     TagModule,
   ],
   templateUrl: './manage-campaign.component.html',
@@ -53,8 +49,8 @@ import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.compon
   styles: ``,
 })
 export class ManageMampaignComponent {
-  campaniaList: Campaign[] = [];
-  campaniaListFiltradas: Campaign[] = [];
+  campaniaList: AudioCampaign[] = [];
+  campaniaListFiltradas: AudioCampaign[] = [];
   filtroNombre: string = '';
   openModal: boolean = false;
   openModalMultipy: boolean = false;
@@ -62,11 +58,10 @@ export class ManageMampaignComponent {
   private readonly msg = inject(MessageGlobalService);
 
   private readonly dialogService = inject(DialogService);
-  private readonly vicidialService = inject(VicidialService);
-  private readonly campaignStore = inject(CampaignStore);
-  private readonly scheduleService = inject(ScheduleService);
+  private readonly audioStoreService = inject(AudioStoreService);
+  private readonly campaignStore = inject(AudioCampaignStore);
 
-  readonly campaignService = inject(CampaignService);
+  readonly campaignService = inject(AudioCampaignService);
 
   ngOnInit(): void {
     this.loadData();
@@ -127,20 +122,21 @@ export class ManageMampaignComponent {
     });
   }
 
-  addNewMultiple(){
-      this.openModalMultipy = true;
-      const ref = this.dialogService.open(MultiCampaignAudioComponent, {
-        header: 'Sube tu Excel, elige variables y arma un mensaje único. ¡Fácil y rápido!',
-        styleClass: 'modal-8xl',
-        modal: true,
-        dismissableMask: false,
-        closable: true,
-      });
+  addNewMultiple() {
+    this.openModalMultipy = true;
+    const ref = this.dialogService.open(MultiCampaignAudioComponent, {
+      header:
+        'Sube tu Excel, elige variables y arma un mensaje único. ¡Fácil y rápido!',
+      styleClass: 'modal-8xl',
+      modal: true,
+      dismissableMask: false,
+      closable: true,
+    });
 
-      ref.onClose.subscribe((res) => {
-        this.openModalMultipy = false;
-        this.loadData();
-      });
+    ref.onClose.subscribe((res) => {
+      this.openModalMultipy = false;
+      this.loadData();
+    });
   }
 
   menuAbierto: number | null = null;
@@ -168,7 +164,6 @@ export class ManageMampaignComponent {
   }
 
   edit(registro: any) {
-   
     this.campaignStore.loadById(registro.id);
     this.openModal = true;
     const ref = this.dialogService.open(CreateCampaignComponent, {
@@ -230,7 +225,7 @@ export class ManageMampaignComponent {
   }
 
   verResultados(registro: any) {
-    console.log(registro)
+    console.log(registro);
     const modal_item = this.dialogService.open(CampaignDetalleComponent, {
       data: registro,
       header: 'Gestionar ' + registro.name,
@@ -249,35 +244,42 @@ export class ManageMampaignComponent {
   configurar(registro: any) {}
 
   updateStatus(registro: any) {
- 
     const accion = registro.active === 'Y' ? 'DESACTIVAR' : 'ACTIVAR';
-    const colorAccion = registro.active === 'Y' ? 'text-red-600' : 'text-green-600';
+    const colorAccion =
+      registro.active === 'Y' ? 'text-red-600' : 'text-green-600';
 
     this.msg.confirm(
       `<div class='px-4 py-3 text-center'>
         <p class='text-lg font-semibold'>
           ¿Desea <span class='${colorAccion} uppercase'>${accion}</span> la campaña
-          <span class='font-bold uppercase text-gray-800'>${registro.name}</span>?
+          <span class='font-bold uppercase text-gray-800'>${
+            registro.name
+          }</span>?
         </p>
         <p class='text-sm text-gray-500 mt-2'>
-          Esta acción ${accion === 'DESACTIVAR' ? 'deshabilitará temporalmente' : 'habilitará nuevamente'} la campaña en el sistema.
+          Esta acción ${
+            accion === 'DESACTIVAR'
+              ? 'deshabilitará temporalmente'
+              : 'habilitará nuevamente'
+          } la campaña en el sistema.
         </p>
       </div>`,
       () => {
-         //this.campaignService.update()
+        //this.campaignService.update()
 
-         const request = {
-            active : registro.active === 'Y' ? 'N': 'Y',
-            vdlistId: registro.vdlistId
-         }
+        const request = {
+          active: registro.active === 'Y' ? 'N' : 'Y',
+          vdlistId: registro.vdlistId,
+        };
 
-         this.vicidialService.editarList(registro.id, request).subscribe(res=>{
-          if(res.status == "updated"){
+        this.audioStoreService
+          .editarList(registro.id, request)
+          .subscribe((res) => {
+            if (res.status == 'updated') {
               this.msg.success('El estado fue actualizado correctamente.');
-             this.loadData();
-          }
-           
-         })
+              this.loadData();
+            }
+          });
       }
     );
   }

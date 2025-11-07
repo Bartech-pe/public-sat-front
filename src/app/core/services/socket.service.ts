@@ -153,6 +153,18 @@ export class SocketService {
     this.socket?.on('receive_message', callback);
   }
 
+  sendMessageNotification(toUserId: number, fromUserId: number, text: string): void {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('send_message_notification', { toUserId, fromUserId, text });
+    } else {
+      console.warn('⚠️ Socket no conectado');
+    }
+  }
+
+  onMessageNotification(callback: (msg: any) => void): void {
+    this.socket?.on('receive_message_notification', callback);
+  }
+
   sendAlertas(msg: any): void {
     if (this.socket && this.isConnected) {
       this.socket.emit('send_alertas', msg);

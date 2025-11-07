@@ -3,7 +3,7 @@ import { CampaignType } from './campaign-type.model';
 import { Department } from './department.model';
 import { User } from './user.model';
 
-export interface Campaign {
+export interface AudioCampaign {
   id: number;
   name: string;
   description: string;
