@@ -10,7 +10,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
-interface TransferToAdvisorResponseDto{
+export interface TransferToAdvisorResponseDto{
   message: string;
 }
 @Component({
@@ -29,7 +29,7 @@ interface TransferToAdvisorResponseDto{
 export class AdvisorComponent {
   @Input() visible: boolean = false;
   @Input() advisors: getAdvisorsResponseDto[] = [];
-  @Input() channelRoomId:any;
+  @Input() channelRoomId: number | null = null;
   @Output() visibleChange = new EventEmitter<string>();
 
   advisorSelected: getAdvisorsResponseDto | null = null;
@@ -42,7 +42,7 @@ export class AdvisorComponent {
     if (this.advisorSelected) {
 
 
-      this.channelRoomService.transferToAdvisor(this.channelRoomId, this.advisorSelected.id).subscribe((response: TransferToAdvisorResponseDto) =>{
+      this.channelRoomService.transferToAdvisor(this.channelRoomId!, this.advisorSelected.id).subscribe((response: TransferToAdvisorResponseDto) =>{
           console.log("anyresponses", response);
 
           if(response){

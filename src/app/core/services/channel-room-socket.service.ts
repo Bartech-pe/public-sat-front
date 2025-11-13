@@ -1,18 +1,25 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { environment } from '@envs/enviroments';
-import { AdvisorChangedDto, BotStatusChangedDto, ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, ChatListInbox, ChatStatus} from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import { environment } from '@envs/environments';
+import {
+  AdvisorChangedDto,
+  BotStatusChangedDto,
+  ChannelAttentionStatus,
+  ChannelRoomNewMessageDto,
+  ChannelRoomViewStatusDto,
+  ChatStatus,
+} from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 import { Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 
 export interface ChannelRoomAssistance {
-  channelRoomId: number;
+  channelRoomId?: number;
   assistanceId: number;
   citizenId?: number;
-  userId?: number;
+  userId?: number | null;
 }
-export interface changeChannelRoomStatusDto extends ChannelRoomAssistance
-{
+export interface changeChannelRoomStatusDto extends ChannelRoomAssistance {
   status: ChatStatus;
+  attentionStatus: ChannelAttentionStatus;
 }
 
 @Injectable({
@@ -24,28 +31,35 @@ export class ChannelRoomSocketService implements OnDestroy {
   private newAdvisorSubject = new Subject<AdvisorChangedDto>();
   private newBotStatusSubject = new Subject<BotStatusChangedDto>();
   private newChannelViewedStatus = new Subject<ChannelRoomViewStatusDto>();
-  private newChannelRoomStatusChangeSubject = new Subject<changeChannelRoomStatusDto>();
+  private newChannelRoomStatusChangeSubject =
+    new Subject<changeChannelRoomStatusDto>();
   private requestAdvisorSubject = new Subject<ChannelRoomAssistance>();
+  private attentionDetailModifiedSubject = new Subject<ChannelRoomAssistance>();
 
   constructor() {
-    this.socket = io(environment.wsUrl || 'http://localhost:4000');
+    this.socket = io(environment.apiUrl);
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected');
+      console.log('Omnichannel webSocket connected');
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log(`🔌 disconnected: ${reason}`);
+      console.log(`Omnichannel webSocket disconnected: ${reason}`);
     });
 
+    this.socket.on(
+      'chat.viewed.reply',
+      (viewedStatusReply: ChannelRoomViewStatusDto) => {
+        this.newChannelViewedStatus.next(viewedStatusReply);
+      }
+    );
 
-    this.socket.on('chat.viewed.reply', (viewedStatusReply: ChannelRoomViewStatusDto) => {
-      this.newChannelViewedStatus.next(viewedStatusReply);
-    });
-
-    this.socket.on('chat.status.change', (payload: changeChannelRoomStatusDto) => {
-      this.newChannelRoomStatusChangeSubject.next(payload);
-    });
+    this.socket.on(
+      'chat.status.change',
+      (payload: changeChannelRoomStatusDto) => {
+        this.newChannelRoomStatusChangeSubject.next(payload);
+      }
+    );
 
     this.socket.on('chat.advisor.change', (payload: AdvisorChangedDto) => {
       this.newAdvisorSubject.next(payload);
@@ -55,19 +69,21 @@ export class ChannelRoomSocketService implements OnDestroy {
       this.requestAdvisorSubject.next(paload);
     });
 
+    this.socket.on('chat.attention.detail.modified', (payload: ChannelRoomAssistance) => {
+      this.attentionDetailModifiedSubject.next(payload);
+    });
+
     this.socket.on('chat.botStatus.change', (payload: BotStatusChangedDto) => {
       this.newBotStatusSubject.next(payload);
     });
-
 
     this.socket.on('message.incoming', (message: ChannelRoomNewMessageDto) => {
       this.newMessageSubject.next(message);
     });
   }
   ngOnDestroy(): void {
-    this.socket.disconnect()
+    this.socket.disconnect();
   }
-
 
   connectSocket() {
     if (!this.socket.connected) {
@@ -95,6 +111,10 @@ export class ChannelRoomSocketService implements OnDestroy {
     return this.newAdvisorSubject.asObservable();
   }
 
+  onAttentionDetailModified(): Observable<ChannelRoomAssistance> {
+    return this.attentionDetailModifiedSubject.asObservable();
+  }
+
   onChannelRoomStatusChanged(): Observable<changeChannelRoomStatusDto> {
     return this.newChannelRoomStatusChangeSubject.asObservable();
   }
@@ -107,12 +127,11 @@ export class ChannelRoomSocketService implements OnDestroy {
     return this.newBotStatusSubject.asObservable();
   }
 
-  onChatViewed(chatroomId: number){
-    this.socket.emit("chat.viewed", chatroomId)
+  onChatViewed(chatroomId: number) {
+    this.socket.emit('chat.viewed', chatroomId);
   }
 
-  enableTypingIndicator(data: ChannelRoomAssistance){
-    this.socket.emit("chat.status.typing.indicator", data)
+  enableTypingIndicator(data: ChannelRoomAssistance) {
+    this.socket.emit('chat.status.typing.indicator', data);
   }
 }
-

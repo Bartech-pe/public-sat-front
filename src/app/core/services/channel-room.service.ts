@@ -1,42 +1,50 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@envs/enviroments';
+import { environment } from '@envs/environments';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
-import { Channels, ChatDetail, ChatListInbox, ChatStatus, getAdvisorsResponseDto, MessageStatus } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import {
+  ChannelAttentionStatus,
+  Channels,
+  ChannelStatusWithExtraStatuses,
+  ChatDetail,
+  ChatListInbox,
+  ChatStatus,
+  getAdvisorsResponseDto,
+  MessageStatus,
+} from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 import { Observable } from 'rxjs';
 export interface ToogleBotServicesDto {
   channelroomId: number;
   active: boolean;
 }
-export interface GetChannelSummaryDto
-{
-	messageStatus?: MessageStatus | null;
-	chatStatus?: ChatStatus | null;
-	channel: Channels;
-	search?: string;
+export interface GetChannelSummaryDto {
+  messageStatus?: MessageStatus | null;
+  chatStatus?: ChannelStatusWithExtraStatuses | null;
+  channel: Channels;
+  search?: string;
+  allChats?: boolean
 }
 
 export interface changeChannelRoomStatusDto {
   channelRoomId: number;
   assistanceId: number;
   status: ChatStatus;
+  attentionStatus: ChannelAttentionStatus;
 }
-
 
 export interface CloseAssistanceDto {
-	channelRoomId?: number;
-	assistanceId?: number;
-	phoneNumber?: string;
+  channelRoomId?: number;
+  assistanceId?: number;
+  phoneNumber?: string;
 }
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ChannelRoomService {
-  private readonly url = `${environment.apiUrl}/channel-room`;
+  private readonly url = `${environment.apiUrl}v1/channel-room`;
 
-  constructor(private http : HttpClient){}
+  constructor(private http: HttpClient) {}
 
   getChatData(
     channelRoomId: number,
@@ -64,38 +72,58 @@ export class ChannelRoomService {
         params = params.set(key, String(value));
       }
     });
-    return this.http.get<ChatListInbox[]>(`${this.url}/summary`,{params: params});
+    return this.http.get<ChatListInbox[]>(`${this.url}/summary`, {
+      params: params,
+    });
   }
 
-  getAvailableAdvisorsFromInbox(channelRoomId: number): Observable<getAdvisorsResponseDto[]> {
-    return this.http.get<getAdvisorsResponseDto[]>(`${this.url}/${channelRoomId}/advisors`);
+  getAvailableAdvisorsFromInbox(
+    channelRoomId: number
+  ): Observable<getAdvisorsResponseDto[]> {
+    return this.http.get<getAdvisorsResponseDto[]>(
+      `${this.url}/${channelRoomId}/advisors`
+    );
   }
 
-  transferToAdvisor(channelRoomId: number, newAdvisorId: number): Observable<any> {
-    return this.http.post<getAdvisorsResponseDto[]>(`${this.url}/${channelRoomId}/reassign-advisor/${newAdvisorId}`, {});
+  transferToAdvisor(
+    channelRoomId: number,
+    newAdvisorId: number
+  ): Observable<any> {
+    return this.http.post<getAdvisorsResponseDto[]>(
+      `${this.url}/${channelRoomId}/reassign-advisor/${newAdvisorId}`,
+      {}
+    );
   }
 
-  closeAssistance(channelRoomId: number, assistanceId: number): Observable<IBaseResponseDto>
-  {
+  closeAssistance(
+    channelRoomId: number,
+    assistanceId: number
+  ): Observable<IBaseResponseDto> {
     const payload: CloseAssistanceDto = {
       assistanceId,
-      channelRoomId
-    }
-    return this.http.put<IBaseResponseDto>(`${this.url}/assistance/close`, payload)
+      channelRoomId,
+    };
+    return this.http.put<IBaseResponseDto>(
+      `${this.url}/assistances/assistance/close`,
+      payload
+    );
   }
 
-  changeChannelRoomStatus(payload: changeChannelRoomStatusDto): Observable<IBaseResponseDto>
-  {
-    return this.http.put<IBaseResponseDto>(`${this.url}/change-status`, payload)
+  changeChannelRoomStatus(
+    payload: changeChannelRoomStatusDto
+  ): Observable<IBaseResponseDto> {
+    return this.http.put<IBaseResponseDto>(
+      `${this.url}/change-status`,
+      payload
+    );
   }
 
-  toggleBotServices(payload: ToogleBotServicesDto): Observable<string>{
+  toggleBotServices(payload: ToogleBotServicesDto): Observable<string> {
     try {
       return this.http.post<string>(`${this.url}/toggle-bot-services`, payload);
     } catch (error) {
-      console.log(error)
-      throw new Error('No se pudo conectar con el bot')
+      console.log(error);
+      throw new Error('No se pudo conectar con el bot');
     }
   }
-
 }

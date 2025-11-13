@@ -1,0 +1,82 @@
+<div class="grid grid-cols-1 gap-2">
+  <form [formGroup]="formData">
+    <div class="grid grid-cols-1 gap-4">
+      <div class="grid grid-cols-1 gap-4">
+        <div class="flex items-center gap-2">
+          <div class="w-16">
+            <label class="text-sm"> Para </label>
+          </div>
+          <div class="flex-1">
+            <p-autocomplete
+              formControlName="to"
+              [suggestions]="emailItemsTo"
+              (completeMethod)="searchEmailTo($event)"
+              optionLabel="email"
+              optionValue="email"
+              class="w-full"
+              styleClass="w-full"
+              inputStyleClass="!rounded-full !w-full"
+              [showClear]="true"
+            >
+              <ng-template let-item #item>
+                <div class="grid grid-cols-1">
+                  <p class="text-sm">{{ item.name }}</p>
+                  <p class="text-xs">{{ item.email }}</p>
+                </div>
+              </ng-template>
+            </p-autocomplete>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-16">
+            <label class="text-sm"> Asunto </label>
+          </div>
+          <div class="flex-1">
+            <input
+              pInputText
+              class="w-full"
+              formControlName="subject"
+              class="!rounded-full !w-full"
+            />
+          </div>
+        </div>
+        <p-editor
+          formControlName="content"
+          placeholder="Escribe un mensaje para acompañar el reenvío..."
+        >
+          <ng-template #header>
+            <span class="ql-formats">
+              <button type="button" class="ql-bold" aria-label="Bold"></button>
+              <button
+                type="button"
+                class="ql-italic"
+                aria-label="Italic"
+              ></button>
+              <button
+                type="button"
+                class="ql-underline"
+                aria-label="Underline"
+              ></button>
+              <button
+                type="button"
+                class="ql-image"
+                aria-label="Image"
+              ></button>
+            </span>
+          </ng-template>
+        </p-editor>
+      </div>
+      <div class="flex justify-end gap-4">
+        <div class="flex gap-2">
+          <button-cancel (click)="onCancel()" />
+          <button-save
+            [label]="'Enviar'"
+            [loading]="loading"
+            [disabled]="formData.invalid"
+            (click)="onSubmit()"
+          />
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

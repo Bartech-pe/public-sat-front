@@ -1,0 +1,393 @@
+<div class="w-full flex justify-center">
+  <div class="w-full p-0">
+    <!-- <p-fieldset legend="Filtros">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <p-select
+          [options]="listSectorista"
+          [(ngModel)]="selectSectorista"
+          optionLabel="name"
+          optionValue="name"
+          (onChange)="filtrar()"
+          placeholder="Seleccionar un Sectorista"
+          class="w-full"
+          styleClass="placeholder:text-sm"
+          appendTo="body"
+        />
+        <p-select
+          [options]="listSegmentos"
+          [(ngModel)]="selectSegmento"
+          optionLabel="name"
+          optionValue="name"
+          (onChange)="filtrar()"
+          placeholder="Seleccionar un Segmento"
+          class="w-full"
+          appendTo="body"
+        />
+        <p-select
+          [options]="listPerfil"
+          [(ngModel)]="selectPerfil"
+          optionLabel="name"
+          optionValue="name"
+          (onChange)="filtrar()"
+          placeholder="Seleccionar un Perfil"
+          class="w-full"
+          appendTo="body"
+        />
+
+        <div>
+          <p-slider
+            [(ngModel)]="rangoPrecio"
+            [range]="true"
+            [min]="0"
+            [max]="100000"
+            [step]="10"
+            styleClass="w-14rem mt-4"
+            (onChange)="filtrar()"
+          ></p-slider>
+
+          <p class="text-sm text-gray-600 mt-2 text-center">
+            Deudas: {{ rangoPrecio[0] }} - {{ rangoPrecio[1] }}
+          </p>
+        </div>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="filtroNombre"
+          placeholder="Buscar por Contribuyente/Código..."
+          class="w-full p-inputtext-sm"
+          (input)="filtrar()"
+        />
+
+        <button
+          pButton
+          type="button"
+          class="p-button-secondary"
+          (click)="limpiarFiltro()"
+        >
+          Limpiar Filtros
+        </button>
+      </div>
+    </p-fieldset> -->
+
+    <div class="flex flex-col gap-3">
+      <h4 class="font-medium">Filtros de búsqueda</h4>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="col-span-2">
+          <input
+            pInputText
+            [(ngModel)]="searchText"
+            placeholder="Buscar por contribuyente, código, celular..."
+            class="!rounded-full w-full"
+          />
+        </div>
+        <p-select
+          [options]="taxpayerTypes"
+          [(ngModel)]="tipoContribSelected"
+          placeholder="Tipo de contribuyente..."
+          class="!rounded-full"
+          [showClear]="true"
+        ></p-select>
+        <p-select
+          [options]="estados"
+          [(ngModel)]="estadoSelected"
+          placeholder="Estado de gestión..."
+          class="!rounded-full"
+          [showClear]="true"
+        ></p-select>
+        <div class="col-span-3">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+              <p-select
+                [options]="segments"
+                [(ngModel)]="segmentSelected"
+                placeholder="Segmento..."
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+              <p-select
+                [options]="profiles"
+                [(ngModel)]="profileSelected"
+                placeholder="Perfil..."
+                class="!rounded-full"
+                [showClear]="true"
+              ></p-select>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-30">
+                <p class="font-semibold text-gray-700 text-sm">Rango Deuda:</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <p-inputnumber
+                  [(ngModel)]="debtFrom"
+                  [showButtons]="true"
+                  inputId="debtFrom"
+                  mode="currency"
+                  currency="PEN"
+                  locale="es-PE"
+                  (onInput)="onDebtChange('from', $event)"
+                  [step]="100"
+                  [min]="0"
+                  placeholder="Desde..."
+                  styleClass="!w-full !rounded-full"
+                  inputStyleClass="!w-full !rounded-full"
+                  incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  class="!w-full"
+                />
+                <p-inputnumber
+                  [(ngModel)]="debtTo"
+                  [showButtons]="true"
+                  inputId="debtTo"
+                  mode="currency"
+                  currency="PEN"
+                  locale="es-PE"
+                  (onInput)="onDebtChange('to', $event)"
+                  [step]="100"
+                  [min]="debtFrom()! + 100"
+                  placeholder="Hasta..."
+                  styleClass="!w-full !rounded-full"
+                  inputStyleClass="!w-full !rounded-full"
+                  incrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  decrementButtonClass="!w-6 !rounded-full mr-1.5"
+                  class="!w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <p-button
+            severity="contrast"
+            size="small"
+            (click)="search()"
+            label="Filtrar"
+            rounded
+            styleClass="w-full"
+          />
+
+          <p-button
+            severity="danger"
+            variant="outlined"
+            size="small"
+            (click)="clear()"
+            label="Limpiar"
+            rounded
+            styleClass="w-full"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded-xl p-4 mb-4">
+      <div class="card flex justify-between items-center flex-wrap gap-4">
+        <!-- Radios a la izquierda -->
+        <div class="flex flex-wrap gap-4">
+          <div class="flex items-center" *ngFor="let item of tipoList">
+            <p-radiobutton
+              [value]="item.value"
+              [(ngModel)]="tipoAsignacion"
+              [inputId]="'tipoAsignacion' + item.value"
+              (onChange)="toggleSeleccion(item.value)"
+            />
+            <label
+              [for]="'tipoAsignacion' + item.value"
+              class="pt-1 pl-2 cursor-pointer"
+            >
+              {{ item.label }}
+            </label>
+          </div>
+        </div>
+
+        <!-- Botón a la derecha -->
+        <div class="flex items-center gap-4" *ngIf="tipoAsignacion">
+          {{ selectedRows.length }} Seleccionados
+          <p-button
+            severity="contrast"
+            size="small"
+            (click)="mostrarRegistro()"
+          >
+            <iconify-icon [icon]="'gravity-ui:gear'" class="text-lg" />
+            {{ labelAsignacion }}
+          </p-button>
+        </div>
+      </div>
+    </div>
+
+    <p-table
+      [value]="portfolioDetail"
+      [(selection)]="selectedRows"
+      [scrollable]="true"
+      scrollHeight="900px"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th>
+            <div class="text-center text-xs">Sectorista</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tipo de contribuyente</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Código de contribuyente</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tipo Doc. Ide.</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">N° Doc. Ide.</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Contribuyente</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Segmento</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Perfil</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Deuda</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tel. 1</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tel. 2</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tel. 3</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Tel. 4</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Whatsapp</div>
+          </th>
+          <th>
+            <div class="text-center text-xs">Email</div>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr [pSelectableRow]="item">
+          <td>
+            <p class="text-sm font-light"></p>
+            <p-tableCheckbox [value]="item"></p-tableCheckbox>
+          </td>
+          <td>
+            <div
+              class="w-[140px] text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item.user?.name }}
+            </div>
+          </td>
+          <td>
+            <div
+              class="w-24 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item?.taxpayerType }}
+            </div>
+          </td>
+          <td>
+            <div
+              class="w-16 text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {{ item?.code }}
+            </div>
+          </td>
+          <td>
+            <p class="w-16 text-center text-xs font-normal">
+              {{ item?.tipDoc }}
+            </p>
+          </td>
+          <td>
+            <p class="text-center text-sm font-normal">
+              {{ item?.docIde }}
+            </p>
+          </td>
+          <td>
+            <div
+              class="w-32 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+              tooltipPosition="top"
+              tooltipStyleClass="text-xs !p-0.5"
+              [pTooltip]="item?.taxpayerName"
+            >
+              {{ item?.taxpayerName }}
+            </div>
+          </td>
+          <td>
+            <div class="text-sm text-center">
+              {{ item?.segment }}
+            </div>
+          </td>
+          <td>
+            <div class="text-sm text-center">{{ item?.profile }}</div>
+          </td>
+          <td>
+            <div class="text-sm text-end">
+              {{ item?.debt | currency }}
+            </div>
+          </td>
+          <td>
+            <p class="text-sm font-normal">
+              {{ getPhoneContacts(item.citizenContacts)?.[0]?.value || "-" }}
+            </p>
+          </td>
+          <td>
+            <p class="text-sm font-normal">
+              {{  getPhoneContacts(item.citizenContacts)?.[1]?.value || "-" }}
+            </p>
+          </td>
+          <td>
+            <p class="text-sm font-normal">
+              {{  getPhoneContacts(item.citizenContacts)?.[2]?.value || "-" }}
+            </p>
+          </td>
+          <td>
+            <p class="text-sm font-normal">
+              {{ getPhoneContacts(item.citizenContacts)?.[3]?.value || "-" }}
+            </p>
+          </td>
+          <td>
+            <div class="text-sm text-center">
+              {{ getWhatsappContacts(item.citizenContacts)?.[0]?.value || "-" }}
+            </div>
+          </td>
+          <td>
+            <div class="text-sm text-center">
+              {{ getEmailContacts(item.citizenContacts)?.[0]?.value || '-' }}
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="100">
+            <div class="text-center text-sm font-light p-4">
+              No tienes asignaciones en la cartera seleccionada.
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #footer>
+        <tr>
+          <td colspan="100">
+            <div class="flex justify-center items-center">
+              <sat-paginator
+                [totalItems]="totalItems"
+                [limit]="limit()"
+                [offset]="offset()"
+                [limitOptions]="[10, 25, 50, 100]"
+                (pageChange)="onPageChange($event)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

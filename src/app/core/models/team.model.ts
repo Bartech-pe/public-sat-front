@@ -12,6 +12,6 @@ export interface TeamUser {
   name?: string;
   email?: string;
   avatarUrl?: string;
-  idTeam: number;
-  idUser: number;
+  teamId: number;
+  userId: number;
 }

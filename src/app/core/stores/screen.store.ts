@@ -1,4 +1,4 @@
-import { createEntityStore } from './createEntityStore';
+import { createEntityStore } from './generic/createEntityStore';
 import { Screen } from '@models/screen.model';
 import { ScreenService } from '@services/screen.service';
 

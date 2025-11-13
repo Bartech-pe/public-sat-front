@@ -1,0 +1,933 @@
+<div class="grid grid-cols-1 gap-4">
+  <div class="grid grid-cols-2 gap-2">
+    <div class="space-y-1">
+      <div *ngIf="existCitizen" class="flex items-center gap-2">
+        <iconify-icon
+          icon="mdi:account-circle"
+          class="text-3xl text-sky-600"
+        ></iconify-icon>
+        <h2 class="text-lg font-bold text-gray-800">
+          {{ citizen?.vcontacto }}
+        </h2>
+      </div>
+      <div
+        *ngIf="existCitizen"
+        class="flex flex-wrap items-center gap-4 text-sm text-gray-600"
+      >
+        <div class="flex gap-1 items-center">
+          <span class="font-medium">{{ citizen?.vtipDoc }}</span>
+          {{ citizen?.vdocIde }}
+        </div>
+        <div class="flex gap-1 items-center">
+          <iconify-icon icon="mdi:phone" class="text-base"></iconify-icon>
+          {{ citizen?.vnumTel }}
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end items-center gap-2">
+      <p-iconfield>
+        <p-inputicon>
+          <iconify-icon [icon]="'lucide:search'" />
+        </p-inputicon>
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar por DNI o RUC"
+          pSize="small"
+          [(ngModel)]="searchText"
+        />
+      </p-iconfield>
+
+      <p-button
+        severity="contrast"
+        size="small"
+        (click)="search()"
+        label="Filtrar"
+      />
+
+      <p-button
+        severity="secondary"
+        variant="outlined"
+        size="small"
+        (click)="clear()"
+        label="Limpiar"
+      />
+    </div>
+  </div>
+  <p-tabs [value]="tabSelected">
+    <p-tablist>
+      <p-tab [value]="0" class="flex items-center"> <span>Deudas</span></p-tab>
+      <p-tab [value]="1" class="flex items-center">
+        <span>Trámites y solicitudes</span>
+      </p-tab>
+      <!-- <p-tab [value]="2" class="flex items-center">
+            <span>Medidas</span>
+          </p-tab>
+          <p-tab [value]="3" class="flex items-center">
+            <span>Declaraciones</span>
+          </p-tab>
+          <p-tab [value]="4" class="flex items-center">
+            <span>Notificaciones</span>
+          </p-tab> -->
+      <p-tab [value]="5" class="flex items-center">
+        <span>Comunicaciones</span>
+        <!-- 20101279554 -->
+        <!-- 20608720694 -->
+      </p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <div class="grid grid-cols-1 gap-2">
+          <div class="grid grid-cols-3 gap-2">
+            <p-select
+              id="idResultado"
+              [options]="listtypeDeuda"
+              optionLabel="label"
+              optionValue="code"
+              [(ngModel)]="typeDeuda"
+              appendTo="body"
+            />
+            <p-select
+              *ngIf="typeDeuda == 1"
+              id="idResultado"
+              [options]="listtypeTributo"
+              optionLabel="label"
+              optionValue="code"
+              [(ngModel)]="typeTributo"
+              appendTo="body"
+            />
+          </div>
+
+          <ng-container *ngIf="typeDeuda == 1">
+            <p-table
+              *ngIf="typeTributo == 1"
+              [value]="tableImpuestoPredial"
+              [responsiveLayout]="'scroll'"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      N° documento
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Fecha vencimiento
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Estado de la deuda
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Monto de la deuda
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Cuota doc de deuda
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.documento }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.fechavencimiento }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.estado }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light text-center">
+                      {{ item?.monto | currency }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light text-center">
+                      {{ item?.cuota }}
+                    </p>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="100" class="text-center p-6">
+                    <div class="flex flex-col items-center text-gray-500">
+                      <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                      <p class="text-sm font-medium mt-3">
+                        Sin registro de deudas
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+            <p-table
+              *ngIf="typeTributo == 2"
+              [value]="tableImpuestoVehicular"
+              [responsiveLayout]="'scroll'"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      N° documento
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Fecha vencimiento
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Estado de la deuda
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Monto de la deuda
+                    </div>
+                  </th>
+                  <th>
+                    <div
+                      class="flex justify-center items-center text-xs uppercase gap-4"
+                    >
+                      Cuota doc de deuda
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.documento }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.fechavencimiento }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light">
+                      {{ item?.estado }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light text-center">
+                      {{ item?.monto | currency }}
+                    </p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-light text-center">
+                      {{ item?.cuota }}
+                    </p>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="100" class="text-center p-6">
+                    <div class="flex flex-col items-center text-gray-500">
+                      <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                      <p class="text-sm font-medium mt-3">
+                        Sin registro de deudas
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </ng-container>
+
+          <p-table
+            *ngIf="typeDeuda == 2"
+            [value]="tablePapeletas"
+            [responsiveLayout]="'scroll'"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    N° documento
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Placa
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Fecha de infracción
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Monto de la deuda
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Estado de la deuda
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Fecha de vencimiento
+                  </div>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.cnumDoc }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.cplaca }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.cfecInf.trim() }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.monto | currency }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.estado }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.cfecVen.trim() }}
+                  </p>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="100" class="text-center p-6">
+                  <div class="flex flex-col items-center text-gray-500">
+                    <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                    <p class="text-sm font-medium mt-3">
+                      Sin registro de deudas
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+
+          <p-table
+            *ngIf="typeDeuda == 3"
+            [value]="tableDeudas"
+            [responsiveLayout]="'scroll'"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Docum. de deuda
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Fecha de notificación
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Monto de deuda
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Estado de la deuda
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Gastos administrativos
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Costos
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Descuentos
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Abonos realizados
+                  </div>
+                </th>
+                <th>
+                  <div
+                    class="flex justify-center items-center text-xs uppercase gap-4"
+                  >
+                    Total
+                  </div>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.cnumDoc }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.sdFecInf }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light">
+                    {{ item?.monto }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.estado }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.gasto }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.costo }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.abonos }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.etapa_Cobranza }}
+                  </p>
+                </td>
+                <td>
+                  <p class="text-sm font-light text-center">
+                    {{ item?.compromiso_pago }}
+                  </p>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="100" class="text-center p-6">
+                  <div class="flex flex-col items-center text-gray-500">
+                    <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                    <p class="text-sm font-medium mt-3">
+                      Sin registro de deudas
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabpanel>
+      <p-tabpanel [value]="1">
+        <p-table [value]="tableTramites" [responsiveLayout]="'scroll'">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  N° trámite
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Fecha de presentación
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Tipo de trámite
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Estado del trámite
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Ubicación del trámite
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Fecha de doc. de respuesta
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Documento de respuesta
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Materia
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Tipo de canal
+                </div>
+              </th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <p class="text-sm font-light">
+                  {{ item?.numTramite }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light">
+                  {{ item?.fecha_Tramite }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light">
+                  {{ item?.tipo_Tramite }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.estado_Tramite }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.agencia }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.fecha_Resolucion }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.resultado_Resolucion }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.concepto_Deuda }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item?.procedimiento }}
+                </p>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="100" class="text-center p-6">
+                <div class="flex flex-col items-center text-gray-500">
+                  <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                  <p class="text-sm font-medium mt-3">
+                    Sin registro de trámites o solicitudes
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabpanel>
+      <p-tabpanel [value]="2"> </p-tabpanel>
+      <p-tabpanel [value]="3"> </p-tabpanel>
+      <p-tabpanel [value]="4"> </p-tabpanel>
+      <p-tabpanel [value]="5">
+        <p-tabs [value]="0">
+          <p-tablist>
+            <p-tab [value]="0" class="flex items-center">
+              <span>Atenciones por carteras</span></p-tab
+            >
+            <p-tab [value]="1" class="flex items-center">
+              <span>Atenciones por canales</span>
+            </p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <p-tabpanel [value]="0">
+              <p-table
+                [value]="tableComunicaciones"
+                [responsiveLayout]="'scroll'"
+              >
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Fecha/Hora
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Tipo
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Canal
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Método
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Contacto Usado
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Resultado
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Usuario
+                      </div>
+                    </th>
+
+                    <th></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                  <tr>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{ item?.type }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{ item?.channel }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.method }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.contact }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.result }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.createdByUser?.name }}
+                      </p>
+                    </td>
+                    <td>
+                      <div class="flex justify-center">
+                        <btn-custom
+                          severity="success"
+                          icon="lucide:eye"
+                          tooltip="Mostrar información del caso"
+                          [disabled]="!item.informacionCaso"
+                          (click)="showInfoCaso(item)"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="100" class="text-center p-6">
+                      <div class="flex flex-col items-center text-gray-500">
+                        <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                        <p class="text-sm font-medium mt-3">
+                          Sin comunicaciones
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </p-tabpanel>
+            <p-tabpanel [value]="1">
+              <div class="flex justify-start items-center gap-2 mb-2">
+                <p-select
+                  id="channelCommunication"
+                  [options]="listCategoryChannels"
+                  optionLabel="name"
+                  optionValue="id"
+                  [(ngModel)]="channelSelected"
+                  placeholder="Seleccionar canal"
+                  appendTo="body"
+                  [style]="{ 'min-width': '200px' }"
+                />
+              </div>
+
+              <p-table
+                [value]="tableChannelAttentionsFiltered"
+                [responsiveLayout]="'scroll'"
+              >
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Fecha/Hora
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Tipo de consulta
+                      </div>
+                    </th>
+
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        {{ channelSelected == 0 ? "Oficina" : "Canal" }}
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Contacto
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Detalle
+                      </div>
+                    </th>
+                    <th>
+                      <div
+                        class="flex justify-center items-center text-xs uppercase gap-4"
+                      >
+                        Usuario
+                      </div>
+                    </th>
+                    <th></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                  <tr>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{ item?.consultType?.name }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm text-center font-light">
+                        {{
+                          channelSelected == 0
+                            ? item?.office?.name ?? "SAT"
+                            : item?.categoryChannel?.name
+                        }}
+                      </p>
+                    </td>
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.citizen?.name }}
+                      </p>
+                    </td>
+                    @if(item?.queryHistory) {
+                    <td class="flex justify-center">
+                      <btn-custom
+                        severity="success"
+                        icon="icon-park-outline:history-query"
+                        tooltip="Ver historial de consultas"
+                        (click)="showQueryHistory(item)"
+                      />
+                    </td>
+                    }@else {
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.detail }}
+                      </p>
+                    </td>
+                    }
+                    <td>
+                      <p class="text-sm font-light text-center">
+                        {{ item?.createdByUser?.displayName }}
+                      </p>
+                    </td>
+                    @if(!['chatsat',
+                    'whatsapp'].includes(item?.categoryChannel?.name) ||
+                    item?.queryHistory == null) {
+                    <td>
+                      <div class="flex justify-center">
+                        <btn-custom
+                          severity="success"
+                          icon="lucide:eye"
+                          tooltip="Mostrar información del caso"
+                          [disabled]="!item.informacionCaso"
+                          (click)="showInfoCaso(item)"
+                        />
+                      </div>
+                    </td>
+                    }@else {
+                    <td></td>
+                    }
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="100" class="text-center p-6">
+                      <div class="flex flex-col items-center text-gray-500">
+                        <i class="pi pi-folder-open text-6xl text-gray-400"></i>
+                        <p class="text-sm font-medium mt-3">
+                          Sin comunicaciones
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>

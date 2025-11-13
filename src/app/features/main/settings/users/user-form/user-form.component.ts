@@ -13,13 +13,15 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Area } from '@models/area.model';
-import { Oficina } from '@models/oficina.model';
+import { Department } from '@models/department.model';
+import { Office } from '@models/office.model';
 import { Role } from '@models/role.model';
-import { UserVicidial } from '@models/user.model';
-import { MessageGlobalService } from '@services/message-global.service';
-import { AreaStore } from '@stores/area.store';
-import { OficinaStore } from '@stores/oficina.store';
+import { VicidialUser } from '@models/user.model';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { DepartmentStore } from '@stores/department.store';
+import { OfficeStore } from '@stores/office.store';
 import { RoleStore } from '@stores/role.store';
 import { UserStore } from '@stores/user.store';
 import { ButtonModule } from 'primeng/button';
@@ -28,8 +30,11 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
-import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { KeyFilterModule } from 'primeng/keyfilter';
+import { AloSatService } from '@services/alo-sat.service';
+import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-user-form',
@@ -38,12 +43,16 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
     FormsModule,
     ReactiveFormsModule,
     InputTextModule,
-    TextareaModule,
     PasswordModule,
     ToggleSwitchModule,
     FieldsetModule,
     ButtonModule,
     SelectModule,
+    KeyFilterModule,
+    TooltipModule,
+    CheckboxModule,
+    ButtonCancelComponent,
+    ButtonSaveComponent,
   ],
   templateUrl: './user-form.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -56,12 +65,14 @@ export class UserFormComponent implements OnInit {
 
   readonly store = inject(UserStore);
 
-  readonly areaStore = inject(AreaStore);
+  readonly departmentStore = inject(DepartmentStore);
 
-  readonly oficinaStore = inject(OficinaStore);
+  readonly officeStore = inject(OfficeStore);
+
+  private readonly aloSatService = inject(AloSatService);
 
   formData = new FormGroup({
-    name: new FormControl<string>('', {
+    name: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -76,26 +87,30 @@ export class UserFormComponent implements OnInit {
     password: new FormControl<string | undefined>(undefined, {
       nonNullable: true,
     }),
-    idArea: new FormControl<number | undefined>(undefined, {
+    departmentId: new FormControl<number | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    idOficina: new FormControl<number | undefined>(undefined, {
+    officeId: new FormControl<number | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    idRole: new FormControl<number | undefined>(undefined, {
+    roleId: new FormControl<number | undefined>(undefined, {
       nonNullable: true,
       validators: [Validators.required],
     }),
     vicidial: new FormGroup({
       username: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [Validators.required, Validators.maxLength(20)],
       }),
       userPass: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(100),
+        ],
       }),
       phoneLogin: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
@@ -103,7 +118,11 @@ export class UserFormComponent implements OnInit {
       }),
       phonePass: new FormControl<string | undefined>(undefined, {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(100),
+        ],
       }),
       userLevel: new FormControl<number | undefined>(undefined, {
         nonNullable: true,
@@ -120,6 +139,9 @@ export class UserFormComponent implements OnInit {
   });
 
   id!: number;
+  vicidialId!: number;
+
+  isVicidialUser: boolean = false;
 
   submited: boolean = false;
 
@@ -133,21 +155,27 @@ export class UserFormComponent implements OnInit {
     return this.store.loading();
   }
 
-  get listAreas(): Area[] {
-    return this.areaStore.items();
+  get listDepartments(): Department[] {
+    return this.departmentStore.items();
   }
 
-  get listOficinas(): Oficina[] {
-    return this.oficinaStore
+  get listOffices(): Office[] {
+    return this.officeStore
       .items()
-      .filter((item) => item.idArea === this.formData.get('idArea')?.value);
+      .filter(
+        (item) => item.departmentId === this.formData.get('departmentId')?.value
+      );
   }
 
-  private loadedItem = false;
+  get isAloSat(): boolean {
+    return this.formData.get('officeId')?.value == 1;
+  }
+
+  listUserGroups: { userGroup: string; groupName: string }[] = [];
 
   listLevel = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-  editUserVicidial: boolean = false;
+  editVicidialUser: boolean = false;
 
   private resetOnSuccessEffect = effect(() => {
     const item = this.store.selectedItem();
@@ -158,7 +186,7 @@ export class UserFormComponent implements OnInit {
     if (error) {
       console.log('error', error);
       this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al guardar el agente!'
+        error ?? '¡Ups, ocurrió un error inesperado al guardar el usuario!'
       );
       return; // Salimos si hay un error
     }
@@ -167,8 +195,8 @@ export class UserFormComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Agente creado exitosamente!'
-          : '¡Agente actualizado exitosamente!'
+          ? '¡Usuario creado exitosamente!'
+          : '¡Usuario actualizado exitosamente!'
       );
 
       this.resetForm();
@@ -179,19 +207,20 @@ export class UserFormComponent implements OnInit {
     }
 
     // Si hay un item seleccionado, se carga en el formulario
-    if (item && !this.loadedItem) {
+    if (item && this.id != item.id) {
       this.id = item.id;
       this.formData.patchValue({
         name: item.name,
         displayName: item.displayName,
         email: item.email,
         password: item.password,
-        idArea: item?.oficina?.idArea,
-        idOficina: item.idOficina,
-        idRole: item.idRole,
+        departmentId: item?.office?.departmentId,
+        officeId: item.officeId,
+        roleId: item.roleId,
         status: item.status!,
       });
       if (item.vicidial) {
+        this.vicidialId = item.vicidial.id;
         this.formData.patchValue({
           vicidial: {
             username: item.vicidial.username,
@@ -203,36 +232,53 @@ export class UserFormComponent implements OnInit {
           },
         });
         this.formData.get('vicidial')?.enable();
+        this.isVicidialUser = true;
       }
-      this.configurePasswordValidators();
-      this.loadedItem = true;
     }
   });
 
   ngOnInit(): void {
     this.formData.get('vicidial')?.disable();
     this.roleStore.loadAll();
-    this.areaStore.loadAll();
-    this.oficinaStore.loadAll();
-    // Si es crear (no hay id todavía), aplicamos validadores desde el inicio
-    if (!this.id) {
-      this.configurePasswordValidators();
-    }
+    this.departmentStore.loadAll();
+    this.officeStore.loadAll();
+    this.getUserGroups();
+
+    this.formData.get('roleId')!.valueChanges.subscribe((roleId) => {
+      const departmentControl = this.formData.get('departmentId')!;
+      const officeControl = this.formData.get('officeId')!;
+
+      if (roleId === 1) {
+        // 🔒 Deshabilitar y quitar validadores
+        departmentControl.setValue(undefined);
+        departmentControl.disable();
+        departmentControl.clearValidators();
+        departmentControl.updateValueAndValidity();
+
+        officeControl.setValue(undefined);
+        officeControl.disable();
+        officeControl.clearValidators();
+        officeControl.updateValueAndValidity();
+      } else {
+        // 🔓 Habilitar y volver a agregar validadores
+
+        departmentControl.enable();
+        departmentControl.setValidators([Validators.required]);
+        departmentControl.updateValueAndValidity();
+
+        officeControl.enable();
+        officeControl.setValidators([Validators.required]);
+        officeControl.updateValueAndValidity();
+      }
+    });
   }
 
-  /** Configura los validadores de password según si es crear o editar */
-  private configurePasswordValidators() {
-    const pwdCtrl = this.formData.get('password');
-    if (!pwdCtrl) return;
-
-    if (this.id) {
-      // Editar → opcional (pero si escribe algo, mínimo 8 caracteres)
-      pwdCtrl.setValidators([Validators.minLength(8)]);
-    } else {
-      // Crear → obligatorio + mínimo 8 caracteres
-      pwdCtrl.setValidators([Validators.required, Validators.minLength(8)]);
-    }
-    pwdCtrl.updateValueAndValidity();
+  getUserGroups() {
+    this.aloSatService.findAllUserGroups().subscribe({
+      next: (data) => {
+        this.listUserGroups = data;
+      },
+    });
   }
 
   resetForm() {
@@ -241,9 +287,9 @@ export class UserFormComponent implements OnInit {
       displayName: undefined,
       email: undefined,
       password: undefined,
-      idArea: undefined,
-      idOficina: undefined,
-      idRole: undefined,
+      departmentId: undefined,
+      officeId: undefined,
+      roleId: undefined,
       status: true,
     });
   }
@@ -252,12 +298,12 @@ export class UserFormComponent implements OnInit {
     return this.formData.get('status')?.value as boolean;
   }
 
-  changeArea() {
-    this.formData.get('idOficina')?.setValue(undefined);
+  changeDepartment() {
+    this.formData.get('officeId')?.setValue(undefined);
   }
 
-  changeOficina() {
-    if (this.formData.get('idOficina')?.value == 1) {
+  changeOffice() {
+    if (this.isAloSat) {
       this.formData.get('vicidial')?.enable();
     } else {
       this.formData.get('vicidial')?.disable();
@@ -269,7 +315,7 @@ export class UserFormComponent implements OnInit {
   }
 
   changeEmail() {
-    if (!this.editUserVicidial) {
+    if (!this.editVicidialUser) {
       this.formData
         .get('vicidial.username')
         ?.setValue(
@@ -282,7 +328,7 @@ export class UserFormComponent implements OnInit {
   }
 
   changeVicidialUsername() {
-    this.editUserVicidial =
+    this.editVicidialUser =
       this.formData
         .get('email')
         ?.value?.replaceAll('@', '')
@@ -303,19 +349,34 @@ export class UserFormComponent implements OnInit {
     this.changeVicidialUsername();
   }
 
+  toggleVicidial() {
+    if (this.isVicidialUser) {
+      this.formData.get('vicidial')?.enable();
+    } else {
+      this.formData.get('vicidial')?.disable();
+    }
+  }
+
+  onCancel() {
+    this.store.clearSelected();
+    this.ref.close(false);
+  }
+
   onSubmit() {
     this.submited = true;
-    const { idArea, vicidial, ...form } = this.formData.value;
+    const { departmentId, vicidial, ...form } = this.formData.value;
     if (this.id) {
       this.store.update(this.id, {
         id: this.id,
         ...form,
-        vicidial: vicidial ? ({ ...vicidial } as UserVicidial) : undefined,
+        vicidial: vicidial
+          ? ({ ...vicidial, id: this.vicidialId } as VicidialUser)
+          : undefined,
       });
     } else {
       this.store.create({
         ...form,
-        vicidial: vicidial ? ({ ...vicidial } as UserVicidial) : undefined,
+        vicidial: vicidial ? ({ ...vicidial } as VicidialUser) : undefined,
       });
     }
   }

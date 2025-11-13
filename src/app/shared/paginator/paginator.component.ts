@@ -1,11 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
-import { ButtonCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { FormsModule } from '@angular/forms';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'sat-paginator',
-  imports: [CommonModule, ButtonModule, ButtonCustomComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    BtnCustomComponent,
+    SelectModule,
+  ],
   templateUrl: './paginator.component.html',
   styles: ``,
 })
@@ -13,6 +21,9 @@ export class PaginatorComponent {
   @Input() totalItems = 0;
   @Input() limit = 10;
   @Input() offset = 0;
+  @Input() actuals = 0;
+  @Input() position: 'start' | 'end' | 'center' = 'center';
+  @Input() limitOptions: number[] = [];
 
   @Output() pageChange = new EventEmitter<{ limit: number; offset: number }>();
 
@@ -82,5 +93,10 @@ export class PaginatorComponent {
     }
 
     return range;
+  }
+
+  changeLimit(e: any) {
+    console.log('eee', e, this.limit);
+    this.pageChange.emit({ limit: this.limit, offset: 0 });
   }
 }

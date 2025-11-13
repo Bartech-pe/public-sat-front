@@ -13,7 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -71,7 +71,6 @@ export class SkillFormComponent implements OnInit {
   });
 
   listCategorias = [
-    'Todas las categorías',
     'Tributaria',
     'No tributaria',
     'Administrativa',

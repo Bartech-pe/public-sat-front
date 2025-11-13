@@ -1,19 +1,22 @@
-export class MailFilter {
-  advisorEmailId?: number;
-  stateId?: number;
-  from?: string;
-  to?: string;
-  contains?: string;
-  notContains?: string;
-  date?: Date;
+import { AssistanceState } from './assistance-state.model';
+import { User } from './user.model';
 
-  constructor(data: Partial<MailFilter> = {}) {
-    this.advisorEmailId = data.advisorEmailId;
-    this.stateId = data.stateId;
-    this.from = data.from;
-    this.to = data.to;
-    this.contains = data.contains;
-    this.notContains = data.notContains;
-    this.date = data.date ? new Date(data.date) : undefined;
-  }
+export interface MailDto {
+  id: number;
+  from?: string;
+  name?: string;
+  to?: string;
+  toName?: string;
+  subject?: string;
+  content?: string;
+  body?: string;
+  date?: string;
+  state?: AssistanceState;
+  advisor?: User;
+  isRead: boolean;
+  isSender?: boolean;
+  mailAttentionId?: number;
+  attachments: any[];
+
+  selected?: boolean;
 }

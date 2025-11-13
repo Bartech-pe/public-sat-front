@@ -1,81 +1,95 @@
 <!-- Contenedor principal -->
-<div 
-  class="flex h-[calc(89vh-64px)] bg-gray-100 rounded-xl shadow-md overflow-hidden border border-slate-200 -mt-3" 
-  style="border-bottom: 2px solid #375f95;  box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);"
-  >
+<div
+  class="flex h-full bg-gray-100 rounded-xl shadow-md overflow-hidden border border-slate-200"
+>
   <!-- Lista de conversaciones -->
   <div class="w-1/4 bg-white border-e border-slate-200">
-    <div class="p-4 text-lg font-semibold flex items-center justify-between bg-[#375f95] text-white shadow">
+    <div
+      class="p-4 text-lg font-semibold flex items-center justify-between bg-[#375f95] text-white shadow"
+    >
       <span>Mi bandeja de entrada</span>
       <button
         (click)="emojiPopoverNewMessage?.toggle($event)"
-        class="flex items-center gap-1 p-1.5 text-sm bg-white/10 hover:bg-white/20 rounded-full transition">
-        <iconify-icon  icon="mdi:plus" width="20"></iconify-icon>
+        class="flex items-center gap-1 p-1.5 text-sm bg-white/10 hover:bg-white/20 rounded-full transition cursor-pointer"
+      >
+        <iconify-icon icon="mdi:plus" width="20"></iconify-icon>
       </button>
     </div>
 
     <div class="overflow-y-auto">
-
       <!-- GRUPOS -->
-    <ul class="list-none">
-      <li *ngFor="let chat of groupChats"
+      <ul class="list-none">
+        <li
+          *ngFor="let chat of groupChats"
           (click)="viewMessages(chat)"
           class="p-3 cursor-pointer hover:bg-[#069a810] transition"
-          [class.bg-[#0069a810]]="selectedChatId === chat.id">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2 w-full">
-            <img [src]="'https://i.pravatar.cc/100?img=11'" class="w-8 h-8 rounded-full border border-slate-200" />
-            <div class="flex-1 truncate">
-              <span class="font-medium text-sm block truncate">
-                {{ chat.name }}
-              </span>
-              <span
-                class="text-xs text-gray-500 block overflow-hidden whitespace-nowrap text-ellipsis"
-                [style.maxWidth]="'140px'" 
-                [title]="getLastMessage(chat)"
-              >
-                {{ getLastMessage(chat) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Aquí colocas el botón eliminar -->
-          <div class="flex items-center gap-2 pl-2">
-            <span class="text-xs text-gray-400 whitespace-nowrap">
-              {{ chat.updatedAt | date: 'shortTime' }}
-            </span>
-            <button
-              (click)="borrarGrupo(chat.id); $event.stopPropagation()"
-              class="text-gray-400 hover:text-red-500 transition"
-              title="Eliminar grupo"
-            >
-              <iconify-icon icon="mdi:trash-can-outline" width="18"></iconify-icon>
-            </button>
-          </div>
-        </div>
-      </li>
-    </ul>
-
-    <!-- Dentro del *ngFor="let chat of directChats" -->
-      <ul class="list-none">
-        <li *ngFor="let chat of directChats"
-            (click)="viewMessages(chat)"
-            class="p-3 cursor-pointer hover:bg-[#0069a810] transition"
-            [class.bg-[#0069a810]]="selectedChatId === chat.id"
-            [ngClass]="{
-              'bg-yellow-100': chatService.getEstado(chat.id) === 'pospuesto',
-              'bg-orange-100': chatService.getEstado(chat.id) === 'pendiente'
-            }">
+          [class.bg-[#0069a810]]="selectedChatId === chat.id"
+        >
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-2 w-full">
-              <img [src]="'https://i.pravatar.cc/100?img=1'" class="w-8 h-8 rounded-full border border-slate-200" />
+              <img
+                [src]="'https://i.pravatar.cc/100?img=11'"
+                class="w-8 h-8 rounded-full border border-slate-200"
+              />
+              <div class="flex-1 truncate">
+                <span class="font-medium text-sm block truncate">
+                  {{ chat.name }}
+                </span>
+                <span
+                  class="text-xs text-gray-500 block overflow-hidden whitespace-nowrap text-ellipsis"
+                  [style.maxWidth]="'140px'"
+                  [title]="getLastMessage(chat)"
+                >
+                  {{ getLastMessage(chat) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Aquí colocas el botón eliminar -->
+            <div class="flex items-center gap-2 pl-2">
+              <span class="text-xs text-gray-400 whitespace-nowrap">
+                {{ chat.updatedAt | date : "shortTime" }}
+              </span>
+              <button
+                (click)="borrarGrupo(chat.id); $event.stopPropagation()"
+                class="text-gray-400 hover:text-red-500 transition cursor-pointer"
+                title="Eliminar grupo"
+              >
+                <iconify-icon
+                  icon="mdi:trash-can-outline"
+                  width="18"
+                ></iconify-icon>
+              </button>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Dentro del *ngFor="let chat of directChats" -->
+      <ul class="list-none">
+        <li
+          *ngFor="let chat of directChats"
+          (click)="viewMessages(chat)"
+          class="p-3 cursor-pointer hover:bg-[#0069a810] transition"
+          [class.bg-[#0069a810]]="selectedChatId === chat.id"
+          [ngClass]="{
+            'bg-yellow-100': chatService.getEstado(chat.id) === 'pospuesto',
+            'bg-orange-100': chatService.getEstado(chat.id) === 'pendiente'
+          }"
+        >
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2 w-full">
+              <img
+                [src]="'https://i.pravatar.cc/100?img=1'"
+                class="w-8 h-8 rounded-full border border-slate-200"
+              />
               <div class="flex-1 truncate">
                 <span class="font-medium text-sm block truncate">
                   {{ getLastMessageNameUser(chat) }}
                 </span>
                 <span
                   class="text-xs text-gray-500 block overflow-hidden whitespace-nowrap text-ellipsis"
-                  [style.maxWidth]="'140px'" 
+                  [style.maxWidth]="'140px'"
                   [title]="getLastMessage(chat)"
                 >
                   {{ getLastMessage(chat) }}
@@ -86,15 +100,17 @@
             <!-- Aquí el ícono de eliminar conversación -->
             <div class="flex items-center gap-2 pl-2">
               <span class="text-xs text-gray-400 whitespace-nowrap">
-                {{ chat.updatedAt | date: 'shortTime' }}
+                {{ chat.updatedAt | date : "shortTime" }}
               </span>
               <button
-                (click)="borrarSala(chat.id); 
-                $event.stopPropagation()"
-                class="text-gray-400 hover:text-red-500 transition"
+                (click)="borrarSala(chat.id); $event.stopPropagation()"
+                class="text-gray-400 hover:text-red-500 transition cursor-pointer mt-1"
                 title="Eliminar conversación"
               >
-                <iconify-icon icon="mdi:trash-can-outline" width="18"></iconify-icon>
+                <iconify-icon
+                  icon="mdi:trash-can-outline"
+                  width="18"
+                ></iconify-icon>
               </button>
             </div>
           </div>
@@ -107,35 +123,11 @@
   <div class="w-3/4 flex flex-col bg-white h-full">
     <!-- Toolbar superior -->
     <ng-container *ngIf="selectedChatId">
-      <!--<div class="px-4 py-2 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
-        <div class="flex items-center gap-2 text-sm text-gray-700">
-          <button class="p-1 bg-gray-100 hover:bg-gray-200 rounded transition">
-            <iconify-icon icon="ci:caret-down-md" width="16"></iconify-icon>
-          </button>
-          <button class="p-1 bg-gray-100 hover:bg-gray-200 rounded transition">
-            <iconify-icon icon="ci:caret-up-md" width="16"></iconify-icon>
-          </button>
-          <small><strong>1</strong>/{{ listChatRoom.length }}</small>
-        </div>
-        <div class="flex items-center gap-2 text-sm">
-          <button
-            (click)="enviarNotificacionesUser()"
-            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
-          >
-            <iconify-icon icon="mdi:bell-outline" width="16"></iconify-icon>
-            Enviar notificaciones
-          </button>
-          <button
-            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
-          >
-            <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
-            Borrar notificaciones
-          </button>
-        </div>
-      </div>-->
-
       <!-- Encabezado conversación -->
-      <div class="px-5 border-b border-slate-200 flex justify-between items-center bg-[#f5fafd]" style="padding-top: 6px; padding-bottom: 6px;">
+      <div
+        class="px-5 border-b border-slate-200 flex justify-between items-center bg-[#f5fafd]"
+        style="padding-top: 6px; padding-bottom: 6px"
+      >
         <div>
           <ng-container *ngIf="infoUserGroup; else privateChat">
             <div class="font-semibold text-gray-800 text-base">
@@ -144,7 +136,8 @@
             <div class="text-sm text-gray-500">
               Miembros:
               <span *ngFor="let user of infoUserGroup.users; let i = index">
-                {{ user.name }}<span *ngIf="i < infoUserGroup.users.length - 1">, </span>
+                {{ user.name
+                }}<span *ngIf="i < infoUserGroup.users.length - 1">, </span>
               </span>
             </div>
           </ng-container>
@@ -156,213 +149,255 @@
           </ng-template>
         </div>
         <div class="flex items-center gap-2">
-            <button
-                (click)="popoverButonesNotificaciones.toggle($event)"
-                class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 !rounded-full transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512">
-                    <path fill="currentColor" d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480" />
-                </svg>
-                Enviar notificaciones
-            </button>
-            <!--<button
-                class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition">
-                <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
-                Borrar notificaciones
-            </button>-->
-            
-          <p-splitButton  
-            label="Listo!"
-            [model]="items"
-            severity="secondary"
-            (onClick)="resolver()"
-            class="p-button-sm text-xs"
-          ></p-splitButton>
-
           <button
-            (click)="emojiPopoverButones.toggle($event)"
-            class="p-2 bg-gray-100 hover:bg-gray-200 rounded-md">
-            <iconify-icon icon="ci:more-vertical" width="16">
-            </iconify-icon>
+            (click)="enviarNotificacionesUser()"
+            class="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 !rounded-full transition cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 512 512"
+            >
+              <path
+                fill="currentColor"
+                d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480"
+              />
+            </svg>
+            Enviar notificación al supervisor
           </button>
         </div>
       </div>
 
       <!-- Lista de mensajes -->
       <!-- Lista de mensajes -->
-      <div #scrollContainer class="flex-1 overflow-y-auto px-4 py-3 bg-gray-50 min-h-[150px]">
+      <div
+        #scrollContainer
+        class="flex-1 overflow-y-auto px-4 py-3 bg-gray-50 min-h-[150px]"
+      >
         <ng-container *ngIf="true">
-          <ng-container *ngIf="listMessageChatRoom.length > 0; else emptyMessage">
-            <chat-message-list 
+          <ng-container
+            *ngIf="listMessageChatRoom.length > 0; else emptyMessage"
+          >
+            <!-- 👇 Vista previa de la imagen seleccionada -->
+            <div *ngIf="previewImage" class="mt-3 flex justify-center">
+              <img
+                [src]="previewImage"
+                alt="Vista previa"
+                class="max-h-40 rounded-lg shadow-md border border-gray-200"
+              />
+            </div>
+            <chat-message-list
               [messages]="listMessageChatRoom"
-              (deleteMessage)="borrarMensaje($event)">
+              (deleteMessage)="borrarMensaje($event)"
+            >
             </chat-message-list>
           </ng-container>
 
           <ng-template #emptyMessage>
-            <div class="h-full flex items-center justify-center text-sm text-gray-400 italic">
-              Sin mensajes aún. Escribe el primero...
+            <div
+              class="h-full flex flex-col items-center justify-center text-lg text-gray-700 italic"
+            >
+              Chat interno del CRM
+              <p class="text-sm text-gray-400">Seleccione un chat para iniciar una conversación</p>
             </div>
           </ng-template>
         </ng-container>
       </div>
 
       <!-- Caja de entrada -->
-      <div class="border-t border-slate-200 bg-blue-50 px-4 py-3">
-        <chat-message-button
-          [(message)]="newMessage"
-          (send)="sendMessage($event)"
-          (fileUpload)="handleFile($event)"
-        ></chat-message-button>
-      </div>
-
-
-<p-popover #emojiPopoverNewMessage>
-  <div class="flex flex-col gap-2 w-full p-2">
-    <div class="relative">
-      <input
-        pInputText
-        placeholder="Busca un Nombre"
-        required
-        class="w-full pr-10"
-      />
-      <iconify-icon
-        icon="lucide:search"
-        class="absolute right-2 top-2.5 text-gray-400 text-lg"
-      ></iconify-icon>
-    </div>
-    <!-- Botón: Bloquear contacto -->
-    <button
-      (click)="btnAgregarNuevoGrupo($event)"
-      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition gap-x-2"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512">
-        <path fill="#000" d="M336 256c-20.56 0-40.44-9.18-56-25.84c-15.13-16.25-24.37-37.92-26-61c-1.74-24.62 5.77-47.26 21.14-63.76S312 80 336 80c23.83 0 45.38 9.06 60.7 25.52c15.47 16.62 23 39.22 21.26 63.63c-1.67 23.11-10.9 44.77-26 61C376.44 246.82 356.57 256 336 256m131.83 176H204.18a27.71 27.71 0 0 1-22-10.67a30.22 30.22 0 0 1-5.26-25.79c8.42-33.81 29.28-61.85 60.32-81.08C264.79 297.4 299.86 288 336 288c36.85 0 71 9 98.71 26.05c31.11 19.13 52 47.33 60.38 81.55a30.27 30.27 0 0 1-5.32 25.78A27.68 27.68 0 0 1 467.83 432M147 260c-35.19 0-66.13-32.72-69-72.93c-1.42-20.6 5-39.65 18-53.62c12.86-13.83 31-21.45 51-21.45s38 7.66 50.93 21.57c13.1 14.08 19.5 33.09 18 53.52c-2.87 40.2-33.8 72.91-68.93 72.91m65.66 31.45c-17.59-8.6-40.42-12.9-65.65-12.9c-29.46 0-58.07 7.68-80.57 21.62c-25.51 15.83-42.67 38.88-49.6 66.71a27.39 27.39 0 0 0 4.79 23.36A25.32 25.32 0 0 0 41.72 400h111a8 8 0 0 0 7.87-6.57c.11-.63.25-1.26.41-1.88c8.48-34.06 28.35-62.84 57.71-83.82a8 8 0 0 0-.63-13.39c-1.57-.92-3.37-1.89-5.42-2.89" />
-      </svg>
-      Nuevo Grupo
-    </button>
-
-    <p-table [value]="listUsers" class="p-datatable-sm w-full">
-      <ng-template pTemplate="body" let-contact>
-        <tr (click)="viewMessage(contact)">
-          <td>
-            <div class="flex items-center gap-2">
-              <img
-                [alt]="contact.name"
-                [src]="'https://i.pravatar.cc/100?img=1'"
-                class="w-8 h-8 rounded-full"
-              />
-              <span>{{ contact.displayName }}</span>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
-</p-popover>
-
-<p-popover #emojiPopoverButones>
-  <div class="flex flex-col gap-2 w-full p-2">
-    <!-- Botón: Bloquear contacto -->
-    <button
-      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
-    >
-      <iconify-icon
-        icon="ci:volume-off-02"
-        class="mr-2"
-        width="16"
-      ></iconify-icon>
-      Bloquear contacto
-    </button>
-
-    <!-- Botón: Enviar Transcripción -->
-    <button
-      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
-    >
-      <iconify-icon
-        icon="ci:share-ios-export"
-        class="mr-2"
-        width="16"
-      ></iconify-icon>
-      Enviar Transcripción
-    </button>
-  </div>
-</p-popover>
-
-<p-popover #popoverButonesNotificaciones [style]="{'width': '32rem', 'max-width': '90vw'}">
-   <notification-supervises></notification-supervises>
-</p-popover>
-
-<!-- Ventana flotante para crear grupo -->
-<div *ngIf="openGroup"
-  class="fixed z-[9999] bg-white rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.25)] ring-4 ring-green-700 ring-opacity-80 w-96 max-h-[90vh] overflow-y-auto p-4 transition-transform duration-300 ease-out animate-slide-in-right"
-  [ngStyle]="popoverPosition"
-  (click)="$event.stopPropagation()"
->
-  <h3 class="text-lg font-semibold text-green-800 mb-4">Crear grupo</h3>
-
-   <div class="relative mb-4">
-    <input
-      type="text"
-      pInputText
-      placeholder="Buscar usuario..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="applyFilter()"
-      class="w-full pr-10"
-    />
-    <iconify-icon icon="lucide:search" class="absolute right-3 top-2.5 text-gray-400"></iconify-icon>
-  </div>
-
-  <p-table
-    [value]="filteredList"
-    selectionMode="multiple"
-    [(selection)]="selectedUsers"
-    dataKey="id"
-    class="p-datatable-sm w-full mb-6">
-    <ng-template pTemplate="body" let-contact>
-      <tr [pSelectableRow]="contact">
-        <td>
-          <div class="flex items-center gap-2">
-            <p-tableCheckbox [value]="contact"></p-tableCheckbox>
-            <img [src]="'https://i.pravatar.cc/100?img=1'" class="w-8 h-8 rounded-full" />
-            <span>{{ contact.displayName }}</span>
+      <ng-container *ngIf="disabledButton">
+        <div class="border-t border-slate-200 bg-blue-50 px-4 py-3">
+          <chat-message-button
+            [(message)]="newMessage"
+            (send)="sendMessage($event)"
+            (fileUpload)="handleFile($event)"
+          ></chat-message-button>
+        </div>
+      </ng-container>
+      <p-popover #emojiPopoverNewMessage>
+        <div class="flex flex-col gap-2 w-full p-2">
+          <div class="relative">
+            <input
+              pInputText
+              placeholder="Busca un Nombre"
+              required
+              class="w-full pr-10"
+            />
+            <iconify-icon
+              icon="lucide:search"
+              class="absolute right-2 top-2.5 text-gray-400 text-lg"
+            ></iconify-icon>
           </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+          <!-- Botón: Bloquear contacto -->
+          <button
+            (click)="btnAgregarNuevoGrupo($event)"
+            class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition gap-x-2 cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 512 512"
+            >
+              <path
+                fill="#000"
+                d="M336 256c-20.56 0-40.44-9.18-56-25.84c-15.13-16.25-24.37-37.92-26-61c-1.74-24.62 5.77-47.26 21.14-63.76S312 80 336 80c23.83 0 45.38 9.06 60.7 25.52c15.47 16.62 23 39.22 21.26 63.63c-1.67 23.11-10.9 44.77-26 61C376.44 246.82 356.57 256 336 256m131.83 176H204.18a27.71 27.71 0 0 1-22-10.67a30.22 30.22 0 0 1-5.26-25.79c8.42-33.81 29.28-61.85 60.32-81.08C264.79 297.4 299.86 288 336 288c36.85 0 71 9 98.71 26.05c31.11 19.13 52 47.33 60.38 81.55a30.27 30.27 0 0 1-5.32 25.78A27.68 27.68 0 0 1 467.83 432M147 260c-35.19 0-66.13-32.72-69-72.93c-1.42-20.6 5-39.65 18-53.62c12.86-13.83 31-21.45 51-21.45s38 7.66 50.93 21.57c13.1 14.08 19.5 33.09 18 53.52c-2.87 40.2-33.8 72.91-68.93 72.91m65.66 31.45c-17.59-8.6-40.42-12.9-65.65-12.9c-29.46 0-58.07 7.68-80.57 21.62c-25.51 15.83-42.67 38.88-49.6 66.71a27.39 27.39 0 0 0 4.79 23.36A25.32 25.32 0 0 0 41.72 400h111a8 8 0 0 0 7.87-6.57c.11-.63.25-1.26.41-1.88c8.48-34.06 28.35-62.84 57.71-83.82a8 8 0 0 0-.63-13.39c-1.57-.92-3.37-1.89-5.42-2.89"
+              />
+            </svg>
+            Nuevo Grupo
+          </button>
 
-   <!-- Formulario de nombre del grupo -->
-  <form [formGroup]="formData" class="flex flex-col gap-2">
-    <div *ngIf="selectedUsers.length > 0" class="mb-2">
-      <label class="block text-sm font-medium">Nombre del grupo:</label>
-      <input
-        type="text"
-        pInputText
-        placeholder="Ej. Equipo de Soporte"
-        formControlName="name"
-        class="w-full mt-1"
-      />
-      <div *ngIf="formData.controls.name.invalid && formData.controls.name.touched">
-        <small *ngIf="formData.controls.name.errors?.['required']">El nombre es requerido.</small>
+          <div class="max-h-[280px] overflow-y-auto mt-2">
+            <p-table [value]="listUsers" class="p-datatable-sm w-full">
+              <ng-template pTemplate="body" let-contact>
+                <tr (click)="viewMessage(contact)">
+                  <td>
+                    <div class="flex items-center gap-2 cursor-pointer">
+                      <img
+                        [alt]="contact.name"
+                        [src]="'https://i.pravatar.cc/100?img=1'"
+                        class="w-8 h-8 rounded-full"
+                      />
+                      <span>{{ contact.displayName }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </p-popover>
+
+      <!-- <p-popover #emojiPopoverButones> -->
+      <!-- <div class="flex flex-col gap-2 w-full p-2"> -->
+      <!-- Botón: Bloquear contacto
+          <button
+            class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+          >
+            <iconify-icon
+              icon="ci:volume-off-02"
+              class="mr-2"
+              width="16"
+            ></iconify-icon>
+            Bloquear contacto
+          </button>
+          -->
+
+      <!-- Botón: Enviar Transcripción -->
+      <!-- <button
+            class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+          >
+            <iconify-icon
+              icon="ci:share-ios-export"
+              class="mr-2"
+              width="16"
+            ></iconify-icon>
+            Enviar Transcripción
+          </button> -->
+      <!-- </div> -->
+      <!-- </p-popover> -->
+
+      <p-popover
+        #popoverButonesNotificaciones
+        [style]="{ width: '32rem', 'max-width': '90vw' }"
+      >
+        <notification-supervises></notification-supervises>
+      </p-popover>
+
+      <!-- Ventana flotante para crear grupo -->
+      <!-- Contenedor principal del popover -->
+      <div
+        *ngIf="openGroup"
+        class="fixed z-[9999] bg-white rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.25)] ring-4 ring-green-700 ring-opacity-80 w-96 max-h-[90vh] p-4 transition-transform duration-300 ease-out animate-slide-in-right"
+        [ngStyle]="popoverPosition"
+        (click)="$event.stopPropagation()"
+      >
+        <h3 class="text-lg font-semibold text-[#375f95] mb-4">Grupo</h3>
+
+        <!-- Input de búsqueda -->
+        <div class="relative mb-4">
+          <input
+            type="text"
+            pInputText
+            placeholder="Buscar usuario..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilter()"
+            class="w-full pr-10"
+          />
+          <iconify-icon
+            icon="lucide:search"
+            class="absolute right-3 top-2.5 text-gray-400"
+          ></iconify-icon>
+        </div>
+
+        <!-- ⚡ Scroll solo en la lista de usuarios -->
+        <div class="max-h-[240px] overflow-y-auto mb-4 rounded-lg">
+          <p-table
+            [value]="filteredList"
+            selectionMode="multiple"
+            [(selection)]="selectedUsers"
+            dataKey="id"
+            class="p-datatable-sm w-full"
+          >
+            <ng-template pTemplate="body" let-contact>
+              <tr [pSelectableRow]="contact">
+                <td>
+                  <div class="flex items-center gap-2">
+                    <p-tableCheckbox [value]="contact"></p-tableCheckbox>
+                    <img
+                      [src]="'https://i.pravatar.cc/100?img=1'"
+                      class="w-8 h-8 rounded-full"
+                    />
+                    <span>{{ contact.displayName }}</span>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+
+        <!-- Formulario de nombre del grupo -->
+        <form [formGroup]="formData" class="flex flex-col gap-2">
+          <div *ngIf="selectedUsers.length > 0" class="mb-2">
+            <label class="block text-sm font-medium">Nombre del grupo:</label>
+            <input
+              type="text"
+              pInputText
+              placeholder="Ej. Equipo de Soporte"
+              formControlName="name"
+              class="w-full mt-1"
+            />
+            <div
+              *ngIf="
+                formData.controls.name.invalid && formData.controls.name.touched
+              "
+            >
+              <small *ngIf="formData.controls.name.errors?.['required']"
+                >El nombre es requerido.</small
+              >
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex justify-between gap-4 pt-2">
+            <button-cancel (click)="onCancel()" />
+            <button-save
+              [label]="id ? 'Actualizar' : 'Guardar'"
+              [loading]="loading"
+              [disabled]="formData.invalid"
+              (click)="onSubmit()"
+            />
+          </div>
+        </form>
       </div>
-    </div>
 
-    <!-- Botones -->
-    <div class="flex justify-between gap-4 pt-2">
-      <button-cancel (click)="onCancel()" />
-      <button-save
-        [label]="id ? 'Actualizar' : 'Guardar'"
-        [loading]="loading"
-        [disabled]="formData.invalid"
-        (click)="onSubmit()"
-      />
-    </div>
-  </form>
+      <p-toast
+        position="bottom-left"
+        key="confirm"
+        (onClose)="onReject()"
+        [baseZIndex]="5000"
+      ></p-toast
+    ></ng-container>
+  </div>
 </div>
-
-<p-toast
-  position="bottom-left"
-  key="confirm"
-  (onClose)="onReject()"
-  [baseZIndex]="5000"
->

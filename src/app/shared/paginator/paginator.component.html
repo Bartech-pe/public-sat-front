@@ -1,51 +1,70 @@
-<nav *ngIf="totalPages > 1" class="flex gap-2 items-center">
-  <btn-custom
-    severity="contrast"
-    icon="lucide:chevrons-left"
-    tooltip="Primera página"
-    [disabled]="currentPage === 1"
-    (click)="changePage(1)"
-  />
-  <btn-custom
-    severity="contrast"
-    icon="lucide:chevron-left"
-    tooltip="Página anterior"
-    [disabled]="currentPage === 1"
-    (click)="previous()"
-  />
-
-  @for (page of pages(); track $index) {
-  <ng-container *ngIf="page === '...'; else numberButton">
-    <span class="px-2 text-sm text-gray-500">...</span>
-  </ng-container>
-  <ng-template #numberButton>
-    <p-button
-      [variant]="page === currentPage ? undefined : 'text'"
+<nav>
+  <div
+    class="flex items-center gap-2"
+    [ngClass]="{
+      'justify-center': position == 'center',
+      'justify-start': position == 'start',
+      'justify-end': position == 'end'
+    }"
+  >
+    <btn-custom
       severity="contrast"
-      size="small"
-      rounded
-      styleClass="!w-7 !h-7"
-      (click)="onPageClick(page)"
-    >
-      <div class="flex justify-center text-sm items-center">
-        {{ page }}
-      </div>
-    </p-button>
-  </ng-template>
-  }
+      icon="lucide:chevrons-left"
+      tooltip="Primera página"
+      [disabled]="currentPage === 1"
+      (click)="changePage(1)"
+    />
+    <btn-custom
+      severity="contrast"
+      icon="lucide:chevron-left"
+      tooltip="Página anterior"
+      [disabled]="currentPage === 1"
+      (click)="previous()"
+    />
 
-  <btn-custom
-    severity="contrast"
-    icon="lucide:chevron-right"
-    tooltip="Página siguiente"
-    [disabled]="currentPage === totalPages"
-    (click)="next()"
-  />
-  <btn-custom
-    severity="contrast"
-    icon="lucide:chevrons-right"
-    tooltip="Última página"
-    [disabled]="currentPage === totalPages"
-    (click)="changePage(totalPages)"
-  />
+    @for (page of pages(); track $index) {
+    <ng-container *ngIf="page === '...'; else numberButton">
+      <span class="px-2 text-sm text-gray-500">...</span>
+    </ng-container>
+    <ng-template #numberButton>
+      <p-button
+        [variant]="page === currentPage ? undefined : 'text'"
+        severity="contrast"
+        size="small"
+        rounded
+        styleClass="!min-w-7 !h-7"
+        (click)="onPageClick(page)"
+      >
+        <div class="flex justify-center text-xs items-center">
+          {{ page }}
+        </div>
+      </p-button>
+    </ng-template>
+    }
+
+    <btn-custom
+      severity="contrast"
+      icon="lucide:chevron-right"
+      tooltip="Página siguiente"
+      [disabled]="currentPage === totalPages"
+      (click)="next()"
+    />
+    <btn-custom
+      severity="contrast"
+      icon="lucide:chevrons-right"
+      tooltip="Última página"
+      [disabled]="currentPage === totalPages"
+      (click)="changePage(totalPages)"
+    />
+
+    <p-select
+      *ngIf="limitOptions.length"
+      [options]="limitOptions"
+      [(ngModel)]="limit"
+      (onChange)="changeLimit($event.value)"
+      class="w-19"
+      styleClass="!w-19 !rounded-full"
+      appendTo="body"
+    />
+  </div>
 </nav>

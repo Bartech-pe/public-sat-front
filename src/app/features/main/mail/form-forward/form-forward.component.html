@@ -1,0 +1,50 @@
+<div class="grid grid-cols-1 gap-2">
+  <!-- Campo destinatario -->
+  <div class="flex items-center gap-2">
+    <div class="w-18">
+      <label class="text-sm"> Reenviar a: </label>
+    </div>
+    <div class="flex-1">
+      <p-autocomplete
+        [(ngModel)]="forwardTo"
+        [suggestions]="emailItemsTo"
+        (completeMethod)="searchEmailTo($event)"
+        optionLabel="email"
+        optionValue="email"
+        class="w-full"
+        styleClass="w-full"
+        inputStyleClass="!rounded-full !w-full"
+        [showClear]="true"
+      >
+        <ng-template let-item #item>
+          <div class="grid grid-cols-1">
+            <p class="text-sm">{{ item.name }}</p>
+            <p class="text-xs">{{ item.email }}</p>
+          </div>
+        </ng-template>
+      </p-autocomplete>
+    </div>
+  </div>
+
+  <!-- Campo introducción del usuario -->
+  <label class="block text-sm font-medium">Mensaje:</label>
+  <p-editor
+    [(ngModel)]="forwardBody"
+    placeholder="Escribe un mensaje para acompañar el reenvío..."
+    [style]="{ minHfeight: '100px' }"
+  />
+  <label class="block text-sm font-medium"> Mensaje adjunto: </label>
+  <app-mail-viewer [safeMailHtml]="forwardText" />
+
+  <div class="flex justify-end gap-4">
+    <div class="flex gap-2">
+      <button-cancel (click)="onCancel()" />
+      <button-save
+        [label]="'Guardar'"
+        [loading]="loading"
+        [disabled]="invalid"
+        (click)="onSubmit()"
+      />
+    </div>
+  </div>
+</div>

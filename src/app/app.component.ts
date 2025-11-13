@@ -7,8 +7,16 @@ import {
   OnInit,
   PLATFORM_ID,
 } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { applySatColors } from '@constants/sat-colors';
+import { LoaderComponent } from '@layouts/loader/loader.component';
 import { AloSatService } from '@services/alo-sat.service';
 import { AuthStore } from '@stores/auth.store';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -16,7 +24,13 @@ import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, ConfirmDialog, ToastModule],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    ConfirmDialog,
+    ToastModule,
+    LoaderComponent,
+  ],
   templateUrl: './app.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -27,10 +41,27 @@ export class AppComponent implements OnInit {
 
   private readonly aloSatService = inject(AloSatService);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  loading = false;
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private router: Router
+  ) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.loading = true; // empieza la navegación
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this.loading = false; // termina la navegación
+      }
+    });
+  }
 
   get isAloSat(): boolean {
-    return this.authStore.user()?.idOficina === 1;
+    return this.authStore.user()?.officeId === 1;
   }
 
   ngOnInit(): void {

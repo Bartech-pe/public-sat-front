@@ -4,7 +4,7 @@ export interface Sender {
   displayName: string;
   email: string;
   avatarUrl: string | null;
-  idRole: number;
+  roleId: number;
   verified: boolean;
   status: boolean;
   createdAt: string; // o Date si prefieres
@@ -15,8 +15,8 @@ export interface ChatMessage {
   id?: number;
   type: 'text' | 'image' | 'video' | string; // puedes extender tipos si lo necesitas
   content: string;
-  idChatRoom: number;
-  idSender?: number;
+  chatRoomId: number;
+  senderId?: number;
   resourceUrl ?: string | null;
   isRead: boolean;
   createdAt ?: string; // o Date

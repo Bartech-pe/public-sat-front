@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { ReminderStore } from '@stores/reminder.store';
 import { DatePickerModule } from 'primeng/datepicker';

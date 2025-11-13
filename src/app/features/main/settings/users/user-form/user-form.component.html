@@ -8,7 +8,7 @@
       <div class="grid grid-cols-1 gap-2">
         <div class="grid grid-cols-1 gap-2">
           <label class="text-sm font-medium" for="nameUser">
-            Nombre completo <span class="text-xs">*</span>
+            Nombre a mostrar <span class="text-xs">*</span>
           </label>
           <input id="nameUser" pInputText formControlName="name" />
           <div
@@ -23,7 +23,7 @@
         </div>
         <div class="grid grid-cols-1 gap-2">
           <label class="text-sm font-medium" for="displayNameUser">
-            Nombre a mostrar <span class="text-xs">*</span>
+            Nombre completo<span class="text-xs">*</span>
           </label>
           <input
             id="displayNameUser"
@@ -65,15 +65,15 @@
           />
         </div>
         <div class="grid grid-cols-1 gap-2">
-          <label class="text-sm font-medium" for="idRoleUser">
+          <label class="text-sm font-medium" for="roleuserId">
             Rol <span class="text-xs">*</span>
           </label>
           <p-select
-            id="idRoleUser"
+            id="roleuserId"
             [options]="listUsers"
             optionLabel="name"
             optionValue="id"
-            formControlName="idRole"
+            formControlName="roleId"
             placeholder="Seleccione..."
             styleClass="capitalize"
             panelStyleClass="capitalize"
@@ -81,37 +81,48 @@
           />
         </div>
         <div class="grid grid-cols-1 gap-2">
-          <label class="text-sm font-medium" for="idArea">
+          <label class="text-sm font-medium" for="departmentId">
             Área <span class="text-xs">*</span>
           </label>
           <p-select
-            id="idArea"
-            [options]="listAreas"
+            id="departmentId"
+            [options]="listDepartments"
             optionLabel="name"
             optionValue="id"
-            formControlName="idArea"
+            formControlName="departmentId"
             placeholder="Seleccione..."
-            (ngModelChange)="changeArea()"
+            (ngModelChange)="changeDepartment()"
             appendTo="body"
           />
         </div>
         <div class="grid grid-cols-1 gap-2">
-          <label class="text-sm font-medium" for="idOficina">
+          <label class="text-sm font-medium" for="officeId">
             Oficina <span class="text-xs">*</span>
           </label>
           <p-select
-            id="idOficina"
-            [options]="listOficinas"
+            id="officeId"
+            [options]="listOffices"
             optionLabel="name"
             optionValue="id"
-            formControlName="idOficina"
+            formControlName="officeId"
             placeholder="Seleccione..."
-            (ngModelChange)="changeOficina()"
             appendTo="body"
           />
         </div>
       </div>
     </p-fieldset>
+    <div *ngIf="isAloSat" class="flex items-center gap-2 pt-1">
+      <p-checkbox
+        [(ngModel)]="isVicidialUser"
+        binary="true"
+        [ngModelOptions]="{ standalone: true }"
+        (onChange)="toggleVicidial()"
+      >
+      </p-checkbox>
+      <label class="text-sm font-medium pt-0.5" for="isVicidialUser">
+        Agregar configuración vicidial
+      </label>
+    </div>
     <p-fieldset
       *ngIf="formData.get('vicidial')?.enabled"
       legend="Ajustes de VICIdial"
@@ -125,6 +136,7 @@
             id="vicidialUser"
             pInputText
             formControlName="username"
+            pKeyFilter="alphanum"
             (input)="cleanUsername()"
           />
         </div>
@@ -132,7 +144,12 @@
           <label class="text-sm font-medium" for="vicidialUserPass">
             Password de usuario en VICIdial <span class="text-xs">*</span>
           </label>
-          <input id="vicidialUserPass" pInputText formControlName="userPass" />
+          <input
+            id="vicidialUserPass"
+            pInputText
+            formControlName="userPass"
+            pKeyFilter="alphanum"
+          />
         </div>
         <div class="grid grid-cols-1 gap-2">
           <label class="text-sm font-medium" for="vicidialPhoneLogin">
@@ -142,6 +159,7 @@
             id="vicidialPhoneLogin"
             pInputText
             formControlName="phoneLogin"
+            pKeyFilter="num"
           />
         </div>
         <div class="grid grid-cols-1 gap-2">
@@ -152,29 +170,42 @@
             id="vicidialPhonePass"
             pInputText
             formControlName="phonePass"
+            pKeyFilter="alphanum"
           />
         </div>
-        <div class="grid grid-cols-1 gap-2">
-          <label class="text-sm font-medium" for="vicidialUserLevel">
-            Nivel de usuario (1=agente, 9=admin) <span class="text-xs">*</span>
-          </label>
-          <p-select
-            id="vicidialUserLevel"
-            [options]="listLevel"
-            formControlName="userLevel"
-            placeholder="Seleccione..."
-            appendTo="body"
-          />
-        </div>
-        <div class="grid grid-cols-1 gap-2">
-          <label class="text-sm font-medium" for="vicidialUserGroup">
-            Grupo del usuario (ej: AGENTS) <span class="text-xs">*</span>
-          </label>
-          <input
-            id="vicidialUserGroup"
-            pInputText
-            formControlName="userGroup"
-          />
+        <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 gap-2">
+            <label class="text-sm font-medium" for="vicidialUserLevel">
+              Nivel de usuario
+              <span class="text-xs">*</span>
+            </label>
+            <p-select
+              id="vicidialUserLevel"
+              [options]="listLevel"
+              formControlName="userLevel"
+              placeholder="Seleccione..."
+              pTooltip="1=agente, 9=admin"
+              tooltipPosition="top"
+              tooltipStyleClass="!text-xs !font-normal !p-0"
+              appendTo="body"
+            />
+          </div>
+          <div class="col-span-2 grid grid-cols-1 gap-2">
+            <label class="text-sm font-medium" for="vicidialUserGroup">
+              Grupo del usuario <span class="text-xs">*</span>
+            </label>
+            <p-select
+              id="userGroup"
+              [options]="listUserGroups"
+              optionLabel="groupName"
+              optionValue="userGroup"
+              formControlName="userGroup"
+              placeholder="Seleccione..."
+              styleClass="capitalize"
+              panelStyleClass="capitalize"
+              appendTo="body"
+            />
+          </div>
         </div>
       </div>
     </p-fieldset>
@@ -182,18 +213,18 @@
   <div class="flex justify-between gap-4">
     <div class="flex items-center gap-2 py-1">
       <p-toggleswitch formControlName="status" inputId="activeRole" />
-      <label class="text-sm font-medium pb-1.5" for="activeRole">{{
-        isActive ? "Activo" : "Inactivo"
-      }}</label>
+      <label class="text-sm font-medium pb-1.5" for="activeRole">
+        {{ isActive ? "Activo" : "Inactivo" }}
+      </label>
     </div>
-    <p-button
-      severity="primary"
-      size="small"
-      type="submit"
-      [label]="id ? 'Actualizar' : 'Guardar'"
-      [loading]="loading"
-      [disabled]="formData.invalid"
-      ><iconify-icon [icon]="'ci:save'" class="text-xl" />
-    </p-button>
+    <div class="flex gap-2">
+      <button-cancel (click)="onCancel()" />
+      <button-save
+        [label]="id ? 'Actualizar' : 'Guardar'"
+        [loading]="loading"
+        [disabled]="formData.invalid"
+        (click)="onSubmit()"
+      />
+    </div>
   </div>
 </form>

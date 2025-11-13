@@ -17,7 +17,7 @@ import { PopoverModule } from 'primeng/popover';
     PopoverModule,
   ],
   templateUrl: './floating-chat.component.html',
-  styles: ``
+  styles: ``,
 })
 export class FloatingChatComponent {
   @Input() chat!: ChatRoom;
@@ -35,8 +35,8 @@ export class FloatingChatComponent {
         type: 'text',
         isSender: true,
         isRead: false,
-        idChatRoom: this.chat.id,
-        createdAt: new Date().toISOString()
+        chatRoomId: this.chat.id,
+        createdAt: new Date().toISOString(),
       };
 
       // Puedes emitirlo o guardarlo en backend si deseas

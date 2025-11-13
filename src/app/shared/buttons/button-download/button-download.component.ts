@@ -14,7 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
       size="small"
       rounded
       styleClass="!w-7.5 !px-0.5"
-      pTooltip="Descargar Reporte"
+      pTooltip="Ver Reporte"
       tooltipPosition="top"
       tooltipStyleClass="!text-xs !font-normal !p-0"
     >

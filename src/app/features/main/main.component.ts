@@ -8,14 +8,13 @@ import { BreadcrumbComponent } from '@shared/breadcrumb/breadcrumb.component';
 import { ChatBubbleComponent } from './inbox-view/chat-bubble/chat-bubble.component';
 import { SocketService } from '@services/socket.service';
 import { MessageService } from 'primeng/api';
-import { environment } from '@envs/enviroments';
-import { MessageGlobalService } from '@services/message-global.service';
+import { environment } from '@envs/environments';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { AuthStore } from '@stores/auth.store';
 import { User } from '@models/user.model';
 import { Toast } from 'primeng/toast';
 import { Subscription } from 'rxjs';
 import { SidebarService } from '@services/sidebar.service';
-
 
 @Component({
   selector: 'app-main',
@@ -29,7 +28,7 @@ import { SidebarService } from '@services/sidebar.service';
     BreadcrumbComponent,
     ChatBubbleComponent,
     BreadcrumbComponent,
-    Toast
+    Toast,
   ],
   template: `
     <div class="h-screen flex flex-col overflow-hidden">
@@ -48,11 +47,18 @@ import { SidebarService } from '@services/sidebar.service';
           <sidebar />
         </section>
 
-        <section class="flex flex-col flex-1 h-full sat-background overflow-hidden">
+        <section
+          class="flex flex-col flex-1 h-full sat-background overflow-hidden"
+        >
           <div class="h-[calc(100%-32px)] overflow-hidden">
-            <div class="p-4 h-full flex flex-col gap-2 overflow-auto">
-              <app-breadcrumb />
-              <div [ngClass]="{'overflow-hidden': isChatView()}" class="h-full w-full">
+            <div class="px-4 pt-4 h-full flex flex-col gap-2">
+              <div class="h-14">
+                <app-breadcrumb />
+              </div>
+              <div
+                class="h-[calc(100%-56px)] w-full"
+                [ngClass]="[isChatView() ? 'overflow-hidden' : 'overflow-auto']"
+              >
                 <router-outlet />
               </div>
             </div>
@@ -87,8 +93,11 @@ import { SidebarService } from '@services/sidebar.service';
 })
 export class MainComponent {
   audio = new Audio();
+
   readonly authStore = inject(AuthStore);
+
   private readonly msg = inject(MessageGlobalService);
+
   get userCurrent(): User {
     return this.authStore.user()!;
   }
@@ -97,23 +106,19 @@ export class MainComponent {
     public router: Router,
     private socketService: SocketService,
     private messageService: MessageService,
-    public sidebarService: SidebarService,
+    public sidebarService: SidebarService
   ) {}
 
   ngOnInit() {
     this.audio.src = '/assets/sound.mp3';
-    if (this.userCurrent.idRole === environment.idRoleSupervisor) {
-      
+    if (this.userCurrent.roleId === environment.roleIdSupervisor) {
       this.socketService.onAlertas((data) => {
-      
-          this.messageService.add({
-            key: 'confirm',
-            sticky: true,
-            severity: 'success',
-            summary: data.message,
-          });
-
-         this.playSound();
+        this.messageService.add({
+          key: 'confirm',
+          sticky: true,
+          severity: 'success',
+          summary: data.mensaje,
+        });
       });
     }
 
@@ -125,23 +130,16 @@ export class MainComponent {
   collapsed = false;
   private sub = new Subscription();
 
-  playSound() {
-    this.audio.play().catch(error => {
-      console.error('Error al reproducir el sonido:', error);
-    });
-  }
-
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
 
   isOnBandeja(): boolean {
-    return this.router.url.includes('/inbox-view') || 
-           this.router.url.includes('/mail');
+    return this.router.url.includes('/inbox-view');
   }
 
   onReject() {
-        this.messageService.clear('confirm');
+    this.messageService.clear('confirm');
   }
   isChatView() {
     return this.router.url.startsWith('/inbox-multi-channel');

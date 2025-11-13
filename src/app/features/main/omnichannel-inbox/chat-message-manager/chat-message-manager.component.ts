@@ -1,4 +1,4 @@
-  import {
+import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   ViewChild,
@@ -17,13 +17,18 @@ import { CommonModule } from '@angular/common';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TagModule } from 'primeng/tag';
-import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { ContextMenuService, MenuItem, MessageService } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import {
-  ChannelCitizen,
+  AdvisorChangedDto,
+  BotStatusChangedDto,
+  ChannelAttentionStatus,
+  ChannelAttentionStatusReverse,
+  ChannelAttentionStatusTag,
+  ChannelAttentionStatusTagType,
+  ChannelCitizenSummariesDto,
   ChannelLogo,
   ChannelMessage,
   Channels,
@@ -32,20 +37,38 @@ import {
   ChatStatus,
   getAdvisorsResponseDto,
 } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
-import { ChatRoomService } from '@services/chatRoom.service';
-import { changeChannelRoomStatusDto, ChannelRoomService, ToogleBotServicesDto } from '@services/channel-room.service';
+import {
+  changeChannelRoomStatusDto,
+  ChannelRoomService,
+  ToogleBotServicesDto,
+} from '@services/channel-room.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ChannelRoomAssistance, ChannelRoomSocketService } from '@services/channel-room-socket.service';
-import { ChannelRoomMessageService, CreateChannelAgentMessageDto } from '@services/channel-room-message.service';
+import {
+  ChannelRoomAssistance,
+  ChannelRoomSocketService,
+} from '@services/channel-room-socket.service';
+import {
+  ChannelRoomMessageService,
+  CreateChannelAgentMessageDto,
+} from '@services/channel-room-message.service';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
-import { AdvisorComponent } from '@shared/modal/advisor/advisor.component';
-import { UserService } from '@services/user.service';
+import { AdvisorComponent, TransferToAdvisorResponseDto } from '@shared/modal/advisor/advisor.component';
 import { MarkdownPipe } from '@pipes/markdown.pipe';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DropdownModule } from 'primeng/dropdown';
 import { AssistancesHistoryModalComponent } from '@shared/modal/multi-channel-chat/assistances-history.component';
-import { ChannelAssistanceService } from '@services/channel-assistance.service';
 import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { ChannelAttentionService } from '@services/channel-attention.service';
+import { PredefinedResponses } from '@models/predefined-response.model';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { PredefinedResponsesService } from '@services/predefined.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { FormAssistanceComponent } from '@features/main/mail/form-assistance/form-assistance.component';
+import { FormAttentionComponent } from '../form-attention/form-attention.component';
+import { Subject, takeUntil, timestamp } from 'rxjs';
+import { TooltipModule } from 'primeng/tooltip';
+import { AuthStore } from '@stores/auth.store';
+import { ThemeUtils } from '@primeng/themes';
 
 export interface Attachment {
   type: 'file' | 'image';
@@ -54,7 +77,7 @@ export interface Attachment {
   name?: string | null;
 }
 
-interface AttachmentPreview extends Attachment  {
+interface AttachmentPreview extends Attachment {
   file: File;
   preview?: string;
   loading?: boolean;
@@ -79,9 +102,11 @@ interface AttachmentPreview extends Attachment  {
     OverlayBadgeModule,
     AdvisorComponent,
     MarkdownPipe,
+    TooltipModule,
     TagModule,
     DialogModule,
     ProgressBarModule,
+    OverlayPanelModule,
   ],
   templateUrl: './chat-message-manager.component.html',
   providers: [ContextMenuService],
@@ -92,11 +117,13 @@ export class ChatMessageManagerComponent implements OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   @ViewChild('fileInput') private fileInput!: ElementRef;
   private readonly msg = inject(MessageGlobalService);
+  private readonly dialogService = inject(DialogService);
+  private readonly authStore = inject(AuthStore);
 
   chatDetail: ChatDetail | null = null;
   advisors: getAdvisorsResponseDto[] = [];
   channelRoomId: number | null = null;
-  assintanceId: number | null = null;
+  attentionId: number | null = null;
   messageText: string = '';
   completionEventReceived: boolean = false;
   isLoading: boolean = false;
@@ -108,6 +135,7 @@ export class ChatMessageManagerComponent implements OnDestroy {
   typingIndicatorEmitted = false;
   isDragOver = false;
   uploadingFiles = false;
+  isBotBlocked = false
   private isInitialLoad = false;
   private hasScrolledToBottom = false;
   private isLoadingOlderMessages = false;
@@ -129,30 +157,31 @@ export class ChatMessageManagerComponent implements OnDestroy {
   statusOptions = [
     { label: 'Completado', value: 'completado' },
     { label: 'Pendiente', value: 'pendiente' },
-    { label: 'Prioridad', value: 'prioridad' }
+    { label: 'Prioridad', value: 'prioridad' },
   ];
   private readonly MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
   showHistorial = false;
+  // NUEVA PROPIEDAD para respuestas predefinidas
+  predefinedResponses: PredefinedResponses[] = [];
+  private destroy$ = new Subject<void>();
+  items: MenuItem[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private messageService: MessageService,
     private channelRoomService: ChannelRoomService,
-    private userService: UserService,
     private channelRoomMessageService: ChannelRoomMessageService,
-    private channelMessage: ChannelRoomService,
-    private channelAssistanceService: ChannelAssistanceService,
+    private channelAttentionService: ChannelAttentionService,
     private channelRoomSocketService: ChannelRoomSocketService,
+    private predefinedResponsesService: PredefinedResponsesService,
     private ngZone: NgZone
-  ) {}
-
-  ngOnDestroy(): void {
-    // Limpiar recursos si es necesario
+  ) {
   }
 
-  items: MenuItem[] | undefined;
-
+  getUserRole(){
+    return this.authStore.user()?.role?.name?? ''
+  }
 
   abrirHistorial() {
     this.showHistorial = true;
@@ -160,52 +189,108 @@ export class ChatMessageManagerComponent implements OnDestroy {
 
   handleEvent(event: boolean) {
     this.showHistorial = event;
-    console.log(event);
   }
   ngOnInit() {
-    this.route.queryParamMap.subscribe((params) => {
-      this.completionEventReceived = false;
+    this.route.queryParamMap
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((params) => {
+      // this.completionEventReceived = false;
       if (!params.get('channelRoomId') || !params.get('assistanceId')) {
         this.chatDetail = null;
         return;
       }
       const channelRoomId = params.get('channelRoomId');
       this.channelRoomId = Number(channelRoomId);
-      const assintanceId = params.get('assistanceId');
-      this.assintanceId = Number(assintanceId);
-
+      const attentionId = params.get('assistanceId');
+      this.attentionId = Number(attentionId);
+      this.messageText = ""
       this.loadChatData();
     });
     setInterval(() => {
       this.ngZone.run(() => {}); // fuerza change detection
     }, 1000);
-    this.channelRoomSocketService.onChannelRoomStatusChanged().subscribe((payload) => {
-      if (payload && this.chatDetail?.channelRoomId === payload.channelRoomId && this.chatDetail.assistanceId === payload.assistanceId) {
-        this.chatDetail.status = payload.status;
-        if (payload.status === 'completado') {
-          this.completionEventReceived = true;
-          this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { channel: this.route.snapshot.queryParams['channel'] },
-            queryParamsHandling: '',
-          });
+
+    this.channelRoomSocketService
+    .onChannelRoomStatusChanged()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((payload) => {
+        if (
+          payload &&
+          this.chatDetail &&
+          this.chatDetail?.channelRoomId === payload.channelRoomId &&
+          this.chatDetail.attention.id === payload.assistanceId
+        ) {
+          console.log(payload)
+          this.chatDetail.status = payload.status;
+          this.chatDetail.attention.status = payload.attentionStatus;
+          if (payload.status === 'completado') {
+            // this.completionEventReceived = true;
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: {
+                channel: this.route.snapshot.queryParams['channel'],
+              },
+              queryParamsHandling: '',
+            });
+          }
         }
+      });
+    this.channelRoomSocketService.onAttentionDetailModified()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: ChannelRoomAssistance) => {
+        if(message.assistanceId == this.chatDetail?.attention.id)
+        {
+          this.loadChatData()
+        }
+      });
+
+    this.channelRoomSocketService
+    .onAdvisorRequest()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((payload: ChannelRoomAssistance) => {
+      if (
+          this.channelRoomId === payload.channelRoomId &&
+          this.attentionId === payload.assistanceId
+        ) {
+            this.loadChatData();
+        }
+      });
+
+      this.channelRoomSocketService.onBotRepliesStatusChanged()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((message: BotStatusChangedDto) => {
+        if(this.chatDetail)
+        {
+          let botRepliesChanged = message.channelRoomId == this.chatDetail?.channelRoomId;
+          if(botRepliesChanged)
+          {
+            this.chatDetail.botStatus = message.botReplies ? 'active': 'paused'
+          }
+        }
+      });
+
+
+    this.channelRoomSocketService
+    .onAdvisorChanged()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((message: AdvisorChangedDto) => {
+      let hasChannelRoomWithAdvisorChanged = message.channelRoomId == this.chatDetail?.channelRoomId
+      && message.attentionId == this.chatDetail.attention.id;
+      if(hasChannelRoomWithAdvisorChanged)
+      {
+        this.loadChatData();
       }
     });
-
-    this.channelRoomSocketService.onAdvisorRequest().subscribe((payload: ChannelRoomAssistance) => {
-      if (this.channelRoomId === payload.channelRoomId && this.assintanceId === payload.assistanceId) {
-        this.chatDetail = {
-          ...this.chatDetail,
-          status: 'prioridad',
-        } as ChatDetail;
-      }
-    });
-
-    this.channelRoomSocketService.onNewMessage().subscribe((message) => {
+    this.channelRoomSocketService
+    .onNewMessage()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((message) => {
       let messageIncoming = message.message;
-      if (this.channelRoomId === message.channelRoomId && this.assintanceId === message.assistanceId) {
 
+      if (
+        this.channelRoomId === message.channelRoomId &&
+        this.attentionId === message.attention.id
+      ) {
         this.chatDetail?.messages.push({
           id: messageIncoming.id,
           content: messageIncoming.message,
@@ -221,68 +306,100 @@ export class ChatMessageManagerComponent implements OnDestroy {
             isAgent: messageIncoming.sender.isAgent,
           },
           status: messageIncoming.status,
-          time: messageIncoming.time,
+          timestamp: messageIncoming.time,
         });
 
         if (!this.isNearBottom) {
           this.unreadMessagesCount++;
+        } else {
+          requestAnimationFrame(() => {
+            this.handleScrollDown();
+          });
         }
+        if(!this.chatDetail?.agentAssigned?.id) return
         this.channelRoomSocketService.onChatViewed(this.channelRoomId);
       }
     });
-
-    this.items = [
-      {
-        label: 'Acciones del Chat',
-        items: [
-          {
-            label: 'Finalizar Atención',
-            icon: 'pi pi-check-circle',
-            command: () => this.finalizeConversation(),
-          },
-          {
-            label: 'Transferir caso',
-            icon: 'pi pi-users',
-            command: () => this.openTransferModal(),
-          },
-          {
-            label: 'Establecer Prioridad',
-            icon: 'pi pi-flag',
-            command: () => this.openChannelStatusModal(),
-          },
-          {
-            label: 'Enviar al correo',
-            icon: 'pi pi-refresh',
-            command: () => this.sendEmailWithConversation(),
-
-          },
-          {
-            label: 'Ver historial de chats',
-            icon: 'pi pi-refresh',
-            command: () => this.abrirHistorial()
-          },
-          // {
-          //   separator: true,
-          // },
-        ],
-      },
-    ];
   }
 
 
-  sendEmailWithConversation ()
-  {
-    if(this.chatDetail?.assistanceId){
-      this.channelAssistanceService.sendEmailWithConversation(this.chatDetail?.assistanceId).subscribe((response: IBaseResponseDto) =>{
-        if(response.success)
-        {
-          this.msg.success("La conversación fue enviada al usuario correctamente.","Correo enviado",3000)
-        }else{
-          this.msg.error(response.error?? 'Hubo un error con el servidor. Por favor, contacte a soporte para tener mayor información.',"Correo no enviado",3000)
-        }
-      })
-    }else{
-      this.msg.error('No existe asistencia.',"Asegurese de estar en un chat para poder utilizar esta función",3000)
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    if (this.messagesContainer) {
+      this.messagesContainer.nativeElement.innerHTML = '';
+    }
+
+    this.chatDetail = null;
+    this.advisors = [];
+    this.messageText = '';
+    this.attachments = [];
+    this.predefinedResponses = [];
+
+    this.isLoading = false;
+    this.showTransferModal = false;
+    this.showChaneStatusModal = false;
+    this.showAttachmentsDialog = false;
+    this.showImageModal = false;
+    this.showScrollButton = false;
+    this.showHistorial = false;
+    this.uploadingFiles = false;
+    this.isDragOver = false;
+    this.typingIndicatorEmitted = false;
+    this.completionEventReceived = false;
+    this.updatingStatus = false;
+    this.newMessages = false;
+    this.unreadMessagesCount = 0;
+    this.isInitialLoad = false;
+    this.hasScrolledToBottom = false;
+    this.scrollLocked = false;
+    this.isLoadingOlderMessages = false;
+    this.isNearBottom = true;
+    this.selectedImage = null;
+    this.selectedNewStatus = null;
+    this.channelRoomId = null;
+    this.attentionId = null;
+
+    const links = document.querySelectorAll('a[href^="blob:"]');
+    links.forEach(link => {
+      window.URL.revokeObjectURL((link as HTMLAnchorElement).href);
+    });
+
+    this.items = [];
+
+  }
+
+  sendEmailWithConversation() {
+    if (this.chatDetail?.attention.id) {
+      this.channelAttentionService
+        .sendEmailWithConversation(this.chatDetail?.attention.id)
+        .subscribe((response: IBaseResponseDto) => {
+          if (response.success) {
+            this.msg.success(
+              'La conversación fue enviada al usuario correctamente.',
+              'Correo enviado',
+              3000
+            );
+          } else {
+            this.msg.error(
+              response.error ??
+                'Hubo un error con el servidor. Por favor, contacte a soporte para tener mayor información.',
+              'Correo no enviado',
+              3000
+            );
+          }
+        });
+    } else {
+      this.msg.error(
+        'No existe asistencia.',
+        'Asegurese de estar en un chat para poder utilizar esta función',
+        3000
+      );
     }
   }
   // Método de scroll SOLO para infinite scroll hacia arriba
@@ -319,18 +436,23 @@ export class ChatMessageManagerComponent implements OnDestroy {
     const isNearTop = scrollTop <= this.scrollThreshold;
     const isScrollingUp = this.scrollDirection === 'up';
 
-    if (isNearTop &&
-        isScrollingUp &&
-        this.chatDetail?.hasMore &&
-        !this.isLoadingOlderMessages &&
-        this.chatDetail.messages.length > 0) {
-
+    if (
+      isNearTop &&
+      isScrollingUp &&
+      this.chatDetail?.hasMore &&
+      !this.isLoadingOlderMessages &&
+      this.chatDetail.messages.length > 0
+    ) {
       this.loadOlderMessages();
     }
   }
 
   private async loadOlderMessages() {
-    if (!this.chatDetail || !this.chatDetail.hasMore || this.isLoadingOlderMessages) {
+    if (
+      !this.chatDetail ||
+      !this.chatDetail.hasMore ||
+      this.isLoadingOlderMessages
+    ) {
       return;
     }
 
@@ -346,48 +468,52 @@ export class ChatMessageManagerComponent implements OnDestroy {
     const oldScrollTop = messagesContainer.scrollTop;
 
     try {
-      this.channelRoomService.getChatData(
-        this.channelRoomId as number,
-        this.assintanceId as number,
-        15,
-        oldestMessage.timestamp
-      ).subscribe({
-        next: (response) => {
-          console.log(response)
-          if (response.messages && response.messages.length > 0) {
-            this.chatDetail!.messages = [...response.messages, ...this.chatDetail!.messages];
-            this.chatDetail!.hasMore = response.hasMore;
+      this.channelRoomService
+        .getChatData(
+          this.channelRoomId as number,
+          this.attentionId as number,
+          15,
+          oldestMessage.timestamp
+        )
+        .subscribe({
+          next: (response) => {
+            if (response.messages && response.messages.length > 0) {
+              this.chatDetail!.messages = [
+                ...response.messages,
+                ...this.chatDetail!.messages,
+              ];
+              this.chatDetail!.hasMore = response.hasMore;
 
-            // Restaurar posición sin scroll automático
-            requestAnimationFrame(() => {
-              const newScrollHeight = messagesContainer.scrollHeight;
-              const heightDifference = newScrollHeight - oldScrollHeight;
-              messagesContainer.scrollTop = oldScrollTop + heightDifference;
+              // Restaurar posición sin scroll automático
+              requestAnimationFrame(() => {
+                const newScrollHeight = messagesContainer.scrollHeight;
+                const heightDifference = newScrollHeight - oldScrollHeight;
+                messagesContainer.scrollTop = oldScrollTop + heightDifference;
 
-              // DESBLOQUEAR SCROLL después de restaurar posición
-              setTimeout(() => {
-                this.scrollLocked = false;
-              }, 100);
-            });
-          } else {
-            this.chatDetail!.hasMore = false;
+                // DESBLOQUEAR SCROLL después de restaurar posición
+                setTimeout(() => {
+                  this.scrollLocked = false;
+                }, 100);
+              });
+            } else {
+              this.chatDetail!.hasMore = false;
+              this.scrollLocked = false;
+            }
+          },
+          error: (error) => {
+            console.error('Error cargando mensajes:', error);
             this.scrollLocked = false;
-          }
-        },
-        error: (error) => {
-          console.error('Error cargando mensajes:', error);
-          this.scrollLocked = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudieron cargar los mensajes anteriores',
-            life: 3000,
-          });
-        },
-        complete: () => {
-          this.isLoadingOlderMessages = false;
-        }
-      });
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudieron cargar los mensajes anteriores',
+              life: 3000,
+            });
+          },
+          complete: () => {
+            this.isLoadingOlderMessages = false;
+          },
+        });
     } catch (error) {
       console.error('Error en loadOlderMessages:', error);
       this.isLoadingOlderMessages = false;
@@ -419,43 +545,46 @@ export class ChatMessageManagerComponent implements OnDestroy {
     }
     // Enter solo para nueva línea (comportamiento por defecto)
   }
-onTextareaInput(event: Event) {
-  const textarea = event.target as HTMLTextAreaElement;
+  onTextareaInput(event: Event) {
+    const textarea = event.target as HTMLTextAreaElement;
 
-  // Emit typing indicator con debounce
-  if (!this.typingIndicatorEmitted) {
-    this.emitTypingIndicator();
-  } else {
-    // Reinicia el temporizador cada vez que el usuario sigue escribiendo
-    clearTimeout(this.typingTimeout);
+    // Emit typing indicator con debounce
+    if (!this.typingIndicatorEmitted) {
+      this.emitTypingIndicator();
+    } else {
+      // Reinicia el temporizador cada vez que el usuario sigue escribiendo
+      clearTimeout(this.typingTimeout);
+      this.typingTimeout = setTimeout(() => {
+        this.typingIndicatorEmitted = false;
+      }, this.TYPING_INDICATOR_DELAY);
+    }
+
+    // --- Auto resize textarea ---
+    textarea.style.height = 'auto';
+    const minHeight = 44;
+    const maxHeight = 120;
+    const newHeight = Math.min(
+      Math.max(textarea.scrollHeight, minHeight),
+      maxHeight
+    );
+    textarea.style.height = `${newHeight}px`;
+  }
+
+  private emitTypingIndicator() {
+    this.channelRoomSocketService.enableTypingIndicator({
+      channelRoomId: this.chatDetail?.channelRoomId as number,
+      assistanceId: this.chatDetail?.attention.id as number,
+      citizenId: this.chatDetail?.citizen?.id as number,
+      userId: this.chatDetail?.agentAssigned?.id,
+    });
+
+    this.typingIndicatorEmitted = true;
+
+    // auto desactivar después de delay
     this.typingTimeout = setTimeout(() => {
       this.typingIndicatorEmitted = false;
     }, this.TYPING_INDICATOR_DELAY);
   }
-
-  // --- Auto resize textarea ---
-  textarea.style.height = 'auto';
-  const minHeight = 44;
-  const maxHeight = 120;
-  const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
-  textarea.style.height = `${newHeight}px`;
-}
-
-private emitTypingIndicator() {
-  this.channelRoomSocketService.enableTypingIndicator({
-    channelRoomId: this.chatDetail?.channelRoomId as number,
-    assistanceId: this.chatDetail?.assistanceId as number,
-    citizenId: this.chatDetail?.citizen?.id as number,
-    userId: this.chatDetail?.agentAssigned?.id,
-  });
-
-  this.typingIndicatorEmitted = true;
-
-  // auto desactivar después de delay
-  this.typingTimeout = setTimeout(() => {
-    this.typingIndicatorEmitted = false;
-  }, this.TYPING_INDICATOR_DELAY);
-}
 
   // Método para ver imagen en tamaño completo
   viewFullImage(attachment: Attachment) {
@@ -472,7 +601,6 @@ private emitTypingIndicator() {
   // Método que se ejecuta cuando la imagen se carga (opcional)
   onImageLoad(event: Event) {
     const img = event.target as HTMLImageElement;
-    console.log('Imagen cargada:', img.naturalWidth, 'x', img.naturalHeight);
   }
 
   // Método para descargar archivo
@@ -504,7 +632,7 @@ private emitTypingIndicator() {
       } else {
         // Determinar MIME type basado en extensión
         const ext = attachment.extension?.toLowerCase();
-        fileName =  `archivo.${ext || 'file'}`;
+        fileName = `archivo.${ext || 'file'}`;
 
         switch (ext) {
           case 'pdf':
@@ -514,13 +642,15 @@ private emitTypingIndicator() {
             mimeType = 'application/msword';
             break;
           case 'docx':
-            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            mimeType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
             break;
           case 'xls':
             mimeType = 'application/vnd.ms-excel';
             break;
           case 'xlsx':
-            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            mimeType =
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
             break;
           case 'txt':
             mimeType = 'text/plain';
@@ -561,9 +691,19 @@ private emitTypingIndicator() {
     }
   }
 
-  getChannelStatusTag(status?: ChatDetail['status']): string {
+  getChannelStatusTag(status?: ChatDetail['attention']['status']): string {
     if (!status) return 'secondary';
-    return ChannelStatusTag[status];
+    return ChannelAttentionStatusTagType[status];
+  }
+
+  getChannelStatusTrad(status?: ChatDetail['attention']['status']): string {
+    if (!status) return 'secondary';
+    return ChannelAttentionStatusTag[status];
+  }
+
+  getChannelStatusReverse(status?: ChatStatus): ChannelAttentionStatus {
+    if (!status) return 'in_progress';
+    return ChannelAttentionStatusReverse[status];
   }
 
   loadChatData() {
@@ -575,41 +715,93 @@ private emitTypingIndicator() {
     this.isNearBottom = true;
     this.isLoading = true;
 
-    if (!this.channelRoomId || !this.assintanceId) {
+    if (!this.channelRoomId || !this.attentionId) {
       return;
     }
 
-    this.channelRoomService.getChatData(
-      this.channelRoomId as number,
-      this.assintanceId as number,
-      30
-    ).subscribe({
-      next: (response) => {
-        this.chatDetail = response;
+    this.channelRoomService
+      .getChatData(
+        this.channelRoomId as number,
+        this.attentionId as number,
+        30
+      )
+      .subscribe({
+        next: (response) => {
+          this.chatDetail = response;
+          this.loadPredefinedResponses();
 
-        if (this.chatDetail.messages.length) {
-          this.channelRoomSocketService.onChatViewed(response.channelRoomId);
+          if (this.chatDetail.messages.length) {
+            if(response?.agentAssigned?.id)
+            {
+              this.channelRoomSocketService.onChatViewed(response.channelRoomId);
+            }
 
-          requestAnimationFrame(() => {
-            this.scrollToBottomInstant();
+            requestAnimationFrame(() => {
+              this.scrollToBottomInstant();
 
-            setTimeout(() => {
-              this.isInitialLoad = false;
-              this.hasScrolledToBottom = true;
-              this.isNearBottom = true;
-            }, 300);
-          });
-        }
-      },
-      error: (error) => {
-        console.error('Error loading chat data:', error);
-        this.isInitialLoad = false;
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
+              setTimeout(() => {
+                this.isInitialLoad = false;
+                this.hasScrolledToBottom = true;
+                this.isNearBottom = true;
+              }, 300);
+            });
+          }
+          this.items = this.getItemsByStatus(response.status);
+        },
+        error: (error) => {
+          console.error('Error loading chat data:', error);
+          this.isInitialLoad = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
   }
+
+  private getItemsByStatus(status: ChatStatus) {
+    let commonItems = [
+      { label: 'Ver historial de chats', icon: 'pi pi-refresh', command: () => this.abrirHistorial() },
+    ];
+    if(this.chatDetail?.channel == 'chatsat')
+    {
+      commonItems.unshift({ label: 'Enviar al correo', icon: 'pi pi-refresh', command: () => this.sendEmailWithConversation() })
+    }
+
+    if(this.chatDetail && !this.chatDetail?.attention?.attentionDetail && !this.chatDetail?.attention?.consultTypeId)
+    {
+      commonItems.unshift({ label: 'Detalle de atención', icon: 'pi pi-refresh', command: () => this.showFormDetail() })
+    }
+
+    if (status === 'completado') return commonItems;
+
+    if (!this.chatDetail?.agentAssigned?.id) {
+      let items = [
+        { label: 'Finalizar Atención', icon: 'pi pi-check-circle', command: () => this.finalizeConversation() },
+        ...commonItems,
+      ];
+      if(!['administrador','supervisor'].includes(this.authStore.user()?.role?.name??''))
+      {
+        items.splice(1, 0, { label: 'Asignarme este caso', icon: 'pi pi-users', command: () => this.assignMyself() })
+      }else{
+        items.splice(1, 0, { label: 'Transferir caso', icon: 'pi pi-users', command: () => this.openTransferModal()})
+      }
+      return items;
+    }
+
+    return [
+      {
+        label: 'Acciones del Chat',
+        items: [
+          { label: 'Finalizar Atención', icon: 'pi pi-check-circle', command: () => this.finalizeConversation() },
+          { label: 'Transferir caso', icon: 'pi pi-users', command: () => this.openTransferModal() },
+          { label: 'Establecer Prioridad', icon: 'pi pi-flag', command: () => this.openChannelStatusModal() },
+          { separator: true },
+          ...commonItems,
+        ],
+      },
+    ];
+  }
+
 
   private scrollToBottomSmooth() {
     if (this.messagesContainer) {
@@ -624,7 +816,6 @@ private emitTypingIndicator() {
       // Scroll instantáneo sin animación
       element.style.scrollBehavior = 'auto';
       element.scrollTop = element.scrollHeight;
-      console.log('Scroll instantáneo realizado al final');
     }
   }
 
@@ -653,12 +844,12 @@ private emitTypingIndicator() {
       type: att.type,
       extension: att.extension,
       content: att.content,
-      name: att.file.name
+      name: att.file.name,
     }));
 
     const messageDto: CreateChannelAgentMessageDto = {
       channel: this.chatDetail?.channel!,
-      assistanceId: this.chatDetail?.assistanceId!,
+      assistanceId: this.chatDetail?.attention.id!,
       channelRoomId: this.chatDetail?.channelRoomId!,
       message: messageToSend,
       phoneNumberReceiver: this.chatDetail?.citizen?.phone!,
@@ -672,7 +863,9 @@ private emitTypingIndicator() {
         this.messageText = '';
         this.attachments = [];
 
-        const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+        const textarea = document.querySelector(
+          'textarea'
+        ) as HTMLTextAreaElement;
         if (textarea) {
           textarea.style.height = 'auto';
         }
@@ -781,14 +974,6 @@ private emitTypingIndicator() {
     }
   }
 
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'completado': return 'Completado';
-      case 'pendiente': return 'Pendiente';
-      case 'prioridad': return 'Prioridad';
-      default: return '';
-    }
-  }
 
   private fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -807,12 +992,8 @@ private emitTypingIndicator() {
     return file.type.startsWith('image/') ? 'image' : 'file';
   }
 
-  private getFileExtension(file: Attachment): string {
-    return (file?.extension ?? '').split('.').pop()?.toLowerCase()  || '';
-  }
-
   private getBlobFileExtension(file: File): string {
-    return file.name.split('.').pop()?.toLowerCase()  || '';
+    return file.name.split('.').pop()?.toLowerCase() || '';
   }
 
   private generateId(): string {
@@ -873,59 +1054,121 @@ private emitTypingIndicator() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  finalizeConversation() {
-    this.msg.confirm('¿Desea finalizar la conversación?', () => {
-      if (this.chatDetail?.channelRoomId && this.chatDetail?.assistanceId) {
-        this.channelRoomService.closeAssistance(this.chatDetail?.channelRoomId, this.chatDetail?.assistanceId).subscribe({
-          next: (response) => {
-            if (!response.success) {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Ha ocurrido un error.',
-                detail: response?.error ?? response?.message,
-                life: 5000,
-              });
-              return;
+  showFormDetail(reintentFinalization: boolean = false)
+  {
+    const ref = this.dialogService.open(FormAttentionComponent, {
+      header: 'Registro de Atención',
+      styleClass: 'modal-lg',
+      modal: true,
+      data:{
+        attentionDetail: this.chatDetail?.attention?.attentionDetail,
+        consultTypeId: this.chatDetail?.attention?.consultTypeId
+      },
+      focusOnShow: false,
+      dismissableMask: false,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res: {consultTypeId: number, attentionDetail: string}) => {
+      if (res) {
+        if(this.chatDetail)
+        {
+          this.chatDetail.attention = {
+              ...this.chatDetail?.attention,
+              attentionDetail: res.attentionDetail,
+              consultTypeId: res.consultTypeId
+          }
+          this.channelAttentionService.assignAttentionDetail(
+            {
+              attentionId : this.chatDetail.attention.id,
+              consultTypeId : res.consultTypeId,
+              attentionDetail: res.attentionDetail
             }
-            this.router.navigate([], {
-              relativeTo: this.route,
-              queryParams: { channel: this.route.snapshot.queryParams['channel'] },
-              queryParamsHandling: '',
-            });
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error del servidor',
-              detail: error.error,
-              life: 5000,
-            });
-          },
-        });
+          ).subscribe((response: IBaseResponseDto) =>{
+            if(response.success){
+              this.msg.success('El detalle de atención fue registrado correctamente.','Registro de detalle de atención.',3000)
+              if(reintentFinalization){
+                this.finalizeConversation()
+              }
+            }
+          })
+        }
       }
-    }, () => {}, 'Finalizar asistencia');
+    });
+  }
+
+  finalizeConversation() {
+    if(this.chatDetail && this.chatDetail.attention?.attentionDetail && this.chatDetail.attention?.consultTypeId)
+    {
+      this.msg.confirm(
+        '¿Desea finalizar la conversación?',
+        () => {
+          if (this.chatDetail?.channelRoomId && this.chatDetail?.attention.id) {
+            this.channelRoomService
+              .closeAssistance(
+                this.chatDetail?.channelRoomId,
+                this.chatDetail?.attention.id
+              )
+              .subscribe({
+                next: (response) => {
+                  if (!response.success) {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Ha ocurrido un error.',
+                      detail: response?.error ?? response?.message,
+                      life: 5000,
+                    });
+                    return;
+                  }
+                  this.router.navigate([], {
+                    relativeTo: this.route,
+                    queryParams: {
+                      channel: this.route.snapshot.queryParams['channel'],
+                    },
+                    queryParamsHandling: '',
+                  });
+                },
+                error: (error) => {
+                  this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error del servidor',
+                    detail: error.error,
+                    life: 5000,
+                  });
+                },
+              });
+          }
+        },
+        () => {},
+        'Finalizar asistencia'
+      );
+    }else{
+      this.showFormDetail(true)
+    }
   }
 
   openTransferModal() {
     if (!this.chatDetail?.channelRoomId) return;
-    this.channelRoomService.getAvailableAdvisorsFromInbox(this.chatDetail.channelRoomId).subscribe({
-      next: (response) => {
-        this.advisors = response;
-        if (!response.length) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'No hay agentes',
-            detail: 'No se hallaron agentes disponibles para este canal',
-            life: 5000,
-          });
-        }
-        this.showTransferModal = true;
-      },
-      error: (error) => {
-        this.showTransferModal = false;
-        console.error('Error:', error);
-      },
-    });
+    this.channelRoomService
+      .getAvailableAdvisorsFromInbox(this.chatDetail.channelRoomId)
+      .subscribe({
+        next: (response) => {
+          this.advisors = response;
+          if (!response.length) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'No hay agentes',
+              detail: 'No se hallaron agentes disponibles para este canal',
+              life: 5000,
+            });
+          }
+          this.showTransferModal = true;
+        },
+        error: (error) => {
+          this.showTransferModal = false;
+          console.error('Error:', error);
+        },
+      });
   }
 
   openChannelStatusModal() {
@@ -939,17 +1182,41 @@ private emitTypingIndicator() {
     this.updatingStatus = false;
   }
 
+  assignMyself()
+  {
+    if(!this.authStore?.user()?.id || !this.chatDetail?.channelRoomId) return
+    this.channelRoomService.transferToAdvisor(this.chatDetail.channelRoomId, this.authStore.user()!.id)
+      .subscribe((response: IBaseResponseDto) =>{
+        if(response.success)
+        {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Asignación del caso',
+            detail: "Te has asignado correctamente este caso.",
+            life: 5000,
+          });
+          this.loadChatData();
+          return
+        }
+        if(response?.error)
+        {
+          console.log(response.error)
+        }
+        this.msg.error("No se pudo transferirte este caso, por un error de servidor.", "Error de servidor", 3000)
+    });
+  }
+
   updateChatStatus() {
     if (!this.selectedNewStatus || !this.chatDetail) return;
 
     this.updatingStatus = true;
 
-    let payload : changeChannelRoomStatusDto =
-    {
-      assistanceId: this.chatDetail.assistanceId,
+    let payload: changeChannelRoomStatusDto = {
+      assistanceId: this.chatDetail.attention.id,
       channelRoomId: this.chatDetail.channelRoomId,
-      status: this.selectedNewStatus
-    }
+      status: this.selectedNewStatus,
+      attentionStatus: this.getChannelStatusReverse(this.selectedNewStatus)
+    };
     this.channelRoomService.changeChannelRoomStatus(payload).subscribe({
       next: (response) => {
         if (!response.success) {
@@ -959,7 +1226,7 @@ private emitTypingIndicator() {
             detail: response?.error ?? response?.message,
             life: 5000,
           });
-        }else{
+        } else {
           this.messageService.add({
             severity: 'success',
             summary: 'Establecer estado de conversación',
@@ -967,7 +1234,7 @@ private emitTypingIndicator() {
             life: 5000,
           });
         }
-        this.closeStatusModal()
+        this.closeStatusModal();
         return;
       },
       error: (error) => {
@@ -977,7 +1244,7 @@ private emitTypingIndicator() {
           detail: error.error,
           life: 5000,
         });
-        this.closeStatusModal()
+        this.closeStatusModal();
       },
     });
   }
@@ -999,12 +1266,9 @@ private emitTypingIndicator() {
         detail: message,
         life: 5000,
       });
+      this.clearChatParams()
       this.chatDetail = null;
     }
-  }
-
-  setPriority(prioridad: 'alta' | 'media' | 'baja') {
-    console.log('Establecer prioridad:', prioridad);
   }
 
   toggleBotService(active: boolean) {
@@ -1019,28 +1283,38 @@ private emitTypingIndicator() {
         active: active,
       };
 
-      this.channelRoomService.toggleBotServices(payload).subscribe((response) => {
-        console.log(response);
+      this.channelRoomService
+        .toggleBotServices(payload)
+        .subscribe((response) => {
 
-        const updatedChatDetail: ChatDetail = {
-          channelRoomId: this.chatDetail?.channelRoomId as number,
-          assistanceId: this.chatDetail?.assistanceId as number,
-          externalRoomId: this.chatDetail?.externalRoomId as string,
-          channel: this.chatDetail?.channel as Channels,
-          status: this.chatDetail?.status as ChatStatus,
-          citizen: this.chatDetail?.citizen as ChannelCitizen,
-          agentAssigned: this.chatDetail?.agentAssigned,
-          messages: this.chatDetail?.messages as ChannelMessage[],
-          botStatus: payload.active ? 'active' : 'paused',
-        };
+          const updatedChatDetail: ChatDetail = {
+            channelRoomId: this.chatDetail?.channelRoomId as number,
+            attention: this.chatDetail?.attention!,
+            externalRoomId: this.chatDetail?.externalRoomId as string,
+            channel: this.chatDetail?.channel as Channels,
+            status: this.chatDetail?.status as ChatStatus,
+            citizen: this.chatDetail?.citizen as ChannelCitizenSummariesDto,
+            agentAssigned: this.chatDetail?.agentAssigned,
+            messages: this.chatDetail?.messages as ChannelMessage[],
+            botStatus: payload.active ? 'active' : 'paused',
+          };
 
-        this.chatDetail = updatedChatDetail;
-      });
+          this.chatDetail = updatedChatDetail;
+        });
     }
   }
+  clearChatParams() {
+    // Obtener parámetros actuales
+    const queryParams = { ...this.router.routerState.snapshot.root.queryParams };
 
-  showOptions() {
-    console.log('Mostrar opciones');
+    delete queryParams['channelRoomId'];
+    delete queryParams['assistanceId'];
+
+    // Navegar sin recargar la página
+    this.router.navigate([], {
+      queryParams,
+      replaceUrl: true, // no agrega una entrada al historial
+    });
   }
 
   getMessageStatusIcon(status: string): string {
@@ -1064,16 +1338,54 @@ private emitTypingIndicator() {
     return id.toString().padStart(length, '0');
   }
 
-  viewClosedChats() {
-    console.log('Ver chats finalizados');
-  }
 
   backToList() {
-    console.log('Volver a la lista');
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { channel: this.route.snapshot.queryParams['channel'] },
+      queryParams: {
+        channel: this.route.snapshot.queryParams['channel'],
+      },
       queryParamsHandling: '',
     });
+  }
+
+  loadPredefinedResponses(): void {
+    switch (this.chatDetail?.channel) {
+      case 'whatsapp':
+        this.predefinedResponsesService.allWhatsapp().subscribe({
+          next: (responses) => {
+            this.predefinedResponses = responses;
+          },
+          error: (error) => {
+            console.error('Error al cargar respuestas predefinidas:', error);
+          },
+        });
+        break;
+      case 'chatsat':
+         this.predefinedResponsesService.allChatSat().subscribe({
+          next: (responses) => {
+            this.predefinedResponses = responses;
+          },
+          error: (error) => {
+            console.error('Error al cargar respuestas predefinidas:', error);
+          },
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * NUEVO MÉTODO: Manejar la selección de respuesta predefinida
+   */
+  onResponseSelected(response: PredefinedResponses): void {
+    if (this.messageText && this.messageText.trim() !== '') {
+      // Si ya hay texto, agregar en nueva línea
+      this.messageText += '\n' + response.content;
+    } else {
+      // Si está vacío, reemplazar
+      this.messageText = response.content;
+    }
   }
 }

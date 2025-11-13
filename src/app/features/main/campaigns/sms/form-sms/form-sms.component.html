@@ -6,9 +6,9 @@
       (ngSubmit)="createCampaing()"
       class="space-y-4 w-full rounded-xl"
     >
-      <p-fieldset legend="Información básica">
+      <p-fieldset legend="Información Básica">
         <div class="grid grid-cols-1 gap-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Nombre -->
             <div>
               <label for="nombre" class="block text-sm font-medium mb-1"
@@ -20,7 +20,7 @@
                 pInputText
                 formControlName="name"
                 placeholder="Ingrese nombre"
-                class="w-full p-inputtext-sm"
+                class="w-full"
               />
             </div>
 
@@ -36,80 +36,11 @@
                 pInputText
                 formControlName="senderId"
                 placeholder="Ingrese identificación"
-                class="w-full p-inputtext-sm"
+                class="w-full"
               />
             </div>
-
-            <!-- Contactos -->
-            <div>
-              <label for="idContacto" class="block text-sm font-medium mb-1"
-                >Contactos <span class="text-xs">*</span></label
-              >
-              <p-select
-                size="small"
-                [options]="contactos"
-                formControlName="contact"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Seleccionar Contacto"
-                class="w-full mb-3"
-                appendTo="body"
-              ></p-select>
-            </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-              <label
-                for="id_estado_campania"
-                class="block text-sm font-medium mb-1"
-                >Estado <span class="text-xs">*</span></label
-              >
-              <p-dropdown
-                [options]="estadoCampanias"
-                formControlName="id_estado_campania"
-                optionLabel="nombre"
-                optionValue="id"
-                placeholder="Seleccionar Estado"
-                class="w-full mb-3"
-                appendTo="body"
-              ></p-dropdown>
-            </div>
 
-            <div>
-              <label
-                for="id_area_campania"
-                class="block text-sm font-medium mb-1"
-                >Área <span class="text-xs">*</span></label
-              >
-              <p-dropdown
-                [options]="areaCampanias"
-                formControlName="id_area_campania"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Seleccionar Área"
-                class="w-full mb-3"
-                appendTo="body"
-              ></p-dropdown>
-            </div>
-          </div>
-        </div>
-      </p-fieldset>
-
-      <p-fieldset legend="Contenido">
-        <div class="grid grid-cols-1 gap-4">
-          <!-- Mensaje -->
-          <div>
-            <label for="mensaje" class="block text-sm font-medium mb-1"
-              >Mensaje <span class="text-xs">*</span></label
-            >
-            <textarea
-              id="mensaje"
-              rows="2"
-              formControlName="message"
-              placeholder="Ingrese el mensaje de texto"
-              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm p-2 resize-none"
-            ></textarea>
-          </div>
         </div>
       </p-fieldset>
 
@@ -124,12 +55,13 @@
 
           <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
             <ngx-file-drop
+              #fileDropRef
               dropZoneLabel="Arrastra y suelta o haz clic para seleccionar"
               (onFileDrop)="onFileDropped($event)"
               (click)="onDropZoneClick()"
               [multiple]="false"
               [accept]="'.xlsx,.xls,.csv'"
-              class="drop-zone"
+              class="drop-zone cursor-pointer"
             >
               <ng-template ngx-file-drop-content-tmp>
                 <div class="drop-zone-content">
@@ -160,8 +92,9 @@
               >
 
               <button
+                type="button"
                 (click)="eliminarArchivo()"
-                class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded shadow"
+                class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded shadow cursor-pointer transition-transform hover:scale-105"
               >
                 <iconify-icon [icon]="'lucide:file-x'" class="text-lg" />
                 Eliminar
@@ -171,176 +104,99 @@
         </div>
       </p-fieldset>
 
-      <p-fieldset *ngIf="previewData.length" legend="Vista previa de Datos">
+      <p-fieldset legend="Contenido SMS">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Contactos -->
+          <div>
+            <label for="idContacto" class="block text-sm font-medium mb-1"
+              >Variables <span class="text-xs">*</span></label
+            >
+            <p-select
+              [options]="contactos"
+              formControlName="variable"
+              optionLabel="label"
+              optionValue="label"
+              placeholder="Seleccionar Variable"
+              class="w-full mb-2"
+              appendTo="body"
+              (onChange)="insertVariable($event)"
+            ></p-select>
+          </div>
+
+          <div>
+            <label for="idContacto" class="block text-sm font-medium mb-1"
+              >Contactos de Destino <span class="text-xs">*</span></label
+            >
+            <p-select
+              [options]="contactos"
+              formControlName="contact"
+              optionLabel="label"
+              optionValue="label"
+              placeholder="Seleccionar Contacto"
+              class="w-full mb-2"
+              appendTo="body"
+            ></p-select>
+            <div class="text-xs text-blue-500 text-right">
+              Seleccionar la columna que contenga los números móviles
+            </div>
+          </div>
+        </div>
         <div class="grid grid-cols-1 gap-4">
-          <p-table
-            [value]="previewData"
-            [paginator]="true"
-            [rows]="10"
-            [scrollable]="true"
-            scrollHeight="500px"
-          >
-            <ng-template pTemplate="header">
-              <tr>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    N°
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Celular
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Desctrib
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Placa
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Año
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Periodo
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Total
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Cta_cte
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    WSP
-                  </div>
-                </th>
-                <th>
-                  <div class="flex items-center text-xs uppercase gap-4">
-                    Código
-                  </div>
-                </th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-row>
-              <tr>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.user?.name }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.segmento }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.perfil }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.contribuyente }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.tipoContribuyente }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.codigo }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.deuda }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.fecha }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.telefono1 }}
-                  </p>
-                </td>
-                <td>
-                  <p class="text-sm font-light text-center">
-                    {{ row.telefono2 }}
-                  </p>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
+          <!-- Mensaje -->
+          <div>
+            <label for="mensaje" class="block text-sm font-medium mb-1"
+              >Mensaje <span class="text-xs">*</span></label
+            >
+            <textarea
+              id="mensaje"
+              rows="3"
+              formControlName="message"
+              placeholder="Ingrese el mensaje de texto"
+              #mensajeInput
+              (input)="charCount = mensajeInput.value.length"
+              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base p-2 resize-none"
+            ></textarea>
+            <div class="text-xs text-blue-500 text-right">
+              {{ charCount || 0 }} Caracteres
+            </div>
+          </div>
         </div>
       </p-fieldset>
 
-      <!-- Botones -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center">
-          <p-checkbox
-            inputId="codigoPais"
-            name="countryCode"
-            value="countryCode"
-            formControlName="countryCode"
-            [(ngModel)]="countryCode"
-          />
-          <label for="codigoPais" class="ml-2 mt-2">
-            Agregar código de país
-          </label>
-        </div>
-        <div class="pt-4 flex justify-end space-x-2">
-          <p-button
-            size="small"
-            label="Vista Previa"
-            styleClass="w-full !rounded-full !shadow-none"
-            severity="primary"
-            (click)="showDialog()"
-             [disabled]="formData.invalid"
-          >
-            <iconify-icon
-              icon="solar:eye-linear"
-              class="text-xl"
-            ></iconify-icon>
-          </p-button>
-          <p-button
-            type="submit"
-            size="small"
-            [label]="id ? 'Actualizar' : 'Guardar'"
-            styleClass="w-full !rounded-full !shadow-none"
-            severity="primary"
-            [disabled]="formData.invalid"
-          >
-            <iconify-icon icon="ci:save" class="text-xl"></iconify-icon>
-          </p-button>
-        </div>
+
+      <div class="py-4 flex justify-end space-x-2">
+        <p-button
+          size="small"
+          label="Vista Previa"
+          styleClass="w-full !rounded-full !shadow-none"
+          severity="primary"
+          (click)="showDialog()"
+          [disabled]="formData.invalid"
+        >
+          <iconify-icon icon="solar:eye-linear" class="text-xl"></iconify-icon>
+        </p-button>
+        <p-button
+          type="submit"
+          size="small"
+          label="Enviar"
+          styleClass="w-full !rounded-full !shadow-none"
+          severity="primary"
+          [disabled]="formData.invalid"
+        >
+          <iconify-icon icon="mynaui:send" class="text-xl"></iconify-icon>
+        </p-button>
       </div>
+      <!-- </div> -->
     </form>
   </div>
 </div>
 
 <p-dialog
   header="Editar Plantilla"
-  styleClass="modal-3xl"
   [(visible)]="visible"
   [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
 >
   <ng-template #header>
     <div class="inline-flex items-center justify-center gap-2">
@@ -359,20 +215,18 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>
-            <div class="flex items-center text-xs uppercase gap-4">
+          <th class="w-27">
+            <div class="flex items-center text-xs uppercase gap-4 text-center">
               Número de celular
             </div>
           </th>
-          <th>
-            <div
-              class="flex items-center justify-center text-xs uppercase gap-4"
-            >
-              Mensaje
-            </div>
+          <th class="w-150">
+            <div class="flex items-center justify-center text-xs uppercase gap-4">Mensaje</div>
           </th>
-          <th>
-            <div class="flex items-center text-center text-xs uppercase gap-4">
+          <th class="w-27">
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4 text-center"
+            >
               Número de letras
             </div>
           </th>
@@ -382,7 +236,7 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>
-            <p class="text-sm font-light">{{ item.contact }}</p>
+            <p class="text-sm font-light text-center">{{ item.contact }}</p>
           </td>
           <td>
             <p class="text-sm font-light">{{ item.message }}</p>
@@ -397,7 +251,7 @@
     </p-table>
   </div>
   <ng-template #footer>
-    <div class="pt-4">
+    <div>
       <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
     </div>
   </ng-template>

@@ -1,0 +1,82 @@
+<div class="text-sm text-gray-800">
+  <p class="mb-3">Selecciona un sectorista para reasignar los casos.</p>
+
+  <!-- Selector de sectorista -->
+  <label class="block font-medium mb-1">Reasignar a:</label>
+  <p-dropdown
+    [options]="listUsers"
+    [(ngModel)]="selectedUser"
+    optionLabel="name"
+    placeholder="Seleccionar sectorista"
+    class="w-full mb-3"
+    (onChange)="calcularCarga($event.value)"
+    appendTo="body"
+  ></p-dropdown>
+
+  <!-- Card resumen -->
+  <div
+    class="border-2 rounded-lg px-4 py-2"
+    [ngClass]="{
+      'border-green-500': esAsignable,
+      'border-red-500': !esAsignable
+    }"
+    *ngIf="selectedUser"
+  >
+    <div class="flex justify-end items-center">
+      @if (esAsignable) {
+      <iconify-icon [icon]="'gg:check-o'" class="text-xl text-green-500" />
+      } @else {
+      <div class="flex items-center gap-1 text-red-500 text-xs italic">
+        Todos los casos seleccionados son del sectorista a reasignar
+        <iconify-icon [icon]="'gg:close-o'" class="text-xl text-red-500" />
+      </div>
+      }
+    </div>
+    <h4>
+      Sectorista: <strong>{{ selectedUser.name }}</strong>
+    </h4>
+    <p class="mt-1">
+      Casos actuales de esta cartera:
+      <strong>{{ asignedRows }}</strong>
+    </p>
+    <p>
+      Nuevos: + {{ newRows }} = <strong>{{ nuevaCarga }}</strong>
+    </p>
+    <!-- <p>
+        Carga: {{ selectedUser.carga }}%
+        →
+        {{ nuevaCarga }}%
+      </p>
+      <p class="text-green-600 mt-2" *ngIf="esAsignable">✅ Asignable</p> -->
+  </div>
+
+  <!-- Motivo -->
+  <!-- <label class="block text-sm font-medium mb-1">Motivo (opcional):</label>
+  <textarea
+    rows="3"
+    [(ngModel)]="motivoAsignacion"
+    placeholder="Escribe un motivo para la asignación..."
+    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring"
+  ></textarea> -->
+
+  <!-- Botones -->
+  <div class="flex justify-end gap-2 mt-5">
+    <button
+      pButton
+      type="button"
+      class="p-button-secondary"
+      (click)="cerrarModal()"
+    >
+      Cancelar
+    </button>
+    <button
+      pButton
+      type="button"
+      class="p-button-primary"
+      [disabled]="!selectedUser || newRows == 0"
+      (click)="confirmarAsignacion()"
+    >
+      Confirmar Reasignación
+    </button>
+  </div>
+</div>

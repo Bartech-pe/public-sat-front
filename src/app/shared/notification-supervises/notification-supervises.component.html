@@ -10,10 +10,10 @@
       <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
         <!-- Supervisor Dropdown -->
         <div>
-          <label for="idUser" class="block text-sm font-medium mb-1">Supervisor</label>
+          <label for="userId" class="block text-sm font-medium mb-1">Supervisor</label>
           <p-dropdown
             [options]="listSupervises"
-            formControlName="idUser"
+            formControlName="userId"
             optionLabel="name"
             optionValue="id"
             placeholder="Seleccionar un supervisor"
@@ -23,7 +23,7 @@
           ></p-dropdown>
           <!-- Optional: Display validation error -->
           <div
-            *ngIf="formNotificacion.get('idUser')?.invalid && formNotificacion.get('idUser')?.touched"
+            *ngIf="formNotificacion.get('userId')?.invalid && formNotificacion.get('userId')?.touched"
             class="text-red-500 text-sm"
           >
             Please select at least one supervisor.

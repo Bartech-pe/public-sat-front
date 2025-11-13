@@ -64,18 +64,16 @@
 
           <!-- Indicador de filtro activo -->
           @if (searchTerm) {
-            <div class="text-xs text-gray-600">
+            <div class="text-normal text-gray-600">
               Mostrando {{ totalFiltradas }} de {{ totalAsistencias }} asistencias
             </div>
           }
         </div>
       </div>
 
-      <!-- Lista de asistencias -->
       <div class="flex-1 min-h-0 overflow-y-auto">
         <p-scrollPanel [style]="{ width: '100%', height: '100%' }" styleClass="custom-scrollpanel">
 
-          <!-- Loading skeleton -->
           @if (loading) {
             <div class="p-4 space-y-3">
               @for (item of [1,2,3,4,5]; track $index) {
@@ -128,7 +126,7 @@
             <div class="p-2 space-y-2">
               @for (asistencia of asistenciasFiltradas; track asistencia.assistanceId) {
                 <div
-                  class="p-4 rounded-2xl border-gray-200 bg-white cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-gray-50"
+                  class="p-4 rounded-2lg border-b-4 border-b-gray-200 bg-white cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-gray-50"
                   [class.bg-blue-50]="esAsistenciaSeleccionada(asistencia)"
                   [class.border-blue-500]="esAsistenciaSeleccionada(asistencia)"
                   [class.shadow-sm]="esAsistenciaSeleccionada(asistencia)"
@@ -142,15 +140,15 @@
                       </span>
                       @if (asistencia.status) {
                         <p-tag
-                          [value]="asistencia.status | titlecase"
-                          [severity]="obtenerSeveridadEstado(asistencia.status)"
-                          styleClass="text-xs">
+                          [value]="getChannelStatusTag(asistencia.status) "
+                          [severity]="getChannelStatusTag(asistencia.status)"
+                          styleClass="text-normal">
                         </p-tag>
                       }
                     </div>
                     @if (asistencia.channel) {
                       <iconify-icon
-                        [icon]="obtenerIconoCanal(asistencia.channel)"
+                        [icon]="getChannelIcon(asistencia.channel)"
                         class="text-gray-500"
                         [pTooltip]="asistencia.channel | titlecase">
                       </iconify-icon>
@@ -160,17 +158,15 @@
                   <!-- Información adicional -->
                   <div class="space-y-2 mb-3">
                     @if (asistencia.startDate) {
-                      <div class="flex items-center text-xs text-gray-600">
+                      <div class="flex items-center text-normal text-gray-600">
                         <iconify-icon icon="mdi:calendar" class="mr-2"></iconify-icon>
-                        <span>{{ formatearFechaCompleta(asistencia.startDate) }}</span>
+                        <span >{{ asistencia.startDate | date:'dd/MM/yyyy HH:mm'}}</span>
                       </div>
                     }
-                    @if (asistencia.user) {
-                      <div class="flex items-center text-xs text-gray-600">
-                        <iconify-icon icon="mdi:account" class="mr-2"></iconify-icon>
-                        <span>{{ asistencia.user }}</span>
-                      </div>
-                    }
+                    <div class="flex items-center text-normal text-gray-600">
+                      <iconify-icon icon="mdi:account" class="mr-2"></iconify-icon>
+                      <span>{{ asistencia?.user?? 'BOT' }}</span>
+                    </div>
                   </div>
 
                   <!-- Preview del último mensaje -->
@@ -179,18 +175,18 @@
                       <div class="flex items-start space-x-2">
                         <div class="flex-shrink-0 mt-1">
                           @if (ultimoMensaje.sender.fromCitizen) {
-                            <iconify-icon icon="mdi:account" class="text-blue-500 text-xs"></iconify-icon>
+                            <iconify-icon icon="mdi:account" class="text-blue-500 text-normal"></iconify-icon>
                           } @else if (ultimoMensaje.sender.isAgent) {
-                            <iconify-icon icon="mdi:face-agent" class="text-green-500 text-xs"></iconify-icon>
+                            <iconify-icon icon="mdi:face-agent" class="text-green-500 text-normal"></iconify-icon>
                           } @else {
-                            <iconify-icon icon="lucide:bot" class="text-purple-500 text-xs"></iconify-icon>
+                            <iconify-icon icon="lucide:bot" class="text-purple-500 text-normal"></iconify-icon>
                           }
                         </div>
                         <div class="flex-1 min-w-0">
-                          <p class="text-xs text-gray-700 line-clamp-2 break-words">
+                          <p class="text-normal text-gray-700 line-clamp-2 break-words">
                             {{ obtenerPreviewMensaje(ultimoMensaje) }}
                           </p>
-                          <p class="text-xs text-gray-500 mt-1">
+                          <p class="text-normal text-gray-500 mt-1">
                             {{ ultimoMensaje.time }}
                           </p>
                         </div>
@@ -235,7 +231,7 @@
                 <div class="flex items-center space-x-4 text-sm text-gray-600">
                   <span>{{ asistenciaSeleccionada.messages?.length || 0 }} mensajes</span>
                   @if (asistenciaSeleccionada.startDate) {
-                    <span>{{ formatearFechaCompleta(asistenciaSeleccionada.startDate) }}</span>
+                    <span>{{ asistenciaSeleccionada.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
                   }
                 </div>
               </div>
@@ -246,14 +242,17 @@
                 <p-tag
                   [value]="asistenciaSeleccionada.channel | titlecase"
                   severity="info"
-                  [icon]="obtenerIconoCanal(asistenciaSeleccionada.channel)"
                   styleClass="bg-blue-100 text-blue-700">
+                  <iconify-icon
+                    icon="{{ getChannelIcon(asistenciaSeleccionada.channel) }}"
+                    class="w-4 h-4"
+                  ></iconify-icon>
                 </p-tag>
               }
               @if (asistenciaSeleccionada.status) {
                 <p-tag
-                  [value]="asistenciaSeleccionada.status | titlecase"
-                  [severity]="obtenerSeveridadEstado(asistenciaSeleccionada.status)">
+                  [value]="getChannelStatusTag(asistenciaSeleccionada.status)"
+                  [severity]="getChannelStatusTagSeverity(asistenciaSeleccionada.status)">
                 </p-tag>
               }
             </div>
@@ -268,19 +267,19 @@
             style="scroll-behavior: smooth;"
             (scroll)="onScroll($event)">
 
-            @if (isLoadingOlderMessages) {
+            <!-- @if (isLoadingOlderMessages) {
               <div class="flex justify-center py-4">
                 <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
                   <iconify-icon icon="mdi:loading" class="animate-spin text-blue-500"></iconify-icon>
                   <span class="text-sm text-gray-600">Cargando mensajes anteriores...</span>
                 </div>
               </div>
-            }
+            } -->
 
             @if (asistenciaSeleccionada.messages && asistenciaSeleccionada.messages.length > 0 && !asistenciaSeleccionada.hasMore && !isLoadingOlderMessages) {
               <div class="text-center">
                 <p-divider align="center" type="solid">
-                  <span class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                  <span class="text-normal text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
                     <iconify-icon icon="mdi:history" class="mr-1"></iconify-icon>
                     Inicio de la conversación
                   </span>
@@ -334,7 +333,7 @@
                                 style="cursor: zoom-in;">
                               <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
                                 <div class="flex items-center justify-between">
-                                  <span class="text-white text-xs font-medium truncate">
+                                  <span class="text-white text-normal font-medium truncate">
                                     {{ attachment.name || 'imagen.' + (attachment.extension || 'jpg') }}
                                   </span>
                                   <button
@@ -367,7 +366,7 @@
                                     <div class="font-semibold text-gray-800 text-sm leading-tight truncate">
                                       {{ attachment.name || 'archivo.' + (attachment.extension || 'unknown') }}
                                     </div>
-                                    <div class="flex items-center space-x-2 text-xs">
+                                    <div class="flex items-center space-x-2 text-normal">
                                       <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium uppercase">
                                         {{ (attachment.extension || 'FILE').toUpperCase() }}
                                       </span>
@@ -403,14 +402,14 @@
                     <!-- Footer del mensaje -->
                     <div class="flex items-center justify-between mt-2 relative z-10">
                       <div class="flex items-center space-x-2">
-                        <span class="text-xs font-medium"
+                        <span class="text-normal font-medium"
                               [ngClass]="{
                                 'text-blue-100': !mensaje.sender.fromCitizen,
                                 'text-gray-400': mensaje.sender.fromCitizen
                               }">
                           {{ mensaje.time }}
                         </span>
-                        <!-- <span class="text-xs font-medium"
+                        <!-- <span class="text-normal font-medium"
                               [ngClass]="{
                                 'text-blue-100': !mensaje.sender.fromCitizen,
                                 'text-gray-600': mensaje.sender.fromCitizen
@@ -434,7 +433,7 @@
             @if (asistenciaSeleccionada.messages && asistenciaSeleccionada.messages.length > 0) {
               <div class="text-center mt-6">
                 <p-divider align="center" type="solid">
-                  <span class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                  <span class="text-normal text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
                     <iconify-icon icon="mdi:check-circle" class="mr-1"></iconify-icon>
                     Fin de la conversación
                   </span>
@@ -452,7 +451,7 @@
                 class="absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full shadow-lg cursor-pointer border-gray-300 border-2 bg-[#365f95] hover:bg-blue-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 aria-label="Ir al final de la conversación">
                 @if (unreadMessagesCount > 0) {
-                  <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.5rem] h-6 px-1 text-xs font-bold text-white bg-red-500 rounded-full shadow-md animate-bounce">
+                  <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.5rem] h-6 px-1 text-normal font-bold text-white bg-red-500 rounded-full shadow-md animate-bounce">
                     {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
                   </span>
                 }

@@ -39,7 +39,7 @@ export class BtnDeleteSquareComponent {
   authStore = inject(AuthStore);
 
   get canDelete(): boolean {
-    return !!this.authStore.screenSelected()?.RoleScreen?.canDelete;
+    return !!this.authStore.screenSelected()?.RoleScreenOffice?.canDelete;
   }
 
   @Output() onClick = new EventEmitter();

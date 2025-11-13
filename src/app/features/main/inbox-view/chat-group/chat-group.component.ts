@@ -92,7 +92,7 @@ export class ChatGroupComponent {
 
       const body = {
         name: form.value.name,
-        idUsers: idUsuarioslist,
+        userIds: idUsuarioslist,
         isGroup: true
       };
 

@@ -1,18 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, Input, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UnifiedQuerySistemComponent } from '@features/main/adviser/unified-query-system/unified-query-system.component';
+import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
+import { ChannelAttentionService } from '@services/channel-attention.service';
+import { ChannelCitizenService, IChannelCitizen } from '@services/channel-citizen.service';
+import { CitizenInfo, ExternalCitizenService } from '@services/externalCitizen.service';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 
 // Interface para el tipo de datos del contacto
-interface ContactData {
-  vcontacto: string;
-  vnumTel: string;
-  vtipDoc: string;
-  vdocIde: string;
-}
 
 @Component({
   selector: 'app-citizen-information',
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    DynamicDialogModule,
+    PhoneFormatPipe
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [DialogService],
   templateUrl: './citizen-information.component.html',
   styles: `
     :host {
@@ -22,34 +29,65 @@ interface ContactData {
   `
 })
 export class CitizenInformationComponent implements OnInit {
-
-  // Datos del contacto
-  @Input() contactData: ContactData | null = null;
-
-  // Estado de carga
-  @Input() isLoading: boolean = false;
-
-  constructor() {}
+  contactData: CitizenInfo | null = null;
+  isLoading: boolean = false;
+  channelCitizen: IChannelCitizen | null = null;
+  channelRoomId: number | null = null;
+  // private readonly dialogService = inject(DialogService);
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private dialogService: DialogService,
+    private readonly externalCitizenService: ExternalCitizenService,
+    private readonly channelCitizenService: ChannelCitizenService
+  ) {}
 
   ngOnInit(): void {
-    console.log('Contact data loaded:', this.contactData);
+    this.route.queryParamMap.subscribe((params) => {
+      if (!params.get('channelRoomId') || !params.get('assistanceId')) {
+        this.contactData = null
+        return;
+      }
+      const channelRoomId = params.get('channelRoomId');
+      this.channelRoomId = Number(channelRoomId);
+      this.channelCitizenService.getCitizenInformationByChannelRoomAssigned(Number(channelRoomId)).subscribe((response: IBaseResponseDto<IChannelCitizen>) =>{
+        if(response.success && response?.data)
+        {
+          this.channelCitizen = response.data
+          this.getContactData()
+        }
+      })
+    });
+
   }
 
-  // Métodos simplificados
-  getShortName(fullName: string): string {
-    if (!fullName) return 'Empresa';
-    const words = fullName.split(' ');
-    return words.length <= 3 ? fullName : words.slice(0, 3).join(' ');
-  }
-
-  getSubtitle(fullName: string): string {
-    if (!fullName) return 'Sin información';
-    const words = fullName.split(' ');
-    return words.length <= 3 ? 'EMPRESA' : words.slice(3).join(' ');
+  getContactData()
+  {
+    if(this.channelCitizen?.documentNumber)
+    {
+      this.externalCitizenService.getCitizenInformation({
+        piValPar1: 2,
+        psiTipConsulta: 2,
+        pvValPar2: this.channelCitizen?.documentNumber
+      }).subscribe((response : CitizenInfo[]) => {
+        if(response.length)
+        {
+          this.contactData = response[0];
+        }else{
+          this.contactData = {
+            vdocIde: this.channelCitizen?.documentNumber?? '',
+            vcontacto: this.channelCitizen?.fullName?? '',
+            vnumTel: this.channelCitizen?.phoneNumber?? '',
+            vtipDoc: this.channelCitizen?.documentType?? '',
+            email: this.channelCitizen?.email?? ''
+          }
+        }
+      })
+    }
   }
 
   getFormattedPhone(): string {
-    return this.contactData?.vnumTel ? `+51 ${this.contactData.vnumTel}` : '';
+    return this.contactData?.vnumTel ? `${this.contactData.vnumTel}` : '';
   }
 
   getContactType(): string {
@@ -69,11 +107,22 @@ export class CitizenInformationComponent implements OnInit {
 
   // Métodos para acciones
   onReloadData(): void {
-    console.log('Reload data clicked');
+    this.getContactData()
   }
 
   onDocumentClick(): void {
-    console.log('Document clicked');
+    const ref = this.dialogService.open(UnifiedQuerySistemComponent, {
+          header: 'Sistema de Consulta Unificada',
+          styleClass: 'modal-6xl',
+          data:{
+            documentToSearch: this.channelCitizen?.documentNumber
+          },
+          modal: true,
+          focusOnShow: false,
+          dismissableMask: false,
+          closable: true,
+        });
+
   }
 
   onPhoneClick(): void {

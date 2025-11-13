@@ -10,8 +10,8 @@ import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
-import { ChannelAssistanceService } from '@services/channel-assistance.service';
-import { ChannelMessage } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import { ChannelAttentionService } from '@services/channel-attention.service';
+import { ChannelAttentionStatus, ChannelAttentionStatusTag, ChannelAttentionStatusTagType, ChannelLogo, ChannelMessage, ChannelStatusTag, ChatDetail } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 
 export interface MessagesResponseDto {
   channelRoomId: number;
@@ -26,7 +26,7 @@ export interface ChannelAssistanceDto {
   channel?: string;
   startDate?: string;
   endDate?: string;
-  status?: string;
+  status?: ChannelAttentionStatus;
   user?: string;
   citizen?: string;
   messages?: ChannelMessage[];
@@ -77,7 +77,7 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
   showScrollButton: boolean = false;
   unreadMessagesCount: number = 0;
 
-  constructor(private channelAssistanceService: ChannelAssistanceService) {}
+  constructor(private ChannelAttentionService: ChannelAttentionService) {}
 
   ngOnInit(): void {
     this.inicializarDatos();
@@ -121,7 +121,7 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
   inicializarDatos() {
     if (this.channelRoomId) {
       this.loading = true;
-      this.channelAssistanceService.getAssistances(this.channelRoomId).subscribe({
+      this.ChannelAttentionService.getAssistances(this.channelRoomId).subscribe({
         next: (response: { success: boolean; data: ChannelAssistanceDto[]; message: string }) => {
           if (response.success) {
             this.asistencias = response.data.map(assistance => ({
@@ -149,7 +149,6 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
   }
 
   onHide(): void {
-    console.log('onHide called');
     this.visible = false;
     this.visibleChange.emit(false);
     this.limpiarEstado();
@@ -157,7 +156,6 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
 
   onShow(): void {
     this.inicializarDatos();
-    console.log("asdasd")
   }
 
   onSearchChange(): void {
@@ -192,8 +190,8 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
 
   seleccionarAsistencia(asistencia: ChannelAssistanceDto): void {
     this.asistenciaSeleccionada = asistencia;
-    this.loading = true;
-    this.channelAssistanceService.getMessagesFromAssistance(asistencia.assistanceId).subscribe({
+    // this.loading = true;
+    this.ChannelAttentionService.getMessagesFromAssistance(asistencia.assistanceId).subscribe({
       next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
         if (response.success) {
           this.asistenciaSeleccionada!.messages = response.data.messages;
@@ -275,28 +273,19 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
     }
   }
 
-  obtenerSeveridadEstado(estado: string): "success" | "info" | "warning" | "danger" | "secondary" {
-    const severityMap: { [key: string]: "success" | "info" | "warning" | "danger" | "secondary" } = {
-      'completado': 'success',
-      'activo': 'info',
-      'pendiente': 'warning',
-      'closed': 'secondary',
-      'cancelado': 'danger'
-    };
-    return severityMap[estado?.toLowerCase()] || 'secondary';
+  getChannelStatusTagSeverity(status?: ChannelAssistanceDto['status']): string {
+    if (!status) return 'secondary';
+    return ChannelAttentionStatusTagType[status];
   }
 
-  obtenerIconoCanal(canal: string): string {
-    const iconMap: { [key: string]: string } = {
-      'whatsapp': 'mdi:whatsapp',
-      'telegram': 'mdi:telegram',
-      'facebook': 'mdi:facebook',
-      'web': 'mdi:web',
-      'email': 'mdi:email',
-      'phone': 'mdi:phone',
-      'chatsat': 'mdi:chat'
-    };
-    return iconMap[canal?.toLowerCase()] || 'mdi:chat';
+  getChannelStatusTag(status?: ChannelAssistanceDto['status']): string {
+    if (!status) return 'En proceso';
+    return ChannelAttentionStatusTag[status];
+  }
+
+  getChannelIcon(channel?: ChatDetail['channel']): string {
+    if (!channel) return 'fxemoji:question';
+    return ChannelLogo[channel];
   }
 
   onScroll(event: Event): void {
@@ -347,34 +336,34 @@ export class AssistancesHistoryModalComponent implements OnInit, OnChanges {
     const oldScrollHeight = messagesContainer.scrollHeight;
     const oldScrollTop = messagesContainer.scrollTop;
 
-    this.channelAssistanceService.getMessagesFromAssistance(
-      this.asistenciaSeleccionada.assistanceId
-    ).subscribe({
-      next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
-        if (response.success && response.data.messages.length > 0) {
-          this.asistenciaSeleccionada!.messages = [...response.data.messages, ...this.asistenciaSeleccionada!.messages!];
-          this.asistenciaSeleccionada!.hasMore = response.data.messages.length === 15; // Suponemos 15 como límite por página
+    // this.ChannelAttentionService.getMessagesFromAssistance(
+    //   this.asistenciaSeleccionada.assistanceId
+    // ).subscribe({
+    //   next: (response: { success: boolean; data: MessagesResponseDto; message: string }) => {
+    //     if (response.success && response.data.messages.length > 0) {
+    //       this.asistenciaSeleccionada!.messages = [...response.data.messages, ...this.asistenciaSeleccionada!.messages!];
+    //       this.asistenciaSeleccionada!.hasMore = response.data.messages.length === 15; // Suponemos 15 como límite por página
 
-          requestAnimationFrame(() => {
-            const newScrollHeight = messagesContainer.scrollHeight;
-            const heightDifference = newScrollHeight - oldScrollHeight;
-            messagesContainer.scrollTop = oldScrollTop + heightDifference;
+    //       requestAnimationFrame(() => {
+    //         const newScrollHeight = messagesContainer.scrollHeight;
+    //         const heightDifference = newScrollHeight - oldScrollHeight;
+    //         messagesContainer.scrollTop = oldScrollTop + heightDifference;
 
-            setTimeout(() => {
-              this.scrollLocked = false;
-            }, 100);
-          });
-        } else {
-          this.asistenciaSeleccionada!.hasMore = false;
-          this.scrollLocked = false;
-        }
-        this.isLoadingOlderMessages = false;
-      },
-      error: () => {
-        this.isLoadingOlderMessages = false;
-        this.scrollLocked = false;
-      }
-    });
+    //         setTimeout(() => {
+    //           this.scrollLocked = false;
+    //         }, 100);
+    //       });
+    //     } else {
+    //       this.asistenciaSeleccionada!.hasMore = false;
+    //       this.scrollLocked = false;
+    //     }
+    //     this.isLoadingOlderMessages = false;
+    //   },
+    //   error: () => {
+    //     this.isLoadingOlderMessages = false;
+    //     this.scrollLocked = false;
+    //   }
+    // });
   }
 
   handleScrollDown(): void {

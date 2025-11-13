@@ -39,28 +39,33 @@
     </aside>
   </section>
 </section> -->
-<section class="w-full h-full flex flex-col gap-4 overflow-hidden">
+<section
+  class="w-full h-full flex flex-col gap-4 overflow-y-auto lg:overflow-hidden"
+>
   <!-- Header con altura fija -->
   <header class="w-full h-auto shrink-0">
-    <p-card card.body.padding="0px" [styleClass]="'w-full h-full gap-2 padding-card-modified'">
+    <p-card
+      card.body.padding="0px"
+      [styleClass]="'w-full h-full gap-2 padding-card-modified'"
+    >
       <div class="w-full h-full inline-flex gap-2">
         @for (channel of CHANNEL_BUTTONS; track channel.label) {
-          <app-button-channel
-            [className]="'flex-1'"
-            [label]="channel.label"
-            [icon]="channel.icon"
-            [image]="channel.image"
-            (channelSelected)="navigateInChannels(channel.key)"
-            [activeGradientClass]="channel.activeGradientClass"
-            [activeHoverColor]="channel.activeHoverColor"
-            [activeBackgroundColor]="channel.activeBackgroundColor"
-            [activeTextColor]="channel.activeTextColor"
-            [textColor]="channel.textColor"
-            [selected]="channel.selected"
-            [hoverColor]="channel.hoverColor"
-            [isGradient]="channel.isGradient"
-            [gradientClass]="channel.gradientClass || ''"
-          />
+        <app-button-channel
+          [className]="'flex-1'"
+          [label]="channel.label"
+          [icon]="channel.icon"
+          [image]="channel.image"
+          (channelSelected)="navigateInChannels(channel.key)"
+          [activeGradientClass]="channel.activeGradientClass"
+          [activeHoverColor]="channel.activeHoverColor"
+          [activeBackgroundColor]="channel.activeBackgroundColor"
+          [activeTextColor]="channel.activeTextColor"
+          [textColor]="channel.textColor"
+          [selected]="channel.selected"
+          [hoverColor]="channel.hoverColor"
+          [isGradient]="channel.isGradient"
+          [gradientClass]="channel.gradientClass || ''"
+        />
         }
         <!-- <div (click)="navigateInChannels('chatsat')" class="grow-1 h-full flex items-center justify-center hover:bg-sky-50 duration-200 ease-in cursor-pointer">
           <img class="object-cover w-auto h-6" src="https://www.sat.gob.pe/websitev9/portals/0/Imagenes/CanalesAtencion/Logo_ChatSAT.png?ver=2023-05-16-174429-450" alt="">
@@ -69,19 +74,18 @@
     </p-card>
   </header>
 
-  <!-- Contenido principal con altura calculada -->
-  <section class="w-full h-[calc(100%-80px)] flex gap-4 overflow-hidden">
-    <!-- Sidebar izquierdo - Chat List (ancho fijo) -->
-    <aside class="w-100 h-full flex-none overflow-hidden">
+  <section
+    class="w-full h-[calc(100%-80px)] flex flex-col lg:flex-row gap-4 overflow-y-auto lg:overflow-hidden"
+  >
+    <aside class="w-full  lg:w-100 h-full flex-none overflow-hidden">
       <app-chat-list></app-chat-list>
     </aside>
 
-    <!-- Chat principal - área central (flexible) -->
     <div class="flex-1 min-w-0 h-full overflow-hidden">
       <app-chat-message-manager></app-chat-message-manager>
     </div>
 
-    <aside class="w-100 h-full overflow-hidden ">
+    <aside class="w-90 h-full overflow-hidden hidden 2xl:block">
       <app-citizen-information></app-citizen-information>
     </aside>
   </section>

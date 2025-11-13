@@ -1,0 +1,125 @@
+<div class="grid grid-cols-1 gap-4">
+  <div class="bg-gray-50 shadow rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h5 class="text-2xl font-semibold mb-1">{{ title }}</h5>
+        <div class="flex flex-col w-full gap-3 text-n-slate-11">
+          <p
+            class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+          >
+            {{ descripcion }}
+          </p>
+        </div>
+      </div>
+      <button-save
+        [label]="createButtonLabel"
+        [icon]="'mdi:plus-circle-outline'"
+        (click)="addNew()"
+      />
+    </div>
+  </div>
+
+  <section class="grid grid-cols-1 gap-2">
+    <p-card>
+      <p-table [value]="listInboxes">
+        <ng-template #header>
+          <tr>
+            <th>
+              <div class="flex justify-start items-center text-xs uppercase">
+                Nombre
+              </div>
+            </th>
+            <th class="w-32">
+              <div class="flex justify-center items-center text-xs uppercase">
+                Agentes
+              </div>
+            </th>
+            <th class="w-28">
+              <div
+                class="flex justify-center items-center text-xs uppercase"
+              ></div>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item>
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <p-avatar class="bg-slate-200" size="normal" shape="circle">
+                  <p-image
+                    *ngIf="item.avatarUrl"
+                    [src]="item.avatarUrl"
+                    [alt]="item.name"
+                    class="h-full"
+                  />
+                  <span class="font-bold uppercase" *ngIf="!item.avatarUrl">{{
+                    item.name[0]
+                  }}</span>
+                </p-avatar>
+                <div class="flex flex-col">
+                  <h5 class="font-semibold text-base capitalize">
+                    {{ item.name }}
+                  </h5>
+                  <p class="text-sm font-light capitalize">
+                    {{ item.channel.name }}
+                  </p>
+                </div>
+              </div>
+            </td>
+            <td class="w-32">
+              <div class="flex justify-center items-center gap-1">
+                <!-- <btn-custom
+                  severity="contrast"
+                  icon="lucide:users"
+                  tooltip="Añadir agentes"
+                  (click)="assignment(item)"
+                /> -->
+                <p-overlaybadge
+                  [value]="item.users?.length"
+                  severity="info"
+                  badgeSize="small"
+                >
+                  <btn-custom
+                    severity="contrast"
+                    icon="lucide:users"
+                    tooltip="Añadir agentes"
+                    (click)="assignment(item)"
+                  />
+                </p-overlaybadge>
+              </div>
+            </td>
+            <td class="w-28">
+              <div class="flex justify-center items-center gap-1">
+                <!-- <button-edit (click)="edit(item)" /> -->
+                <btn-delete (click)="remove(item)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="100">
+              <div class="text-center text-sm font-light p-4">
+                No hay canales creados.
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #footer>
+          <tr>
+            <td colspan="100">
+              <div class="flex justify-center items-center">
+                <sat-paginator
+                  [totalItems]="totalItems"
+                  [limit]="limit()"
+                  [offset]="offset()"
+                  (pageChange)="onPageChange($event)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </section>
+</div>

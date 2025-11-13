@@ -1,91 +1,170 @@
 <div class="fixed bottom-8 right-4 z-50">
-  <button
-    class="w-14 h-14 bg-[#375f95] rounded-full text-white flex items-center justify-center hover:brightness-300 active:scale-95 transition-transform group"
-    (click)="toggleInbox()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 12 12">
-      <path fill="#fff" d="M1 6a5 5 0 1 1 2.59 4.382l-1.944.592a.5.5 0 0 1-.624-.624l.592-1.947A5 5 0 0 1 1 6m3-.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0-.5.5M4.5 7a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z" />
-    </svg>
+  <div class="flex items-center gap-2">
+    <button
+      class="w-12 h-12 bg-green-600 rounded-full text-white flex items-center justify-center shadow-lg cursor-pointer hover:brightness-300 active:scale-95 transition-transform group"
+      (click)="toggleGroup()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="30"
+        height="30"
+        viewBox="0 0 512 512"
+      >
+        <circle cx="152" cy="184" r="72" fill="#fff" />
+        <path
+          fill="#fff"
+          d="M234 296c-28.16-14.3-59.24-20-82-20c-44.58 0-136 27.34-136 82v42h150v-16.07c0-19 8-38.05 22-53.93c11.17-12.68 26.81-24.45 46-34"
+        />
+        <path
+          fill="#fff"
+          d="M340 288c-52.07 0-156 32.16-156 96v48h312v-48c0-63.84-103.93-96-156-96"
+        />
+        <circle cx="340" cy="168" r="88" fill="#fff" />
+      </svg>
+    </button>
 
-    <span *ngIf="unreadMessagesCount > 0"
-      class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-      {{ unreadMessagesCount }}
-    </span>
-  </button>
-</div>
+    <div class="relative">
+        <button
+          class="w-12 h-12 bg-[#375f95] rounded-full text-white flex items-center justify-center shadow-lg cursor-pointer hover:brightness-110 active:scale-95 transition-transform group focus:outline-none"
+          (click)="toggleInbox()"
+          aria-label="Abrir mensajes"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 12 12"
+          >
+            <path
+              fill="#fff"
+              d="M1 6a5 5 0 1 1 2.59 4.382l-1.944.592a.5.5 0 0 1-.624-.624l.592-1.947A5 5 0 0 1 1 6m3-.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0-.5.5M4.5 7a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"
+            />
+          </svg>
 
-<div *ngIf="openInbox && !chatSeleccionado"
-    class="fixed bottom-25 right-4 bg-white rounded-lg ring-4 ring-gray-500 ring-opacity-80 w-80 max-h-[500px] overflow-y-auto z-50 transition-transform duration-300 ease-out animate-slide-in-right hover:brightness-105"
-    style="border-bottom: 2px solid #375f95;  box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);">
 
-  <div class="p-4 text-lg font-semibold flex items-center justify-between bg-[#375f95] text-white">
-    <span>Mi bandeja de entrada fdf</span>
-    <button (click)="emojiPopoverNewMessage.toggle($event)"
-      class="flex items-center gap-1 px-2 py-1 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
-        <path fill="#fff" d="M1 12C1 5.925 5.925 1 12 1s11 4.925 11 11s-4.925 11-11 11H1.3l2.22-3.994A10.96 10.96 0 0 1 1 12" />
+          <!-- <span
+            *ngIf="this.messageTotal.length > 0"
+            class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-ping-once shadow-md"
+          >
+            {{ this.messageTotal.length > 9 ? '9+' : this.messageTotal.length }}
+          </span> -->
+        </button>
+      </div>
+  </div>
+</div> 
+
+<div
+  *ngIf="openInbox && !chatSeleccionado"
+  class="fixed bottom-25 right-4 bg-white rounded-lg ring-4 ring-gray-500 ring-opacity-80 w-80 max-h-[500px] overflow-y-auto z-50 transition-transform duration-300 ease-out animate-slide-in-right hover:brightness-105"
+  style="
+    border-bottom: 2px solid #375f95;
+    box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+  "
+>
+  <div
+    class="p-4 text-lg font-semibold flex items-center justify-between bg-[#375f95] text-white"
+  >
+    <span>Mi bandeja de entrada</span>
+    <button
+      (click)="emojiPopoverNewMessage.toggle($event)"
+      class="flex items-center gap-1 px-2 py-1 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fill="#fff"
+          d="M1 12C1 5.925 5.925 1 12 1s11 4.925 11 11s-4.925 11-11 11H1.3l2.22-3.994A10.96 10.96 0 0 1 1 12"
+        />
       </svg>
     </button>
   </div>
 
   <!-- Grupos -->
   <div *ngIf="groupChats.length > 0">
-  <h4 class="text-sm font-semibold px-4 pt-3 pb-1 text-gray-600">Grupos</h4>
-  <ul>
-    <li *ngFor="let chat of groupChats"
+    <h4 class="text-sm font-semibold px-4 pt-3 pb-1 text-gray-600">Grupos</h4>
+    <ul>
+      <li
+        *ngFor="let chat of groupChats"
         (click)="viewMessages(chat)"
         class="p-4 cursor-pointer hover:bg-gray-100 active:bg-gray-200 transition-colors"
-        [class.bg-gray-100]="selectedChatId === chat.id">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <img [src]="'https://i.pravatar.cc/100?img=11'" class="w-6 h-6 rounded-full" />
-          <span class="font-medium text-sm">{{ chat.name }}</span>
+        [class.bg-gray-100]="selectedChatId === chat.id"
+      >
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <img
+              [src]="'https://i.pravatar.cc/100?img=11'"
+              class="w-6 h-6 rounded-full"
+            />
+            <span class="font-medium text-sm">{{ chat.name }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">{{
+              chat.updatedAt | date : "shortTime"
+            }}</span>
+            <button
+              (click)="borrarGrupo(chat.id); $event.stopPropagation()"
+              class="text-gray-400 hover:text-red-500 transition cursor-pointer mt-1"
+              title="Eliminar grupo"
+            >
+              <iconify-icon
+                icon="mdi:trash-can-outline"
+                width="16"
+              ></iconify-icon>
+            </button>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">{{ chat.updatedAt | date: 'shortTime' }}</span>
-          <button
-            (click)="borrarGrupo(chat.id); $event.stopPropagation()"
-            class="text-gray-400 hover:text-red-500 transition"
-            title="Eliminar grupo">
-            <iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon>
-          </button>
+        <div class="text-xs text-gray-500 truncate">
+          {{ getLastMessage(chat) }}
         </div>
-      </div>
-      <div class="text-xs text-gray-500 truncate">
-        {{ getLastMessage(chat) }}
-      </div>
-    </li>
-  </ul>
-</div>
-
+      </li>
+    </ul>
+  </div>
 
   <!-- Conversaciones directas -->
   <div *ngIf="directChats.length > 0">
-    <h4 class="text-sm font-semibold px-4 pt-3 pb-1 text-gray-600">Conversaciones</h4>
+    <h4 class="text-sm font-semibold px-4 pt-3 pb-1 text-gray-600">
+      Conversaciones
+    </h4>
     <ul>
-      <li *ngFor="let chat of directChats"
-          (click)="viewMessages(chat)"
-          class="p-4 cursor-pointer hover:bg-gray-100 active:bg-gray-200 transition-colors"
-          [class.bg-gray-100]="selectedChatId === chat.id"
-          [ngClass]="{
-              'bg-yellow-100': chatService.getEstado(chat.id) === 'pospuesto',
-              'bg-orange-100': chatService.getEstado(chat.id) === 'pendiente'
-            }">
+      <li
+        *ngFor="let chat of directChats"
+        (click)="viewMessages(chat)"
+        class="p-4 cursor-pointer hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        [class.bg-gray-100]="selectedChatId === chat.id"
+        [ngClass]="{
+          'bg-yellow-100': chatService.getEstado(chat.id) === 'pospuesto',
+          'bg-orange-100': chatService.getEstado(chat.id) === 'pendiente'
+        }"
+      >
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-2">
-            <img [src]="'https://i.pravatar.cc/100?img=1'" class="w-6 h-6 rounded-full" />
+            <img
+              [src]="'https://i.pravatar.cc/100?img=1'"
+              class="w-6 h-6 rounded-full"
+            />
             <span class="font-medium text-sm">
               {{ getLastMessageNameUser(chat) }}
             </span>
           </div>
           <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">{{ chat.updatedAt | date: 'shortTime' }}</span>
-          <button
-            (click)="borrarSala(chat.id); $event.stopPropagation()"
-            class="text-gray-400 hover:text-red-500 transition"
-            title="Eliminar conversación">
-            <iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon>
-          </button>
-        </div>
+            <span class="text-xs text-gray-500">{{
+              chat.updatedAt | date : "shortTime"
+            }}</span>
+            <button
+              (click)="borrarSala(chat.id); $event.stopPropagation()"
+              class="text-gray-400 hover:text-red-500 transition cursor-pointer mt-1"
+              title="Eliminar conversación"
+            >
+              <iconify-icon
+                icon="mdi:trash-can-outline"
+                width="16"
+              ></iconify-icon>
+            </button>
+          </div>
         </div>
         <div class="text-xs text-gray-500 truncate">
           {{ getLastMessage(chat) }}
@@ -95,50 +174,66 @@
   </div>
 </div>
 
-  <!-- CHAT EXPANDIDO -->
-<div class="fixed bottom-25 right-4 z-50 rounded-md" style="border-bottom: 2px solid #375f95; box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);" *ngIf="chatSeleccionado && !chatSeleccionado.minimized">
-  <div class="w-96 h-[500px] bg-white rounded-xl shadow-2xl !shadow ring-2 ring-gray-400 ring-opacity-70 flex flex-col transition-transform duration-300 ease-out hover:brightness-105 active:scale-95 animate-slide-in-up">
-
+<!-- CHAT EXPANDIDO -->
+<div
+  class="fixed bottom-25 right-4 z-50 rounded-md"
+  style="
+    border-bottom: 2px solid #375f95;
+    box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+  "
+  *ngIf="chatSeleccionado && !chatSeleccionado.minimized"
+>
+  <div
+    class="w-96 h-[500px] bg-white rounded-xl shadow-2xl ring-2 ring-gray-400 ring-opacity-70 flex flex-col transition-transform duration-300 ease-out hover:brightness-105 active:scale-95 animate-slide-in-up"
+  >
     <!-- Header del chat -->
-    <div class="relative w-full flex items-center justify-center p-2 bg-[#0069a8] text-white rounded-t-xl">
-
+    <div
+      class="relative w-full flex items-center justify-center p-2 bg-[#0069a8] text-white rounded-t-xl"
+    >
       <!-- Botón volver (izquierda absoluta) -->
       <button
         (click)="chatSeleccionado = null; openInbox = true"
         class="absolute left-2 flex items-center gap-1 px-2 py-1 text-sm hover:bg-blue-500 rounded-full transition z-10"
       >
-        <iconify-icon icon="mdi:arrow-left" width="16" class="text-white"></iconify-icon>
+        <iconify-icon
+          icon="mdi:arrow-left"
+          width="16"
+          class="text-white"
+        ></iconify-icon>
       </button>
 
-    <!-- Título centrado -->
-    <div class="text-center font-semibold text-white">
-      {{ chatSeleccionado.name }}
-      <div class="text-sm text-gray-100" *ngIf="chatSeleccionado.isGroup">
-        Miembros:
-        <span *ngFor="let user of chatSeleccionado.users; let j = index">
-          {{ user.name }}<span *ngIf="j < chatSeleccionado.users.length - 1">, </span>
-        </span>
+      <!-- Título centrado -->
+      <div class="text-center font-semibold text-white">
+        {{ chatSeleccionado.name }}
+        <div class="text-sm text-gray-100" *ngIf="chatSeleccionado.isGroup">
+          Miembros:
+          <span *ngFor="let user of chatSeleccionado.users; let j = index">
+            {{ user.name
+            }}<span *ngIf="j < chatSeleccionado.users.length - 1">, </span>
+          </span>
+        </div>
       </div>
-    </div>
 
-    <!-- Acciones (derecha absoluta) 
+      <!-- Acciones (derecha absoluta)
     <div class="absolute right-2 flex gap-2 items-center">
       <button class="flex items-center gap-1 px-2 py-1 text-sm hover:bg-blue-500 rounded-full transition">
         <iconify-icon icon="mdi:bell-outline" width="16"></iconify-icon>
       </button>
-      <button 
+      <button
       class="flex items-center gap-1 px-2 py-1 text-sm hover:bg-blue-500 rounded-full transition">
         <iconify-icon icon="mdi:delete-outline" width="16"></iconify-icon>
       </button>-->
-    <div class="absolute right-2 flex gap-2 items-center">
-      <button (click)="chatSeleccionado = null" class="flex items-center gap-1 px-2 py-1 text-sm hover:bg-blue-500 rounded-full transition">
-        &times;
-      </button>
+      <div class="absolute right-2 flex gap-2 items-center">
+        <button
+          (click)="chatSeleccionado = null"
+          class="flex items-center gap-1 px-2 py-1 text-sm hover:bg-blue-500 rounded-full transition"
+        >
+          &times;
+        </button>
+      </div>
     </div>
-
-  </div>
     <!-- Barra de navegación de mensajes -->
-    <div class="p-2 border-b flex justify-between items-center bg-gray-50">
+    <div class="p-1 border-b flex justify-between items-center bg-gray-50">
       <div class="flex gap-1 items-center">
         <!--<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 transition">
           <iconify-icon icon="ci:caret-down-md" width="18" height="18" class="text-gray-600"></iconify-icon>
@@ -150,56 +245,73 @@
         <small>{{ listChatRoom.length }}</small>-->
       </div>
       <div class="flex gap-1 items-center">
-          <button
-              (click)="popoverButonesNotificaciones.toggle($event)"
-              class="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 !rounded-full transition">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480" />
-              </svg>
-              Enviar notificaciones
-           </button>
-        <p-splitButton 
-          label="Listo!" 
-          [model]="items" 
-          severity="secondary" 
-          (onClick)="resolver()"
-          class="p-button-sm text-xs">
-        </p-splitButton>
-        <button (click)="emojiPopoverButones.toggle($event)"
-                class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 transition">
-          <iconify-icon icon="ci:more-vertical" width="18" height="18" class="text-gray-600"></iconify-icon>
+        <button
+          (click)="enviarNotificacionesUser()"
+          class="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 !rounded-full transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 512 512"
+          >
+            <path
+              fill="currentColor"
+              d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93c-22-26.61-35.31-42.67-35.31-118c0-39-9.33-71-27.72-95c-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 0 1-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.1 3.1 0 0 1-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14c0 75.36-13.29 91.42-35.31 118c-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 0 0-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 0 0-4.61-37.66M256 480a80.06 80.06 0 0 0 70.44-42.13a4 4 0 0 0-3.54-5.87H189.12a4 4 0 0 0-3.55 5.87A80.06 80.06 0 0 0 256 480"
+            />
+          </svg>
+          Notificación al supervisor
         </button>
+   
       </div>
     </div>
 
     <!-- Lista de mensajes -->
-    <div #scrollContainer class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-      <chat-message-list [messages]="chatSeleccionado.mensajesflotante || []"></chat-message-list>
+    <div
+      #scrollContainer
+      class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
+    >
+      <chat-message-list
+        [messages]="chatSeleccionado.mensajesflotante || []"
+      ></chat-message-list>
     </div>
 
     <!-- Campo de mensaje -->
-    <div class="border-t p-4 bg-blue-50 rounded-md">
-      <chat-message-button 
+    <div class="p-2 bg-blue-50 rounded-md">
+      <chat-message-button
         [(message)]="chatSeleccionado.newMessage"
         (send)="sendMessage($event)"
-        (fileUpload)="handleFile($event)">
+        (fileUpload)="handleFile($event)"
+      >
       </chat-message-button>
     </div>
   </div>
 </div>
 
 <p-popover #emojiPopoverNewMessage>
-  <div class="flex flex-col gap-2 w-full p-2" >
+  <div class="flex flex-col gap-2 w-full p-2">
     <div class="relative">
-      <input pInputText placeholder="Busca un Nombre" required class="w-full pr-10" />
-      <iconify-icon icon="lucide:search" class="absolute right-2 top-2.5 text-gray-400 text-lg"></iconify-icon>
+      <input
+        pInputText
+        placeholder="Busca un Nombre"
+        required
+        class="w-full pr-10"
+      />
+      <iconify-icon
+        icon="lucide:search"
+        class="absolute right-2 top-2.5 text-gray-400 text-lg"
+      ></iconify-icon>
     </div>
     <p-table [value]="listUsers" class="p-datatable-sm w-full">
       <ng-template pTemplate="body" let-contact>
         <tr (click)="viewMessage(contact)">
           <td>
             <div class="flex items-center gap-2">
-              <img [alt]="contact.name" [src]="'https://i.pravatar.cc/100?img=1'" class="w-8 h-8 rounded-full" />
+              <img
+                [alt]="contact.name"
+                [src]="'https://i.pravatar.cc/100?img=1'"
+                class="w-8 h-8 rounded-full"
+              />
               <span>{{ contact.displayName }}</span>
             </div>
           </td>
@@ -211,38 +323,38 @@
 
 <p-popover #emojiPopoverButones>
   <div class="flex flex-col gap-2 w-full p-2 pt-4">
-    <button class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition">
-      <iconify-icon icon="ci:volume-off-02" class="mr-2" width="16"></iconify-icon>
+    <button
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="ci:volume-off-02"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
       Bloquear contacto
     </button>
-    <button class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition">
-      <iconify-icon icon="ci:share-ios-export" class="mr-2" width="16"></iconify-icon>
+    <button
+      class="flex items-center w-full p-2 text-sm hover:bg-gray-100 rounded-md transition"
+    >
+      <iconify-icon
+        icon="ci:share-ios-export"
+        class="mr-2"
+        width="16"
+      ></iconify-icon>
       Enviar Transcripción
     </button>
   </div>
 </p-popover>
 
-<p-popover #popoverButonesNotificaciones [style]="{'width': '32rem', 'max-width': '90vw'}">
-   <notification-supervises></notification-supervises>
-</p-popover>
-
-<div class="fixed bottom-8 right-24 z-50">
-  <button
-    class="w-14 h-14 bg-green-600 rounded-full text-white flex items-center justify-center shadow-lg !shadow"
-    (click)="toggleGroup()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512">
-      <circle cx="152" cy="184" r="72" fill="#fff" />
-      <path fill="#fff" d="M234 296c-28.16-14.3-59.24-20-82-20c-44.58 0-136 27.34-136 82v42h150v-16.07c0-19 8-38.05 22-53.93c11.17-12.68 26.81-24.45 46-34" />
-      <path fill="#fff" d="M340 288c-52.07 0-156 32.16-156 96v48h312v-48c0-63.84-103.93-96-156-96" />
-      <circle cx="340" cy="168" r="88" fill="#fff" />
-    </svg>
-  </button>
-</div>
-
-<div *ngIf="openGroup"
-     class="fixed bottom-25 right-24 bg-white rounded-lg ring-4 ring-green-700 ring-opacity-80 w-96 max-h-[90vh] overflow-y-auto z-50 p-4 transition-transform duration-300 ease-out animate-slide-in-right"
-     style="border-bottom: 2px solid #375f95; box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);">
-  <h3 class="text-lg font-semibold text-[#375f95] mb-4">Crear grupo</h3>
+<div
+  *ngIf="openGroup"
+  class="fixed bottom-25 right-24 bg-white rounded-lg ring-4 ring-green-700 ring-opacity-80 w-96 max-h-[90vh] overflow-y-auto z-50 p-4 transition-transform duration-300 ease-out animate-slide-in-right"
+  style="
+    border-bottom: 2px solid #375f95;
+    box-shadow: 0 4px 12px rgba(55, 95, 149, 0.3);
+  "
+>
+  <h3 class="text-lg font-semibold text-[#375f95] mb-4">Grupo</h3>
 
   <div class="relative mb-4">
     <input
@@ -253,7 +365,10 @@
       (ngModelChange)="applyFilter()"
       class="w-full pr-10"
     />
-    <iconify-icon icon="lucide:search" class="absolute right-3 top-2.5 text-gray-400"></iconify-icon>
+    <iconify-icon
+      icon="lucide:search"
+      class="absolute right-3 top-2.5 text-gray-400"
+    ></iconify-icon>
   </div>
 
   <p-table
@@ -261,13 +376,17 @@
     selectionMode="multiple"
     [(selection)]="selectedUsers"
     dataKey="id"
-    class="p-datatable-sm w-full mb-8">
+    class="p-datatable-sm w-full mb-8"
+  >
     <ng-template pTemplate="body" let-contact>
       <tr [pSelectableRow]="contact">
         <td>
           <div class="flex items-center gap-2">
             <p-tableCheckbox [value]="contact"></p-tableCheckbox>
-            <img [src]="'https://i.pravatar.cc/100?img=1'" class="w-8 h-8 rounded-full" />
+            <img
+              [src]="'https://i.pravatar.cc/100?img=1'"
+              class="w-8 h-8 rounded-full"
+            />
             <span>{{ contact.displayName }}</span>
           </div>
         </td>
@@ -287,8 +406,12 @@
         formControlName="name"
         class="w-full"
       />
-      <div *ngIf="formData.controls.name.invalid && formData.controls.name.touched">
-        <small *ngIf="formData.controls.name.errors?.['required']">El nombre es requerido.</small>
+      <div
+        *ngIf="formData.controls.name.invalid && formData.controls.name.touched"
+      >
+        <small *ngIf="formData.controls.name.errors?.['required']"
+          >El nombre es requerido.</small
+        >
       </div>
     </div>
     <div class="flex justify-between gap-4">
@@ -309,36 +432,35 @@
   (onClose)="onReject()"
   [baseZIndex]="5000"
 >
+  <style>
+    @keyframes slide-in-up {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-<style>
-@keyframes slide-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+    @keyframes slide-in-right {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
 
-@keyframes slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
+    .animate-slide-in-up {
+      animation: slide-in-up 0.3s ease-out forwards;
+    }
 
-.animate-slide-in-up {
-  animation: slide-in-up 0.3s ease-out forwards;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out forwards;
-}
-</style>
-
+    .animate-slide-in-right {
+      animation: slide-in-right 0.3s ease-out forwards;
+    }
+  </style>
+</p-toast>

@@ -1,7 +1,7 @@
 <!-- Camapania -->
 <div *ngIf="tipoEstado == 2">
   <form
-    [formGroup]="formDataCampania"
+    [formGroup]="formCampaign"
     (ngSubmit)="save()"
     class="grid grid-cols-1 gap-6"
   >
@@ -14,7 +14,7 @@
         <input
           pInputText
           id="nombre"
-          formControlName="nombre"
+          formControlName="name"
           placeholder="Ej. Aprobado"
           required
           class="w-full pr-10"
@@ -22,13 +22,13 @@
       </div>
       <div
         *ngIf="
-          formDataCampania.controls.nombre.invalid &&
-          formDataCampania.controls.nombre.touched
+          formCampaign.controls.name.invalid &&
+          formCampaign.controls.name.touched
         "
       >
         <small
           class="text-xs text-red-500"
-          *ngIf="formDataCampania.controls.nombre.errors?.['required']"
+          *ngIf="formCampaign.controls.name.errors?.['required']"
           >El nombre es requerido.</small
         >
       </div>
@@ -42,7 +42,7 @@
         rows="2"
         cols="30"
         pTextarea
-        formControlName="descripcion"
+        formControlName="description"
       ></textarea>
     </div>
 
@@ -64,245 +64,28 @@
 
       <div
         *ngIf="
-          formDataCampania.controls.color.invalid &&
-          formDataCampania.controls.color.touched
+          formCampaign.controls.color.invalid &&
+          formCampaign.controls.color.touched
         "
       >
         <small
           class="text-xs text-red-500"
-          *ngIf="formDataCampania.controls.color.errors?.['required']"
+          *ngIf="formCampaign.controls.color.errors?.['required']"
         >
           El Color es requerido.
         </small>
       </div>
     </div>
-
-    <div class="w-full h-px bg-gray-300"></div>
 
     <!-- Botones -->
     <div class="flex justify-self-end pt-2 gap-4">
       <button-cancel (click)="onCancel()" />
-      <p-button
-        type="submit"
-        size="small"
+      <button-save
         [label]="id ? 'Actualizar' : 'Guardar'"
-        styleClass="w-full"
-        severity="primary"
-        [disabled]="formDataCampania.invalid || loadingCampania"
-      >
-        <iconify-icon [icon]="'ci:save'" class="text-xl" />
-      </p-button>
-    </div>
-  </form>
-</div>
-
-<!-- Atención -->
-<div *ngIf="tipoEstado == 1">
-  <form
-    [formGroup]="formDataAtencion"
-    (ngSubmit)="save()"
-    class="grid grid-cols-1 gap-6"
-  >
-    <!-- Nombre -->
-    <div class="flex flex-col space-y-1">
-      <label class="text-sm font-medium" for="nombreEstado">
-        Nombre <span class="text-sm text-red-500">*</span>
-      </label>
-      <div class="relative">
-        <input
-          pInputText
-          id="nombre"
-          formControlName="nombre"
-          placeholder="Ej. Aprobado"
-          required
-          class="w-full pr-10"
-        />
-      </div>
-      <div
-        *ngIf="
-          formDataAtencion.controls.nombre.invalid &&
-          formDataAtencion.controls.nombre.touched
-        "
-      >
-        <small
-          class="text-xs text-red-500"
-          *ngIf="formDataAtencion.controls.nombre.errors?.['required']"
-          >El nombre es requerido.</small
-        >
-      </div>
-    </div>
-
-    <!-- Descripcion -->
-    <div class="flex flex-col space-y-1">
-      <label class="text-sm font-medium" for="descripcion"> Descripción </label>
-      <textarea
-        id="descripcion"
-        rows="2"
-        cols="30"
-        pTextarea
-        formControlName="descripcion"
-      ></textarea>
-    </div>
-
-    <!-- Color -->
-    <div class="flex flex-col space-y-1 w-full">
-      <label class="text-sm font-medium" for="Color">
-        Color <span class="text-sm text-red-500">*</span>
-      </label>
-
-      <p-colorPicker
-        id="color"
-        formControlName="color"
-        format="hex"
-        required
-        styleClass="!w-full"
-        panelClass="w-full"
-        appendTo="body"
-      ></p-colorPicker>
-
-      <div
-        *ngIf="
-          formDataAtencion.controls.color.invalid &&
-          formDataAtencion.controls.color.touched
-        "
-      >
-        <small
-          class="text-xs text-red-500"
-          *ngIf="formDataAtencion.controls.color.errors?.['required']"
-        >
-          El Color es requerido.
-        </small>
-      </div>
-    </div>
-
-    <div class="w-full h-px bg-gray-300"></div>
-
-    <!-- Botones -->
-    <div class="flex justify-self-end pt-2 gap-4">
-      <button-cancel (click)="onCancel()" />
-      <p-button
-        type="submit"
-        size="small"
-        [label]="id ? 'Actualizar' : 'Guardar'"
-        styleClass="w-full"
-        severity="primary"
-        [disabled]="formDataAtencion.invalid || loadingAtencion"
-      >
-        <iconify-icon [icon]="'ci:save'" class="text-xl" />
-      </p-button>
-    </div>
-  </form>
-</div>
-
-<!-- Canales -->
-<div *ngIf="tipoEstado == 0">
-  <form
-    [formGroup]="formDataCanal"
-    (ngSubmit)="save()"
-    class="grid grid-cols-1 gap-6"
-  >
-    <!-- Nombre -->
-    <div class="flex flex-col space-y-1">
-      <label class="text-sm font-medium" for="nombreEstado">
-        Nombre<span class="text-sm text-red-500">*</span>
-      </label>
-      <div class="relative">
-        <input
-          pInputText
-          id="nombre"
-          formControlName="nombre"
-          placeholder="Ej. Aprobado"
-          required
-          class="w-full pr-10"
-        />
-      </div>
-      <div
-        *ngIf="
-          formDataCanal.controls.nombre.invalid &&
-          formDataCanal.controls.nombre.touched
-        "
-      >
-        <small
-          class="text-xs text-red-500"
-          *ngIf="formDataCanal.controls.nombre.errors?.['required']"
-          >El nombre es requerido.</small
-        >
-      </div>
-    </div>
-
-    <!-- Descripcion -->
-    <div class="flex flex-col space-y-1">
-      <label class="text-sm font-medium" for="descripcion"> Descripción </label>
-      <textarea
-        id="descripcion"
-        rows="2"
-        cols="30"
-        pTextarea
-        formControlName="descripcion"
-      ></textarea>
-    </div>
-
-    <!-- Color -->
-    <div class="flex flex-col space-y-1 w-full">
-      <label class="text-sm font-medium" for="Color">
-        Color <span class="text-sm text-red-500">*</span>
-      </label>
-
-      <p-colorPicker
-        id="color"
-        formControlName="color"
-        format="hex"
-        required
-        styleClass="!w-full"
-        panelClass="w-full"
-        appendTo="body"
-      ></p-colorPicker>
-
-      <div
-        *ngIf="
-          formDataCanal.controls.color.invalid &&
-          formDataCanal.controls.color.touched
-        "
-      >
-        <small
-          class="text-xs text-red-500"
-          *ngIf="formDataCanal.controls.color.errors?.['required']"
-        >
-          El Color es requerido.
-        </small>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium" for="idtipoConsulta">
-        Canal
-      </label>
-      <p-select
-        id="categoria"
-        [options]="listaCategoria"
-        optionLabel="name"
-        optionValue="id"
-        formControlName="categoria"
-        placeholder="Seleccione el canal"
-        appendTo="body"
+        [loading]="loading"
+        [disabled]="formCampaign.invalid"
+        (click)="onSubmit()"
       />
-    </div>
-
-    <div class="w-full h-px bg-gray-300"></div>
-
-    <!-- Botones -->
-    <div class="flex justify-self-end pt-2 gap-4">
-      <button-cancel (click)="onCancel()" />
-      <p-button
-        type="submit"
-        size="small"
-        [label]="id ? 'Actualizar' : 'Guardar'"
-        styleClass="w-full !rounded-full !shadow-none"
-        severity="primary"
-        [disabled]="formDataCanal.invalid || loadingCanal"
-      >
-        <iconify-icon [icon]="'ci:save'" class="text-lg" />
-      </p-button>
     </div>
   </form>
 </div>

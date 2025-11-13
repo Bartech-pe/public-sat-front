@@ -2,6 +2,8 @@
 
 @import "tailwindcss";
 
+@import "quill/dist/quill.snow.css";
+
 @custom-variant dark (&:where(.app-dark, .app-dark *));
 
 :root {
@@ -33,8 +35,7 @@ sidebar-button a:hover iconify-icon {
 
 /* Scrollbar para navegadores basados en WebKit (Chrome, Edge, Safari) */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  /* más grueso */
+  width: 10px; /* más grueso */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -42,8 +43,7 @@ sidebar-button a:hover iconify-icon {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: white;
-  /* color del scroll */
+  background-color: white; /* color del scroll */
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
@@ -51,13 +51,11 @@ sidebar-button a:hover iconify-icon {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #2b4e81;
-  /* azul oscuro al pasar el mouse */
+  background-color: #2b4e81; /* azul oscuro al pasar el mouse */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:active {
-  background-color: #1e3a66;
-  /* azul aún más oscuro al hacer clic */
+  background-color: #1e3a66; /* azul aún más oscuro al hacer clic */
 }
 
 .sidebar-animating {
@@ -80,7 +78,6 @@ sidebar-button a:hover iconify-icon {
 .custom-scrollbar:hover {
   scrollbar-color: #2b4e81 transparent;
 }
-
 
 ::ng-deep .p-colorpicker {
   width: 100% !important;
@@ -145,26 +142,27 @@ sidebar-button a:hover iconify-icon {
   background-color: #f9f9f9;
 }
 
-.p-datatable-thead>tr>th,
-.p-datatable-tbody>tr>td {
+.p-datatable-thead > tr > th,
+.p-datatable-tbody > tr > td {
   @apply !px-4 !py-2;
 }
 
-.p-datatable-tbody>tr>td {
+.p-datatable-tbody > tr > td {
   background-color: var(--sat-background2) !important;
 }
 
-.p-datatable-thead>tr>th {
+.p-datatable-thead > tr > th {
+  border: 1px solid #cdf0ff !important;
   background-color: var(--sat-contentCard) !important;
   color: var(--sat-principal) !important;
   @apply !font-semibold text-sm;
 }
 
-.p-datatable-thead>tr>th:first-child {
+.p-datatable-thead > tr:first-child > th:first-child {
   @apply rounded-tl-lg;
 }
 
-.p-datatable-thead>tr>th:last-child {
+.p-datatable-thead > tr:first-child > th:last-child {
   @apply rounded-tr-lg;
 }
 
@@ -287,11 +285,15 @@ sidebar-button a:hover iconify-icon {
   }
 }
 
-.p-datatable-thead>tr>th {
+.p-datatable-thead {
   @apply !py-2;
 }
 
-.p-datatable-tfoot>tr>td {
+.p-datatable-thead > tr > th {
+  @apply !py-2;
+}
+
+.p-datatable-tfoot > tr > td {
   @apply !border-b-0 !py-2;
 }
 
@@ -444,14 +446,6 @@ sidebar-button a:hover iconify-icon {
   @apply !w-3;
 }
 
-.p-select {
-  @apply items-center;
-}
-
-.p-select-label.p-placeholder {
-  @apply !text-sm;
-}
-
 @layer utilities {
   .animate-marquee {
     animation: marquee 15s linear infinite;
@@ -461,22 +455,62 @@ sidebar-button a:hover iconify-icon {
     0% {
       transform: translateX(100%);
     }
-
     100% {
       transform: translateX(-100%);
     }
   }
 }
 
-.p-editor .p-editor-toolbar {
-  background: #194a84 !important;
-  color: white !important;
+.p-editor .p-editor-toolbar,
+.p-editor .p-editor-content .ql-editor {
+  @apply !bg-white;
 }
 
-.p-editor .p-editor-toolbar.ql-snow .ql-picker .ql-picker-label {
-  color: #fefeff !important;
+.p-select .p-select-dropdown {
+  @apply w-8 h-6 !my-2 rounded-full;
 }
 
-.p-editor .p-editor-toolbar.ql-snow .ql-stroke {
-  stroke: #ffffff !important;
+.p-select .p-select-label {
+  @apply !pr-0;
+}
+
+.p-select .p-select-dropdown svg {
+  @apply !w-3;
+}
+
+.p-datatable-tbody > tr > td {
+  @apply !py-1.5;
+}
+
+.table-y-lg .p-datatable-tbody > tr > td {
+  @apply !py-2;
+}
+
+.table-x-sm .p-datatable-tbody > tr > td {
+  @apply !px-2;
+}
+
+.p-datatable-tfoot > tr > td {
+  @apply !py-0.5;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
+.float { animation: float 3s ease-in-out infinite; }
+.reveal { animation: reveal 0.6s ease-out forwards; }
+.mwl-calendar-month-view .cal-event {
+  padding: 2px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

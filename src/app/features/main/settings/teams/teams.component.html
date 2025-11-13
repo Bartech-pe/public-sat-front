@@ -1,5 +1,5 @@
-<div class="grid grid-cols-1 gap-4 px-3">
-   <!-- Encabezado -->
+<div class="grid grid-cols-1 gap-4">
+  <!-- Encabezado -->
   <div class="bg-gray-50 shadow rounded-xl p-4">
     <div class="flex justify-between items-center">
       <div>
@@ -21,79 +21,81 @@
   </div>
 
   <section class="w-full">
-    <p-table [value]="listTeams" showGridlines="false">
-      <ng-template #header>
-        <tr>
-          <th>
-            <div class="flex justify-start items-center text-xs uppercase">
-              Nombre
-            </div>
-          </th>
-          <th class="w-32">
-            <div class="flex justify-center items-center text-xs uppercase">
-              Agentes
-            </div>
-          </th>
-          <th class="w-28">
-            <div class="flex justify-center items-center text-xs uppercase">
-              Acciones
-            </div>
-          </th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-item>
-        <tr>
-          <td>
-            <div class="flex items-center gap-2">
-              <div class="flex flex-col">
-                <h5 class="text-base font-medium capitalize">
-                  {{ item.name }}
-                </h5>
-                <p class="text-sm font-light">{{ item.description }}</p>
+    <p-card>
+      <p-table [value]="listTeams" showGridlines="false">
+        <ng-template #header>
+          <tr>
+            <th>
+              <div class="flex justify-start items-center text-xs uppercase">
+                Nombre
               </div>
-            </div>
-          </td>
-          <td class="w-32">
-            <div class="flex justify-center items-center gap-1">
-              <btn-custom
-                severity="contrast"
-                icon="lucide:users"
-                tooltip="Añadir agentes"
-                (click)="assignment(item)"
-              />
-            </div>
-          </td>
-          <td class="w-28">
-            <div class="flex justify-center items-center gap-1">
-              <button-edit (click)="edit(item)" />
-              <button-delete (click)="remove(item)" />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="100">
-            <div class="text-center text-sm font-light p-4">
-              No hay equipos creados en ésta cuenta.
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #footer>
-        <tr>
-          <td colspan="100">
-            <div class="flex justify-center items-center">
-              <sat-paginator
-                [totalItems]="totalItems"
-                [limit]="limit()"
-                [offset]="offset()"
-                (pageChange)="onPageChange($event)"
-              />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+            </th>
+            <th class="w-32">
+              <div class="flex justify-center items-center text-xs uppercase">
+                Agentes
+              </div>
+            </th>
+            <th class="w-28">
+              <div
+                class="flex justify-center items-center text-xs uppercase"
+              ></div>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item>
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="flex flex-col">
+                  <h5 class="text-base font-medium capitalize">
+                    {{ item.name }}
+                  </h5>
+                  <p class="text-sm font-light">{{ item.description }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="w-32">
+              <div class="flex justify-center items-center gap-1">
+                <btn-custom
+                  severity="contrast"
+                  icon="lucide:users"
+                  tooltip="Añadir agentes"
+                  (click)="assignment(item)"
+                />
+              </div>
+            </td>
+            <td class="w-28">
+              <div class="flex justify-center items-center gap-1">
+                <button-edit (click)="edit(item)" />
+                <btn-delete (click)="remove(item)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="100">
+              <div class="text-center text-sm font-light p-4">
+                No hay equipos creados en ésta cuenta.
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #footer>
+          <tr>
+            <td colspan="100">
+              <div class="flex justify-center items-center">
+                <sat-paginator
+                  [totalItems]="totalItems"
+                  [limit]="limit()"
+                  [offset]="offset()"
+                  (pageChange)="onPageChange($event)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
   </section>
 </div>

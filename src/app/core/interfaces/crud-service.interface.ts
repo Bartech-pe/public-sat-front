@@ -9,13 +9,13 @@ export interface CrudService<T> {
   ): Observable<PaginatedResponse<T>>;
   findOne(id: number | string, query?: string): Observable<T>;
   getByIdDetalle(id: number | string, query?: string): Observable<T[]>;
-  create(data: Partial<T>): Observable<T>;
+  create(data: Partial<T>, file?: File): Observable<T>;
   assignment(
     id: number | string,
     data: any[],
     q?: Record<string, any>
   ): Observable<T[]>;
   toggleStatus(id: string | number): Observable<T>;
-  update(id: number | string, data: Partial<T>): Observable<T>;
+  update(id: number | string, data: Partial<T>, file?: File): Observable<T>;
   delete(id: number | string): Observable<void>;
 }

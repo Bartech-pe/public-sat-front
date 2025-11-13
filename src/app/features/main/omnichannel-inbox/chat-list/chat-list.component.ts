@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, HostListener, inject, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AdvisorChangedDto, BotStatusChangedDto, ChannelLogo, ChannelMessage, ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, Channels, ChannelStatusIcon, ChannelStatusTag, ChatListInbox, ChatStatus, LastMessageReceived, MessageStatus } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
+import { AdvisorChangedDto, BotStatusChangedDto, ChannelAttentionStatusReverseTag, ChannelAttentionStatusTag, ChannelLogo, ChannelMessage, ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, Channels, ChannelStatusIcon, ChannelStatusTag, ChatListInbox, ChatStatus, LastMessageReceived, MessageStatus } from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 import { ChannelRoomAssistance, ChannelRoomSocketService } from '@services/channel-room-socket.service';
 import { ChannelRoomService, GetChannelSummaryDto } from '@services/channel-room.service';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
@@ -13,11 +13,19 @@ import { IconField } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { debounceTime, last, Subject, switchMap } from 'rxjs';
+import { debounceTime, firstValueFrom, last, Subject, switchMap, takeUntil } from 'rxjs';
 import { AuthStore } from '@stores/auth.store';
-import { MessageGlobalService } from '@services/message-global.service';
-import { MessageService } from 'primeng/api';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MenuItem, MessageService, ToastMessageOptions } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { timeStamp } from 'console';
+import { TooltipModule } from 'primeng/tooltip';
+import { MenuModule } from 'primeng/menu';
+import { InboxService } from '@services/inbox.service';
+import { IBaseResponseDto } from '@interfaces/commons/base-response.interface';
+import { ChannelStateService } from '@services/channel-state.service';
+import { ChannelState } from '@models/channel-state.model';
+import { MarkdownPipe } from '@pipes/markdown.pipe';
 
 
 interface SummaryFilters{
@@ -39,114 +47,27 @@ interface FilterOptions{
     FormsModule,
     InputTextModule,
     IconField,
+    MenuModule,
     // ButtonChannelComponent,
+    // MarkdownPipe,
     PhoneFormatPipe,
     ToastModule,
     DividerModule,
     SelectButtonModule,
+    TooltipModule,
     AvatarModule,
     OverlayBadgeModule
   ],
   templateUrl: './chat-list.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [MessageService],
-  styles: `
-   .card-custom {
-        position: relative;
-        overflow: hidden;
-
-    }
-    :host ::ng-deep .p-toast .p-toast-message {
-  margin: 0 0 1rem 0 !important;   /* separación entre toasts */
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-:host ::ng-deep .p-toast .p-toast-message-content {
-  padding: 0 !important;
-  background: transparent !important;
-}
-:host ::ng-deep .p-toast .p-toast-close-button {
-  display: none !important;
-}
-    .card-custom::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 6px;
-        height: 100%;
-        background-color: var(--color-sky-700, #ef4444); /* Color por defecto: rojo */
-        z-index: 1;
-        transition: all 0.1s ease-in-out;
-    }
-
-    .card-custom.notification-red {
-        --notification-color: #ef4444;
-    }
-
-    .card-custom.notification-green {
-        --notification-color: #22c55e;
-    }
-
-    .card-custom.notification-blue {
-        --notification-color: #3b82f6;
-    }
-
-    .card-custom.notification-yellow {
-        --notification-color: #eab308;
-    }
-
-    .card-custom.notification-purple {
-        --notification-color: #a855f7;
-    }
-
-    .card-custom.notification-orange {
-        --notification-color: #f97316;
-    }
-
-    .card-custom.no-notification::before {
-        display: none;
-    }
-
-    /* Animación hover */
-    .card-notification:hover::before {
-        width: 7px;
-    }
-    @keyframes shimmer {
-      0% {
-        background-position: -200px 0;
-      }
-      100% {
-        background-position: calc(200px + 100%) 0;
-      }
-    }
-
-    .animate-pulse {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    .animate-shimmer {
-      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-      background-size: 200px 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    /* Smooth transitions para hover effects */
-    .transition-all {
-      transition: all 0.2s ease-in-out;
-    }
-
-    .hover\\:shadow-sm:hover {
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    }
-    `
+  styleUrls: ['./chat-list.component.scss']
 })
-export class ChatListComponent implements OnInit {
+export class ChatListComponent implements OnInit, OnDestroy {
 
   private readonly msg = inject(MessageGlobalService);
+  private readonly authStore = inject(AuthStore);
+
 
   @ViewChild('scrollContainer', { static: true }) scrollContainer!: ElementRef;
 
@@ -155,10 +76,17 @@ export class ChatListComponent implements OnInit {
   isDragging = false;
   startX = 0;
   scrollStart = 0;
+  availableChannels: string[] = [];
   search: string = "";
+  statusColor: string = "#484848ff";
+  userStatus= 'Fuera de línea';
+  statusOptions: MenuItem[] = [];
+
+
   isLoading: boolean = false;
-  selectedFilter: FilterOptions | null = null;
+  selectedFilter: FilterOptions | null = { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' };
   filterOptions: FilterOptions[] = [
+    { label: 'Disponibles ', value: 'all', icon: 'pi pi-envelope' },
     { label: 'No leídos', value: 'unread', icon: 'pi pi-envelope' },
     { label: 'Leídos', value: 'read', icon: 'pi pi-check' },
     { label: 'No resueltos', value: 'pendiente', icon: 'pi pi-exclamation-circle' },
@@ -170,165 +98,252 @@ export class ChatListComponent implements OnInit {
   formattedTime = '00:00';
   private timer: any;
   private filters$ = new Subject<void>();
-  private readonly authStore = inject(AuthStore);
-
+  private destroy$ = new Subject<void>();
 
   constructor(
     private channelRoomService: ChannelRoomService,
     private messageService: MessageService,
+    private channelStateService : ChannelStateService,
     private channelRoomSocketService: ChannelRoomSocketService,
+    private inboxService: InboxService,
     private router: Router,
     private route: ActivatedRoute
   ){
       this.filters$
-      .pipe(
-        debounceTime(300),
-        switchMap(() => {
+        .pipe(
+          debounceTime(300),
+          switchMap(() => {
+            this.isLoading = true;
+            const filters = this.onChangeFilter();
+            return this.channelRoomService.getChatSummary(filters);
+          }),
+          takeUntil(this.destroy$)  // AGREGAR ESTO
+        )
+        .subscribe(res => {
+          this.chatListInbox = res;
+          this.isLoading = false;
+        });
 
-          this.isLoading = true;
-          const filters = this.onChangeFilter();
-          return this.channelRoomService.getChatSummary(filters);
-        })
-      )
-      .subscribe(res => {
-        this.chatListInbox = res;
-        this.isLoading = false;
+  }
+
+  async ngOnInit() {
+      await this.getAvailableChannelsByUser()
+
+      this.route.queryParamMap
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(async (params) => {
+        if (!params.get('channel')) {
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { channel: 'all' }
+          });
+          return
+        }
+        const channel = (params.get('channel')) as Channels;
+        const lastChannel = this.channel
+        this.channel = channel
+        await this.getUserStatusesByChannel(this.channel)
+        await this.getCurrrentStatusByUser(this.channel)
+        if(channel !== lastChannel){
+          this.loadChatList()
+        }
       });
 
-  }
-
-  ngOnInit(): void {
-      console.log(this.authStore.user()?.role?.name == 'administrador')
-
-    this.route.queryParamMap.subscribe((params) => {
-      if (!params.get('channel')) {
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { channel: 'all' }
-        });
-        return
-      }
-      const channel = (params.get('channel')) as Channels;
-      const lastChannel = this.channel
-      this.channel = channel
-      if(channel !== lastChannel){
-        this.loadChatList()
-      }
-    });
-
-    this.loadChatList()
-
-    this.channelRoomSocketService.onChannelRoomStatusChanged().subscribe((payload) => {
-      if (!payload || !this.chatListInbox.length) return;
-
-      this.chatListInbox = this.chatListInbox
-        .map((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.assistanceId === payload.assistanceId) {
-            return { ...x, status: payload.status };
-          }
-          return x;
-        })
-        .filter((x) => {
-          if (x.channelRoomId === payload.channelRoomId && x.assistanceId === payload.assistanceId) {
-            return false; // se quita
-          }
-          return true;
-        });
-    });
-
-
-    this.channelRoomSocketService.onChatViewedReplies().subscribe((message: ChannelRoomViewStatusDto) => {
-      if(this.chatListInbox.length){
-        const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
-        this.chatListInbox[index] = {
-          ...this.chatListInbox[index],
-          unreadCount: this.chatListInbox[index].unreadCount - message.readCount,
-          lastMessage: {
-            ...this.chatListInbox[index].lastMessage,
-            status: 'read'
-          }
-        }
-      }
-    })
-
-    this.channelRoomSocketService.onNewMessage().subscribe((message: ChannelRoomNewMessageDto) => {
-        this.updateChatList(message);
-    });
-
-    this.channelRoomSocketService.onAdvisorChanged().subscribe((message: AdvisorChangedDto) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        advisor: {
-          id: message.id,
-          name: message.displayName ?? "Unknown"
-        }
-      };
       this.loadChatList()
-    });
 
-    this.channelRoomSocketService.onBotRepliesStatusChanged().subscribe((message: BotStatusChangedDto) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        botStatus: message.botReplies ? "active": "paused"
-      };
-    });
 
-    this.channelRoomSocketService.onAdvisorRequest().subscribe((payload: ChannelRoomAssistance) => {
-      const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.assistanceId === payload.assistanceId);
-      if(this.authStore.user()?.id === payload.userId)
+      if(this.availableChannels.length > 0 || ['administrador', 'supervisor'].includes(this.authStore.user()?.role?.name?? ''))
       {
+        this.channelRoomSocketService.onChannelRoomStatusChanged()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((payload) => {
+          if (!payload || !this.chatListInbox.length) return;
 
-        this.showHelpRequest(payload);
-        // this.msg.confirm('Un ciudadano solicitó un asesor, ¿Desea darle seguimiento?',
-        //   ()=>{
-        //
-        //   },
-        //   ()=>{},
-        //   'Asesor solicitado.'
-        // )
+          this.chatListInbox = this.chatListInbox
+            .map((x) => {
+              if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
+                return { ...x, status: payload.status };
+              }
+              return x;
+            })
+            .filter((x) => {
+              if (x.channelRoomId === payload.channelRoomId && x.attention.id === payload.assistanceId) {
+                return false; // se quita
+              }
+              return true;
+            });
+        });
+
+
+        this.channelRoomSocketService.onChatViewedReplies()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((message: ChannelRoomViewStatusDto) => {
+          if(this.chatListInbox.length){
+            const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
+            this.chatListInbox[index] = {
+              ...this.chatListInbox[index],
+              unreadCount: this.chatListInbox[index].unreadCount - message.readCount,
+              lastMessage: {
+                ...this.chatListInbox[index].lastMessage,
+                status: 'read'
+              }
+            }
+          }
+        })
+
+        this.channelRoomSocketService.onNewMessage()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((message: ChannelRoomNewMessageDto) => {
+          if(!this.availableChannels.includes(message.channel) && !['administrador', 'supervisor'].includes(this.authStore.user()?.role?.name?? '')) return
+          this.updateChatList(message);
+        });
+
+        this.channelRoomSocketService.onAttentionDetailModified()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((message: ChannelRoomAssistance) => {
+          const index = this.chatListInbox.findIndex(c => c.attention.id === message.assistanceId);
+          this.chatListInbox[index] = {
+            ...this.chatListInbox[index],
+            attention: {...this.chatListInbox[index]?.attention, attentionDetail: 'Value', consultTypeId: 0}
+          };
+        });
+
+        this.channelRoomSocketService.onAdvisorChanged()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((message: AdvisorChangedDto) => {
+          const hasChannelRoomWithAdvisorChanged = this.chatListInbox.some(x => x.channelRoomId == message.channelRoomId)
+          if(hasChannelRoomWithAdvisorChanged)
+          {
+            this.loadChatList()
+          }else{
+            if(message.id == this.authStore.user()?.id)
+            {
+                this.msg.info("Se te ha asignado un nuevo chat.", "¡Tienes un nuevo chat!", 8000);
+                this.loadChatList();
+            }
+          }
+        });
+
+        this.channelRoomSocketService.onBotRepliesStatusChanged()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((message: BotStatusChangedDto) => {
+          const index = this.chatListInbox.findIndex(c => c.channelRoomId === message.channelRoomId);
+          this.chatListInbox[index] = {
+            ...this.chatListInbox[index],
+            botStatus: message.botReplies ? "active": "paused"
+          };
+        });
+
+        this.channelRoomSocketService.onAdvisorRequest()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((payload: ChannelRoomAssistance) => {
+          const index = this.chatListInbox.findIndex(c => c.channelRoomId === payload.channelRoomId && c.attention.id === payload.assistanceId);
+          if(this.authStore.user()?.id === payload.userId || ['supervisor','administrador'].includes(this.authStore.user()?.role?.name??''))
+          {
+            if(this.authStore.user()?.id === payload.userId )
+            {
+              this.showHelpRequest(payload);
+            }
+            this.loadChatList();
+          }
+          this.chatListInbox[index] = {
+            ...this.chatListInbox[index],
+            botStatus: "paused",
+            status: 'prioridad'
+          };
+        })
       }
-      this.chatListInbox[index] = {
-        ...this.chatListInbox[index],
-        botStatus: "paused",
-        status: 'prioridad'
+
+
+    }
+    loadChatList() {
+        this.filters$.next();
+    }
+
+    onChangeFilter(): GetChannelSummaryDto {
+      const filters: GetChannelSummaryDto = {
+        channel: this.channel,
+        messageStatus: 'unread',
+        chatStatus: 'pendiente',
+        search: this.search,
+        allChats: false
       };
-    })
 
-  }
-  loadChatList() {
-      this.filters$.next();
-  }
+      if (this.selectedFilter) {
+        const filter = this.selectedFilter.value as string;
 
-  onChangeFilter(): GetChannelSummaryDto
-  {
-    let filters: GetChannelSummaryDto = {
-      channel: this.channel,
-      messageStatus: null,
-      chatStatus: null,
-      search: this.search
+        switch (filter) {
+          case 'all':
+            filters.allChats = true
+            filters.chatStatus = null;
+            filters.messageStatus = null
+            break;
+          case 'pendiente':
+          case 'completado':
+          case 'prioridad':
+            filters.allChats = false;
+            filters.chatStatus = filter as ChatStatus;
+            filters.messageStatus = null
+            break;
+          case 'unread':
+          case 'read':
+            filters.allChats = false;
+            filters.chatStatus = null
+            filters.messageStatus = filter as MessageStatus;
+            break;
+          default:
+            break;
+        }
+      }
+      return filters;
     }
-    if(this.selectedFilter){
-      if(['unread','read'].includes(this.selectedFilter.value as string)) filters.messageStatus = this.selectedFilter.value as MessageStatus;
-      if(['pendiente','completado', 'prioridad'].includes(this.selectedFilter.value as string)) filters.chatStatus = this.selectedFilter.value as ChatStatus;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.timer) {
+      clearInterval(this.timer);
     }
-    return filters
+
+    this.chatListInbox = [];
+    this.search = '';
+
+    this.isLoading = false;
+    this.canScroll = false;
+    this.isDragging = false;
+    this.counterSeconds = 0;
+
+    this.selectedFilter = null;
+    this.channel = 'all' as Channels;
+    this.formattedTime = '00:00';
+
+    this.filters$.complete();
+
+    if (this.scrollContainer) {
+      this.scrollContainer.nativeElement.innerHTML = '';
+    }
+
   }
 
   updateChatList(message: ChannelRoomNewMessageDto) {
     try {
 
+      let hasAttachment = false;
       const index = this.chatListInbox.findIndex(c => c.channelRoomId == message.channelRoomId
-        && c.assistanceId == message.assistanceId
+        && c.attention.id == message.attention.id
       );
-      if (index > -1) {
+      if(message?.attachments)
+      {
+        hasAttachment = message.attachments.length > 0
+      }
+
+      if (index > -1 ) {
         const chat = this.chatListInbox[index];
         chat.unreadCount += 1;
         chat.channel = message.channel,
         chat.botStatus = message.botStatus,
         chat.status = message.status,
-        chat.assistanceId = message.assistanceId,
+        chat.attention.id = message.attention.id,
         chat.lastMessage = {
           citizen: {
             id: message.message.sender.id,
@@ -337,7 +352,9 @@ export class ChatListComponent implements OnInit {
             name: message.message.sender.fullName || message.message.sender.alias || message.message.sender.phone,
             avatar: message.message.sender.avatar,
           },
-
+          attention: message.attention,
+          channelRoomId: message.channelRoomId,
+          hasAttachment: hasAttachment,
           id: message.message.id,
           externalMessageId: message.message.externalMessageId,
           message: message.message.message,
@@ -350,7 +367,26 @@ export class ChatListComponent implements OnInit {
         this.chatListInbox.unshift(chat);
 
       } else {
-        if(['supervisor', 'administrador'].includes(this.authStore.user()?.role?.name??'') || this.authStore.user()?.id == message.advisor.id)
+
+        if (
+          (this.channel == message.channel || this.channel == 'all') &&
+          (this.selectedFilter?.value == 'all' && message?.advisor?.id == null ) &&
+          (
+            this.selectedFilter?.value === 'all' ||
+            this.authStore.user()?.id === message?.advisor?.id ||
+            ['supervisor', 'administrador'].includes(this.authStore.user()?.role?.name ?? '')
+          ) &&
+          message?.attention?.status !== 'closed' &&
+          (
+            this.selectedFilter?.value === 'all' || (
+              message.advisor?.id != null &&
+              (
+                ['unread', 'all'].includes(this.selectedFilter?.value ?? '') ||
+                this.selectedFilter?.value === this.getChannelAttentionStatusReverseTag(message.attention.status)
+              )
+            )
+          )
+        )
         {
           let model : ChatListInbox = {
             unreadCount : message.unreadCount || 1,
@@ -359,8 +395,8 @@ export class ChatListComponent implements OnInit {
             channel : message.channel,
             botStatus : message.botStatus,
             status : message.status,
-            advisor: message.advisor,
-            assistanceId : message.assistanceId,
+            advisor: message?.advisor,
+            attention : message.attention,
             lastMessage : {
               citizen: {
                 id: message.message.sender.id,
@@ -369,6 +405,7 @@ export class ChatListComponent implements OnInit {
                 name: message.message.sender.fullName || message.message.sender.alias || message.message.sender.phone,
                 avatar: message.message.sender.avatar,
               },
+              hasAttachment: hasAttachment,
               id: message.message.id,
               externalMessageId: message.message.externalMessageId,
               message: message.message.message,
@@ -381,38 +418,52 @@ export class ChatListComponent implements OnInit {
         }
       }
     } catch (error) {
+      console.error(error)
       this.loadChatList()
     }
   }
-
+  isToday(date: Date | string): boolean {
+    const d = new Date(date);
+    const today = new Date();
+    return d.getDate() === today.getDate() &&
+          d.getMonth() === today.getMonth() &&
+          d.getFullYear() === today.getFullYear();
+  }
 
   showHelpRequest(data: ChannelRoomAssistance) {
     this.messageService.add({
     key: 'helpRequest',
-      severity: 'info',
-      summary: '¡Un ciudadano necesita tu ayuda!',
-      detail: 'Un cliente está esperando atención inmediata.',
-      sticky: true,
-      closable: false,
-      data: data
+    severity: 'info',
+    summary: '¡Un ciudadano necesita tu ayuda!',
+    detail: 'Un ciudadano está esperando atención inmediata.',
+    sticky: true,
+    closable: false,
+    data: data
     });
   }
 
-  onAttend(message: ChannelRoomAssistance, closeFn?: Function) {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { channelRoomId: message.channelRoomId, assistanceId: message.assistanceId, channel:this.channel}
-    });
-
-    if (typeof closeFn === 'function') {
-      closeFn();
-    } else {
+  onAttend(message: ToastMessageOptions, closeFn?: Function) {
+    try {
       this.messageService.clear('helpRequest');
+
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          channelRoomId: message.data.channelRoomId,
+          assistanceId: message.data.assistanceId,
+          channel: this.channel
+        }
+      });
+    } catch (err) {
+      console.error('Error en onAttend:', err);
     }
   }
 
+
+
+
   trackByChat(index: number, chat: ChatListInbox): string {
-    return String(chat.assistanceId);
+    return String(chat.attention.id);
   }
   ngAfterViewInit() {
     this.checkScroll();
@@ -422,8 +473,16 @@ export class ChatListComponent implements OnInit {
     return ChannelLogo[channel] || 'fxemoji:question';
   }
 
-  getChannelStatusIcon(channel: ChatListInbox['status']): string {
+  getChannelStatusIcon(channel: ChatListInbox['attention']['status']): string {
     return ChannelStatusIcon[channel] || 'fxemoji:question';
+  }
+
+  getChannelStatusLabel(channel: ChatListInbox['attention']['status']): string {
+    return ChannelAttentionStatusTag[channel] || '';
+  }
+
+  getChannelAttentionStatusReverseTag(status: ChatListInbox['attention']['status']): string {
+    return ChannelAttentionStatusReverseTag[status] || 'pendiente';
   }
 
 
@@ -439,6 +498,9 @@ export class ChatListComponent implements OnInit {
 
   scrollLeft() {
     this.scrollContainer.nativeElement.scrollBy({ left: -150, behavior: 'smooth' });
+  }
+  getUserRole(){
+    return this.authStore.user()?.role?.name?? ''
   }
 
   scrollRight() {
@@ -469,9 +531,11 @@ export class ChatListComponent implements OnInit {
         queryParams: { channelRoomId, channel:this.channel, assistanceId}
       });
   }
+
   formatId(id: number, length: number = 5): string {
     return id.toString().padStart(length, '0');
   }
+
   private getClientX(event: MouseEvent | TouchEvent): number {
     return event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
   }
@@ -487,5 +551,100 @@ export class ChatListComponent implements OnInit {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  async getCurrrentStatusByUser(channel: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.inboxService.getUserStatus(channel)
+      );
+
+      const statusLabel = this.statusOptions.find(
+        (x: MenuItem) =>
+          x.id === response.data?.userStatus || x.label === response.data?.userStatus
+      );
+      this.userStatus = statusLabel?.label ?? 'Fuera de línea';
+      this.statusColor = response?.data?.color?? '#484848ff';
+    } catch (error) {
+      console.error('Error al obtener el estado del usuario:', error);
+    }
+  }
+
+  async getUserStatusesByChannel(channel: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.channelStateService.getUserStatusesByChannel(channel)
+      );
+
+      if (response?.data && response.data.length > 0) {
+        this.statusOptions = response.data.map((channelState: ChannelState) => ({
+          id: channelState.id.toString(),
+          label: channelState.name,
+          value: channelState.id,
+          command: () => this.changeUserStatus(null, channelState.id),
+        }));
+      } else {
+        this.statusOptions = [
+          {
+            id: 'Disponible',
+            label: 'Disponible',
+            value: 'available',
+            icon: 'pi pi-envelope',
+            command: () => this.changeUserStatus(true),
+          },
+          {
+            id: 'Fuera de línea',
+            label: 'Fuera de línea',
+            value: 'unavailable',
+            icon: 'pi pi-envelope',
+            command: () => this.changeUserStatus(false),
+          },
+        ];
+      }
+    } catch (error) {
+      console.error('Error al obtener estados por canal:', error);
+    }
+  }
+
+  async getAvailableChannelsByUser() {
+    try {
+      const response = await firstValueFrom(this.inboxService.getAvailableChannelsByUser());
+      if (response?.success && response?.data?.length) {
+        this.availableChannels = response.data.filter(x =>
+          ['whatsapp', 'chatsat', 'telegram'].includes(x)
+        );
+      }
+    } catch (err) {
+      console.error('❌ Error al obtener canales:', err);
+    }
+  }
+
+
+  getUserStatuses()
+  {
+
+  }
+
+  changeUserStatus(isAvailable: boolean | null = null , statusId: number | null = null)
+  {
+    this.inboxService.changeAllUserStatus({
+      channel: this.channel,
+      channelStateId: statusId,
+      isAvailable
+    }).subscribe(response => {
+      if(response.success)
+      {
+        this.msg.success("Su estado ha sido actualizado correctamente.", "Estado del asesor", 5000)
+        this.getCurrrentStatusByUser(this.channel)
+        return
+      }else{
+        if(response?.error)
+        {
+          console.error(response.error)
+          this.msg.error("Su estado no ha podido ser actualizado, por favor contacte a soporte", "Estado del asesor", 5000)
+          return
+        }
+        this.msg.warn("Su estado no ha podido ser actualizado", "Estado del asesor", 5000)
+      }
+    });
+  }
 
 }

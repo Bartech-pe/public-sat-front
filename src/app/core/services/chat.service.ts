@@ -16,9 +16,9 @@ export class ChatService {
     if (saved) this.estadosChat = JSON.parse(saved);
   }
 
-  getNewMessages(): Observable<any[]> {
-    return this.http.get<any[]>('/api/mensajes/nuevos');
-  }
+  // getNewMessages(): Observable<any[]> {
+  //   return this.http.get<any[]>('/api/mensajes/nuevos'); // cambiar por endpoint Real
+  // }
 
   setEstado(chatId: number, estado: 'resuelto' | 'pospuesto' | 'pendiente' | null) {
     this.estadosChat[chatId] = estado;

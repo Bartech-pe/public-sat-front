@@ -1,13 +1,27 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { environment } from '@envs/enviroments';
-import { Observable } from 'rxjs';
+import { environment } from '@envs/environments';
+import { Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 
 @Injectable({ providedIn: 'root' })
 export class SocketService {
   private socket?: Socket;
-  private readonly SERVER_URL = environment.wsUrl; 
+  private readonly SERVER_URL = environment.apiUrl;
+
+  private requestAdvisorSubject = new Subject<{ userId: number }>();
+
+  private requestUserPhoneStateSubject = new Subject<{ userId: number }>();
+
+  private requestPhoneCallSubject = new Subject<{ userId: number }>();
+
+  private requestPortfolioSubject = new Subject<any>();
+
+  private requestPortfolioCompleteSubject = new Subject<any>();
+
+  private requestPortfolioCancelledSubject = new Subject<any>();
+
+  private requestPortfolioErrorSubject = new Subject<any>();
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
@@ -16,7 +30,7 @@ export class SocketService {
   }
 
   private initializeSocketConnection(): void {
-    console.log("initializeSocketConnection")
+    console.log('initializeSocketConnection');
 
     this.socket = io(this.SERVER_URL, {
       transports: ['websocket'], // evita polling
@@ -24,16 +38,98 @@ export class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Conectado al servidor Socket.IO');
+      console.log('Conectado al servidor Socket.IO');
     });
 
     this.socket.on('disconnect', () => {
-      console.warn('⚠️ Desconectado del servidor Socket.IO');
+      console.warn('Desconectado del servidor Socket.IO');
+    });
+
+    this.socket.on('reconnect', (attempt) => {
+      console.log(`Reconectado al servidor en intento ${attempt}`);
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('Error al reconectar:', error);
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('Error en Socket.IO:', error);
     });
 
     this.socket.on('respuesta', (data: any) => {
-      console.log('📩 Respuesta del servidor:', data);
+      console.log('Respuesta del servidor:', data);
     });
+
+    this.socket.on('email.request', (paload: { userId: number }) => {
+      this.requestAdvisorSubject.next(paload);
+    });
+
+    this.socket.on('user.phone.state.request', (paload: { userId: number }) => {
+      console.log('user.phone.state.request');
+      this.requestUserPhoneStateSubject.next(paload);
+    });
+
+    this.socket.on('phone.call.request', (payload: { userId: number }) => {
+      console.log('Solicitud de llamada recibida:', payload);
+      this.requestPhoneCallSubject.next(payload);
+    });
+
+    // Escuchar progreso
+    this.socket.on('portfolio-progress', (data) => {
+      console.log(
+        `Cartera ${data.portfolioId}: ${(
+          (data.processed / data.total) *
+          100
+        ).toFixed(2)}% (${data.processed}/${data.total})`
+      );
+      this.requestPortfolioSubject.next(data);
+    });
+
+    // Escuchar fin del proceso
+    this.socket.on('portfolio-complete', (data) => {
+      console.log(data.message);
+      this.requestPortfolioCompleteSubject.next(data);
+    });
+
+    // Escuchar fin del proceso
+    this.socket.on('portfolio-cancelled', (data) => {
+      console.log(data.message);
+      this.requestPortfolioCancelledSubject.next(data);
+    });
+
+    // Escuchar fin del proceso
+    this.socket.on('portfolio-error', (data) => {
+      console.log(data.message);
+      this.requestPortfolioErrorSubject.next(data);
+    });
+  }
+
+  onPortfolioProgress(): Observable<{
+    updated: boolean;
+    portfolioId: number;
+    name: string;
+    processed: number;
+    total: number;
+    progress: number;
+    remainingSeconds?: number;
+  }> {
+    return this.requestPortfolioSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioComplete(): Observable<any> {
+    return this.requestPortfolioCompleteSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioCancelled(): Observable<any> {
+    return this.requestPortfolioCancelledSubject.asObservable();
+  }
+
+  // Escuchar cuando termina el proceso
+  onPortfolioError(): Observable<any> {
+    return this.requestPortfolioErrorSubject.asObservable();
   }
 
   registerUser(userId: number): void {
@@ -52,6 +148,30 @@ export class SocketService {
     if (this.socket && this.isConnected) {
       this.socket.emit('send_message', msg);
     }
+  }
+
+  onMessage(callback: (msg: any) => void): void {
+    this.socket?.on('receive_message', callback);
+  }
+
+  sendMessageNotification(
+    toUserId: number,
+    fromUserId: number,
+    text: string
+  ): void {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('send_message_notification', {
+        toUserId,
+        fromUserId,
+        text,
+      });
+    } else {
+      console.warn('⚠️ Socket no conectado');
+    }
+  }
+
+  onMessageNotification(callback: (msg: any) => void): void {
+    this.socket?.on('receive_message_notification', callback);
   }
 
   sendAlertas(msg: any): void {
@@ -80,32 +200,25 @@ export class SocketService {
     this.socket?.on('nueva_alerta', callback);
   }
 
-  onMessage(callback: (msg: any) => void): void {
-    this.socket?.on('receive_message', callback);
-  }
-
   onAlertas(callback: (msg: any) => void): void {
     this.socket?.on('receive_alertas', callback);
   }
 
-  // constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-  //   if (isPlatformBrowser(this.platformId)) {
-  //     this.socket = io('http://localhost:3000'); // URL de tu backend Socket.IO
+  onEmailRequest(): Observable<{ userId: number }> {
+    return this.requestAdvisorSubject.asObservable();
+  }
 
-  //     this.socket.on('connect', () => {
-  //       console.log('Conectado al servidor Socket.IO');
-  //     });
+  onUserPhoneStateRequest(): Observable<{ userId: number }> {
+    return this.requestUserPhoneStateSubject.asObservable();
+  }
 
-  //     this.socket.on('respuesta', (data: any) => {
-  //       console.log('Respuesta del servidor:', data);
-  //     });
-  //   }
-  // }
+  onRequestPhoneCallSubject(): Observable<{ userId: number }> {
+    return this.requestPhoneCallSubject.asObservable();
+  }
 
-  // // Método para emitir eventos
-  // sendMessage(msg: string) {
-  //   if (isPlatformBrowser(this.platformId)) {
-  //     this.socket.emit('mensaje', msg);
-  //   }
-  // }
+  cancelProtfolio(portfolioId: number): void {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('cancel-portfolio', { portfolioId });
+    }
+  }
 }

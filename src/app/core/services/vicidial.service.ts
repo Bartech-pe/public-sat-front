@@ -1,7 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
-import { environment } from '@envs/enviroments';
+import { environment } from '@envs/environments';
+import {
+  CampaignData,
+  CampaignResumenMultype,
+} from '@models/audio-campaign.model';
 export interface ProgresoCampania {
   agentes_conectados: number;
   llamadas_pendientes: number;
@@ -9,13 +18,12 @@ export interface ProgresoCampania {
   total_leads: number;
 }
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class VicidialService {
-  
   private readonly baseUrl!: string;
   constructor(private http: HttpClient) {
-    this.baseUrl = `${environment.apiUrl}`;
+    this.baseUrl = `${environment.apiUrl}v1/`;
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -32,33 +40,62 @@ export class VicidialService {
   }
 
   getAll(endpoint: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/${endpoint}`)
+    return this.http
+      .get<any[]>(`${this.baseUrl}/${endpoint}`)
       .pipe(catchError(this.handleError));
   }
 
+  getlistCampaniaAll(): Observable<any[]> {
+    return this.http
+      .get<any[]>(`${this.baseUrl}central/campanign`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getByIdlistCampania(id: string): Observable<any> {
+    return this.http
+      .get<any>(`${this.baseUrl}central/campanias/getbyid/${id}`)
+      .pipe(
+        catchError((error) => {
+          return this.handleError(error);
+        })
+      );
+  }
+
   getById(id: any, endpoint: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/${endpoint}/${id}`)
+    return this.http
+      .get<any>(`${this.baseUrl}/${endpoint}/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   getByIdProgreso(id: any): Observable<ProgresoCampania> {
-    return this.http.get<ProgresoCampania>(`${this.baseUrl}/central/campanias/progreso/${id}`)
+    return this.http
+      .get<ProgresoCampania>(`${this.baseUrl}central/campanias/progreso/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getByIdProgresoList(id: any): Observable<CampaignData> {
+    return this.http
+      .get<CampaignData>(`${this.baseUrl}central/campanias/list/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   create(data: any, endpoint: string): Observable<any> {
-      const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-      return this.http.post<any>(`${this.baseUrl}/${endpoint}`, data, { headers }).pipe(catchError(this.handleError));
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http
+      .post<any>(`${this.baseUrl}${endpoint}`, data, { headers })
+      .pipe(catchError(this.handleError));
   }
 
   editarCampania(campaign_id: string, data: Partial<any>): Observable<any> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.patch(`${this.baseUrl}/central/campanias/${campaign_id}`, data, { headers });
+    return this.http.patch(
+      `${this.baseUrl}central/campanias/${campaign_id}`,
+      data,
+      { headers }
+    );
   }
 
   eliminarCampania(campaign_id: string): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/central/campanias/${campaign_id}`);
+    return this.http.delete(`${this.baseUrl}central/campanias/${campaign_id}`);
   }
-
-
 }

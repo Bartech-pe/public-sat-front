@@ -1,7 +1,7 @@
-<div class="flex flex-col gap-2">
+<div *ngIf="!!vicidial" class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialUser">
-      Username del agente en VICIdial 
+      Username del agente en VICIdial
     </label>
     <input
       id="vicidialUser"
@@ -12,19 +12,29 @@
   </div>
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialUserPass">
-      Password de usuario en VICIdial 
+      Password de usuario en VICIdial
     </label>
-    <input
-      id="vicidialUserPass"
-      pInputText
-      [(ngModel)]="vicidial.userPass"
-      type="password"
-      readonly
-    />
+
+    <p-inputgroup>
+      <input
+        id="vicidialUserPass"
+        pInputText
+        [(ngModel)]="vicidial.userPass"
+        [type]="showPassUser ? 'text' : 'password'"
+        readonly
+      />
+      <p-inputgroup-addon>
+        <btn-custom
+          [icon]="showPassUser ? 'lucide:eye-off' : 'lucide:eye'"
+          severity="secondary"
+          (click)="showPassUser = !showPassUser"
+        />
+      </p-inputgroup-addon>
+    </p-inputgroup>
   </div>
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialPhoneLogin">
-      Extensión/teléfono del agente 
+      Extensión/teléfono del agente
     </label>
     <input
       id="vicidialPhoneLogin"
@@ -35,19 +45,28 @@
   </div>
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialPhonePass">
-      Password del teléfono SIP 
+      Password del teléfono SIP
     </label>
-    <input
-      id="vicidialPhonePass"
-      pInputText
-      type="password"
-      [(ngModel)]="vicidial.phonePass"
-      readonly
-    />
+    <p-inputgroup>
+      <input
+        id="vicidialUserPass"
+        pInputText
+        [(ngModel)]="vicidial.phonePass"
+        [type]="showPassPhone ? 'text' : 'password'"
+        readonly
+      />
+      <p-inputgroup-addon>
+        <btn-custom
+          [icon]="showPassPhone ? 'lucide:eye-off' : 'lucide:eye'"
+          severity="secondary"
+          (click)="showPassPhone = !showPassPhone"
+        />
+      </p-inputgroup-addon>
+    </p-inputgroup>
   </div>
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialUserLevel">
-      Nivel de usuario (1=agente, 9=admin) 
+      Nivel de usuario (1=agente, 9=admin)
     </label>
     <input
       id="vicidialUserLevel"
@@ -58,7 +77,7 @@
   </div>
   <div class="flex flex-col gap-2">
     <label class="text-sm font-medium" for="vicidialUserGroup">
-      Grupo del usuario (ej: AGENTS) 
+      Grupo del usuario (ej: AGENTS)
     </label>
     <input
       id="vicidialUserGroup"

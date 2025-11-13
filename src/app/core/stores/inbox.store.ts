@@ -1,4 +1,4 @@
-import { createEntityStore } from './createEntityStore';
+import { createEntityStore } from './generic/createEntityStore';
 import { Inbox } from '@models/inbox.model';
 import { InboxService } from '@services/inbox.service';
 

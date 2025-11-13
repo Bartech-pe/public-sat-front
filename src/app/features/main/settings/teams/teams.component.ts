@@ -8,8 +8,8 @@ import {
   signal,
 } from '@angular/core';
 import { Team } from '@models/team.model';
-import { MessageGlobalService } from '@services/message-global.service';
-import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { TeamStore } from '@stores/team.store';
 import { AvatarModule } from 'primeng/avatar';
@@ -21,10 +21,11 @@ import { ImageModule } from 'primeng/image';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TableModule } from 'primeng/table';
 import { TeamFormComponent } from './team-form/team-form.component';
-import { ButtonCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { TeamUserFormComponent } from './team-user-form/team-user-form.component';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-teams',
@@ -39,9 +40,10 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
     OverlayBadgeModule,
     ButtonSaveComponent,
     ButtonEditComponent,
-    ButtonDeleteComponent,
-    ButtonCustomComponent,
+    BtnDeleteComponent,
+    BtnCustomComponent,
     PaginatorComponent,
+    CardModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './teams.component.html',
@@ -52,7 +54,7 @@ export class TeamsComponent implements OnInit {
   descripcion: string =
     'Los equipos te permiten organizar a los agentes en grupos basados en sus responsabilidades. Un agente puede pertenecer a varios equipos. Cuando trabajas en colaboración, puedes asignar conversaciones a equipos específicos.';
 
-  createButtonLabel: string = 'Crear Nuevo Equipo';
+  createButtonLabel: string = 'Nuevo Equipo';
 
   openModal: boolean = false;
 

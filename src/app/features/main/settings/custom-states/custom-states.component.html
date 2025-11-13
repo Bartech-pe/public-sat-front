@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4 px-3">
+<div class="grid grid-cols-1 gap-4">
   <!-- Encabezado -->
   <div class="shadow-lg rounded-xl p-4 bg-gray-50">
     <div class="flex justify-between">
@@ -9,441 +9,286 @@
       <p
         class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
       >
-        Configura y perzonaliza todos los estados de los asesores
+        Configura y personaliza todos los estados de los asesores
       </p>
     </div>
   </div>
 
   <div>
-    <p-tabs [value]="value">
+    <p-tabs lazy [value]="viewValue()">
       <p-tablist>
-        <p-tab [value]="0" class="flex items-center"
-          ><iconify-icon [icon]="'line-md:phone-call-loop'" class="text-xl" />
+        <p-tab
+          [value]="'channels'"
+          (click)="changeView('channels')"
+          class="flex items-center"
+          ><iconify-icon
+            [icon]="'fluent:channel-share-12-regular'"
+            class="text-xl"
+          />
           <span>Canales</span>
         </p-tab>
-        <p-tab [value]="1" class="flex items-center">
-          <iconify-icon [icon]="'line-md:file-document'" class="text-xl" />
+        <p-tab
+          [value]="'assistances'"
+          (click)="changeView('assistances')"
+          class="flex items-center"
+        >
+          <iconify-icon
+            [icon]="'fluent:document-bullet-list-24-regular'"
+            class="text-xl"
+          />
           <span>Atenciones</span>
         </p-tab>
-        <p-tab [value]="2" class="flex items-center"
-          ><iconify-icon [icon]="'mingcute:target-line'" class="text-xl" />
+        <p-tab
+          [value]="'campaigns'"
+          (click)="changeView('campaigns')"
+          class="flex items-center"
+          ><iconify-icon
+            [icon]="'fluent:target-arrow-16-regular'"
+            class="text-xl"
+          />
           <span>Campañas</span>
         </p-tab>
       </p-tablist>
       <p-tabpanels>
         <!-- Canales -->
-        <p-tabpanel [value]="0">
+        <p-tabpanel [value]="'channels'">
           <p-tabs [value]="value">
             <p-tablist class="flex items-center justify-around">
-              <p-tab [value]="0" class="flex items-center"
-                ><iconify-icon
-                  [icon]="'line-md:phone-call-loop'"
-                  class="text-xl"
-                />
-                <span>Telefónico</span></p-tab
-              >
-              <p-tab [value]="1" class="flex items-center"
-                ><iconify-icon [icon]="'line-md:email'" class="text-xl" />
-                <span>Email</span>
+              @for (category of listCategoryChannels; track $index) {
+              <p-tab [value]="$index" class="flex items-center">
+                <iconify-icon [icon]="category.icon" class="text-xl" />
+                <span>{{ category.name }}</span>
               </p-tab>
-              <p-tab [value]="2" class="flex items-center">
-                <iconify-icon [icon]="'line-md:chat'" class="text-xl" />
-                <span>ChatSAT</span>
-              </p-tab>
-              <p-tab [value]="3" class="flex items-center">
-                <iconify-icon [icon]="'ic:outline-whatsapp'" class="text-xl" />
-                <span>WhatsApp</span>
-              </p-tab>
+              }
             </p-tablist>
             <p-tabpanels>
-              <!-- Telefono -->
-              <p-tabpanel [value]="0">
-                <div class="flex justify-between items-center py-4">
-                  <h3 class="font-bold text-xl">Estados de Telefónico</h3>
-                  <button-save
-                    label="Crear Nuevo Estado"
-                    [icon]="'mdi:plus-circle-outline'"
-                    (click)="nuevoEstadoTelefonico()"
-                  />
-                </div>
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-                >
+              @for (category of listCategoryChannels; track $index) {
+              <p-tabpanel [value]="$index">
+                <div class="grid grid-cols-1 gap-4">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl">
+                      Estados {{ category.name }}
+                    </h3>
+                    <button-save
+                      label="Nuevo Estado"
+                      [icon]="'mdi:plus-circle-outline'"
+                      (click)="newChannelState(category.id)"
+                    />
+                  </div>
                   <div
-                    *ngFor="let item of estadosTelefonico"
-                    class="border border-gray-400 rounded-lg p-4 shadow-lg"
+                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
                   >
-                    <div class="space-y-1">
-                      <h3 class="font-bold text-lg">
-                        <span
-                          class="w-3 h-3 rounded-full inline-block mr-1"
-                          [style.backgroundColor]="item.color"
-                        ></span>
-                        {{ item.nombre }}
-                      </h3>
-                      <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                      <p class="font-normal text-sm flex items-center gap-1">
-                        <iconify-icon
-                          [icon]="'stash:data-date'"
-                          class="text-lg"
-                        />
-                        Creado:
-                        <span class="font-semibold">{{
-                          item.createdAt | date : "dd/MM/yyyy"
-                        }}</span>
-                      </p>
-                    </div>
-                    <div class="flex justify-between pt-4">
-                      <div>
-                        <p-tag
-                          class="text-xs"
-                          [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                          [severity]="
-                            item.tipo == true ? 'secondary' : 'primary'
-                          "
-                          ><iconify-icon
-                            *ngIf="item.tipo == true"
-                            [icon]="'mdi:secure-outline'"
-                            class="text-base"
-                          />
+                    <div
+                      *ngFor="let item of getChannelState(category.id)"
+                      class="border border-gray-400 rounded-lg p-4 shadow-lg"
+                    >
+                      <div class="space-y-1">
+                        <h3 class="font-bold text-lg">
+                          <span
+                            class="w-3 h-3 rounded-full inline-block mr-1"
+                            [style.backgroundColor]="item.color"
+                          ></span>
+                          {{ item.name }}
+                        </h3>
+                        <p class="font-normal text-sm">
+                          {{ item.description }}
+                        </p>
+                        <p class="font-normal text-sm flex items-center gap-1">
                           <iconify-icon
-                            *ngIf="item.tipo != true"
-                            [icon]="'akar-icons:pencil'"
-                            class="text-base"
+                            [icon]="'stash:data-date'"
+                            class="text-lg"
                           />
-                        </p-tag>
+                          Creado:
+                          <span class="font-semibold">{{
+                            item.createdAt | date : "dd/MM/yyyy"
+                          }}</span>
+                        </p>
                       </div>
-                      <div class="flex gap-2">
-                        <btn-edit-square
-                          (onClick)="EditarEstadoTelefonico(item)"
-                        />
-                        <btn-delete-square
-                          (onClick)="eliminarEstadoTelefonico(item)"
-                        />
+                      <div class="flex justify-between pt-4">
+                        <div>
+                          <p-tag
+                            class="text-xs"
+                            [value]="item.inmutable ? 'Base' : 'Personalizado'"
+                            [severity]="
+                              item.inmutable ? 'secondary' : 'primary'
+                            "
+                            ><iconify-icon
+                              [icon]="
+                                item.inmutable
+                                  ? 'mdi:secure-outline'
+                                  : 'akar-icons:pencil'
+                              "
+                              class="text-base"
+                            />
+                          </p-tag>
+                        </div>
+                        <div class="flex gap-2">
+                          <btn-edit-square (onClick)="editChannelState(item)" />
+                          <btn-delete
+                            [text]="false"
+                            [disabled]="item.inmutable"
+                            (onClick)="deleteChannelState(item)"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </p-tabpanel>
-              <!-- Email -->
-              <p-tabpanel [value]="1">
-                <div class="flex justify-between items-center py-4">
-                  <h3 class="font-bold text-xl">Estados de Email</h3>
-                  <button-save
-                    label="Crear Nuevo Estado"
-                    [icon]="'mdi:plus-circle-outline'"
-                    (click)="nuevoEstadoTelefonico()"
-                  />
-                </div>
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-                >
-                  <div
-                    *ngFor="let item of estadosEmail"
-                    class="border border-gray-400 rounded-lg p-4 shadow-lg"
-                  >
-                    <div class="space-y-1">
-                      <h3 class="font-bold text-lg">
-                        <span
-                          class="w-3 h-3 rounded-full inline-block mr-1"
-                          [style.backgroundColor]="item.color"
-                        ></span>
-                        {{ item.nombre }}
-                      </h3>
-                      <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                      <p class="font-normal text-sm flex items-center gap-1">
-                        <iconify-icon
-                          [icon]="'stash:data-date'"
-                          class="text-lg"
-                        />
-                        Creado:
-                        <span class="font-semibold">{{
-                          item.createdAt | date : "dd/MM/yyyy"
-                        }}</span>
-                      </p>
-                    </div>
-                    <div class="flex justify-between pt-4">
-                      <div>
-                        <p-tag
-                          class="text-xs"
-                          [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                          [severity]="
-                            item.tipo == true ? 'secondary' : 'primary'
-                          "
-                          ><iconify-icon
-                            *ngIf="item.tipo == true"
-                            [icon]="'mdi:secure-outline'"
-                            class="text-base"
-                          />
-                          <iconify-icon
-                            *ngIf="item.tipo != true"
-                            [icon]="'akar-icons:pencil'"
-                            class="text-base"
-                          />
-                        </p-tag>
-                      </div>
-                      <div class="flex gap-2">
-                        <btn-edit-square
-                          (click)="EditarEstadoTelefonico(item)"
-                        />
-                        <btn-delete-square
-                          (click)="eliminarEstadoTelefonico(item)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </p-tabpanel>
-              <!-- ChatSAT -->
-              <p-tabpanel [value]="2">
-                <div class="flex justify-between items-center py-4">
-                  <h3 class="font-bold text-xl">Estados de ChatSAT</h3>
-                  <button-save
-                    label="Crear Nuevo Estado"
-                    [icon]="'mdi:plus-circle-outline'"
-                    (click)="nuevoEstadoTelefonico()"
-                  />
-                </div>
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-                >
-                  <div
-                    *ngFor="let item of estadosChat"
-                    class="border border-gray-400 rounded-lg p-4 shadow-lg"
-                  >
-                    <div class="space-y-1">
-                      <h3 class="font-bold text-lg">
-                        <span
-                          class="w-3 h-3 rounded-full inline-block mr-1"
-                          [style.backgroundColor]="item.color"
-                        ></span>
-                        {{ item.nombre }}
-                      </h3>
-                      <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                      <p class="font-normal text-sm flex items-center gap-1">
-                        <iconify-icon
-                          [icon]="'stash:data-date'"
-                          class="text-lg"
-                        />
-                        Creado:
-                        <span class="font-semibold">{{
-                          item.createdAt | date : "dd/MM/yyyy"
-                        }}</span>
-                      </p>
-                    </div>
-                    <div class="flex justify-between pt-4">
-                      <div>
-                        <p-tag
-                          class="text-xs"
-                          [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                          [severity]="
-                            item.tipo == true ? 'secondary' : 'primary'
-                          "
-                          ><iconify-icon
-                            *ngIf="item.tipo == true"
-                            [icon]="'mdi:secure-outline'"
-                            class="text-base"
-                          />
-                          <iconify-icon
-                            *ngIf="item.tipo != true"
-                            [icon]="'akar-icons:pencil'"
-                            class="text-base"
-                          />
-                        </p-tag>
-                      </div>
-                      <div class="flex gap-2">
-                        <btn-edit-square
-                          (click)="EditarEstadoTelefonico(item)"
-                        />
-                        <btn-delete-square
-                          (click)="eliminarEstadoTelefonico(item)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </p-tabpanel>
-              <!-- WhatsApp -->
-              <p-tabpanel [value]="3">
-                <div class="flex justify-between items-center py-4">
-                  <h3 class="font-bold text-xl">Estados de WhatsApp</h3>
-                  <button-save
-                    label="Crear Nuevo Estado"
-                    [icon]="'mdi:plus-circle-outline'"
-                    (click)="nuevoEstadoTelefonico()"
-                  />
-                </div>
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
-                >
-                  <div
-                    *ngFor="let item of estadosWhatsApp"
-                    class="border border-gray-400 rounded-lg p-4 shadow-lg"
-                  >
-                    <div class="space-y-1">
-                      <h3 class="font-bold text-lg">
-                        <span
-                          class="w-3 h-3 rounded-full inline-block mr-1"
-                          [style.backgroundColor]="item.color"
-                        ></span>
-                        {{ item.nombre }}
-                      </h3>
-                      <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                      <p class="font-normal text-sm flex items-center gap-1">
-                        <iconify-icon
-                          [icon]="'stash:data-date'"
-                          class="text-lg"
-                        />
-                        Creado:
-                        <span class="font-semibold">{{
-                          item.createdAt | date : "dd/MM/yyyy"
-                        }}</span>
-                      </p>
-                    </div>
-                    <div class="flex justify-between pt-4">
-                      <div>
-                        <p-tag
-                          class="text-xs"
-                          [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                          [severity]="
-                            item.tipo == true ? 'secondary' : 'primary'
-                          "
-                          ><iconify-icon
-                            *ngIf="item.tipo == true"
-                            [icon]="'mdi:secure-outline'"
-                            class="text-base"
-                          />
-                          <iconify-icon
-                            *ngIf="item.tipo != true"
-                            [icon]="'akar-icons:pencil'"
-                            class="text-base"
-                          />
-                        </p-tag>
-                      </div>
-                      <div class="flex gap-2">
-                        <btn-edit-square (click)="EditarEstadoTelefonico(item)" />
-                        <btn-delete-square
-                          (click)="eliminarEstadoTelefonico(item)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </p-tabpanel>
+              }
             </p-tabpanels>
           </p-tabs>
         </p-tabpanel>
         <!-- Atención -->
-        <p-tabpanel [value]="1">
-          <div class="flex justify-between items-center py-4">
-            <h3 class="font-bold text-xl">Estados de Atención</h3>
-            <button-save
-              label="Crear Nuevo Estado"
-              [icon]="'mdi:plus-circle-outline'"
-              (click)="nuevoEstadoAtencion()"
-            />
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div
-              *ngFor="let item of listadoEstadosAtencion"
-              class="border border-gray-400 rounded-lg p-4 shadow-lg"
-            >
-              <div class="space-y-1">
-                <h3 class="font-bold text-lg">
-                  <span
-                    class="w-3 h-3 rounded-full inline-block mr-1"
-                    [style.backgroundColor]="item.color"
-                  ></span>
-                  {{ item.nombre }}
-                </h3>
-                <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                <p class="font-normal text-sm flex items-center gap-1">
-                  <iconify-icon [icon]="'stash:data-date'" class="text-lg" />
-                  Creado:
-                  <span class="font-semibold">{{
-                    item.createdAt | date : "dd/MM/yyyy"
-                  }}</span>
-                </p>
-              </div>
-              <div class="flex justify-between pt-4">
-                <div>
-                  <p-tag
-                    class="text-xs"
-                    [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                    [severity]="item.tipo == true ? 'secondary' : 'primary'"
-                    ><iconify-icon
-                      *ngIf="item.tipo == true"
-                      [icon]="'mdi:secure-outline'"
-                      class="text-base"
+        <p-tabpanel [value]="'assistances'">
+          <p-tabs [value]="value">
+            <p-tablist class="flex items-center justify-around">
+              @for (category of listCategoryChannels; track $index) {
+              <p-tab [value]="$index" class="flex items-center">
+                <iconify-icon [icon]="category.icon" class="text-xl" />
+                <span>{{ category.name }}</span>
+              </p-tab>
+              }
+            </p-tablist>
+            <p-tabpanels>
+              @for (category of listCategoryChannels; track $index) {
+              <p-tabpanel [value]="$index">
+                <div class="grid grid-cols-1 gap-4">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl">
+                      Estados {{ category.name }}
+                    </h3>
+                    <button-save
+                      label="Nuevo Estado"
+                      [icon]="'mdi:plus-circle-outline'"
+                      (click)="newAssistanceState(category.id)"
                     />
-                    <iconify-icon
-                      *ngIf="item.tipo != true"
-                      [icon]="'akar-icons:pencil'"
-                      class="text-base"
-                    />
-                  </p-tag>
+                  </div>
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+                  >
+                    <div
+                      *ngFor="let item of getAssistanceState(category.id)"
+                      class="border border-gray-400 rounded-lg p-4 shadow-lg"
+                    >
+                      <div class="space-y-1">
+                        <h3 class="font-bold text-lg">
+                          <span
+                            class="w-3 h-3 rounded-full inline-block mr-1"
+                            [style.backgroundColor]="item.color"
+                          ></span>
+                          {{ item.name }}
+                        </h3>
+                        <p class="font-normal text-sm">
+                          {{ item.description }}
+                        </p>
+                        <p class="font-normal text-sm flex items-center gap-1">
+                          <iconify-icon
+                            [icon]="'stash:data-date'"
+                            class="text-lg"
+                          />
+                          Creado:
+                          <span class="font-semibold">{{
+                            item.createdAt | date : "dd/MM/yyyy"
+                          }}</span>
+                        </p>
+                      </div>
+                      <div class="flex justify-between pt-4">
+                        <div>
+                          <p-tag
+                            class="text-xs"
+                            [value]="item.inmutable ? 'Base' : 'Personalizado'"
+                            [severity]="
+                              item.inmutable ? 'secondary' : 'primary'
+                            "
+                            ><iconify-icon
+                              [icon]="
+                                item.inmutable
+                                  ? 'mdi:secure-outline'
+                                  : 'akar-icons:pencil'
+                              "
+                              class="text-base"
+                            />
+                          </p-tag>
+                        </div>
+                        <div class="flex gap-2">
+                          <btn-edit-square
+                            (onClick)="editAssistanceState(item)"
+                          />
+                          <btn-delete
+                            [text]="false"
+                            [disabled]="item.inmutable"
+                            (onClick)="deleteAssistanceState(item)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex gap-2">
-                  <btn-edit-square (click)="EditarEstadoAtencion(item)" />
-                  <btn-delete-square (click)="eliminarEstadoAtencion(item)" />
-                </div>
-              </div>
-            </div>
-          </div>
+              </p-tabpanel>
+              }
+            </p-tabpanels>
+          </p-tabs>
         </p-tabpanel>
         <!-- Campaña -->
-        <p-tabpanel [value]="2">
-          <div class="flex justify-between items-center py-4">
-            <h3 class="font-bold text-xl">Estados de Campaña</h3>
-            <button-save
-              label="Crear Nuevo Estado"
-              [icon]="'mdi:plus-circle-outline'"
-              (click)="nuevoEstadoCampania()"
-            />
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div
-              *ngFor="let item of listadoEstadosCampania"
-              class="border border-gray-400 rounded-lg p-4 shadow-lg"
-            >
-              <div class="space-y-1">
-                <h3 class="font-bold text-lg">
-                  <span
-                    class="w-3 h-3 rounded-full inline-block mr-1"
-                    [style.backgroundColor]="item.color"
-                  ></span>
-                  {{ item.nombre }}
-                </h3>
-                <p class="font-normal text-sm">{{ item.descripcion }}</p>
-                <p class="font-normal text-sm flex items-center gap-1">
-                  <iconify-icon [icon]="'stash:data-date'" class="text-lg" />
-                  Creado:
-                  <span class="font-semibold">{{
-                    item.createdAt | date : "dd/MM/yyyy"
-                  }}</span>
-                </p>
-              </div>
-              <div class="flex justify-between pt-4">
-                <div>
-                  <p-tag
-                    class="text-xs"
-                    [value]="item.tipo == true ? 'Base' : 'Perzonalizado'"
-                    [severity]="item.tipo == true ? 'secondary' : 'primary'"
-                    ><iconify-icon
-                      *ngIf="item.tipo == true"
-                      [icon]="'mdi:secure-outline'"
-                      class="text-base"
-                    />
-                    <iconify-icon
-                      *ngIf="item.tipo != true"
-                      [icon]="'akar-icons:pencil'"
-                      class="text-base"
-                    />
-                  </p-tag>
+        <p-tabpanel [value]="'campaigns'">
+          <div class="grid grid-cols-1 gap-4">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-xl">Estados de Campaña</h3>
+              <button-save
+                label="Nuevo Estado"
+                [icon]="'mdi:plus-circle-outline'"
+                (click)="nuevoCampaignState()"
+              />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div
+                *ngFor="let item of campaignStateList"
+                class="border border-gray-400 rounded-lg p-4 shadow-lg"
+              >
+                <div class="space-y-1">
+                  <h3 class="font-bold text-lg">
+                    <span
+                      class="w-3 h-3 rounded-full inline-block mr-1"
+                      [style.backgroundColor]="item.color"
+                    ></span>
+                    {{ item.name }}
+                  </h3>
+                  <p class="font-normal text-sm">{{ item.description }}</p>
+                  <p class="font-normal text-sm flex items-center gap-1">
+                    <iconify-icon [icon]="'stash:data-date'" class="text-lg" />
+                    Creado:
+                    <span class="font-semibold">{{
+                      item.createdAt | date : "dd/MM/yyyy"
+                    }}</span>
+                  </p>
                 </div>
-                <div class="flex gap-2">
-                  <btn-edit-square (click)="EditarEstadoCampania(item)" />
-                  <btn-delete-square (click)="eliminarEstadoCampania(item)" />
+                <div class="flex justify-between pt-4">
+                  <div>
+                    <p-tag
+                      class="text-xs"
+                      [value]="item.type == true ? 'Base' : 'Personalizado'"
+                      [severity]="item.type == true ? 'secondary' : 'primary'"
+                      ><iconify-icon
+                        *ngIf="item.type == true"
+                        [icon]="'mdi:secure-outline'"
+                        class="text-base"
+                      />
+                      <iconify-icon
+                        *ngIf="item.type != true"
+                        [icon]="'akar-icons:pencil'"
+                        class="text-base"
+                      />
+                    </p-tag>
+                  </div>
+                  <div class="flex gap-2">
+                    <btn-edit-square (onClick)="EditarCampaignState(item)" />
+                    <btn-delete
+                      [text]="false"
+                      [disabled]="item.inmutable"
+                      (onClick)="eliminarCampaignState(item)"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -11,6 +11,6 @@ export interface Channel {
 
 export interface UserChannel {
   id: number;
-  idChannel: number;
-  idUser: number;
+  channelId: number;
+  userId: number;
 }

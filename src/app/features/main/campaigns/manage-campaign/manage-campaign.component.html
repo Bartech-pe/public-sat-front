@@ -1,0 +1,233 @@
+<div class="w-full flex justify-center">
+  <div class="w-full px-3">
+    <div class="flex flex-col gap-4">
+      <!-- Encabezado -->
+      <div class="bg-gray-50 shadow rounded-xl p-4">
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+          <div class="w-full lg:w-auto">
+            <h5 class="text-xl sm:text-2xl font-semibold mb-1">Campañas de Audio</h5>
+            <div class="flex flex-col w-full gap-3 text-n-slate-11">
+              <p
+                class="mb-0 text-sm font-normal line-clamp-3 sm:line-clamp-5 lg:line-clamp-none max-w-3xl text-gray-600"
+              >
+                Administra campañas de Audio
+              </p>
+            </div>
+          </div>
+
+          <!-- ✅ Contenedor para los dos botones -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            <button-save
+              label="Refrescar"
+              [icon]="'lucide:refresh-ccw'"
+              (click)="refresh()"
+              class="w-full sm:w-auto"
+            ></button-save>
+
+            <button-save
+              label="Nueva Campaña - Audio"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="addNew()"
+              class="w-full sm:w-auto"
+            ></button-save>
+
+            <button-save
+              label="Nueva Campaña Multiple - Audio"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="addNewMultiple()"
+              class="w-full sm:w-auto"
+            ></button-save>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
+        <p-table
+          [value]="campaniaListFiltradas"
+          [rows]="10"
+          [responsiveLayout]="'stack'"
+          sortMode="multiple"
+          [scrollable]="true"
+          scrollHeight="400px"
+          >
+          <!-- [paginator]="true"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}" -->
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="vdlistId" class="text-left">
+                <div class="flex items-center text-xs uppercase gap-2 sm:gap-4">
+                   Lista Id<p-sortIcon field="vdlistId" />
+                </div>
+              </th>
+              <th pSortableColumn="name" class="text-left">
+                <div class="flex items-center text-xs uppercase gap-2 sm:gap-4">
+                  Nombre Lista<p-sortIcon field="name" />
+                </div>
+              </th>
+
+              <th pSortableColumn="type" class="text-left sm:text-center">
+                <div class="flex items-center text-xs uppercase gap-2 sm:gap-4">
+                  Tipo Campaña<p-sortIcon field="type" />
+                </div>
+              </th>
+              <th pSortableColumn="campaignType.name" class="text-left">
+                <div class="flex items-center text-xs uppercase gap-2 sm:gap-4">
+                  Nombre Campaña
+                  <p-sortIcon field="campaignType.name"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="department.name" class="text-center">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-2 sm:gap-4"
+                >
+                  Área <p-sortIcon field="department.name" />
+                </div>
+              </th>
+              <th pSortableColumn="startDate" class="text-center">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-2 sm:gap-4"
+                >
+                  Fecha inicio <p-sortIcon field="startDate" />
+                </div>
+              </th>
+
+              <th class="text-center">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-2 sm:gap-4"
+                >
+                  Estado
+                </div>
+              </th>
+
+              <th class="text-center">
+                <div
+                  class="flex items-center justify-center text-xs uppercase gap-2 sm:gap-4"
+                >
+                  Avance
+                </div>
+              </th>
+              <th class="text-left">
+                <div class="flex items-center text-xs uppercase gap-2 sm:gap-4">
+                  Creado Por
+                </div>
+              </th>
+              <th class="text-center">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-2 sm:gap-4"
+                ></div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-registro>
+            <tr>
+              <td class="py-2 sm:py-3 px-2 sm:px-4">
+                <p class="text-xs sm:text-sm font-light">{{ registro.vdlistId }}</p>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4">
+                <p class="text-xs sm:text-sm font-light line-clamp-2">{{ registro.name }}</p>
+              </td>
+
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-left sm:text-center">
+                <p class="text-xs sm:text-sm font-light">{{ registro.type === 'I' ? 'Individual' : registro.type === 'M' ? 'Múltiple' : 'Desconocido' }}</p>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4">
+                <p class="text-xs sm:text-sm font-light line-clamp-2">
+                  {{
+                    registro.vdCampaignName
+                  }}
+                </p>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                <p class="text-xs sm:text-sm font-light">
+                  {{ registro.department?.name }}
+                </p>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                <p class="text-xs sm:text-sm font-light">
+                  {{ registro.startDate | date : "dd/MM/yyyy" }}
+                </p>
+              </td>
+
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                <div class="flex justify-center items-center">
+                  <span
+                    class="px-2 sm:px-3 py-1 rounded-full text-white text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+                    [ngStyle]="{
+                      'background-color': registro.active === 'Y' ? '#16a34a' : '#dc2626'
+                    }"
+                    (click)="updateStatus(registro)"
+                  >
+                    {{ registro.active === 'Y' ? 'Activo' : 'Desactivado' }}
+                  </span>
+                </div>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full">
+                  <div class="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 ">
+                      {{ registro.result?.numeros_discados ?? 0 }}
+                    </span>
+                    <span class="text-xs text-gray-500">/</span>
+                    <span class="text-xs sm:text-sm font-semibold text-gray-900 ">
+                      {{ registro.result?.total_leads ?? 0 }}
+                    </span>
+                  </div>
+                  <!-- Mini progress bar for visual appeal -->
+                  <div class="w-full sm:w-16 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner mt-1 sm:mt-0 sm:ml-2">
+                    <div 
+                      class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300 ease-out"
+                      [style.width.%]="(registro.result?.numeros_discados / (registro.result?.total_leads || 1)) * 100"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td class="py-2 sm:py-3 px-2 sm:px-4 text-left">
+                <p class="text-xs sm:text-sm font-light line-clamp-1">
+                  {{ registro.createdByUser?.name }}
+                </p>
+              </td>
+              
+              <td class="py-2 sm:py-3 px-2 sm:px-4 w-20 sm:w-28 text-center">
+                <div class="flex justify-center items-center gap-1 flex-wrap">
+                  <!-- <button-edit (click)="edit(registro)" /> -->
+                  <button-detail (click)="verResultados(registro)" />
+                  <!-- <button-statu  (click)="verResultados(registro)"/> -->
+                  <!-- <button-progress (click)="verResultadosProgreso(registro)" /> -->
+                  <btn-delete (click)="remove(registro)" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="10">
+                <div class="text-center text-sm font-light p-4">
+                  No hay campañas de audio creados.
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <!-- TODO: PROBAR CON DATA-->
+          <ng-template #footer>
+            <tr>
+              <td colspan="10">
+                <div class="flex justify-center items-center p-4">
+                  <sat-paginator
+                    [totalItems]="total"
+                    [limit]="limit()"
+                    [offset]="offset()"
+                    [limitOptions]="[10, 25, 50]"
+                    (pageChange)="onPageChange($event)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    </div>
+  </div>
+</div>

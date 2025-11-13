@@ -1,0 +1,64 @@
+<div class="grid grid-cols-1 gap-6">
+  <div class="grid grid-cols-1 gap-4">
+    <div class="flex justify-center items-center gap-2">
+      <p-multiselect
+        [options]="userList"
+        [(ngModel)]="selectedUsers"
+        optionLabel="name"
+        placeholder="Seleccionar agentes"
+        styleClass="w-64"
+        appendTo="body"
+      />
+      <button-save
+        icon="lucide:plus"
+        label="Añadir"
+        [disabled]="!selectedUsers.length"
+        (click)="assign()"
+      />
+    </div>
+
+    <div class="w-full overflow-x-auto">
+      <div class="flex gap-2 flex-nowrap">
+        @for (list of assignmentList; track $index) {
+        <div class="flex-1">
+          <div class="!w-80 grid grid-cols-1 gap-2">
+            @for (item of list; track $index) {
+            <div class="flex items-center gap-2">
+              <div class="w-full flex items-center gap-2">
+                <p-avatar class="bg-slate-200" size="normal" shape="circle">
+                  <p-image
+                    *ngIf="item.avatarUrl"
+                    [src]="item.avatarUrl"
+                    [alt]="item.name"
+                  />
+                  <span class="font-bold" *ngIf="!item.avatarUrl">
+                    {{ item.name ? item.name[0] : "" }}
+                  </span>
+                </p-avatar>
+                <div class="flex flex-col">
+                  <h5 class="font-semibold text-base">{{ item.name }}</h5>
+                  <p class="text-sm font-light">
+                    {{ item.email }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <btn-delete (click)="remove(item)" />
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end">
+    <button-save
+      [label]="'Actualizar Agentes'"
+      [loading]="loading"
+      (click)="onSubmit()"
+    />
+  </div>
+</div>

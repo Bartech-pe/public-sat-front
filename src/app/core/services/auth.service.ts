@@ -1,11 +1,11 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
-import { environment } from '@envs/enviroments';
+import { inject, Injectable, Injector, PLATFORM_ID } from '@angular/core';
+import { environment } from '@envs/environments';
 import { LoginRequest, LoginResponse } from '@models/auth.model';
 import { Screen } from '@models/screen.model';
 import { User } from '@models/user.model';
+import { AuthStore } from '@stores/auth.store';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -14,9 +14,14 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  private readonly url = `${environment.apiUrl}/auth`;
+  private readonly url = `${environment.apiUrl}v1/auth`;
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
+
+  constructor(private injector: Injector) {}
+
+  private get store() {
+    return this.injector.get(AuthStore);
+  }
 
   login(req: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.url}/login`, req);
@@ -28,7 +33,11 @@ export class AuthService {
 
   logout(): void {
     if (this.isBrowser) {
-      localStorage.clear();
+      this.http.get<User>(`${this.url}/logout`).subscribe({
+        next: (data) => {
+          localStorage.clear();
+        },
+      });
     }
   }
 
@@ -59,45 +68,18 @@ export class AuthService {
     return this.http.get<Screen[]>(`${this.url}/screens`);
   }
 
-
   getUser(): User | null {
-    if (this.isBrowser) {
-      const raw = localStorage.getItem('user');
-      return raw ? JSON.parse(raw) as User : null;
-    }
-    return null;
+    return this.store.user();
   }
 
-  hasRole(roles: string[]): boolean {
+  hasRole(roles: number[]): boolean {
     const user = this.getUser();
-    if (!user?.role) return false;
+    if (!user?.roleId) return false;
 
-    const roleName = typeof user.role === 'string'
-      ? user.role
-      : user.role.name;
-
-    return roles.map(r => r.toLowerCase()).includes(roleName.toLowerCase());
+    return roles.includes(user.roleId);
   }
-
-
-  //private accessToken: string | null = null;
-  //private refreshToken: string | null = null;
-
-  //storeTokens(accessToken: string, refreshToken: string): void {
-  //  localStorage.setItem('accessToken', accessToken);
-  //  if (refreshToken) {
-  //    localStorage.setItem('refreshToken', refreshToken);
-  //  }
-  //}
-
-  //loadTokens() {
-  //  this.accessToken = localStorage.getItem('accessToken');
-  //  this.refreshToken = localStorage.getItem('refreshToken');
-  //}
 
   isLoggedIn(): boolean {
-   return !!localStorage.getItem('accessToken');
+    return !!localStorage.getItem('accessToken');
   }
-
-
 }

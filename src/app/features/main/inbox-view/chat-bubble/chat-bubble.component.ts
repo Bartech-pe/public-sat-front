@@ -1,6 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, inject, OnDestroy, AfterViewInit, OnInit, signal, ViewChild } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  inject,
+  OnDestroy,
+  AfterViewInit,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormGroup,
+  FormControl,
+  Validators,
+} from '@angular/forms';
 import { ChatMessageButtonComponent } from '@shared/chat-message-button/chat-message-button.component';
 import { ChatMessageListComponent } from '@shared/chat-message-list/chat-message-list.component';
 import { ButtonModule } from 'primeng/button';
@@ -17,14 +33,14 @@ import { ChatMessageService } from '@services/message.service';
 import { ChatMessage } from '@models/chat-message.model';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MessageService } from 'primeng/api';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { SocketService } from '@services/socket.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { ChatService } from '@services/chat.service';
-import { NotificationSupervisesComponent } from '@shared/notification-supervises/notification-supervises.component';
-
-
+import { UserService } from '@services/user.service';
+import { NotificationService } from '@services/notification.service';
+import { MessageEventsService } from '@services/message-events.service';
 
 @Component({
   selector: 'app-chat-bubble',
@@ -43,15 +59,13 @@ import { NotificationSupervisesComponent } from '@shared/notification-supervises
     ChatMessageListComponent,
     ButtonSaveComponent,
     ButtonCancelComponent,
-    NotificationSupervisesComponent
   ],
   templateUrl: './chat-bubble.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [DialogService, MessageService],
-  styles: ``
+  styles: ``,
 })
 export class ChatBubbleComponent {
-
   private isUserNearBottom = true;
 
   openInbox = false;
@@ -62,16 +76,19 @@ export class ChatBubbleComponent {
   @ViewChild('scrollContainer') private scrollContainer?: ElementRef;
   @ViewChild('emojiPopoverButones') emojiPopoverButones: any;
 
-  readonly storeUser = inject(UserStore);
+  readonly userService = inject(UserService);
   private readonly msg = inject(MessageGlobalService);
   readonly chatMessageService = inject(ChatMessageService);
-  readonly dialogService = inject(DialogService);
+  readonly dialogService = inject(DialogService); 
   readonly authStore = inject(AuthStore);
   readonly messageService = inject(MessageService);
   ref: DynamicDialogRef | undefined;
 
   readonly socketService = inject(SocketService);
   readonly chatService = inject(ChatService);
+  readonly  notificationService= inject(NotificationService);
+
+    readonly  messageEvents = inject(MessageEventsService);
 
   limit = signal(10);
   offset = signal(0);
@@ -83,6 +100,8 @@ export class ChatBubbleComponent {
   chatSeleccionado: any = null;
   mensajesSeleccionado: ChatMessage[] = [];
 
+  messageTotal: any[] = [];
+
   selectedUsers: any[] = [];
   filteredList: User[] = [];
 
@@ -92,23 +111,19 @@ export class ChatBubbleComponent {
     name: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required],
-    })
+    }),
   });
 
   get id() {
     return null;
   }
 
-  get loading(): boolean {
-    return this.storeUser.loading();
-  }
-
   get groupChats() {
-  return this.listChatRoom.filter(chat => chat.isGroup);
+    return this.listChatRoom.filter((chat) => chat.isGroup);
   }
 
   get directChats() {
-    return this.listChatRoom.filter(chat => !chat.isGroup);
+    return this.listChatRoom.filter((chat) => !chat.isGroup);
   }
 
   ngOnInit(): void {
@@ -119,102 +134,134 @@ export class ChatBubbleComponent {
     }
 
     this.socketService.onMessage((msg) => {
-      if (msg.idSender != this.userCurrent.id) {
-        msg.isSender = false;
+      if (msg.senderId != this.userCurrent.id) {
+        msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
+        msg.isSender = msg.senderId === this.userCurrent.id;
+        msg.senderId = false;
+         this.listMessageChatRoom.push(msg);
+        this.allNotification();
       }
-
     });
 
-    this.loadUnreadMessages();
-    // setInterval(() => this.loadUnreadMessages(), 10000);
+    this.messageEvents.messageSelected$.subscribe((msg) => {
+      console.log('Mensaje recibido:', msg);
+      // Aquí haces que el cambio se refleje en pantalla
+      this.toggleInbox();
+    });
 
+  
+
+    
+
+    // this.loadUnreadMessages();
+    // setInterval(() => this.loadUnreadMessages(), 10000);
+  }
+
+  allNotification(){
+    this.notificationService.findAllByuserId().subscribe((res:any) => {
+      this.messageTotal = res.data;
+    })
   }
 
   ngAfterViewInit(): void {
-  if (this.scrollContainer) {
-    this.scrollContainer.nativeElement.addEventListener('scroll', () => {
-      const threshold = 100;
-      const position = this.scrollContainer!.nativeElement.scrollTop + this.scrollContainer!.nativeElement.clientHeight;
-      const height = this.scrollContainer!.nativeElement.scrollHeight;
-      this.isUserNearBottom = position > height - threshold;
+    if (this.scrollContainer) {
+      this.scrollContainer.nativeElement.addEventListener('scroll', () => {
+        const threshold = 100;
+        const position =
+          this.scrollContainer!.nativeElement.scrollTop +
+          this.scrollContainer!.nativeElement.clientHeight;
+        const height = this.scrollContainer!.nativeElement.scrollHeight;
+        this.isUserNearBottom = position > height - threshold;
       });
     }
   }
 
   sendMessage(chatText: string) {
-  if (!chatText.trim()) return;
+    if (!chatText.trim()) return;
 
-  const newMessage = {
-    isSender: true,
-    type: 'text',
-    content: chatText,
-    idChatRoom: this.selectedChatId,
-    isRead: false
-  };
+    const newMessage = {
+      isSender: true,
+      type: 'text',
+      content: chatText,
+      chatRoomId: this.selectedChatId,
+      isRead: false,
+    };
 
-  this.chatMessageService.registerMessage(newMessage).subscribe((response: any) => {
-    response.isSender = true;
+    this.chatMessageService
+      .registerMessage(newMessage)
+      .subscribe((response: any) => {
+        response.isSender = true;
 
-    if (this.chatSeleccionado) {
-      this.chatSeleccionado.mensajesflotante = this.chatSeleccionado.mensajesflotante || [];
-      this.chatSeleccionado.mensajesflotante.push(response);
-      this.chatSeleccionado.newMessage = '';
-    }
+        if (this.chatSeleccionado) {
+          this.chatSeleccionado.mensajesflotante =
+            this.chatSeleccionado.mensajesflotante || [];
+          this.chatSeleccionado.mensajesflotante.push(response);
+          this.chatSeleccionado.newMessage = '';
+        }
 
-    this.socketService.sendMessage(response);
+        this.socketService.sendMessage(response);
 
-    setTimeout(() => this.scrollToBottom(), 100);
-    });
+        let req = {
+          chatRoomId: response.chatRoomId,
+          userId: this.idUsuario,
+          message:chatText
+        }
+        this.chatMessageService.registerMessageNotificacion(req).subscribe(res =>{ console.log(res) });
+
+        setTimeout(() => this.scrollToBottom(), 100);
+      });
   }
 
-  loadUnreadMessages(): void {
-    this.chatService.getNewMessages().subscribe({
-      next: (messages) => {
-        this.unreadMessagesCount = messages.length;
-      },
-      error: (err) => {
-        // console.error('Error al obtener mensajes no leídos', err);
-      }
-    });
-  }
+  // loadUnreadMessages(): void {
+  //   this.chatService.getNewMessages().subscribe({
+  //     next: (messages) => {
+  //       this.unreadMessagesCount = messages.length;
+  //     },
+  //     error: (err) => {
+  //       // console.error('Error al obtener mensajes no leídos', err);
+  //     }
+  //   });
+  // }
 
   handleFile(file: File) {
-  if (file.size > 10 * 1024 * 1024) {
-    this.msg.error('¡El archivo es demasiado grande (máximo 10 MB)!');
-    return;
-  }
+    if (file.size > 10 * 1024 * 1024) {
+      this.msg.error('¡El archivo es demasiado grande (máximo 10 MB)!');
+      return;
+    }
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    const previewUrl = reader.result as string;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const previewUrl = reader.result as string;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('isSender', 'true');
-    formData.append('type', 'image');
-    formData.append('content', '');
-    formData.append('resourceUrl', previewUrl);
-    formData.append('idChatRoom', this.selectedChatId.toString());
-    formData.append('isRead', 'false');
-    formData.append('createdAt', new Date().toISOString());
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('isSender', 'true');
+      formData.append('type', 'image');
+      formData.append('content', '');
+      formData.append('resourceUrl', previewUrl);
+      formData.append('chatRoomId', this.selectedChatId.toString());
+      formData.append('isRead', 'false');
+      formData.append('createdAt', new Date().toISOString());
 
-    this.chatMessageService.registerMessageImagen(formData).subscribe((response: any) => {
-      if (response?.resourceUrl) {
-        response.isSender = true;
-        this.socketService.sendMessage(response);
-        }
-      });
+      this.chatMessageService
+        .registerMessageImagen(formData)
+        .subscribe((response: any) => {
+          if (response?.resourceUrl) {
+            response.isSender = true;
+            this.socketService.sendMessage(response);
+          }
+        });
     };
 
     reader.readAsDataURL(file);
-
   }
 
   private scrollToBottom(): void {
     if (!this.isUserNearBottom || !this.scrollContainer) return;
 
     try {
-      this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+      this.scrollContainer.nativeElement.scrollTop =
+        this.scrollContainer.nativeElement.scrollHeight;
     } catch (err) {
       console.error('Error al hacer scroll:', err);
     }
@@ -223,8 +270,10 @@ export class ChatBubbleComponent {
   listChatRoom: any[] = [];
   listMessageChatRoom: ChatMessage[] = [];
 
+  users = signal<User[]>([]);
+
   get listUsers(): User[] {
-    return this.storeUser.items();
+    return this.users();
   }
 
   get userCurrent(): User {
@@ -233,17 +282,26 @@ export class ChatBubbleComponent {
 
   applyFilter() {
     const term = this.searchTerm.toLowerCase();
-    this.filteredList = this.listUsers.filter(user =>
+    this.filteredList = this.listUsers.filter((user) =>
       user.displayName.toLowerCase().includes(term)
     );
   }
 
   loadData() {
-    this.storeUser.loadAll(this.limit(), this.offset());
-    this.chatMessageService.getAllWithToken(this.limit(), this.offset()).subscribe((response: any) => {
-      this.listChatRoom = response.data;
-      this.filteredList = [...this.listUsers];
+    this.userService.getAll().subscribe({
+      next: (res) => {
+        this.users.set(res.data);
+      },
     });
+
+    this.chatMessageService
+      .getAllWithToken(this.limit(), this.offset())
+      .subscribe((response: any) => {
+        this.listChatRoom = response.data;
+        this.filteredList = [...this.listUsers];
+    });
+
+    this.allNotification();
   }
 
   onCancel() {
@@ -251,92 +309,102 @@ export class ChatBubbleComponent {
     this.ref?.close(false);
   }
 
- onSubmit() {
-  const form = this.formData;
-  const idUsuarioslist: number[] = this.selectedUsers.map(u => u.id);
+  onSubmit() {
+    const form = this.formData;
+    const idUsuarioslist: number[] = this.selectedUsers.map((u) => u.id);
 
-  if (idUsuarioslist.length === 0 || form.invalid) {
-    return;
-  }
+    if (idUsuarioslist.length === 0 || form.invalid) {
+      return;
+    }
 
-  const currentUserId = this.userCurrent.id;
-  const allUsers = [/* currentUserId, */ ...idUsuarioslist];
+    const currentUserId = this.userCurrent.id;
+    const allUsers = [/* currentUserId, */ ...idUsuarioslist];
 
-  const body: any = {
-    idUsers: allUsers,
-    name: form.value.name,
-    isGroup: true
-  };
+    const body: any = {
+      userIds: allUsers,
+      name: form.value.name,
+      isGroup: true,
+    };
 
+    console.log('form', form.value);
 
-  console.log("form", form.value);
+    // if (allUsers.length > 2) {
+    //   body.name = form.value.name || 'Grupo sin nombre';
+    // }
 
-  // if (allUsers.length > 2) {
-  //   body.name = form.value.name || 'Grupo sin nombre';
-  // }
+    console.log('🟢 Enviando body a /chat/room/multiple:', body);
+    console.log('🟢 Usuarios seleccionados:', idUsuarioslist);
+    console.log('🟢 Usuario actual:', this.userCurrent.id);
+    console.log('🟢 Body final:', body);
 
-  console.log('🟢 Enviando body a /chat/room/multiple:', body);
-  console.log('🟢 Usuarios seleccionados:', idUsuarioslist);
-  console.log('🟢 Usuario actual:', this.userCurrent.id);
-  console.log('🟢 Body final:', body);
-
-  this.chatMessageService.registerRoomGrupo(body).subscribe({
-    next: (res) => {
-      if (res) {
-        this.loadData();
-        this.openGroup = false;
-        this.ref?.close(res);
-      }
-    },
-    error: (err) => {
-      console.error('❌ Error al crear grupo:', err);
-      }
+    this.chatMessageService.registerRoomGrupo(body).subscribe({
+      next: (res) => {
+        if (res) {
+          this.loadData();
+          this.openGroup = false;
+          this.ref?.close(res);
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al crear grupo:', err);
+      },
     });
   }
 
   infoUserGroup: any = {};
   infoUsers?: UserSender;
-
+  idUsuario:any = null;
   viewMessages(chat: any) {
-  this.infoUserGroup = null;
-  this.infoUsers = undefined;
-  this.listMessageChatRoom = [];
-  this.selectedChatId = chat.id;
-  this.openInbox = false;
+    this.infoUserGroup = null;
+    this.infoUsers = undefined;
+    this.listMessageChatRoom = [];
+    this.selectedChatId = chat.id;
+    this.openInbox = false;
 
-  this.chatSeleccionado = {
-    ...chat,
-    mensajesflotante: [],
-    minimized: false,
-    newMessage: ''
-  };
+     this.idUsuario =   this.getLastMessageIdUser(chat);
 
-  if (chat.isGroup) {
-    this.infoUserGroup = chat;
-  } else {
-    this.infoUsers = this.getMessageUser(chat);
-  }
+    this.chatSeleccionado = {
+      ...chat,
+      mensajesflotante: [],
+      minimized: false,
+      newMessage: '',
+    };
 
-  this.chatMessageService.getRoomMessages(chat.id).subscribe((response) => {
-    this.chatSeleccionado.mensajesflotante = response;
-    this.listMessageChatRoom = response;
+    if (chat.isGroup) {
+      this.infoUserGroup = chat;
+    } else {
+      this.infoUsers = this.getMessageUser(chat);
+    }
 
-    setTimeout(() => {
-      this.scrollToBottom();
+    this.chatMessageService.getRoomMessages(chat.id).subscribe((response) => {
+      this.chatSeleccionado.mensajesflotante = response;
+      this.listMessageChatRoom = response;
 
-      // Aquí nos aseguramos que scrollContainer ya esté en el DOM
-      if (this.scrollContainer) {
-        this.scrollContainer.nativeElement.addEventListener('scroll', () => {
-          const threshold = 100;
-          const position = this.scrollContainer!.nativeElement.scrollTop + this.scrollContainer!.nativeElement.clientHeight;
-          const height = this.scrollContainer!.nativeElement.scrollHeight;
-          this.isUserNearBottom = position > height - threshold;
-        });
-      }
+      setTimeout(() => {
+        this.scrollToBottom();
+
+        // Aquí nos aseguramos que scrollContainer ya esté en el DOM
+        if (this.scrollContainer) {
+          this.scrollContainer.nativeElement.addEventListener('scroll', () => {
+            const threshold = 100;
+            const position =
+              this.scrollContainer!.nativeElement.scrollTop +
+              this.scrollContainer!.nativeElement.clientHeight;
+            const height = this.scrollContainer!.nativeElement.scrollHeight;
+            this.isUserNearBottom = position > height - threshold;
+          });
+        }
       }, 0); // Espera al siguiente ciclo para asegurarte que el DOM está renderizado
     });
   }
 
+  getLastMessageIdUser(chat: any): string {
+    if (!chat?.users?.length) return 'Sin Nombre';
+    const otherUser = chat.users.find(
+      (user: any) => user.id !== this.userCurrent.id
+    );
+    return otherUser?.id || '';
+  }
 
   openFloatingChat(chat: any) {
     const exists = this.openedChats.find((c) => c.id === chat.id);
@@ -345,7 +413,7 @@ export class ChatBubbleComponent {
         ...chat,
         minimized: false,
         mensajesflotante: [],
-        newMessage: ''
+        newMessage: '',
       });
     }
   }
@@ -361,8 +429,8 @@ export class ChatBubbleComponent {
       isSender: true,
       type: 'text',
       content: chat.newMessage,
-      idChatRoom: chat.id,
-      isRead: false
+      chatRoomId: chat.id,
+      isRead: false,
     };
 
     chat.mensajesflotante.push(message);
@@ -375,12 +443,12 @@ export class ChatBubbleComponent {
 
   viewMessage(contact: any) {
     const body = {
-      name: "Nuevo Mensaje",
-      idUsers: [contact.id],
-      isGroup: false
+      name: 'Nuevo Mensaje',
+      userIds: [contact.id],
+      isGroup: false,
     };
 
-    const roomWithUser = this.listChatRoom.find(room =>
+    const roomWithUser = this.listChatRoom.find((room) =>
       room.users.some((user: any) => user.id === contact.id)
     );
 
@@ -396,7 +464,7 @@ export class ChatBubbleComponent {
         },
         error: (err) => {
           console.error(err);
-        }
+        },
       });
     }
   }
@@ -421,13 +489,12 @@ export class ChatBubbleComponent {
   }
 
   marcarPospuesto(chatId: number) {
-  this.chatService.setEstado(chatId, 'pospuesto');
+    this.chatService.setEstado(chatId, 'pospuesto');
   }
 
   getEstado(chatId: number): string | null {
     return this.chatService.getEstado(chatId);
   }
-
 
   toggleInbox() {
     this.openInbox = !this.openInbox;
@@ -449,18 +516,22 @@ export class ChatBubbleComponent {
 
   getLastMessageNameUser(chat: any): string {
     if (!chat?.users?.length) return 'Sin Nombre';
-    const otherUser = chat.users.find((user: any) => user.id !== this.userCurrent.id);
+    const otherUser = chat.users.find(
+      (user: any) => user.id !== this.userCurrent.id
+    );
     return otherUser?.name || 'Sin Nombre';
   }
 
   getLastMessage(chat: any): string {
-    return chat?.messages?.length ? chat.messages[chat.messages.length - 1].content : 'Sin mensajes';
+    return chat?.messages?.length
+      ? chat.messages[chat.messages.length - 1].content
+      : 'Sin mensajes';
   }
 
   enviarNotificacionesUser() {
     this.socketService.sendAlertas({
-      mensaje: "Tienes nuevos mensajes por revisar por favor",
-      titulo: this.userCurrent.name
+      mensaje: 'Tienes nuevos mensajes por revisar por favor',
+      titulo: this.userCurrent.name,
     });
   }
 
@@ -474,9 +545,11 @@ export class ChatBubbleComponent {
     this.chatMessageService.deleteMessage(id).subscribe({
       next: () => {
         this.msg.success('Mensaje eliminado');
-        this.listMessageChatRoom = this.listMessageChatRoom.filter(m => m.id !== id);
+        this.listMessageChatRoom = this.listMessageChatRoom.filter(
+          (m) => m.id !== id
+        );
       },
-      error: () => this.msg.error('Error al eliminar el mensaje')
+      error: () => this.msg.error('Error al eliminar el mensaje'),
     });
   }
 
@@ -484,9 +557,11 @@ export class ChatBubbleComponent {
     this.chatMessageService.deleteRoom(chatId).subscribe({
       next: () => {
         this.msg.success('Sala eliminada');
-        this.listChatRoom = this.listChatRoom.filter(chat => chat.id !== chatId);
+        this.listChatRoom = this.listChatRoom.filter(
+          (chat) => chat.id !== chatId
+        );
       },
-      error: () => this.msg.error('Error al eliminar la sala')
+      error: () => this.msg.error('Error al eliminar la sala'),
     });
   }
 
@@ -494,17 +569,18 @@ export class ChatBubbleComponent {
     this.chatMessageService.deleteUserGroup(chatId).subscribe({
       next: () => {
         this.msg.success('Grupo eliminado');
-        this.listChatRoom = this.listChatRoom.filter(chat => chat.id !== chatId);
+        this.listChatRoom = this.listChatRoom.filter(
+          (chat) => chat.id !== chatId
+        );
       },
-      error: () => this.msg.error('Error al eliminar el grupo')
+      error: () => this.msg.error('Error al eliminar el grupo'),
     });
   }
 
   ngOnDestroy() {}
 
-   onReject() {
-        this.messageService.clear('confirm');
-        this.visible = false;
+  onReject() {
+    this.messageService.clear('confirm');
+    this.visible = false;
   }
-
 }

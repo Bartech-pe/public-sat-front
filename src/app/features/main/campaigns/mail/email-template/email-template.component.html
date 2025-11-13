@@ -1,0 +1,93 @@
+<div class="w-full flex justify-center">
+  <div class="w-full p-0">
+    <p class="p-3 text-gray-700 font-medium">
+      Plantilla de correo electrónico con variables dinámicas.
+    </p>
+
+    <form
+      *ngIf="formData"
+      [formGroup]="formData"
+      (ngSubmit)="saveTemplate()"
+      class="space-y-6 w-full rounded-xl"
+    >
+      <!-- Información básica -->
+      <p-fieldset legend="Información básica" class="shadow-md rounded-xl">
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Nombre -->
+          <div>
+            <label for="name" class="block text-sm font-medium mb-1">
+              Nombre <span class="text-xs text-red-500">*</span>
+            </label>
+            <input
+              id="name"
+              type="text"
+              pInputText
+              formControlName="name"
+              placeholder="Ingrese nombre de la plantilla"
+              class="w-full p-inputtext-sm"
+            />
+          </div>
+
+          <!-- Variables -->
+          <div>
+            <label for="variable" class="block text-sm font-medium mb-1">
+              Variables disponibles
+            </label>
+            <div class="flex gap-2">
+              <p-dropdown
+                [options]="listVariable"
+                formControlName="variable"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Seleccionar variable"
+                class="w-full"
+                appendTo="body"
+              ></p-dropdown>
+
+              <p-button
+                icon="pi pi-plus"
+                label="Insertar"
+                size="small"
+                severity="secondary"
+                (click)="insertVariable()"
+              ></p-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor -->
+        <div class="grid grid-cols-1 mt-6">
+          <p-editor
+            formControlName="template"
+            [style]="{ height: '400px' }"
+            [modules]="editorModules"
+          >
+          </p-editor>
+        </div>
+      </p-fieldset>
+
+      <!-- Vista previa -->
+      <p-fieldset legend="Vista previa" class="shadow-md rounded-xl">
+        <div
+          class="p-4 border rounded-lg bg-gray-50 min-h-[200px] prose max-w-none"
+          [innerHTML]="formData.get('template')?.value"
+        ></div>
+      </p-fieldset>
+
+      <!-- Botones -->
+      <div class="pt-4 flex justify-end space-x-2">
+        <button-cancel (click)="onCancel()" />
+        <p-button
+          type="submit"
+          size="small"
+          [label]="id ? 'Actualizar' : 'Guardar'"
+          styleClass="w-full !rounded-full !shadow-none"
+          severity="primary"
+          [disabled]="formData.invalid"
+        >
+          <iconify-icon icon="ci:save" class="text-xl"></iconify-icon>
+        </p-button>
+      </div>
+    </form>
+  </div>
+</div>

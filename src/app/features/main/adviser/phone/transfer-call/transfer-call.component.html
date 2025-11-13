@@ -1,0 +1,39 @@
+<div class="grid grid-cols-1 gap-4">
+  <div class="flex justify-center gap-4">
+    <div *ngFor="let item of listRoles" class="flex items-center">
+      <p-radiobutton
+        [value]="item.id"
+        [(ngModel)]="roleId"
+        inputId="role_{{ item.id }}"
+        (onClick)="selectRole($event)"
+      />
+      <label for="role_{{ item.id }}" class="ml-2">{{ item.name }}</label>
+    </div>
+  </div>
+
+  <div class="w-full flex flex-col gap-2">
+    <label class="text-sm font-medium" for="idMetodo">
+      Método de contacto
+    </label>
+    <p-select
+      id="idMetodo"
+      [options]="listUsers"
+      optionLabel="name"
+      optionValue="id"
+      [(ngModel)]="userId"
+      placeholder="Seleccione..."
+      appendTo="body"
+    />
+  </div>
+  <div class="flex justify-end">
+    <button
+      pButton
+      type="button"
+      class="p-button-primary"
+      [disabled]="!userId"
+      (click)="onSubmit()"
+    >
+      Transferir llamada
+    </button>
+  </div>
+</div>

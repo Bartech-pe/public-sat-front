@@ -1,4 +1,4 @@
-import { createEntityStore } from './createEntityStore';
+import { createEntityStore } from './generic/createEntityStore';
 import { Team } from '@models/team.model';
 import { TeamService } from '@services/team.service';
 

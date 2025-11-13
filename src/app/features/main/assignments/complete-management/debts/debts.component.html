@@ -1,0 +1,272 @@
+<div class="grid grid-cols-1 gap-2">
+  <div class="grid grid-cols-2 gap-2 py-1 px-2"></div>
+  <div
+    class="grid grid-cols-1 gap-2 py-1 px-2 rounded-md border border-slate-500"
+  >
+    <div class="flex justify-between gap-4">
+      <div class="font-semibold">{{ code }} | {{ name }}</div>
+      <div class="w-32 text-sm text-right">
+        {{ currentDate | date : "dd/MM/yyyy hh:mm:ss .a" }}
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-4">
+      <div class="font-medium text-sm">Deuda total:</div>
+      <div class="font-medium">{{ total | currency }}</div>
+    </div>
+  </div>
+  <p-accordion [value]="debtActive" [multiple]="true">
+    <p-accordion-panel *ngFor="let debt of debts; let i = index" [value]="i">
+      <p-accordion-header class="!py-1">
+        <div class="w-full grid grid-cols-2 text-sm font-medium pr-4">
+          <div>
+            {{ debt.concepto }}
+          </div>
+          <div class="flex justify-end">
+            TOTAL: {{ debt.totalConcepto | currency }}
+          </div>
+          <ng-template #toggleicon let-active="active">
+            @if (active) {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path fill="currentColor" d="M19 12.998H5v-2h14z" />
+            </svg>
+            } @else {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z"
+              />
+            </svg>
+            }
+          </ng-template>
+        </div>
+      </p-accordion-header>
+      <p-accordion-content styleClass="!px-2">
+        <p-accordion [multiple]="true">
+          <p-accordion-panel
+            *ngFor="let ref of debt.referencias; let j = index"
+            [value]="j"
+          >
+            <p-accordion-header class="!py-1">
+              <div class="w-full text-sm flex justify-between gap-4 pr-4">
+                <div class="w-32">Referencia:</div>
+                <div class="text-right">
+                  {{ ref.referencia }}
+                </div>
+              </div>
+              <ng-template #toggleicon let-active="active">
+                @if (active) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                >
+                  <path fill="currentColor" d="M19 12.998H5v-2h14z" />
+                </svg>
+                } @else {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z"
+                  />
+                </svg>
+                }
+              </ng-template>
+            </p-accordion-header>
+            <p-accordion-content>
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-slate-700 text-slate-50">
+                    <th>
+                      <div class="text-xs py-1 px-2 text-left">Año-cuota</div>
+                    </th>
+                    <th><div class="text-xs py-1 px-2">Doc. de pago</div></th>
+                    <th>
+                      <div class="text-xs py-1 px-2">Fec. vencimiento</div>
+                    </th>
+                    <th><div class="text-xs py-1 px-2">Estado</div></th>
+                    <th>
+                      <div class="text-xs py-1 px-2 text-right">
+                        Deuda a la fecha
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let item of ref.anos">
+                    <tr *ngIf="item.zero" class="text-sm">
+                      <td>
+                        <div class="py-0.5 px-2">
+                          {{ item.ano }}-{{ item.cuota }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="py-0.5 px-2">{{ item.documento }}</div>
+                      </td>
+                      <td>
+                        <div class="py-0.5 px-2 flex justify-center">
+                          {{ item.fechavencimiento }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="py-0.5 px-2 flex justify-center">
+                          {{ item.estado }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="py-0.5 px-2 flex justify-end">
+                          {{ item.total | currency }}
+                        </div>
+                      </td>
+                    </tr>
+                    <ng-container *ngFor="let cu of item.cuotas">
+                      <tr class="text-sm">
+                        <td>
+                          <div class="py-0.5 px-2">
+                            {{ cu.ano }}-{{ cu.cuota }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="py-0.5 px-2">{{ cu.documento }}</div>
+                        </td>
+                        <td>
+                          <div class="py-0.5 px-2 flex justify-center">
+                            {{ cu.fechavencimiento }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="py-0.5 px-2 flex justify-center">
+                            {{ cu.estado }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="py-0.5 px-2 flex justify-end">
+                            {{ cu.monto | currency }}
+                          </div>
+                        </td>
+                      </tr>
+                    </ng-container>
+                    <tr>
+                      <div class="h-4"></div>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+            </p-accordion-content>
+          </p-accordion-panel>
+        </p-accordion>
+      </p-accordion-content>
+    </p-accordion-panel>
+  </p-accordion>
+  <!-- <ng-container *ngFor="let debt of debts">
+    <div class="grid grid-cols-1 gap-2">
+      <div
+        class="grid grid-cols-2 gap-2 py-1 px-2 bg-slate-200 font-medium shadow-xl"
+      >
+        <div>
+          {{ debt.concepto }}
+        </div>
+        <div class="flex justify-end">
+          TOTAL: {{ debt.totalConcepto | currency }}
+        </div>
+      </div>
+
+      <ng-container *ngFor="let ref of debt.referencias">
+        <div class="grid grid-cols-1 gap-2 px-2">
+          <div class="bg-slate-100 text-sm flex justify-between gap-4">
+            <div class="w-32">Referencia:</div>
+            <div class="text-right">
+              {{ ref.referencia }}
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr class="bg-slate-700 text-slate-50">
+                <th>
+                  <div class="text-xs py-1 px-2 text-left">Año-cuota</div>
+                </th>
+                <th><div class="text-xs py-1 px-2">Doc. de pago</div></th>
+                <th><div class="text-xs py-1 px-2">Fec. vencimiento</div></th>
+                <th><div class="text-xs py-1 px-2">Estado</div></th>
+                <th>
+                  <div class="text-xs py-1 px-2 text-right">
+                    Deuda a la fecha
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let item of ref.anos">
+                <tr *ngIf="item.zero" class="text-sm">
+                  <td>
+                    <div class="py-0.5 px-2">
+                      {{ item.ano }}-{{ item.cuota }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2">{{ item.documento }}</div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-center">
+                      {{ item.fechavencimiento }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-center">
+                      {{ item.estado }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="py-0.5 px-2 flex justify-end">
+                      {{ item.total | currency }}
+                    </div>
+                  </td>
+                </tr>
+                <ng-container *ngFor="let cu of item.cuotas">
+                  <tr class="text-sm">
+                    <td>
+                      <div class="py-0.5 px-2">{{ cu.ano }}-{{ cu.cuota }}</div>
+                    </td>
+                    <td>
+                      <div class="py-0.5 px-2">{{ cu.documento }}</div>
+                    </td>
+                    <td>
+                      <div class="py-0.5 px-2 flex justify-center">
+                        {{ cu.fechavencimiento }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="py-0.5 px-2 flex justify-center">
+                        {{ cu.estado }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="py-0.5 px-2 flex justify-end">
+                        {{ cu.monto | currency }}
+                      </div>
+                    </td>
+                  </tr>
+                </ng-container>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container> -->
+</div>

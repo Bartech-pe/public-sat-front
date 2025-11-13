@@ -1,15 +1,14 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@envs/enviroments';
+import { environment } from '@envs/environments';
 import { catchError, Observable, throwError } from 'rxjs';
 
 
-interface TelegramAuthResponse {
+export interface TelegramAuthResponse {
   success: string;
   message: string;
   authStatuses?: AuthStatuses;
 }
-
 export interface AuthStatuses{
   authMethod: 'EMAIL' | 'DEFAULT',
   emailRequired: boolean;
@@ -17,21 +16,22 @@ export interface AuthStatuses{
 }
 interface TelegramAuthRequest
 {
-  phoneNumber: string;
   email?: string;
+  phoneNumber: string;
   code?: string;
+  force?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class TelegramService {
-  private readonly url = `${environment.channelConnectorApiUrl}`;
+  private readonly url = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) { }
 
   sendCodeAuth(request: TelegramAuthRequest): Observable<TelegramAuthResponse> {
-    return this.http.post<TelegramAuthResponse>(`${this.url}/telegram/init`, request)
+    return this.http.post<TelegramAuthResponse>(`${this.url}v1/telegram/init`, {...request, force: true})
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);
@@ -42,7 +42,7 @@ export class TelegramService {
 
   createAuthSession(request: TelegramAuthRequest): Observable<TelegramAuthResponse>
   {
-    return this.http.post<TelegramAuthResponse>(`${this.url}/telegram/confirm-code`, request)
+    return this.http.post<TelegramAuthResponse>(`${this.url}v1/telegram/confirm-code`, request)
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error al generar QR:', error);

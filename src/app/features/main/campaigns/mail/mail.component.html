@@ -4,22 +4,32 @@
       <!-- Encabezado -->
       <div class="bg-gray-50 shadow rounded-xl p-4">
         <div class="flex justify-between items-center">
+          <!-- Texto a la izquierda -->
           <div>
-            <h5 class="text-2xl font-semibold mb-1">Campañas - Correo</h5>
+            <h5 class="text-2xl font-semibold mb-1">Campañas de Correo</h5>
             <div class="flex flex-col w-full gap-3 text-n-slate-11">
               <p
                 class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
               >
                 Las campañas por correo te permiten enviar correos masivos y
-                personalizados a los ciudadanos. sddfsdfsdfs
+                personalizados a los ciudadanos.
               </p>
             </div>
           </div>
-          <button-save
-            label="Crear de Campaña - Correo"
-            [icon]="'mdi:plus-circle-outline'"
-            (click)="openNew()"
-          />
+
+          <!-- Botones a la derecha -->
+          <div class="flex gap-2">
+            <button-save
+              label="Nueva Campaña - Correo"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="openNew()"
+            />
+            <!-- <button-save
+              label="Plantillas - Correo"
+              [icon]="'mdi:plus-circle-outline'"
+              (click)="openTemplate()"
+            /> -->
+          </div>
         </div>
       </div>
 
@@ -27,13 +37,13 @@
       <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
         <p-table
           [value]="listaCampaniasSMS"
-          [paginator]="true"
           [rows]="10"
           [responsiveLayout]="'scroll'"
           sortMode="multiple"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
-        >
+          >
+          <!-- [paginator]="true" -->
+          <!-- [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}" -->
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="name">
@@ -43,16 +53,16 @@
               </th>
               <th pSortableColumn="description">
                 <div class="flex items-center text-xs uppercase gap-4">
-                  Plantilla <p-sortIcon field="description" />
+                  Nombre <p-sortIcon field="description" />
                 </div>
               </th>
               <!-- <th pSortableColumn="fecha_creacion">Fecha de creación <p-sortIcon field="fecha_creacion" /></th> -->
               <th pSortableColumn="createdByUser.name">
                 <div class="flex items-center text-xs uppercase gap-4">
-                  Base #1 <p-sortIcon field="createdByUser.name" />
+                  Plantilla<p-sortIcon field="createdByUser.name" />
                 </div>
               </th>
-              <th pSortableColumn="dateStart">
+              <!-- <th pSortableColumn="dateStart">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
                 >
@@ -65,7 +75,7 @@
                 >
                   Formato #3 <p-sortIcon field="dateEnd" />
                 </div>
-              </th>
+              </th> -->
               <th>
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
@@ -87,19 +97,17 @@
                   Cargada <p-sortIcon field="amount" />
                 </div>
               </th>
-              <th class="items-center" pSortableColumn="amount">
+              <th class="items-center">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
                 >
-                  Estado <p-sortIcon field="amount" />
+                  Estado
                 </div>
               </th>
               <th class="items-center">
                 <div
                   class="flex justify-center items-center text-xs uppercase gap-4"
-                >
-                  Acciones
-                </div>
+                ></div>
               </th>
             </tr>
           </ng-template>
@@ -107,17 +115,20 @@
           <ng-template pTemplate="body" let-item>
             <tr>
               <td>
-                <p class="text-sm font-light">{{ item.fecha }}</p>
+                <p class="text-sm font-light">{{ item.id }}</p>
               </td>
               <td>
-                <p class="text-sm font-light">{{ item.nombre }}</p>
+                <p class="text-sm font-light">{{ item.name }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ item.template?.name }}</p>
               </td>
               <td>
                 <p class="text-sm font-light">
                   {{ item.idRemitente }}
                 </p>
               </td>
-              <td class="w-70">
+              <!-- <td class="w-70">
                 <p class="text-sm font-light text-center">
                   {{ item.mensaje }}
                 </p>
@@ -126,32 +137,155 @@
                 <p class="text-sm font-light text-center">
                   {{ item.recuentoSMS }}
                 </p>
-              </td>
+              </td> -->
               <td>
                 <div class="flex justify-center items-center">
-                  <p-tag
-                    [value]="item.estado === true ? ' Finalizado' : 'Activo'"
-                    [severity]="item.estado === true ? 'warn' : 'success'"
-                  />
+                  <p class="text-sm font-light text-center">
+                    {{ item.totalRegistered }} / {{ item.totalRegistered }}
+                  </p>
                 </div>
               </td>
               <td>
                 <p class="text-sm font-light text-center">
-                  {{ item.costo }}
+                  {{ item.createdAt }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  <p-tag
+                    [value]="getStatusLabel(item.campaignStatus)"
+                    [severity]="getStatusSeverity(item.campaignStatus)"
+                  ></p-tag>
                 </p>
               </td>
 
               <td class="w-28">
                 <div class="flex justify-center items-center gap-1">
-                  <button-count (click)="count(item)" />
-                  <button-edit (click)="edit(item)" />
-                  <button-download (click)="downloadReport(item)" />
+                  <!-- <button-edit (click)="edit(item)" /> -->
+                  <!-- <button-detail (click)="verResultados(item)" /> -->
+                  <button-count (click)="verResultados(item)" />
+                  <btn-delete (click)="remove(item)" />
                 </div>
               </td>
             </tr>
           </ng-template>
+          <ng-template #emptymessage>
+          <tr>
+            <td colspan="100">
+              <div class="text-center text-sm font-light p-4">
+                No hay campañas de correo creados.
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <!-- TODO: PROBAR CON DATA -->
+        <ng-template #footer>
+          <tr>
+            <td colspan="100">
+              <div class="flex justify-center items-center">
+                <sat-paginator
+                  [totalItems]="total"
+                  [limit]="limit()"
+                  [offset]="offset()"
+                  [limitOptions]="[10, 25, 50]"
+                  (pageChange)="onPageChange($event)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
         </p-table>
       </section>
     </div>
   </div>
 </div>
+
+<p-dialog header="Mensajes Enviados" [(visible)]="visible" [modal]="true">
+  <ng-template #header>
+    <div class="inline-flex items-center justify-center gap-2">
+      <span class="font-bold whitespace-nowrap">Mensajes Enviados</span>
+    </div>
+  </ng-template>
+  <div>
+    <p-table
+      [value]="listPreview"
+      [paginator]="true"
+      [rows]="10"
+      [responsiveLayout]="'scroll'"
+      sortMode="multiple"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="w-30">
+            <div class="flex items-center text-xs uppercase gap-4 text-center">
+              Correo Destino
+            </div>
+          </th>
+          <th class="w-150">
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4"
+            >
+              Asunto
+            </div>
+          </th>
+          <th class="w-30">
+            <div
+              class="flex items-center justify-center text-xs uppercase gap-4 text-center"
+            >
+              Número de letras
+            </div>
+          </th>
+          <th></th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <p class="text-sm font-light text-center">{{ item.to }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light">{{ item.subject }}</p>
+          </td>
+          <td>
+            <p class="text-sm font-light text-center">
+              {{ item.message.length }}
+            </p>
+          </td>
+          <td>
+            <button
+              pButton
+              label="Ver mensaje"
+              icon="pi pi-eye"
+              class="p-button-text p-button-sm"
+              (click)="showTemplate(item)"
+            ></button>
+          </td>
+          <td>
+            <iconify-icon
+              icon="pepicons-pop:checkmark-filled"
+              class="text-green-500 text-xl"
+            ></iconify-icon>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <ng-template #footer>
+    <div>
+      <button-cancel label="Cerrar" [text]="true" (click)="visible = false" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Vista previa del mensaje"
+  [(visible)]="visibleTemplate"
+  [modal]="true"
+  [style]="{ width: '60vw' }"
+>
+  <div [innerHTML]="selectedMessage"></div>
+</p-dialog>

@@ -6,8 +6,18 @@ import {
   Input,
   Output,
 } from '@angular/core';
-import { ButtonModule, ButtonSeverity } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+
+export type ButtonSeverity =
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'help'
+  | 'danger'
+  | 'contrast';
 
 @Component({
   selector: 'btn-custom-square',
@@ -20,14 +30,13 @@ import { TooltipModule } from 'primeng/tooltip';
       [text]="type === 'text'"
       [outlined]="type === 'outlined'"
       size="small"
-      [severity]="severity !== 'white' ? severity : 'info'"
+      [severity]="severity"
       [pTooltip]="tooltip"
       tooltipPosition="top"
       tooltipStyleClass="!text-xs !font-normal !p-0"
       (click)="onHandler()"
       [disabled]="disabled"
       [class]="getBtnClass()"
-      class="!rounded-full !shadow-none"
     >
       <iconify-icon [icon]="icon" [class]="getIconClasses()" pButtonIcon />
       <span *ngIf="!!label" pButtonLabel [class]="getLabelClasses()">
@@ -38,12 +47,12 @@ import { TooltipModule } from 'primeng/tooltip';
   styles: ``,
 })
 export class ButtonCustomSquareComponent {
-  @Input() severity: ButtonSeverity | 'white' = 'info';
+  @Input() severity: ButtonSeverity = 'info';
   @Input() tooltip!: string;
   @Input() icon!: string;
   @Input() disabled!: boolean;
   @Input() rounded: boolean = true;
-  @Input() type: 'text' | 'outlined' | undefined = 'text';
+  @Input() type: 'text' | 'outlined' = 'text';
   @Input() label?: string;
   @Input() styleClass: string = '';
 
@@ -60,19 +69,11 @@ export class ButtonCustomSquareComponent {
   getIconClasses(): string {
     const base = '!text-lg text-inherit transition-colors duration-200';
 
-    if (this.severity === 'white') {
-      return `${base} text-white group-hover:text-sky-700`;
-    }
-
     return `${base}`;
   }
 
   getLabelClasses(): string {
     const base = '!text-sm !font-light';
-
-    if (this.severity === 'white') {
-      return `${base} text-white group-hover:text-sky-700`;
-    }
 
     return `${base}`;
   }

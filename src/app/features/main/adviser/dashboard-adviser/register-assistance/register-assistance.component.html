@@ -1,0 +1,216 @@
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+  <!-- Control de Llamada -->
+  <div class="grid grid-cols-1 gap-4">
+    <p-card>
+      <ng-template #header>
+        <div class="pt-3 grid grid-cols-1 gap-2">
+          <div class="px-5">
+            <h4 class="text-xl font-bold text-gray-800">
+              Registro de atención
+            </h4>
+            <p class="text-xs text-gray-600">
+              Registra el resultado de la atención
+            </p>
+          </div>
+          <div class="w-full border-t border-slate-300"></div>
+        </div>
+      </ng-template>
+      <div class="grid grid-cols-1">
+        <form [formGroup]="formDataAtencion" class="grid grid-cols-1 gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="nameRole">
+                Tipo de Consulta: <span class="text-xs">*</span>
+              </label>
+              <p-select
+                id="roleuserId"
+                [options]="consultTypeList"
+                optionLabel="label"
+                optionValue="code"
+                formControlName="consultTypeCode"
+                placeholder="Seleccione..."
+                appendTo="body"
+                [filter]="true"
+              >
+                <ng-template #footer>
+                  <div class="p-0">
+                    <p-button
+                      label="Añadir nuevo"
+                      fluid
+                      severity="primary"
+                      size="small"
+                      styleClass="p-button-sm"
+                      (click)="newConsultType()"
+                    >
+                      <iconify-icon
+                        icon="mdi:plus-circle-outline"
+                        pButtonIcon
+                      />
+                    </p-button>
+                  </div>
+                </ng-template>
+              </p-select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="tipDoc">
+                  Tipo de Documento: <span class="text-xs">*</span>
+                </label>
+                <p-select
+                  id="roleuserId"
+                  [options]="typeIdeDocList"
+                  optionLabel="code"
+                  optionValue="code"
+                  formControlName="tipDoc"
+                  placeholder="Seleccione..."
+                  appendTo="body"
+                />
+                <div
+                  *ngIf="
+                    formDataAtencion.controls.tipDoc.invalid &&
+                    formDataAtencion.controls.tipDoc.touched
+                  "
+                >
+                  <small
+                    *ngIf="formDataAtencion.controls.tipDoc.errors?.['required']"
+                    >El tipo de documento es requerido.</small
+                  >
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="docIde">
+                  N° documento: <span class="text-xs">*</span>
+                </label>
+                <input id="docIde" pInputText formControlName="docIde" />
+                <div
+                  *ngIf="
+                    formDataAtencion.controls.docIde.invalid &&
+                    formDataAtencion.controls.docIde.touched
+                  "
+                >
+                  <small
+                    *ngIf="formDataAtencion.controls.docIde.errors?.['required']"
+                    >El N° documento es requerido.</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="name">
+                Nombre completo <span class="text-xs">*</span>
+              </label>
+              <input id="name" pInputText formControlName="name" />
+              <div
+                *ngIf="
+                  formDataAtencion.controls.name.invalid &&
+                  formDataAtencion.controls.name.touched
+                "
+              >
+                <small
+                  *ngIf="formDataAtencion.controls.name.errors?.['required']"
+                  >El nombre es requerido.</small
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="contactType">
+                  Tipo de contacto: <span class="text-xs">*</span>
+                </label>
+                <p-select
+                  id="contactType"
+                  [options]="typeContactList"
+                  optionLabel="name"
+                  optionValue="code"
+                  formControlName="contactType"
+                  placeholder="Seleccione..."
+                  appendTo="body"
+                />
+                <div
+                  *ngIf="
+                    formDataAtencion.controls.contactType.invalid &&
+                    formDataAtencion.controls.contactType.touched
+                  "
+                >
+                  <small
+                    *ngIf="formDataAtencion.controls.contactType.errors?.['required']"
+                    >El tipo de contacto es requerido.</small
+                  >
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="contact">
+                  Contacto: <span class="text-xs">*</span>
+                </label>
+                <input id="contact" pInputText formControlName="contact" />
+                <div
+                  *ngIf="
+                    formDataAtencion.controls.contact.invalid &&
+                    formDataAtencion.controls.contact.touched
+                  "
+                >
+                  <small
+                    *ngIf="formDataAtencion.controls.contact.errors?.['required']"
+                    >El contacto es requerido.</small
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium" for="detail">
+                Detalle de la atención:
+              </label>
+              <textarea
+                id="detail"
+                rows="2"
+                cols="30"
+                pTextarea
+                formControlName="detail"
+              ></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end items-center gap-4">
+            <div class="flex gap-2">
+              <btn-custom
+                label="Limpiar"
+                severity="danger"
+                icon="tdesign:call-off-filled"
+                [text]="false"
+                (click)="resetForm()"
+              />
+              <button-save
+                [label]="'Guardar'"
+                [loading]="loading"
+                [disabled]="formDataAtencion.invalid"
+                (click)="onSubmitAtencion()"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="col-span-2">
+    <p-card>
+      <ng-template #header>
+        <div class="pt-3 grid grid-cols-1 gap-2">
+          <div class="px-5">
+            <h4 class="text-xl font-bold text-gray-800">
+              Sistema de Consulta Unificada
+            </h4>
+            <p class="text-xs text-gray-600">
+              Consulta toda la información de contribuyentes de manera
+              centralizada
+            </p>
+          </div>
+          <div class="w-full border-t border-slate-300"></div>
+        </div>
+      </ng-template>
+      <app-unified-query-system />
+    </p-card>
+  </div>
+</div>

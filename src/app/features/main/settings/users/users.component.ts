@@ -17,21 +17,25 @@ import { ButtonModule } from 'primeng/button';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TableModule } from 'primeng/table';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { DialogService } from 'primeng/dynamicdialog';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { UserFormComponent } from './user-form/user-form.component';
 import { SkillUserFormComponent } from './skill-user-form/skill-user-form.component';
-import { ButtonCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { UserInboxFormComponent } from './user-inbox-form/user-inbox-form.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
-import { UserVicidialComponent } from './user-vicidial/user-vicidial.component';
+import { VicidialUserComponent } from './user-vicidial/user-vicidial.component';
 import { CardModule } from 'primeng/card';
+import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-users',
   imports: [
     CommonModule,
+    CardModule,
     ButtonModule,
     TableModule,
     AvatarModule,
@@ -39,11 +43,13 @@ import { CardModule } from 'primeng/card';
     AvatarGroupModule,
     BadgeModule,
     OverlayBadgeModule,
+    TooltipModule,
     ButtonSaveComponent,
-    ButtonCustomComponent,
+    BtnCustomComponent,
     ButtonEditComponent,
-    ButtonDeleteComponent,
-    CardModule
+    TitleSatComponent,
+    BtnDeleteComponent,
+    PaginatorComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './users.component.html',
@@ -55,7 +61,7 @@ export class UsersComponent implements OnInit {
   descripcion: string =
     'Un usuario es miembro de su equipo de atención al cliente, quién puede ver y responder a los mensajes del ciudadano.';
 
-  createButtonLabel: string = 'Crear usuario';
+  createButtonLabel: string = 'Nuevo Usuario';
 
   openModal: boolean = false;
 
@@ -84,14 +90,14 @@ export class UsersComponent implements OnInit {
     if (!this.openModal && error) {
       console.log('error', error);
       this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al eliminar el rol!'
+        error ?? '¡Ups, ocurrió un error inesperado al eliminar el usuario!'
       );
       return; // Salimos si hay un error
     }
 
     // Si se ha creado o actualizado correctamente
     if (action === 'deleted') {
-      this.msg.success('¡Rol eliminado exitosamente!');
+      this.msg.success('¡Usuario eliminado exitosamente!');
 
       this.store.clearSelected();
       this.loadData();
@@ -107,11 +113,26 @@ export class UsersComponent implements OnInit {
     this.store.loadAll(this.limit(), this.offset());
   }
 
+  onPageChange(event: { limit: number; offset: number }) {
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadData();
+  }
+
+  isAloSat(user: User): boolean {
+    return user?.officeId === 1;
+  }
+
+  getInitial(user: User) {
+    const words = user.displayName.split(' ');
+    return words[0][0] + (words[1] ? words[1][0] : '');
+  }
+
   addNew() {
     this.store.clearSelected();
     this.openModal = true;
     const ref = this.dialogService.open(UserFormComponent, {
-      header: 'Nuevo Usuario',
+      header: 'Nuevo usuario',
       styleClass: 'modal-lg',
       modal: true,
       focusOnShow: false,
@@ -131,7 +152,7 @@ export class UsersComponent implements OnInit {
     this.openModal = true;
     this.store.loadById(item.id);
     const ref = this.dialogService.open(UserFormComponent, {
-      header: 'Editar Agente',
+      header: 'Editar usuario',
       styleClass: 'modal-lg',
       modal: true,
       focusOnShow: false,
@@ -150,7 +171,7 @@ export class UsersComponent implements OnInit {
   remove(item: User) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el rol <span class='uppercase font-bold'>${item.name}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el usuario <span class='uppercase font-bold'>${item.name}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {
@@ -163,7 +184,7 @@ export class UsersComponent implements OnInit {
     this.store.loadById(item.id);
     this.openModal = true;
     const ref = this.dialogService.open(SkillUserFormComponent, {
-      header: `Asignar habilidad - ${item.name}`,
+      header: `Asignar habilidad | ${item.name}`,
       styleClass: 'modal-md',
       modal: true,
       focusOnShow: false,
@@ -183,7 +204,7 @@ export class UsersComponent implements OnInit {
     this.store.loadById(item.id);
     this.openModal = true;
     const ref = this.dialogService.open(UserInboxFormComponent, {
-      header: `Asignar canales - ${item.name}`,
+      header: `Asignar canales | ${item.name}`,
       styleClass: 'modal-md',
       modal: true,
       focusOnShow: false,
@@ -200,11 +221,11 @@ export class UsersComponent implements OnInit {
   }
 
   vicidialParams(item: User) {
-    const ref = this.dialogService.open(UserVicidialComponent, {
+    this.dialogService.open(VicidialUserComponent, {
       header: `Credenciales VICIdial | ${item.name}`,
       styleClass: 'modal-md',
-      modal: true,
       data: item.vicidial,
+      modal: true,
       focusOnShow: false,
       dismissableMask: false,
       closable: true,

@@ -1,0 +1,39 @@
+<div [ngSwitch]="activeStep">
+  <div *ngSwitchCase="1">
+    <app-channels (channelChange)="channelChange($event)" />
+  </div>
+  <div *ngSwitchCase="2">
+    @switch (channel.id) { @case (1) {
+    <app-telegram (inboxChange)="inboxChange($event)" [data]="channelData" />
+    } @case (2) {
+    <app-whatsapp
+      (inboxChange)="inboxChange($event)"
+      [data]="channelData"
+    ></app-whatsapp>
+    } @case (3) {
+    <app-sms></app-sms>
+    } @case (4) {
+    <app-email></app-email>
+    } @case (5) {
+    <!-- <app-instagram></app-instagram> -->
+    } @case (6) {
+    <!-- <app-messenger></app-messenger> -->
+    } @case (7) {
+    <app-chatweb
+      (inboxChange)="inboxChange($event)"
+      [data]="channelData"
+    ></app-chatweb>
+    } @case (8) {
+    <app-vicidial
+      (inboxChange)="inboxChange($event)"
+      [data]="channelData"
+    ></app-vicidial>
+    } @default {
+    <p>No se sabe que es</p>
+    } }
+  </div>
+  <div *ngSwitchCase="3">
+    <inbox-user-form />
+  </div>
+  <div *ngSwitchDefault>Cargando</div>
+</div>

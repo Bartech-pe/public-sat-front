@@ -4,18 +4,24 @@
   [ngClass]="[currentTextColor, currentHoverColor, currentBackgroundColor]"
   (click)="onButtonClick()"
 >
-  <div class="flex flex-col justify-center items-center gap-1">
-    @if (image) {
-      <img class="object-cover w-auto h-6" src="{{image}}" alt="">
-    }
-    @else{
+  <div class="flex flex-col justify-center items-center gap-2">
+    @if(image) {
+      <div class="w-50 h-auto flex items-center overflow-hidden rounded-md">
+        <p-image
+          src={{image}}
+          alt="Image"
+          class="w-full h-full object-cover"
+        />
+      </div>
+    } @else {
       <iconify-icon [icon]="icon" class="text-3xl"></iconify-icon>
+      <span
+        class="font-medium text-center break-words"
+        [ngClass]="currentGradientClass"
+      >
+        {{ label }}
+      </span>
     }
-    <span
-      class="font-medium text-wrap text-center"
-      [ngClass]="currentGradientClass"
-    >
-      {{ label }}
-    </span>
   </div>
 </button>
+

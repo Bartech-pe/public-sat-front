@@ -1,11 +1,11 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, inject, PLATFORM_ID } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { environment } from '@envs/enviroments';
+import { environment } from '@envs/environments';
 import { ChatMessage } from '@models/chat-message.model';
 import { ChatRoom } from '@models/chatRoom.model';
 import { User } from '@models/user.model';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { ChatMessageService } from '@services/message.service';
 import { SocketService } from '@services/socket.service';
 import { ChatMessageButtonComponent } from '@shared/chat-message-button/chat-message-button.component';
@@ -74,22 +74,19 @@ openedChats: ChatRoom[] = [];
 
       //ejecutar evento solo cuando es supervisor
 
-      if(this.userCurrent.idRole === environment.idRoleSupervisor){
+      if(this.userCurrent.roleId === environment.roleIdSupervisor){
           this.socketService.onAlertas((data) => {
-            
-            console.log(data);
-
             this.messageService.add({ key: 'confirm', sticky: true, severity: 'success', summary: data.mensaje });
           });
       }
 
       this.socketService.onMessage((msg) => {
-            if(msg.idSender != this.userCurrent.id){
-                msg.isSender = false;
+            if(msg.senderId != this.userCurrent.id){
+                msg.senderId = false;
             }
             //this.openedChats.push(msg);
             this.openedChats.forEach((element:any) => {
-              if(element.id == msg.idChatRoom){
+              if(element.id == msg.chatRoomId){
                 element.mensajesflotante.push(msg);
               }
             });
@@ -147,12 +144,12 @@ openedChats: ChatRoom[] = [];
           isSender: true,
           type:'text',
           content:chat,
-          idChatRoom:value.id,
+          chatRoomId:value.id,
           isRead:false
       }
       value.mensajesflotante.push(newMessage);
       this.chatMessageService.registerMessage(newMessage).subscribe((response:any) =>{
-          response.isSender= true;
+          response.senderId= true;
           this.socketService.sendMessage(response);
       })
   }
@@ -166,13 +163,13 @@ openedChats: ChatRoom[] = [];
         reader.onload = () => {
           const previewUrl = reader.result as string;
 
-          // Crear mensaje temporal (solo para mostrar en la interfaz)
+          // mensaje temporal (solo para mostrar en la interfaz)
           const newMessage: ChatMessage = {
             isSender: true,
             type: 'image',
             content: '',
             resourceUrl: previewUrl, // solo vista previa
-            idChatRoom: value.id,
+            chatRoomId: value.id,
             isRead: false,
             createdAt: new Date().toISOString()
           };
@@ -186,7 +183,7 @@ openedChats: ChatRoom[] = [];
           formData.append('type', 'image');
           formData.append('content', '');
           formData.append('resourceUrl', previewUrl); // opcional, por vista previa
-          formData.append('idChatRoom', value.id.toString());
+          formData.append('chatRoomId', value.id.toString());
           formData.append('isRead', 'false');
           formData.append('createdAt', new Date().toISOString());
 
@@ -194,7 +191,7 @@ openedChats: ChatRoom[] = [];
 
             if (response?.resourceUrl) {
               //newMessage.resourceUrl = response.resourceUrl;
-              response.isSender= true;
+              response.senderId= true;
               this.socketService.sendMessage(response);
             }
           });

@@ -1,26 +1,32 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DetalleCartera } from '@models/detalleCartera.model';
-import { Oficina } from '@models/oficina.model';
-import { CarteraDetalleService } from '@services/detalleCartera.service';
 import { ButtonCustomSquareComponent } from '@shared/buttons/btn-custom-square/btn-custom-square.component';
-import { ButtonCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
 import { AuthStore } from '@stores/auth.store';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DividerModule } from 'primeng/divider';
+import { ChipModule } from 'primeng/chip';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { PhoneFormatPipe } from '@pipes/phone-format.pipe';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GestionCompletaComponent } from './gestion-completa/gestion-completa.component';
+import { CompleteManagementComponent } from './complete-management/complete-management.component';
 import { SelectModule } from 'primeng/select';
+import { PortfolioDetailService } from '@services/portfolio-detail.service';
+import { Office } from '@models/office.model';
+import { PortfolioDetail } from '@models/portfolio-detail.model';
+import { Portfolio } from '@models/portfolio.model';
+import { PortfolioStore } from '@stores/portfolio.store';
+import { PortfolioDetailStore } from '@stores/portfolio-detail.store';
+import { CitizenContact } from '@models/citizen.model';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { InputNumberModule } from 'primeng/inputnumber';
 @Component({
   selector: 'app-assignments',
   imports: [
@@ -31,21 +37,23 @@ import { SelectModule } from 'primeng/select';
     TooltipModule,
     TableModule,
     FormsModule,
-    SelectModule,
     InputTextModule,
+    InputNumberModule,
+    SelectModule,
     DatePickerModule,
     PhoneFormatPipe,
     ButtonModule,
-    ButtonCustomComponent,
+    ChipModule,
     ButtonCustomSquareComponent,
-    GestionCompletaComponent,
+    CompleteManagementComponent,
+    PaginatorComponent,
   ],
   providers: [MessageGlobalService],
   templateUrl: './assignments.component.html',
   styles: ``,
 })
 export class AssignmentsComponent implements OnInit {
-  createButtonLabel: string = 'Crear área';
+  createButtonLabel: string = 'área';
 
   private readonly dialogService = inject(DialogService);
 
@@ -57,35 +65,62 @@ export class AssignmentsComponent implements OnInit {
 
   private readonly store = inject(AuthStore);
 
-  readonly carteraDetalleService = inject(CarteraDetalleService);
+  readonly portfolioStore = inject(PortfolioStore);
+
+  readonly portfolioDetailStore = inject(PortfolioDetailStore);
+
+  readonly portfolioDetailService = inject(PortfolioDetailService);
+
+  openModal: boolean = false;
 
   get name(): string | undefined {
     return this.store.user()?.name;
   }
 
-  get iduser(): number | undefined {
+  get userId(): number | undefined {
     return this.store.user()?.id;
   }
 
-  get oficina(): Oficina | undefined {
-    return this.store.user()?.oficina;
+  get office(): Office | undefined {
+    return this.store.user()?.office;
   }
 
-  detalleCartera: DetalleCartera[] = [];
+  get officeFullName() {
+    return !!this.office
+      ? `| ${this.office?.department?.name} : ${this.office?.name}`
+      : '';
+  }
+
+  get portfolioList(): Portfolio[] {
+    return this.portfolioStore.items();
+  }
+
+  portfolioId?: number;
+
+  get portfolioSelected(): Portfolio | undefined {
+    return this.portfolioList.find((p) => p.id === this.portfolioId);
+  }
+
+  limit = signal(10);
+  offset = signal(0);
+  totalItems: number = 0;
+  portfolioDetailManaged: number = 0;
+
+  portfolioDetail: PortfolioDetail[] = [];
 
   get cardItems() {
     return [
       {
-        label: 'Total asignados',
+        label: 'asignados',
         total: this.totalAsignado,
       },
       {
-        label: 'Sin gestionar',
-        total: this.totalSinGestionar,
+        label: 'gestionados',
+        total: this.portfolioDetailManaged,
       },
       {
-        label: 'Gestionado',
-        total: this.totalGestionado,
+        label: 'sin gestionar',
+        total: this.totalAsignado - this.portfolioDetailManaged,
       },
       // {
       //   label: 'Cerrado',
@@ -95,137 +130,122 @@ export class AssignmentsComponent implements OnInit {
   }
 
   get totalAsignado(): number {
-    return this.detalleCartera.length;
+    return this.totalItems;
   }
 
   get totalSinGestionar(): number {
-    return this.detalleCartera.filter((item) => !item.status).length;
+    return this.portfolioDetail.filter((item) => !item.status).length;
   }
 
   get totalGestionado(): number {
-    return this.detalleCartera.filter((item) => item.status).length;
+    return this.portfolioDetail.filter((item) => item.status).length;
   }
 
   estados = [
-    { label: 'Sin Gestionar', value: 'Abierto' },
-    { label: 'Gestionado', value: 'En proceso' },
+    { label: 'Todos', value: undefined },
+    { label: 'Sin Gestionar', value: false },
+    { label: 'Gestionado', value: true },
+  ];
+
+  segmento: { label: string; value: string }[] = [];
+
+  perfil = [
+    { label: 'Perfil', value: '' },
+    { label: '1_Normal', value: 'Normal' },
+    { label: '2_BajaMora', value: 'BajaMora' },
+    { label: '3_AltaMora', value: 'AltaMora' },
   ];
 
   filtroRangoFecha: Date[] = [];
 
   // NUEVAS PROPIEDADES PARA FILTROS
   tipoContribSelected = signal<string | undefined>(undefined);
-  segmentoSelected = signal<string | undefined>(undefined);
-  perfilSelected = signal<string | undefined>(undefined);
-  deudaDesde = signal<string | undefined>(undefined);
-  deudaHasta = signal<string | undefined>(undefined);
+  segmentSelected = signal<string | undefined>(undefined);
+  profileSelected = signal<string | undefined>(undefined);
+  debtFrom = signal<number | undefined>(undefined);
+  debtTo = signal<number | undefined>(undefined);
   searchText = signal<string | undefined>(undefined);
-  estadoSelected = signal<string | undefined>(undefined);
+  estadoSelected = signal<boolean | undefined>(undefined);
 
-  get tipoContribuyentes(): string[] {
+  get taxpayerTypes(): string[] {
     return Array.from(
-      new Set(this.detalleCartera.map((d) => d.tipoContribuyente!))
+      new Set(this.portfolioDetail.map((d) => d.taxpayerType!))
     );
   }
 
-  get perfiles(): string[] {
-    return Array.from(new Set(this.detalleCartera.map((d) => d.perfil!)));
+  get profiles(): string[] {
+    return Array.from(new Set(this.portfolioDetail.map((d) => d.profile!)));
   }
 
-  get segmentos(): string[] {
-    return Array.from(new Set(this.detalleCartera.map((d) => d.segmento!)));
-  }
-
-  // GETTER PARA DATOS FILTRADOS
-  get detalleCarteraFiltrada(): DetalleCartera[] {
-    let filtered = [...this.detalleCartera];
-
-    // Filtro por texto de búsqueda
-    const searchTerm = this.searchText()?.toLowerCase().trim();
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (item) =>
-          item.codigo?.toLowerCase().includes(searchTerm) ||
-          item.contribuyente?.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    // Filtro por tipo de contribuyente
-    const tipoContrib = this.tipoContribSelected();
-    if (tipoContrib) {
-      filtered = filtered.filter(
-        (item) => item.tipoContribuyente === tipoContrib
-      );
-    }
-    // Filtro por estado
-    const estado = this.estadoSelected();
-    if (estado && estado !== '') {
-      if (estado === 'Abierto') {
-        filtered = filtered.filter((item) => !item.status);
-      } else if (estado === 'En proceso') {
-        filtered = filtered.filter((item) => item.status);
-      }
-    }
-
-    // Filtro por segmento
-    const segmento = this.segmentoSelected();
-    if (segmento) {
-      filtered = filtered.filter((item) => item.segmento === segmento);
-    }
-
-    // Filtro por perfil
-    const perfil = this.perfilSelected();
-    if (perfil) {
-      filtered = filtered.filter((item) => item.perfil === perfil);
-    }
-
-    // Filtro por rango de deuda
-    const desde = parseFloat(this.deudaDesde()!);
-    const hasta = parseFloat(this.deudaHasta()!);
-
-    if (!isNaN(desde)) {
-      filtered = filtered.filter(
-        (item) => item.deuda - (item.pago || 0) >= desde
-      );
-    }
-
-    if (!isNaN(hasta)) {
-      filtered = filtered.filter(
-        (item) => item.deuda - (item.pago || 0) <= hasta
-      );
-    }
-
-    return filtered;
+  get segments(): string[] {
+    return Array.from(new Set(this.portfolioDetail.map((d) => d.segment!)));
   }
 
   originalRoute: string = '';
 
-  idSelected?: number;
+  portfolioDetailId?: number;
   type?: string;
 
   ngOnInit(): void {
     this.originalRoute = this.router.url.split('?')[0];
     console.log('Ruta original:', this.originalRoute);
     this.route.queryParams.subscribe((params) => {
+      const portfolio = params['portfolio'];
       this.type = params['type'];
-      this.idSelected = params['id'];
+      this.portfolioDetailId = params['id'];
 
-      // Si existe type=GestiónCompleta pero no id → limpiar queryParams
-      if (this.type === 'GestiónCompleta' && !this.idSelected) {
-        this.router.navigate([this.originalRoute], { replaceUrl: true });
+      if (portfolio && !isNaN(portfolio)) {
+        this.portfolioId = Number(portfolio);
+
+        this.loadDataPortfolioDetail();
+        // Si existe type=GestiónCompleta pero no id → limpiar queryParams
+        if (this.type === 'GestiónCompleta' && !this.portfolioDetailId) {
+          this.router.navigate([this.originalRoute], { replaceUrl: true });
+        }
       }
     });
-    this.loadData();
+    this.loadPortfolios();
   }
 
-  get carteraDetalleSelect(): DetalleCartera | undefined {
-    return this.detalleCartera.find((d) => d.id == this.idSelected);
+  loadPortfolios() {
+    this.portfolioStore.loadAll();
   }
 
-  loadData() {
-    this.carteraDetalleService.findAllByUserToken().subscribe({
-      next: (data) => {
-        this.detalleCartera = data;
+  loadDataPortfolioDetail() {
+    this.portfolioDetailService
+      .findAllByUserToken(this.portfolioId!, this.limit(), this.offset(), {
+        search: this.searchText()?.toLowerCase().trim(),
+        taxpayerType: this.tipoContribSelected()?.toLowerCase().trim(),
+        status: this.estadoSelected(),
+        segment: this.segmentSelected()?.toLowerCase().trim(),
+        profile: this.profileSelected()?.toLowerCase().trim(),
+        range: this.debtFrom()
+          ? {
+              from: this.debtFrom(),
+              to: this.debtTo(),
+            }
+          : undefined,
+      })
+      .subscribe({
+        next: (res) => {
+          this.portfolioDetail = res.data;
+          this.totalItems = res.total ?? 0;
+          this.portfolioDetailManaged = res.managed;
+        },
+      });
+  }
+
+  onPageChange(event: { limit: number; offset: number }) {
+    console.log('event', event);
+    this.limit.set(event.limit);
+    this.offset.set(event.offset);
+    this.loadDataPortfolioDetail();
+  }
+
+  selectPortfolio() {
+    this.router.navigate([this.originalRoute], {
+      queryParams: {
+        portfolio: this.portfolioId,
       },
     });
   }
@@ -261,23 +281,65 @@ export class AssignmentsComponent implements OnInit {
     return dias > 0 ? dias.toString() : 'Vencido';
   }
 
-  gestionCompleta(item: DetalleCartera) {
+  completeManagement(item: PortfolioDetail) {
     this.router.navigate([this.originalRoute], {
-      queryParams: { type: 'GestiónCompleta', id: item?.id },
+      queryParams: {
+        portfolio: this.portfolioId,
+        type: 'GestiónCompleta',
+        id: item?.id,
+      },
     });
   }
 
-  closeGestionCompleta() {
-    this.router.navigate([this.originalRoute], { replaceUrl: true });
-    this.loadData();
+  closeCompleteManagement() {
+    this.router.navigate([this.originalRoute], {
+      queryParams: {
+        portfolio: this.portfolioId,
+      },
+      replaceUrl: true,
+    });
   }
 
-  actualizarItem(item: any): void {
-    // Simula una actualización, aumenta la deuda en 10%
-    const nuevoValor = item.deuda * 1.1;
-    item.deuda = parseFloat(nuevoValor.toFixed(2)); // Redondea a 2 decimales
+  getPhoneContacts(contacts: CitizenContact[]): CitizenContact[] {
+    return contacts
+      .filter((item) => item.contactType === 'PHONE')
+      .map((item, i) => ({ ...item, label: `Teléfono ${i + 1}` }));
+  }
 
-    // para cuando se necesite hacer una llamada a una API
-    // this.Servicio.actualizarDeuda(item.id, item.deuda).subscribe(...)
+  getWhatsappContacts(contacts: CitizenContact[]): CitizenContact[] {
+    return contacts
+      .filter((item) => item.contactType === 'WHATSAPP')
+      .map((item, i) => ({ ...item, label: `Whatsapp ${i + 1}` }));
+  }
+
+  getEmailContacts(contacts: CitizenContact[]): CitizenContact[] {
+    return contacts
+      .filter((item) => item.contactType === 'EMAIL')
+      .map((item, i) => ({ ...item, label: `Email ${i + 1}` }));
+  }
+
+  onDebtChange(type: 'from' | 'to', event: any) {
+    const debtFrom = this.debtFrom() ?? 0;
+    const debtTo = this.debtTo() ?? 0;
+
+    // Si debtTo queda por debajo, lo forzamos a debtFrom
+    if (debtTo <= debtFrom) {
+      this.debtTo.set(debtFrom + 100);
+    }
+  }
+
+  search() {
+    this.loadDataPortfolioDetail();
+  }
+
+  clear() {
+    this.searchText.set(undefined);
+    this.tipoContribSelected.set(undefined);
+    this.estadoSelected.set(undefined);
+    this.segmentSelected.set(undefined);
+    this.profileSelected.set(undefined);
+    this.debtFrom.set(undefined);
+    this.debtTo.set(undefined);
+    this.loadDataPortfolioDetail();
   }
 }

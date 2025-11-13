@@ -6,8 +6,18 @@ import {
   Input,
   Output,
 } from '@angular/core';
-import { ButtonModule, ButtonSeverity } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+
+export type ButtonSeverity =
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'help'
+  | 'danger'
+  | 'contrast';
 
 @Component({
   selector: 'btn-custom',
@@ -18,29 +28,31 @@ import { TooltipModule } from 'primeng/tooltip';
       pButton
       [rounded]="rounded"
       [text]="text"
+      [outlined]="outlined"
       size="small"
       [severity]="severity !== 'white' ? severity : 'info'"
       [pTooltip]="tooltip"
       tooltipPosition="top"
-      tooltipStyleClass="!text-xs !font-normal !p-0"
+      tooltipStyleClass="!text-xs text-center !font-normal !p-0"
       (click)="onHandler($event)"
       [disabled]="disabled"
       [class]="getBtnClass()"
     >
       <iconify-icon [icon]="icon" [class]="getIconClasses()" pButtonIcon />
-      <span *ngIf="!!label" pButtonLabel [class]="getLabelClasses()">
+      <span *ngIf="!!label" pButtonLabel>
         {{ label }}
       </span>
     </button>
   `,
   styles: ``,
 })
-export class ButtonCustomComponent {
+export class BtnCustomComponent {
   @Input() severity: ButtonSeverity | 'white' = 'info';
   @Input() tooltip!: string;
   @Input() icon!: string;
   @Input() disabled!: boolean;
   @Input() rounded: boolean = true;
+  @Input() outlined: boolean = false;
   @Input() text: boolean = true;
   @Input() label?: string;
   @Input() styleClass: string = '';
@@ -66,7 +78,7 @@ export class ButtonCustomComponent {
   }
 
   getLabelClasses(): string {
-    const base = '!text-sm !font-light';
+    const base = '!text-sm';
 
     if (this.severity === 'white') {
       return `${base} text-white group-hover:text-sky-700`;

@@ -20,11 +20,15 @@ import { ButtonModule } from 'primeng/button';
       size="small"
       [disabled]="disabled"
       [loading]="loading"
-      styleClass="!rounded-full !bg-[#375F95] !border-[#375F95] !text-white !font-semibold hover:!bg-[#2c4c78] transition flex items-center gap-2"
+      styleClass="!rounded-full"
     >
       <div class="flex justify-center items-center gap-1">
-        <iconify-icon *ngIf="showIcon" [icon]="icon" class="text-lg"></iconify-icon>
-        <div>{{ label }}</div>
+        <iconify-icon
+          *ngIf="showIcon"
+          [icon]="icon"
+          class="text-lg"
+        ></iconify-icon>
+        <span pButtonLabel>{{ label }}</span>
       </div>
     </p-button>
   `,
@@ -42,6 +46,6 @@ export class ButtonSaveComponent {
   authStore = inject(AuthStore);
 
   get canCreate(): boolean {
-    return !!this.authStore.screenSelected()?.RoleScreen?.canCreate;
+    return !!this.authStore.screenSelected()?.RoleScreenOffice?.canCreate;
   }
 }

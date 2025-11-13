@@ -13,7 +13,7 @@ import { LoginRequest, LoginResponse } from '@models/auth.model';
 import { catchError, EMPTY, mapTo, mergeMap, Observable, of, tap } from 'rxjs';
 import { MenuOption } from '@interfaces/menu-option.interface';
 import { Screen } from '@models/screen.model';
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 
 export interface AuthState {
   user: User | null;
@@ -62,12 +62,12 @@ export const AuthStore = signalStore(
               const screens = data.map((item) => ({
                 icon: item.icon!,
                 label: item.name!,
-                link: item.url!,
+                link: item.path!,
                 active: false,
                 items: item.items.map((s) => ({
                   icon: s.icon!,
                   label: s.name!,
-                  link: s.url!,
+                  link: s.path!,
                 })),
               }));
               patchState(store, {
@@ -107,7 +107,10 @@ export const AuthStore = signalStore(
             if (isServerDown) {
               msg.error(error?.error?.message);
               const currentUrl = router.url;
-              sessionStorage.setItem('previousUrl', currentUrl);
+              const previousUrl = sessionStorage.getItem('previousUrl');
+              if (!previousUrl && currentUrl != '/server-down') {
+                sessionStorage.setItem('previousUrl', currentUrl);
+              }
               router.navigate(['/server-down']);
             } else {
               authService.logout();
@@ -118,15 +121,16 @@ export const AuthStore = signalStore(
           }),
           tap({
             next: (data: Screen[]) => {
+              sessionStorage.removeItem('previousUrl');
               const screens = data.map((item) => ({
                 icon: item.icon!,
                 label: item.name!,
-                link: item.url!,
+                link: item.path!,
                 active: false,
                 items: item.items.map((s) => ({
                   icon: s.icon!,
                   label: s.name!,
-                  link: s.url!,
+                  link: s.path!,
                 })),
               }));
               patchState(store, {

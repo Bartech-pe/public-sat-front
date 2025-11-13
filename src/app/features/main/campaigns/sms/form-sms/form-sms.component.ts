@@ -12,9 +12,9 @@ import {
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
+import * as XLSX from 'xlsx';
 import {
   FormBuilder,
-  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -22,7 +22,6 @@ import {
 } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
-import { MessageGlobalService } from '@services/message-global.service';
 import { DropdownModule } from 'primeng/dropdown';
 import { EditorModule } from 'primeng/editor';
 import { InputSwitchModule } from 'primeng/inputswitch';
@@ -30,18 +29,17 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
-import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
-import { Checkbox } from 'primeng/checkbox';
+import { NgxFileDropModule } from 'ngx-file-drop';
 import { Dialog } from 'primeng/dialog';
-import { EstadoCampania } from '@models/estado-campania.model';
-import { AreaCampania } from '@models/area-campania.model';
-import { AreaCampaniaStore } from '@stores/area-campania.store';
-import { TipoCampaniaStore } from '@stores/tipo-campania.store';
-import { EstadoCampaniaStore } from '@stores/estado-campania.store';
-import { SmsCampaingService } from '@services/sms-campaing.service';
-import { MessagePreview, ShowHeader } from '@models/sms-campaing';
 import { User } from '@models/user.model';
 import { AuthStore } from '@stores/auth.store';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { SmsCampaignService } from '@services/sms-campaign.service';
+import { MessagePreview, ShowHeader } from '@models/sms-campaign.model';
+import { CampaignState } from '@models/campaign-state.model';
+import { CampaignStateStore } from '@stores/campaign-state.store';
+import { DepartmentStore } from '@stores/department.store';
+import { Department } from '@models/department.model';
 @Component({
   selector: 'app-form-sms',
   imports: [
@@ -59,7 +57,6 @@ import { AuthStore } from '@stores/auth.store';
     TableModule,
     Select,
     NgxFileDropModule,
-    Checkbox,
     Dialog,
   ],
   templateUrl: './form-sms.component.html',
@@ -67,12 +64,17 @@ import { AuthStore } from '@stores/auth.store';
   styles: ``,
 })
 export class FormSmsComponent implements OnInit {
+
+
+  @ViewChild('fileDropRef') fileDropRef: any;
+
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
   private readonly msg = inject(MessageGlobalService);
-    editarCampania: boolean = true;
+  editarCampania: boolean = true;
+  charCount = 0;
 
-  constructor(public config: DynamicDialogConfig){
-     if (this.config.data) {
+  constructor(public config: DynamicDialogConfig) {
+    if (this.config.data) {
       this.editarCampania = true;
     } else {
       this.editarCampania = false;
@@ -80,121 +82,94 @@ export class FormSmsComponent implements OnInit {
   }
 
   private readonly fb = inject(FormBuilder);
-    readonly areaCampaniaStore = inject(AreaCampaniaStore);
-    readonly estadoCampaniaStore = inject(EstadoCampaniaStore);
-    readonly smsCampaingService = inject(SmsCampaingService)
-      readonly authStore = inject(AuthStore);
-    
+  readonly campaignStateStore = inject(CampaignStateStore);
+  readonly smsCampaignService = inject(SmsCampaignService);
+  readonly departmentStore = inject(DepartmentStore);
+  readonly authStore = inject(AuthStore);
 
   id!: number;
   formData!: FormGroup;
   visible: boolean = false;
-   limit = signal(100);
+  limit = signal(100);
   offset = signal(0);
 
   // Opciones de contactos
   contactos: ShowHeader[] = [];
 
-  listaVistaPrevia = [
-   
-  ];
+  listaVistaPrevia: any[] = [];
 
   columnas: string[] = [];
   previewData: any[] = [];
   nombreArchivo: string = '';
   codigoPais: string = '+51';
-  countryCode:boolean=false
-  rows:any[]=[]
-  
+  countryCode: boolean = false;
+  rows: any[] = [];
 
   ngOnInit(): void {
-    this.rows.length
+    this.rows.length;
     this.formData = this.fb.group({
       name: [undefined, Validators.required],
       senderId: [undefined, Validators.required],
-      contact: [undefined, Validators.required],
+      contact: [{ value: undefined, disabled: true }, Validators.required],
+      variable: [{ value: undefined, disabled: true }],
       message: [undefined, Validators.required],
       countryCode: [this.countryCode],
-      id_area_campania: [null, Validators.required],
-      id_estado_campania: [null, Validators.required],
+      id_area_campania: [null],
+      id_estado_campania: [null],
     });
     this.loadData();
-    if(this.editarCampania){
-      this.smsCampaingService.findOne(this.config.data).subscribe((res) => {
-        if(res.showheaders){
-          this.contactos = res.showheaders
+    if (this.editarCampania) {
+      this.smsCampaignService.findOne(this.config.data).subscribe((res) => {
+        if (res.showheaders) {
+          this.contactos = res.showheaders;
         }
-        this.formData.reset({
-          name: res.nombre,
-          senderId: res.senderId,
-          message: res.message,
-          countryCode: res.countryCode,
-          id_estado_campania: res.id_estado_campania,
-          id_area_campania: res.id_area_campania,
-          contact:this.contactos.find((item)=>item.label==res.contact)?.value ?? ''
-        });
-        
-        
-      })
+        // this.formData.reset({
+        //   name: res.nombre,
+        //   senderId: res.senderId,
+        //   message: res.message,
+        //   countryCode: res.countryCode,
+        //   id_estado_campania: res.id_estado_campania,
+        //   id_area_campania: res.id_area_campania,
+        //   contact:
+        //     this.contactos.find((item) => item.label == res.contact)?.value ??
+        //     '',
+        // });
+      });
     }
-
   }
 
-  uploadExcelFile(file:File) {
-    this.smsCampaingService.readSMSExcel(file).subscribe((res)=>{
-       this.contactos = res.showheaders
-       this.rows = res.rows
-    })
-  }
-  previewMessage(){
-    const values = this.formData.getRawValue()
-    const request:MessagePreview={
-      rows: this.rows,
-      message: values.message,
-      contact: this.contactos.find((item)=>item.value==values.contact)?.label ?? ''
-    }
-    this.smsCampaingService.getMessagePreview(request).subscribe((res)=>{
-       this.listaVistaPrevia = res
+  uploadExcelFile(file: File) {
+    this.smsCampaignService.readSMSExcel(file).subscribe({
+      next: (res) => {
+        this.contactos = res.showheaders;
+        this.rows = res.rows;
+        this.nombreArchivo = file.name;
+
+        // ✅ Habilitar el select de contacto
+        this.formData.get('contact')?.enable();
+        this.formData.get('variable')?.enable();
+        this.msg.success('¡Archivo cargado correctamente!');
+
+        // (opcional) Resetear el valor anterior
+        this.formData.get('contact')?.reset();
+        this.formData.get('variable')?.reset();
+      },
+      error: (err) => {
+        console.error('Error al leer el archivo', err);
+        this.msg.error('¡No se pudo cargar el archivo!');
+      },
     });
   }
-
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
-  onDropZoneClick() {
-    this.fileInput.nativeElement.click();
-  }
-   get estadoCampanias(): EstadoCampania[] {
-      return this.estadoCampaniaStore.items()!;
-    }
-  
-    get areaCampanias(): AreaCampania[] {
-      return this.areaCampaniaStore.items()!;
-    }
-  
-    
-   loadData() {
-    this.areaCampaniaStore.loadAll(this.limit(), this.offset());
-    this.estadoCampaniaStore.loadAll(this.limit(), this.offset());
-  }
-  private isExcelFile(file: File): boolean {
-  const validTypes = [
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
-  return validTypes.includes(file.type) || 
-         file.name.endsWith('.xls') || 
-         file.name.endsWith('.xlsx');
-}
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-     if (!this.isExcelFile(file)) {
-      console.error('Por favor selecciona un archivo Excel válido');
-      return;
-    }
-    this.uploadExcelFile(file);
+      if (!this.isExcelFile(file)) {
+        console.error('Por favor selecciona un archivo Excel válido');
+        return;
+      }
+      this.uploadExcelFile(file);
     }
   }
 
@@ -202,47 +177,189 @@ export class FormSmsComponent implements OnInit {
     this.nombreArchivo = '';
     this.columnas = [];
     this.previewData = [];
+    this.contactos = [];
+    this.msg.info('¡Archivo eliminado correctamente!');
+
+    // Limpiar y deshabilitar el campo select
+    const contactControl = this.formData.get('contact');
+    contactControl?.reset();
+    contactControl?.disable(); 
+
+    const variableControl = this.formData.get('variable');
+    variableControl?.reset(); 
+    variableControl?.disable(); 
+
+    this.fileInput.nativeElement.value = '';
+
+    // 🔹 Limpiar drop zone (solo visual)
+    if (this.fileDropRef) {
+      this.fileDropRef.files = []; // limpia la lista interna de ngx-file-drop
+    }
+
+  }
+
+  previewMessage() {
+    const values = this.formData.getRawValue();
+    this.listaVistaPrevia = [];
+    if (!values.message || !Array.isArray(this.rows)) return;
+
+    this.listaVistaPrevia = this.rows.map((contacto: any) => ({
+      message: this.renderTemplate(values.message, contacto),
+      contact: contacto[values.contact],
+    }));
+  }
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  onDropZoneClick() {
+    this.fileInput.nativeElement.click();
+  }
+
+ 
+  get CampaignList(): CampaignState[] {
+    return this.campaignStateStore.items()!;
+  }
+
+  get departmentList(): Department[] {
+    return this.departmentStore.items()!;
+  }
+
+  loadData() {
+    this.departmentStore.loadAll(this.limit(), this.offset());
+    this.campaignStateStore.loadAll(this.limit(), this.offset());
+  }
+  private isExcelFile(file: File): boolean {
+    const validTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    return (
+      validTypes.includes(file.type) ||
+      file.name.endsWith('.xls') ||
+      file.name.endsWith('.xlsx')
+    );
   }
 
   onCancel() {
     this.ref.close();
   }
-  get userCurrent(): User {
-      return this.authStore.user()!;
-    }
-  createCampaing(){ 
-     const request = this.formData.getRawValue();
-     if(this.editarCampania){
-      const update={
-        senderId: request.senderId,
-        nombre: request.name,
-        contact: this.contactos.find((item)=>item.value==request.contact)?.label ?? '',
-        message: request.message,
-        id_area_campania: request.id_area_campania,
-        id_estado_campania: request.id_estado_campania,
-        countryCode: request.countryCode,
-      }
-      this.smsCampaingService.update(this.config.data,update).subscribe((res)=>{})
-       return;
-     }
-     const createBody={
-        senderId: request.senderId,
-        nombre: request.name,
-        contact:this.contactos.find((item)=>item.value==request.contact)?.label ?? '',
-        message: request.message,
-        id_area_campania: request.id_area_campania,
-        id_estado_campania: request.id_estado_campania,
-        countryCode: request.countryCode,
-        createUser :this.userCurrent.id,
-        rows: this.rows
-     }
-    console.log('req',createBody)
-     this.smsCampaingService.create(createBody).subscribe((res)=>{})
 
+  get userCurrent(): User {
+    return this.authStore.user()!;
+  }
+
+  createCampaing() {
+ 
+    if (this.formData.invalid) {
+      this.msg.warn('Por favor, completa todos los campos requeridos antes de continuar.');
+      this.formData.markAllAsTouched();
+      return;
+    }
+
+
+    if (!this.listaVistaPrevia || this.listaVistaPrevia.length === 0) {
+      this.msg.warn('Por favor, valide la lista antes de crear la campaña.');
+      return;
+    }
+
+    const contactosInvalidos = this.listaVistaPrevia.filter(
+      (c: any) => !c.contact || !c.message || c.message.trim() === ''
+    );
+    if (contactosInvalidos.length > 0) {
+      this.msg.warn('Algunos contactos no tienen número o mensaje. Por favor verifica la lista.');
+      return;
+    }
+
+    const campaignSMS = this.listaVistaPrevia.map((contacto: any) => ({
+      codProceso: 1,
+      codRemitente: 1,
+      numTelDestino: contacto.contact.toString(),
+      mensaje: contacto.message.trim(),
+      codTipDocumento: null,
+      valTipDocumento: null,
+      nomTerminal: 'ABC_Terminal',
+    }));
+
+    try {
+      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(campaignSMS);
+      const workbook: XLSX.WorkBook = {
+        Sheets: { CampaignSMS: worksheet },
+        SheetNames: ['CampaignSMS'],
+      };
+ 
+      const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const fileName = `campaign_sms_${Date.now()}.xlsx`;
+      const file = new File([excelBuffer], fileName, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+  
+      const request = this.formData.getRawValue();
+      const formData = new FormData();
+      formData.append('name', request.name.trim());
+      formData.append('campaignStatus', '1');
+      formData.append('sender', request.senderId.trim());
+      formData.append('message', request.message.trim());
+      formData.append('totalRegistered', this.listaVistaPrevia.length.toString());
+      formData.append('file', file, file.name);
+
+
+      this.smsCampaignService.createlistMulti(formData).subscribe({
+        next: (res) => {
+          this.msg.success('Campaña SMS creada y enviada exitosamente.');
+          this.ref.close(true);
+          this.ref.close(true);
+        },
+        error: (err) => {
+         
+          this.msg.error('❌ Ocurrió un error al enviar la campaña. Intenta nuevamente.');
+     
+        },
+      });
+    } catch (error) {
+      console.error('Error generando archivo Excel:', error);
+      this.msg.error('Error al generar el archivo Excel.');
+    }
+  }
+
+  @ViewChild('mensajeInput') mensajeInput!: ElementRef<HTMLTextAreaElement>;
+  insertVariable(event: any) {
+    const variable = event.value;
+    if (!variable || !this.mensajeInput) return;
+
+    const textarea = this.mensajeInput.nativeElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentMessage = this.formData.get('message')?.value || '';
+
+    // Inserta la variable donde está el cursor
+    const newMessage = currentMessage.substring(0, start) + `[${variable}]`;
+    currentMessage.substring(end);
+
+    // Actualiza el formControl
+    this.formData.patchValue({ message: newMessage });
+
+    console.log(newMessage);
+    // Vuelve a enfocar y coloca el cursor al final del texto insertado
+    setTimeout(() => {
+      textarea.focus();
+      const cursorPosition = start + variable.length + 2;
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    });
+
+    // Limpia el select
+    //this.selectedVariable = null;
+  }
+
+  private renderTemplate(template: string, contacto: any): string {
+      return template.replace(/\[([^\]]+)\]/g, (_, variable) => {
+        const key = variable.trim().toUpperCase();
+        // Si el contacto tiene una propiedad con ese nombre, la reemplaza, si no deja vacío
+        return contacto[key] ?? '';
+      });
   }
 
   showDialog() {
-    this.previewMessage()
+    this.previewMessage();
     this.visible = true;
   }
 }

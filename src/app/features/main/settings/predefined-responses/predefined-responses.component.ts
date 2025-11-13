@@ -7,29 +7,38 @@ import { ButtonModule } from 'primeng/button';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DialogService } from 'primeng/dynamicdialog';
 
-import { MessageGlobalService } from '@services/message-global.service';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { FormPredefinedComponent } from './form-predefined/form-predefined.component';
 import { PredefinedResponsesStore } from '@stores/predefined.store';
-import { PredefinedResponses } from '@models/predefined.model';
+import { PredefinedResponses } from '@models/predefined-response.model';
 import { CommonModule } from '@angular/common';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { CategoryChannelStore } from '@stores/category-channel.store';
+import { CategoryChannel } from '@models/category-channel.model';
+import { TabsModule } from 'primeng/tabs';
+import { ButtonSplitComponent } from '@shared/buttons/button-split/button-split.component';
+import { IButtonSplit } from '@interfaces/button.interface';
+import { PredefinedResponsesService } from '@services/predefined.service';
 
 @Component({
   selector: 'app-predefined-responses',
   imports: [
+    CommonModule,
+    TabsModule,
     TableModule,
     InputTextModule,
-    CommonModule,
     ColorPickerModule,
     ButtonModule,
     FormsModule,
     BreadcrumbModule,
+    ButtonSplitComponent,
     ButtonEditComponent,
-    ButtonDeleteComponent,
+    BtnDeleteComponent,
     ButtonSaveComponent,
+    PaginatorComponent
   ],
   templateUrl: './predefined-responses.component.html',
   styles: ``,
@@ -37,16 +46,47 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
 export class PredefinedResponsesComponent {
   title: string = 'Respuestas predefinidas';
   descripcion: string =
-    "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación. Los agentes pueden escribir el carácter '/' seguido por el código corto para insertar una respuesta predefinida durante una conversación.";
+    "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación";
 
-  createButtonLabel: string = 'Crear respuesta';
+  createButtonLabel: string = 'Nueva Respuesta';
 
   openModal: boolean = false;
 
   private readonly msg = inject(MessageGlobalService);
+
   private readonly dialogService = inject(DialogService);
 
+  readonly categoryChannelStore = inject(CategoryChannelStore);
+
   readonly store = inject(PredefinedResponsesStore);
+
+
+  constructor(private predefinedResponsesService: PredefinedResponsesService){}
+
+
+  get listCategoryChannels(): CategoryChannel[] {
+    return this.categoryChannelStore.items().filter((item) => item.id !== 1);
+  }
+
+  menuItems: IButtonSplit[] = [
+      {
+        label: 'Copia para canales',
+        icon: 'fluent:copy-arrow-right-16-regular',
+        action: (item: PredefinedResponses) => {
+          this.predefinedResponsesService.copyToOtherChannels(item.id).subscribe(response => {
+            if(!response?.success)
+            {
+              this.msg.warn("No se pudo copiar esta respuesta predefinida", "Respuestas predefinidas", 3000)
+              return
+            }
+            this.msg.success(response.message, "Respuestas predefinidas", 3000)
+            this.loadData()
+          })
+        },
+      },
+    ];
+
+  activeTab: number = 0;
 
   limit = signal(10);
   offset = signal(0);
@@ -59,6 +99,12 @@ export class PredefinedResponsesComponent {
     return this.store.items();
   }
 
+  getPredefinedResponses(category: number) {
+    return this.listPredefinedResponses.filter(
+      (item) => item.categoryId === category
+    );
+  }
+
   private resetOnSuccessEffect = effect(() => {
     const error = this.store.error();
     const action = this.store.lastAction();
@@ -68,14 +114,14 @@ export class PredefinedResponsesComponent {
       console.log('error', error);
       this.msg.error(
         error ??
-          '¡Ups, ocurrió un error inesperado al eliminar el respuesta predefinida!'
+          '¡Ups, ocurrió un error inesperado al eliminar la respuesta predefinida!'
       );
       return; // Salimos si hay un error
     }
 
     // Si se ha creado o actualizado correctamente
     if (action === 'deleted') {
-      this.msg.success('¡respuesta predefinida eliminado exitosamente!');
+      this.msg.success('¡Respuesta predefinida eliminada exitosamente!');
       this.store.clearAll();
       this.store.loadAll();
       return;
@@ -87,6 +133,7 @@ export class PredefinedResponsesComponent {
   }
 
   loadData() {
+    this.categoryChannelStore.loadAll();
     this.store.loadAll(this.limit(), this.offset());
   }
 
@@ -98,8 +145,9 @@ export class PredefinedResponsesComponent {
 
   addNew() {
     this.openModal = true;
+    this.store.clearSelected();
     const ref = this.dialogService.open(FormPredefinedComponent, {
-      header: 'Añadir respuesta predefinida ',
+      header: 'Nueva Respuesta Predefinida ',
       styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
@@ -118,7 +166,7 @@ export class PredefinedResponsesComponent {
     this.store.loadById(state.id);
     this.openModal = true;
     const ref = this.dialogService.open(FormPredefinedComponent, {
-      header: 'Editar respuesta predefinida - ' + state.code,
+      header: 'Editar respuesta predefinida - ' + state.title,
       styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
@@ -136,7 +184,7 @@ export class PredefinedResponsesComponent {
   remove(state: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.code}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar la respuesta <span class='uppercase font-bold'>${state.title}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {

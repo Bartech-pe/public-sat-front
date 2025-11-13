@@ -1,9 +1,12 @@
 import { Routes } from '@angular/router';
 import { adviserRoutes } from '@features/main/adviser/adviser.routes';
 import { campaignsRoutes } from '@features/main/campaigns/campaigns.routes';
+import { reportsRoutes } from '@features/main/reports/reports.routes';
 import { settingsRoutes } from '@features/main/settings/settings.routes';
+import { supervisorRoutes } from '@features/main/supervisor/supervisor.routes';
 import { authGuard } from '@guards/auth.guard';
 import { redirectIfLoggedInGuard } from '@guards/redirect-if-logged-in.guard';
+import { serverDownGuard } from '@guards/server-down.guard';
 import { verifyScreenGuard } from '@guards/verify-screen.guard';
 
 export const routes: Routes = [
@@ -53,6 +56,17 @@ export const routes: Routes = [
             (c) => c.InboxViewComponent
           ),
       },
+
+      {
+        path: 'mail',
+        title: 'SAT | Correo Electronico',
+        loadComponent: () =>
+          import('@features/main/mail/mail.component').then(
+            (c) => c.MailComponent
+          ),
+        children: adviserRoutes,
+      },
+
       {
         path: 'inbox-multi-channel',
         title: 'SAT | Chat Multicanal',
@@ -74,58 +88,14 @@ export const routes: Routes = [
         ],
       },
       {
-        path: 'conversations',
-        title: 'SAT | Conversaciones',
-        loadComponent: () =>
-          import('@features/main/conversations/conversations.component').then(
-            (c) => c.ConversationsComponent
-          ),
-        children: [
-          {
-            path: 'dashboard',
-            title: 'SAT | Conversaciones',
-            loadComponent: () =>
-              import(
-                '@features/main/conversations/dashboard/dashboard.component'
-              ).then((c) => c.DashboardComponent),
-          },
-          {
-            path: 'mentions',
-            title: 'SAT | Menciones',
-            loadComponent: () =>
-              import(
-                '@features/main/conversations/mentions/mentions.component'
-              ).then((c) => c.MentionsComponent),
-          },
-          {
-            path: 'unattended',
-            title: 'SAT | Desatendido',
-            loadComponent: () =>
-              import(
-                '@features/main/conversations/unattended/unattended.component'
-              ).then((c) => c.UnattendedComponent),
-          },
-        ],
-      },
-      {
         path: 'reports',
         title: 'SAT | Reportes',
         loadComponent: () =>
           import('@features/main/reports/reports.component').then(
             (c) => c.ReportsComponent
           ),
-        children: [
-          {
-            path: 'general',
-            title: 'SAT | Configuración de la cuenta',
-            loadComponent: () =>
-              import('@features/main/reports/overview/overview.component').then(
-                (c) => c.OverviewComponent
-              ),
-          },
-        ],
+        children: reportsRoutes,
       },
-      
       {
         path: 'campaigns',
         title: 'SAT | Bandeja de entrada',
@@ -136,45 +106,14 @@ export const routes: Routes = [
         children: campaignsRoutes,
       },
       {
-        path: 'briefcase',
+        path: 'portfolios',
         title: 'SAT | Cartera',
         loadComponent: () =>
-          import('@features/main/briefcase/briefcase.component').then(
-            (c) => c.BriefcaseComponent
+          import('@features/main/portfolio/portfolios.component').then(
+            (c) => c.PortfoliosComponent
           ),
       },
-      {
-        path: 'briefcase/new',
-        title: 'SAT | Nueva Cartera',
-        loadComponent: () =>
-          import(
-            '@features/main/briefcase/new-briefcase/new-briefcase.component'
-          ).then((c) => c.NewBriefcaseComponent),
-      },
-      {
-        path: 'briefcase/edit/:id',
-        title: 'SAT | Editar Cartera',
-        loadComponent: () =>
-          import(
-            '@features/main/briefcase/edit-briefcase/edit-briefcase.component'
-          ).then((c) => c.EditBriefcaseComponent),
-      },
-       {
-        path: 'calls',
-        title: 'SAT | LLamadas',
-        loadComponent: () =>
-          import('@features/main/campaigns/llamadas/llamadas.component').then(
-            (c) => c.LlamadasComponent
-          ),
-      },
-      {
-        path: 'mails',
-        title: 'SAT | Correo Electronico',
-        loadComponent: () =>
-          import('@features/main/mail/mail.component').then(
-            (c) => c.MailComponent
-          ),
-      },
+
       {
         path: 'assignments',
         title: 'SAT | Mis Asignaciones',
@@ -184,22 +123,13 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'templates',
-        title: 'SAT | Plantillas',
+        path: 'supervisor',
+        title: 'SAT | Supervisor',
         loadComponent: () =>
-          import('@features/main/templates/templates.component').then(
-            (c) => c.TemplatesComponent
+          import('@features/main/supervisor/supervisor.component').then(
+            (c) => c.SupervisorComponent
           ),
-        children: [
-          {
-            path: 'my-templates',
-            title: 'SAT | Mis Plantillas',
-            loadComponent: () =>
-              import(
-                '@features/main/templates/my-templates/my-templates.component'
-              ).then((c) => c.MyTemplatesComponent),
-          },
-        ],
+        children: supervisorRoutes,
       },
       {
         path: 'adviser',
@@ -211,6 +141,14 @@ export const routes: Routes = [
         children: adviserRoutes,
       },
       {
+        path: 'monitoring-panel',
+        title: 'SAT | Panel',
+        loadComponent: () =>
+          import(
+            '@features/main/monitoring-panel/monitoring-panel.component'
+          ).then((c) => c.MonitoringPanelComponent),
+      },
+      {
         path: 'settings',
         title: 'SAT | Ajustes',
         loadComponent: () =>
@@ -219,26 +157,7 @@ export const routes: Routes = [
           ),
         children: settingsRoutes,
       },
-      {
-        path: 'supervisor',
-        title: 'SAT | Supervisor',
-        loadComponent: () =>
-          import('@features/main/supervisor/supervisor.component').then(
-            (c) => c.SupervisorComponent
-          ),
-        // children: settingsRoutes,
-      },
     ],
-  },
-
-  
-
-  {
-    path: 'editor',
-    loadComponent: () =>
-      import('./grapes-editor/grapes-editor.component').then(
-        (m) => m.GrapesEditorComponent
-      ),
   },
   {
     path: 'not-found',
@@ -249,6 +168,7 @@ export const routes: Routes = [
   },
   {
     path: 'server-down',
+    canActivate: [serverDownGuard],
     loadComponent: () =>
       import('./layouts/server-down/server-down.component').then(
         (c) => c.ServerDownComponent

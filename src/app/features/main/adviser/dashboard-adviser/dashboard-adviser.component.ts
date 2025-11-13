@@ -4,6 +4,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 import {
   FormControl,
@@ -23,10 +24,22 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { AtencionDetalleComponent } from './atencion-detalle/atencion-detalle.component';
 import { DialogService } from 'primeng/dynamicdialog';
-import { MessageGlobalService } from '@services/message-global.service';
-import { Router, RouterModule } from '@angular/router';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { CitizenAssistance } from '@models/citizen-assistance.model';
+import { CitizenAssistanceService } from '@services/citizen-assistance.service';
+import { map } from 'rxjs';
+import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
+import { PaginatorComponent } from '@shared/paginator/paginator.component';
+import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { RegisterAssistanceComponent } from './register-assistance/register-assistance.component';
+import { IAttentionRecord } from '@interfaces/features/main/unified-query-system/attentionRecord.interface';
+import { ChannelAssistanceService } from '@services/channel-assistance.service';
+import { GenericAssistanceService } from '@services/generic-assistance.service';
+import { ChannelCitizenService } from '@services/channel-citizen.service';
+
+type ViewType = 'register' | 'list';
 
 interface Atenciones {
   id?: string;
@@ -60,14 +73,34 @@ interface Atenciones {
     InputIconModule,
     IconFieldModule,
     RouterModule,
+    TitleSatComponent,
+    RegisterAssistanceComponent,
+    ButtonSaveComponent,
   ],
   templateUrl: './dashboard-adviser.component.html',
   styles: ``,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DashboardAdviserComponent implements OnInit {
+  title: string = 'Atención al ciudadano';
+
+  descripcion: string = 'Lista de atenciones realizadas.';
+
   private readonly msg = inject(MessageGlobalService);
+
   private readonly dialogService = inject(DialogService);
+
+  private readonly router = inject(Router);
+
+  private readonly route = inject(ActivatedRoute);
+
+  private readonly citizenAssistanceService = inject(CitizenAssistanceService);
+
+  private readonly channelAssistanceService = inject(ChannelAssistanceService);
+
+  private readonly genericAssistanceService = inject(GenericAssistanceService);
+
+  private readonly channelCitizenService = inject(ChannelCitizenService);
 
   formData = new FormGroup({
     idtipoConsulta: new FormControl<string>('', {
@@ -86,14 +119,6 @@ export class DashboardAdviserComponent implements OnInit {
 
   openModal: boolean = false;
 
-  breadcrumbItems = [
-    { label: 'Inicio' },
-    { label: 'Gestión de Atención de Asesor' },
-    { label: 'Dashboard' },
-  ];
-
-  home = { icon: 'pi pi-home', routerLink: '/' };
-
   listaTipoConsulta = [
     { id: 1, name: 'Papeletas' },
     { id: 2, name: 'Multas' },
@@ -103,44 +128,9 @@ export class DashboardAdviserComponent implements OnInit {
 
   activeTab: string = '0';
 
-  tickets: Atenciones[] = [
-    {
-      id: 'dmfk32mkdm',
-      nombre: 'Ticket de prueba',
-      pipeline: 'Pipeline de asistencia',
-      estado: 'Nuevo',
-      fecha: '15 de ene. de 2025',
-      prioridad: 'Alta',
-      propietario: 'Carlos Ventura Bueno',
-      fuente: 'Correo',
-      abierto: false,
-      resultado: 'Resuelto',
-    },
-    {
-      id: 'dmf12fmkdm',
-      nombre: 'Ticket abierto',
-      pipeline: 'Soporte técnico',
-      estado: 'En progreso',
-      fecha: '12 de ene. de 2025',
-      prioridad: 'Media',
-      propietario: 'Carlos Ventura Bueno',
-      fuente: 'Llamada',
-      abierto: true,
-      resultado: 'Sin Resolver',
-    },
-    {
-      id: 'dmfkdf43dm',
-      nombre: 'Ticket sin asignar',
-      pipeline: 'Consultas',
-      estado: 'Nuevo',
-      fecha: '10 de ene. de 2025',
-      prioridad: 'Baja',
-      propietario: 'Carlos Ventura Bueno',
-      fuente: 'ChatSAT',
-      abierto: false,
-      resultado: 'Resuelto',
-    },
-  ];
+  tableComunicaciones: CitizenAssistance[] = [];
+
+  tableChannelAllAttentions: IAttentionRecord[] = [];
 
   atenciones = [
     {
@@ -174,18 +164,44 @@ export class DashboardAdviserComponent implements OnInit {
       estado: false,
     },
   ];
+  limit = signal(10)
+  offset  = signal(0)
+  verifyPayment = signal<boolean | null>(null)
+  totalRecords = signal(0)
+  get tableChannelAttentionsFiltered(): IAttentionRecord[] {
+    return [
+      ...this.filteredMepecos,
+      ...this.tableChannelAllAttentions,
+      ...this.tableChannelAssistances,
+      ...this.tableGenericAssistances.map((x) => ({
+        ...x,
+        categoryChannel: { id: 0 },
+      })),
+    ];
+  }
+
+  tableChannelAssistances: IAttentionRecord[] = [];
+
+  tableGenericAssistances: IAttentionRecord[] = [];
+
+  tickets: Atenciones[] = [];
+
 
   selectedAtencion!: Atenciones;
 
-  constructor(private router: Router) {}
+  originalRoute: string = '';
 
-  ngOnInit(): void {}
+  viewValue = signal<ViewType>('list');
 
-  fuction() {}
-
-  verInfoDetalle() {}
-
-  verHistorialCompleto() {}
+  ngOnInit(): void {
+    this.getAtenciones();
+    this.originalRoute = this.router.url.split('?')[0];
+    console.log('Ruta original:', this.originalRoute);
+    this.route.queryParams.subscribe((params) => {
+      const view = params['view'] ?? 'list';
+      this.viewValue.set(view);
+    });
+  }
 
   onSubmit() {
     if (this.formData.valid) {
@@ -195,16 +211,99 @@ export class DashboardAdviserComponent implements OnInit {
     }
   }
 
-  nuevaAtencion() {}
+  getAtenciones() {
+    this.citizenAssistanceService
+      .getAll(undefined, undefined, { byUser: true })
+      .subscribe({
+        next: (res) => {
+          this.tableComunicaciones = res.data;
+        },
+      });
+    this.channelAssistanceService
+      .getAll(undefined, undefined, { byUser: true })
+      .subscribe({
+        next: (res) => {
+          this.tableChannelAssistances = res.data;
+        },
+      });
 
-  get filteredTickets() {
-    if (this.activeTab === '1') {
-      return this.tickets.filter((t) => t.abierto);
-    }
-    if (this.activeTab === '2') {
-      return this.tickets.filter((t) => !t.abierto);
-    }
-    return this.tickets;
+    this.genericAssistanceService
+      .getAll(undefined, undefined, { byUser: true })
+      .subscribe({
+        next: (res) => {
+          this.tableGenericAssistances = res.data;
+        },
+      });
+
+    // this.channelCitizenService.getAssistancesByDocumentNumber(doc).subscribe({
+    //   next: (response) => {
+    //     if (response?.success && response?.data && response.data.length) {
+    //       let channelAttentions: IAttentionRecord[] = response.data.map(
+    //         (attention) => {
+    //           return {
+    //             categoryChannel: {
+    //               name: attention?.channel,
+    //             },
+    //             method: 'CHAT',
+    //             createdByUser: {
+    //               displayName: attention?.advisorIntervention
+    //                 ? attention.user
+    //                 : 'BOT',
+    //             },
+    //             citizen: {
+    //               name: attention?.email,
+    //             },
+    //             createdAt: attention?.startDate,
+    //             result: 'Contacto',
+    //             consultType: {
+    //               name: attention?.type,
+    //             },
+    //             queryHistory: attention.queryHistory,
+    //           };
+    //         }
+    //       );
+
+    //       console.log('channelAttentions', channelAttentions);
+
+    //       this.tableChannelAllAttentions = [
+    //         ...this.tableChannelAllAttentions,
+    //         ...channelAttentions,
+    //       ];
+    //     }
+    //   },
+    // });
+  }
+
+  changeView(view: ViewType) {
+    this.router.navigate([this.originalRoute], {
+      queryParams: { view },
+    });
+  }
+
+  get filteredMepecos(): IAttentionRecord[] {
+    return this.tableComunicaciones
+      .filter((item) => !item.verifyPayment)
+      .map((attention) => {
+        return {
+          categoryChannel: {
+            name: attention?.channel,
+          },
+          method: attention.method,
+          createdByUser: attention.createdByUser,
+          citizen: {
+            name: attention?.portfolioDetail?.taxpayerName,
+          },
+          createdAt: attention?.createdBy,
+          result: attention.result,
+          consultType: {
+            name: attention?.type,
+          },
+        } as IAttentionRecord;
+      });
+  }
+
+  get filteredMepecosVerify() {
+    return this.tableComunicaciones.filter((item) => item.verifyPayment);
   }
 
   onTabChange(event: string) {

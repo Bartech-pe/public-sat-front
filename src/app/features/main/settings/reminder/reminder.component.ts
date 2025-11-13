@@ -13,31 +13,31 @@ import { ButtonModule } from 'primeng/button';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DialogService } from 'primeng/dynamicdialog';
 
-import { MessageGlobalService } from '@services/message-global.service';
-import { PredefinedResponsesStore } from '@stores/predefined.store';
-import { PredefinedResponses } from '@models/predefined.model';
+import { MessageGlobalService } from '@services/generic/message-global.service';
 import { CommonModule } from '@angular/common';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
+import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { ReminderStore } from '@stores/reminder.store';
 import { FormReminderComponent } from './form-reminder/form-reminder.component';
 import { Reminder } from '@models/reminder.model';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-reminder',
   imports: [
+    CommonModule,
+    CardModule,
     TableModule,
     InputTextModule,
-    CommonModule,
     ColorPickerModule,
     ButtonModule,
     FormsModule,
     BreadcrumbModule,
     ButtonSaveComponent,
     ButtonEditComponent,
-    ButtonDeleteComponent,
+    BtnDeleteComponent,
     ButtonSaveComponent,
   ],
   templateUrl: './reminder.component.html',
@@ -50,7 +50,7 @@ export class ReminderComponent {
   descripcion: string =
     'Los recordatorios te ayudan a organizar y dar seguimiento a tareas importantes dentro de tu flujo de atención. Puedes crear un recordatorio para un contacto o una conversación, especificando la fecha, hora y una breve descripción. Desde el panel lateral, puedes ver todos los recordatorios asignados y marcar aquellos que ya han sido atendidos. Esto garantiza que ninguna tarea quede pendiente y mejora la eficiencia de tu equipo.';
 
-  createButtonLabel: string = 'Crear recordatorio';
+  createButtonLabel: string = 'recordatorio';
 
   openModal: boolean = false;
 

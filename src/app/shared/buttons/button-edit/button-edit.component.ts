@@ -39,6 +39,6 @@ export class ButtonEditComponent {
   authStore = inject(AuthStore);
 
   get canUpdate(): boolean {
-    return !!this.authStore.screenSelected()?.RoleScreen?.canUpdate;
+    return !!this.authStore.screenSelected()?.RoleScreenOffice?.canUpdate;
   }
 }
