@@ -1,114 +1,77 @@
-<form [formGroup]="formData" (ngSubmit)="onSubmit()">
-  <div class="grid grid-cols-1 gap-6">
-    <div class="grid grid-cols-1 gap-3">
+   <div class="w-full h-px bg-gray-300"></div>
+
+    <form [formGroup]="formData" (ngSubmit)="save()" class="p-6 space-y-4">
+     <p class="mb-2 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl">
+        Las respuestas predefinidas son plantillas de respuesta predefinidas que pueden ser utilizadas para enviar rápidamente respuestas a conversaciones.
+      </p>
+      <!-- Nombre -->
       <div class="flex flex-col space-y-1">
-        <label class="text-sm font-medium" for="nameRole">
-          Título <span class="text-xs">*</span>
-        </label>
+          <label class="text-sm font-medium" for="nameRole">
+            Código corto <span class="text-xs text-red-500">*</span>
+          </label>
 
-        <input
-          pInputText
-          id="title"
-          formControlName="title"
-          placeholder="Por favor, introduzca el título."
-        />
-        <div
-          *ngIf="
-            formData.controls.title.invalid && formData.controls.title.touched
-          "
-        >
-          <small
-            class="text-xs text-red-500"
-            *ngIf="formData.controls.title.errors?.['required']"
-            >El Código corto es requerido.</small
-          >
-        </div>
+          <div class="relative">
+            <input
+              pInputText
+              id="code"
+              formControlName="code"
+              placeholder="Por favor, introduzca un código corto."
+              required
+              class="w-full pr-10"
+            />
+            <iconify-icon
+              icon="mdi:account-outline"
+              class="absolute right-2 top-2.5 text-gray-400 text-lg"
+            ></iconify-icon>
+          </div>
+          <div
+              *ngIf="formData.controls.code.invalid && formData.controls.code.touched"
+            >
+              <small  class="text-xs text-red-500" *ngIf="formData.controls.code.errors?.['required']"
+                >El Código corto es requerido.</small
+              >
+          </div>
       </div>
-      <!-- <div class="flex flex-col space-y-1">
-        <label class="text-sm font-medium" for="nameRole">
-          Código de acceso <span class="text-xs">*</span>
-        </label>
 
-        <input
-          pInputText
-          id="code"
-          formControlName="code"
-          placeholder="Por favor, introduzca un código corto."
-        />
-        <div
-          *ngIf="
-            formData.controls.code.invalid && formData.controls.code.touched
-          "
-        >
-          <small
-            class="text-xs text-red-500"
-            *ngIf="formData.controls.code.errors?.['required']"
-            >El Código corto es requerido.</small
-          >
-        </div>
-      </div> -->
-
-      <div class="flex flex-col space-y-1 w-full">
+      <!-- Color -->
+     <div class="flex flex-col space-y-1 w-full">
         <label class="text-sm font-medium" for="Color">
-          Contenido <span class="text-xs">*</span>
-        </label>
+            Mensaje <span class="text-xs text-red-500">*</span>
+          </label>
 
-        <p-editor formControlName="content" [style]="{ height: '320px' }" />
 
-        <div
-          *ngIf="
-            formData.controls.content.invalid &&
-            formData.controls.content.touched
-          "
-        >
-          <small
-            class="text-xs text-red-500"
-            *ngIf="formData.controls.content.errors?.['required']"
-          >
+        <textarea rows="5" cols="30" placeholder="Por favor, escriba el mensaje que desea guardar como una plantilla para usarlo más tarde." class="w-full pr-10" pTextarea id="message" formControlName="message"></textarea>
+
+        <div *ngIf="formData.controls.message.invalid && formData.controls.message.touched">
+          <small  class="text-xs text-red-500" *ngIf="formData.controls.message.errors?.['required']">
             El Mensaje es requerido.
           </small>
         </div>
       </div>
 
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" for="idtipoConsulta">
-          Canal <span class="text-xs">*</span></label
-        >
-        <p-select
-          id="categoria"
-          [options]="listCategoryChannels"
-          optionLabel="name"
-          optionValue="id"
-          formControlName="categoryId"
-          placeholder="Seleccione el canal"
-          appendTo="body"
-        />
-      </div>
-    </div>
+      <div class="w-full h-px bg-gray-300"></div>
 
-    <div class="flex justify-end gap-3">
-      <!-- <div class="flex items-center gap-2 py-1">
-      <p-toggleswitch formControlName="status" inputId="activeRole" />
-      <label class="text-sm font-medium pb-1.5" for="activeRole">{{
-        isActive ? "Activo" : "Inactivo"
-      }}</label>
-    </div> -->
-      <!-- <p-button
-        severity="primary"
-        size="small"
-        type="submit"
-        [label]="id ? 'Actualizar' : 'Guardar'"
-        [loading]="loading"
-        [disabled]="formData.invalid"
-        ><iconify-icon [icon]="'ci:save'" class="text-xl" />
-      </p-button> -->
-      <button-cancel (click)="onCancel()" />
-      <button-save
-        [label]="id ? 'Actualizar' : 'Guardar'"
-        [loading]="loading"
-        [disabled]="formData.invalid"
-        (click)="onSubmit()"
-      />
-    </div>
-  </div>
-</form>
+      <!-- Botones -->
+      <div class="pt-4 flex justify-end space-x-2">
+        <button
+          pButton
+          type="button"
+          (click)="onCancel()"
+          class="p-button-outlined text-[#0ea5e9] border-[#0ea5e9] flex items-center gap-2"
+        >
+          <iconify-icon icon="mdi:cancel" class="text-lg"></iconify-icon>
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="formData.invalid || loading"
+          class="bg-[#0ea5e9] text-white px-4 py-2 flex items-center gap-2 rounded hover:bg-[#0ea5e9] transition"
+        >
+          <iconify-icon icon="mdi:content-save-outline" class="text-lg"></iconify-icon>
+          {{ id ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+
+    </form>
+

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
 export interface CitizenInfo {
   vcontacto: string;
   vnumTel: string;
@@ -19,7 +19,7 @@ export interface CitizenQueryPayload {
   providedIn: 'root',
 })
 export class ExternalCitizenService {
-  private readonly baseUrl = `${environment.apiUrl}v1/omnicanalidad/contacto/listado`;
+  private readonly baseUrl = `${environment.citizenApiUrl}/omnicanalidad/contacto/listado`;
 
   constructor(private http: HttpClient) {}
 

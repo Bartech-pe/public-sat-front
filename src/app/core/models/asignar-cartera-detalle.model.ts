@@ -1,3 +1,3 @@
-export interface AssignPortfolioDetalle {
+export interface AsignarCarteraDetalle {
   id?: number;
 }

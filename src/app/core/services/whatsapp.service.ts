@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpResponseBase } from "@angular/common/http";
 import { inject, Injectable, OnDestroy } from "@angular/core";
-import { environment } from "@envs/environments";
+import { environment } from "@envs/enviroments";
 import { catchError, Observable, Subject, throwError } from "rxjs";
 import { io, Socket } from "socket.io-client";
 
@@ -19,7 +19,7 @@ export interface WhatsappAuthDto
 })
 export class WhatsappService implements OnDestroy {
 
-  private readonly url = `${environment.apiUrl}`;
+  private readonly url = `${environment.wsUrl}`;
   private socket: Socket | null = null;
 
   private authStatusSubject = new Subject<any>();

@@ -42,6 +42,6 @@ export class ButtonSaveComponent {
   authStore = inject(AuthStore);
 
   get canCreate(): boolean {
-    return !!this.authStore.screenSelected()?.RoleScreenOffice?.canCreate;
+    return !!this.authStore.screenSelected()?.RoleScreen?.canCreate;
   }
 }

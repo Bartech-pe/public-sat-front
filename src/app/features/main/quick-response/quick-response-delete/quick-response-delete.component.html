@@ -1,0 +1,8 @@
+<p-dialog  [modal]="true" [(visible)]="visible" (onHide)="onClose()"
+  [style]="{ width: '600px' }"> 
+  <label class="text-gray-900"> ¿Estás seguro de eliminar la respuesta rápida {{item.title}}?</label>
+  <div class="flex justify-center gap-2 mt-4">
+      <button pButton type="button" label="Cancelar" (click)="onClose()" class="p-button-outlined"></button>
+      <button pButton type="submit" label="Eliminar Respuesta" (click)="delete()"></button>
+    </div>
+</p-dialog>

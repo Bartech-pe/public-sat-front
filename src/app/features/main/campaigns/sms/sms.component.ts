@@ -10,19 +10,18 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
+
+import { MessageGlobalService } from '@services/message-global.service';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormSmsComponent } from './form-sms/form-sms.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { TagModule } from 'primeng/tag';
-import { Popover, PopoverModule } from 'primeng/popover';
-import { MessageGlobalService } from '@services/generic/message-global.service';
-import { SmsCampaignStore } from '@stores/sms-campaign.store';
 import { ButtonCountComponent } from '@shared/buttons/button-count/button-count.component';
-import { MessagePreview } from '@models/sms-campaign.model';
-import { SmsCampaignService } from '@services/sms-campaign.service';
-import { Dialog } from 'primeng/dialog';
-import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-progress.component';
+import { ButtonDownloadComponent } from '@shared/buttons/button-download/button-download.component';
+import { Popover, PopoverModule } from 'primeng/popover';
+import { SmsCampaningStore } from '@stores/sms-campaing.store';
 
 @Component({
   selector: 'app-sms',
@@ -33,12 +32,11 @@ import { ButtonProgressComponent } from '@shared/buttons/button-progress/button-
     FormsModule,
     BreadcrumbModule,
     ButtonSaveComponent,
-    ButtonSaveComponent,
     TagModule,
     ButtonCountComponent,
-    PopoverModule,
-    Dialog,
-    ButtonProgressComponent,
+    ButtonDownloadComponent,
+    ButtonEditComponent,
+    PopoverModule
   ],
   templateUrl: './sms.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -48,34 +46,30 @@ export class SmsComponent implements OnInit {
   listaCampaniasSMS: any[] = [];
 
   openModal: boolean = false;
-  visible: boolean = false;
+
   @ViewChild('op') op!: Popover;
 
   private readonly msg = inject(MessageGlobalService);
   private readonly dialogService = inject(DialogService);
-  readonly smsStore = inject(SmsCampaignStore);
+  readonly smsStore = inject(SmsCampaningStore)
 
-  listPreview: any[] = [];
-  readonly smsCampaignService = inject(SmsCampaignService);
   ngOnInit() {
     this.loadData();
   }
-
   limit = signal(100);
   offset = signal(0);
 
   private loadData() {
-    this.smsStore.loadAll(this.limit(), this.offset());
+     this.smsStore.loadAll(this.limit(), this.offset())
   }
-
-  smsCampanias() {
-    return this.smsStore.items().sort((a, b) => b.id - a.id);
-  }
+   smsCampanias() {
+        return this.smsStore.items()!;
+    }
 
   openNew() {
     this.openModal = true;
     const ref = this.dialogService.open(FormSmsComponent, {
-      header: 'Nueva Campaña - SMS',
+      header: 'Crear Campaña SMS - Excel',
       styleClass: 'modal-6xl',
       modal: true,
       dismissableMask: false,
@@ -84,51 +78,30 @@ export class SmsComponent implements OnInit {
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
-      if (res) {
-        this.loadData(); // método que vuelve a consultar las campañas
-      }
-    });
-  }
-
-  viewdata(item: any) {
-    const request: MessagePreview = {
-      rows: item.excel_data,
-      message: item.message,
-      contact: item.contact ?? '',
-    };
-    this.smsCampaignService.getMessagePreview(request).subscribe((res) => {
-      this.listPreview = res;
     });
   }
 
   downloadReport(item: any) {
-    // this.msg.success('Reporte descargado con éxito');
-    console.log(item);
-    this.viewdata(item);
-    this.visible = true;
+    this.msg.success('Reporte descargado con éxito');
   }
 
-  edit(id: number) {
+  edit(id:number) {
     this.openModal = true;
     const ref = this.dialogService.open(FormSmsComponent, {
-      header: 'Editar Campaña SMS',
+      header: 'Editar Campaña SMS - Excel',
       styleClass: 'modal-6xl',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: id,
+      data: id 
     });
 
     ref.onClose.subscribe((res) => {
       this.openModal = false;
-      if (res) {
-        this.loadData(); // método que vuelve a consultar las campañas
-      }
     });
   }
 
-  count(item: any) {
+  count(item: any){
     this.op.toggle(event);
-    this.viewdata(item);
   }
 }

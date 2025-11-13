@@ -1,7 +1,5 @@
-import { CallHistory } from './call.model';
-import { ChannelState } from './channel-state.model';
 import { Inbox } from './inbox.model';
-import { Office } from './office.model';
+import { Oficina } from './oficina.model';
 import { Role } from './role.model';
 import { Skill } from './skill.model';
 
@@ -12,10 +10,10 @@ export interface User {
   email: string;
   password?: string;
   avatarUrl?: string;
-  roleId?: number;
-  officeId?: number;
+  idRole?: number;
+  idOficina?: number;
   role?: Role;
-  office?: Office;
+  oficina?: Oficina;
   verify?: boolean;
   connected?: boolean;
   estado?: string;
@@ -23,8 +21,7 @@ export interface User {
   status?: boolean;
   skills: Skill[];
   inboxes: Inbox[];
-  vicidial?: VicidialUser;
-  callHistory?: CallHistory[];
+  vicidial?: UserVicidial;
 }
 
 export interface UserSender {
@@ -33,23 +30,19 @@ export interface UserSender {
   displayName: string;
   email: string;
   avatarUrl: string | null;
-  roleId: number;
+  idRole: number;
   verified: boolean;
   status: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface VicidialUser {
-  id: number;
+export interface UserVicidial {
+  id?: number;
   username: string;
   userPass: string;
   phoneLogin: string;
   phonePass: string;
   userLevel: number;
   userGroup: string;
-  user: User;
-  channelState?: ChannelState;
-  pauseCode?: string;
-  calls?: number;
 }

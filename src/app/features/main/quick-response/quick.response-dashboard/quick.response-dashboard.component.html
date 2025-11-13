@@ -1,0 +1,181 @@
+<div class="grid grid-cols-1 gap-4 px-3">
+  <!-- Encabezado -->
+  <div class="bg-gray-50 shadow rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h5 class="text-2xl font-semibold mb-1">Respuestas Rápidas</h5>
+      </div>
+      <button-save
+        label="Crear Nueva Respuesta Rápida"
+        [icon]="'mdi:plus-circle-outline'"
+        (click)="openCreate()"
+      />
+    </div>
+  </div>
+
+  <!-- <div class="flex flex-col sm:flex-row gap-4">
+    <div class="relative flex-1">
+      <input
+        type="text"
+        pInputText
+        placeholder="Buscar respuestas rápidas..."
+        class="w-full pl-10 py-2"
+        [value]="activeSearch()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+    <p-select
+      [options]="quickResponseCategories()"
+      [(ngModel)]="activeCategoryFilter"
+      optionLabel="name"
+      optionValue="quickResponseCategoryId"
+      placeholder="Todas"
+      class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+      dropdownIcon="pi pi-chevron-down"
+      appendTo="body"
+    >
+      <ng-template pTemplate="selectedItem" let-value>
+        <span>
+          Categoría:
+          {{ getCategoryName() }}
+        </span>
+      </ng-template>
+    </p-select>
+    <p-select
+      [options]="quickResponseActives()"
+      [(ngModel)]="activeFilter"
+      optionLabel="name"
+      optionValue="value"
+      placeholder="Todos"
+      class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+      dropdownIcon="pi pi-chevron-down"
+      appendTo="body"
+    >
+      <ng-template pTemplate="selectedItem" let-value>
+        <span>
+          Filtrar:
+          {{ getActive() }}
+        </span>
+      </ng-template>
+    </p-select>
+    <p-select
+      [options]="quickResponseOrder()"
+      [(ngModel)]="activeOrder"
+      optionLabel="name"
+      optionValue="value"
+      placeholder="Fecha de creación"
+      class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+      dropdownIcon="pi pi-chevron-down"
+      appendTo="body"
+    >
+      <ng-template pTemplate="selectedItem" let-value>
+        <span>
+          Ordenar:
+          {{ getOrder() }}
+        </span>
+      </ng-template>
+    </p-select>
+  </div> -->
+
+  <p-card>
+    <div class="flex flex-col sm:flex-row gap-4 pb-5">
+      <div class="relative flex-1">
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar respuestas rápidas..."
+          class="w-full pl-10 py-2"
+          [value]="activeSearch()"
+          (input)="onSearchInput($event)"
+        />
+      </div>
+      <p-select
+        [options]="quickResponseCategories()"
+        [(ngModel)]="activeCategoryFilter"
+        optionLabel="name"
+        optionValue="quickResponseCategoryId"
+        placeholder="Todas"
+        class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+        dropdownIcon="pi pi-chevron-down"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-value>
+          <span>
+            Categoría:
+            {{ getCategoryName() }}
+          </span>
+        </ng-template>
+      </p-select>
+      <p-select
+        [options]="quickResponseActives()"
+        [(ngModel)]="activeFilter"
+        optionLabel="name"
+        optionValue="value"
+        placeholder="Todos"
+        class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+        dropdownIcon="pi pi-chevron-down"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-value>
+          <span>
+            Filtrar:
+            {{ getActive() }}
+          </span>
+        </ng-template>
+      </p-select>
+      <p-select
+        [options]="quickResponseOrder()"
+        [(ngModel)]="activeOrder"
+        optionLabel="name"
+        optionValue="value"
+        placeholder="Fecha de creación"
+        class="w-full sm:w-auto border border-gray-300 bg-transparent text-gray-800"
+        dropdownIcon="pi pi-chevron-down"
+        appendTo="body"
+      >
+        <ng-template pTemplate="selectedItem" let-value>
+          <span>
+            Ordenar:
+            {{ getOrder() }}
+          </span>
+        </ng-template>
+      </p-select>
+    </div>
+
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      @for (item of items(); track $index) {
+      <div class="h-full">
+        <app-quick-card
+          [item]="item"
+          (edit)="openEdit(item)"
+          (deleteItem)="openDelete(item)"
+        ></app-quick-card>
+      </div>
+      } @empty {
+      <p class="col-span-full text-center text-muted-foreground mt-4">
+        No se encontraron respuestas rápidas para esta categoría o filtros.
+      </p>
+      }
+      <app-quick-response-dialog
+        [header]="header()"
+        [(visible)]="showDialog"
+        (reload)="getQuickResponse()"
+      ></app-quick-response-dialog>
+      @if (itemEdit!=null) {
+      <app-quick-response-update
+        [header]="header()"
+        [(visible)]="showEdit"
+        (reload)="getQuickResponse()"
+        [item]="itemEdit"
+      ></app-quick-response-update>
+      } @if (itemDeleted!=null) {
+      <app-quick-response-delete
+        [(visible)]="showDeleted"
+        (reload)="getQuickResponse()"
+        [item]="itemDeleted"
+      >
+      </app-quick-response-delete>
+      }
+    </div>
+  </p-card>
+</div>

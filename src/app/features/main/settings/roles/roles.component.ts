@@ -7,8 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { Role } from '@models/role.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { MessageGlobalService } from '@services/message-global.service';
+import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
 import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
 import { RoleStore } from '@stores/role.store';
 import { AvatarModule } from 'primeng/avatar';
@@ -20,6 +20,8 @@ import { ImageModule } from 'primeng/image';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TableModule } from 'primeng/table';
 import { RoleFormComponent } from './role-form/role-form.component';
+import { RolePermissionComponent } from './role-permission/role-permission.component';
+import { ButtonCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { CardModule } from 'primeng/card';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
@@ -40,7 +42,8 @@ import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
     TitleSatComponent,
     ButtonSaveComponent,
     ButtonEditComponent,
-    BtnDeleteComponent,
+    ButtonDeleteComponent,
+    ButtonCustomComponent,
     PaginatorComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -49,7 +52,7 @@ import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
   providers: [DialogService],
 })
 export class RolesComponent {
-  createButtonLabel: string = 'rol';
+  createButtonLabel: string = 'Crear rol';
 
   openModal: boolean = false;
 
@@ -143,6 +146,24 @@ export class RolesComponent {
       if (res) {
         this.loadData();
       }
+    });
+  }
+
+  assignment(item: Role) {
+    // this.store.loadById(item.id);
+    this.openModal = true;
+    const ref = this.dialogService.open(RolePermissionComponent, {
+      header: `Permisos del rol - ${item.name}`,
+      styleClass: 'modal-6xl',
+      modal: true,
+      data: { idRole: item.id },
+      focusOnShow: false,
+      dismissableMask: false,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res) => {
+      this.openModal = false;
     });
   }
 

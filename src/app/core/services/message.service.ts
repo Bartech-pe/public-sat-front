@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '@envs/environments';
-import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
+import { environment } from '@envs/enviroments';
+import { BehaviorSubject, catchError, Observable, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
-import { ChatMessage, ChatMessageNotication } from '@models/chat-message.model';
+import { ChatMessage } from '@models/chat-message.model';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
-import { ChatRoom } from '@models/chat-room.model';
+import { ChatRoom } from '@models/chatRoom.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ChatMessageService {
+export class ChatMessageService  {
   private readonly apiUrl!: string;
 
   constructor(private http: HttpClient, private tokenes: AuthService) {
-    this.apiUrl = `${environment.apiUrl}v1`;
+    this.apiUrl = `${environment.apiUrl}`;
   }
 
   private selectedChat = new BehaviorSubject<any>(null);
@@ -31,68 +31,67 @@ export class ChatMessageService {
   }
 
   getRoomMessages(channelRoomId: number): Observable<ChatMessage[]> {
-    const token = this.tokenes.getToken();
+      const token = this.tokenes.getToken();
 
-    if (!token) {
-      throw new Error('Token no disponible');
-    }
+      if (!token) {
+        throw new Error('Token no disponible');
+      }
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
 
-    return this.http
-      .get<ChatMessage[]>(`${this.apiUrl}/chat/room/${channelRoomId}/messages`, {
-        headers,
-      })
-      .pipe(
-        map((messages) =>
-          messages.map((msg) => ({
-            ...msg,
-            // 🔧 Normalizamos el senderId siempre
-            senderId: msg.senderId ?? msg.sender?.id ?? 0,
-          }))
-        )
+      return this.http.get<ChatMessage[]>(
+        `${this.apiUrl}/chat/room/${channelRoomId}/messages`,
+        { headers }
       );
   }
 
-  
-
-
   registerMessage(body: ChatMessage): Observable<ChatMessage[]> {
-    const { isSender, ...dto } = body;
+    const token = this.tokenes.getToken(); // o como lo tengas almacenado
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
     return this.http.post<ChatMessage[]>(
       `${this.apiUrl}/chat/room/message`,
-      dto
-    );
-  }
-
-  registerMessageNotificacion(body: ChatMessageNotication): Observable<ChatMessageNotication[]> {
-    return this.http.post<ChatMessageNotication[]>(
-      `${this.apiUrl}/notifications`,
-      body
+       body ,
+      { headers }
     );
   }
 
   deleteMessage(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/chat/room/message/${id}`);
+    const token = this.tokenes.getToken();
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.delete<void>(`${this.apiUrl}/chat/room/message/${id}`, { headers });
   }
 
   registerMessageImagen(data: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/chat/room/message`, data);
-  }
-
-  registerRoomPrivate(data: any): Observable<any> {
-    const token = this.tokenes.getToken();
+    const token = this.tokenes.getToken(); // o como lo tengas almacenado
 
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
 
-    return this.http
-      .post(`${this.apiUrl}/chat/room/private`, data, { headers })
-      .pipe(
+     return this.http.post(`${this.apiUrl}/chat/room/message`, data,
+      { headers });
+  }
+
+  registerRoomPrivate(data:any): Observable<any> {
+      const token = this.tokenes.getToken();
+
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      });
+
+      return this.http.post(`${this.apiUrl}/chat/room/private`, data, { headers }).pipe(
         catchError((error) => {
           console.error('❌ Error al crear sala privada:', error);
           return throwError(() => error);
@@ -100,31 +99,14 @@ export class ChatMessageService {
       );
   }
 
-  registerRoom(data: any): Observable<any> {
-    const token = this.tokenes.getToken();
+  registerRoom(data:any): Observable<any> {
+      const token = this.tokenes.getToken();
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      });
 
-    return this.http.post(`${this.apiUrl}/chat/room`, data, { headers }).pipe(
-      catchError((error) => {
-        console.error('❌ Error al crear sala privada:', error);
-        return throwError(() => error);
-      })
-    );
-  }
-
-  registerRoomGrupo(data: any): Observable<any> {
-    const token = this.tokenes.getToken();
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
-
-    return this.http
-      .post(`${this.apiUrl}/chat/room/multiple`, data, { headers })
-      .pipe(
+      return this.http.post(`${this.apiUrl}/chat/room`, data, { headers }).pipe(
         catchError((error) => {
           console.error('❌ Error al crear sala privada:', error);
           return throwError(() => error);
@@ -132,51 +114,62 @@ export class ChatMessageService {
       );
   }
 
-  getAllWithToken(
-    limit?: number,
-    offset?: number,
-    q?: string
-  ): Observable<PaginatedResponse<any>> {
-    const token = this.tokenes.getToken();
+  registerRoomGrupo(data:any): Observable<any> {
+      const token = this.tokenes.getToken();
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      });
 
-    const params = new URLSearchParams();
-    if (limit !== undefined) params.set('limit', limit.toString());
-    if (offset !== undefined) params.set('offset', offset.toString());
-    if (q) params.set('q', q);
-
-    const queryString = params.toString();
-
-    return this.http.get<PaginatedResponse<any>>(
-      `${this.apiUrl}/chat/room?${queryString}`,
-      { headers }
-    );
+      return this.http.post(`${this.apiUrl}/chat/room/multiple`, data, { headers }).pipe(
+        catchError((error) => {
+          console.error('❌ Error al crear sala privada:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
-  deleteRoom(id: number) {
-    const token = this.tokenes.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
+   getAllWithToken(
+      limit?: number,
+      offset?: number,
+      q?: string
+    ): Observable<PaginatedResponse<any>> {
+        const token = this.tokenes.getToken();
 
-    return this.http.delete(`${environment.apiUrl}v1/chat/room/${id}`, {
-      headers,
-    });
-  }
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        });
 
-  deleteUserGroup(id: number) {
-    const token = this.tokenes.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
+        const params = new URLSearchParams();
+        if (limit !== undefined) params.set('limit', limit.toString());
+        if (offset !== undefined) params.set('offset', offset.toString());
+        if (q) params.set('q', q);
 
-    return this.http.delete(
-      `${environment.apiUrl}v1/chat/room/userGroup/${id}`,
-      { headers }
-    );
-  }
+        const queryString = params.toString();
+
+        return this.http.get<PaginatedResponse<any>>(
+          `${this.apiUrl}/chat/room?${queryString}`,
+          { headers }
+        );
+    }
+
+    deleteRoom(id: number) {
+      const token = this.tokenes.getToken();
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      });
+
+      return this.http.delete(`${environment.apiUrl}/chat/room/${id}`, { headers });
+    }
+
+    deleteUserGroup(id: number) {
+      const token = this.tokenes.getToken();
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      });
+
+      return this.http.delete(`${environment.apiUrl}/chat/room/userGroup/${id}`, { headers });
+    }
+
 }

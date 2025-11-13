@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Skill, SkillUser } from '@models/skill.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { SkillStore } from '@stores/skill.store';
 import { UserStore } from '@stores/user.store';
@@ -16,7 +16,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { RatingModule } from 'primeng/rating';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { User } from '@models/user.model';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
 
 @Component({
   selector: 'app-skill-user-form',
@@ -32,7 +32,7 @@ import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.compon
     InputNumberModule,
     ButtonModule,
     ButtonSaveComponent,
-    BtnDeleteComponent,
+    ButtonDeleteComponent,
   ],
   templateUrl: './skill-user-form.component.html',
   styles: ``,
@@ -96,8 +96,8 @@ export class SkillUserFormComponent implements OnInit {
           (sk: any) =>
             ({
               name: sk.name,
-              skillId: sk.id,
-              userId: sk.SkillUser.userId,
+              idSkill: sk.id,
+              idUser: sk.SkillUser.idUser,
               score: sk.SkillUser.score,
             } as SkillUser)
         );
@@ -117,11 +117,11 @@ export class SkillUserFormComponent implements OnInit {
 
   assign() {
     this.selectedSkills.forEach((item) => {
-      if (!this.assignmentList.map((a) => a.skillId).includes(item.id)) {
+      if (!this.assignmentList.map((a) => a.idSkill).includes(item.id)) {
         this.assignmentList.push({
           name: item.name,
-          skillId: item.id,
-          userId: this.itemSelected?.id!,
+          idSkill: item.id,
+          idUser: this.itemSelected?.id!,
           score: 0,
         } as SkillUser);
       }
@@ -130,7 +130,7 @@ export class SkillUserFormComponent implements OnInit {
 
   remove(item: SkillUser): void {
     this.assignmentList = this.assignmentList.filter(
-      (i) => i.skillId !== item.skillId
+      (i) => i.idSkill !== item.idSkill
     );
   }
 
@@ -138,8 +138,8 @@ export class SkillUserFormComponent implements OnInit {
     this.store.assignment(
       this.itemSelected?.id! as number,
       this.assignmentList.map((item) => ({
-        skillId: item.skillId,
-        userId: this.itemSelected?.id!,
+        idSkill: item.idSkill,
+        idUser: this.itemSelected?.id!,
         score: item.score,
       }))
     );

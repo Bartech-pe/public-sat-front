@@ -1,15 +1,28 @@
-<div class="grid grid-cols-1 gap-4">
-  <!-- Encabezado -->
-  <div class="bg-gray-50 shadow rounded-xl p-4">
-    <div class="flex justify-between items-center">
-      <div>
-        <app-title-sat />
-      </div>
-      <!-- <button-save
-        [label]="createButtonLabel"
-        [icon]="'mdi:plus-circle-outline'"
-        (click)="addNew()"
-      /> -->
+<div class="p-8 bg-white rounded-xl shadow-md">
+  <div class="flex flex-wrap items-center justify-between mb-4">
+    <div class="flex flex-wrap gap-2 items-center">
+      <h2 class="text-2xl font-semibold text-sky-700">
+        Registro de Atenciones
+      </h2>
+      <span class="text-sm text-gray-500 pt-1">(3 registros)</span>
+    </div>
+    <div class="flex gap-2">
+      <p-button
+        size="small"
+        label="Importar"
+        (click)="nuevaAtencion()"
+        variant="outlined"
+        severity="info"
+        styleClass="!rounded-full bg-[#375f95]"
+      >
+      </p-button>
+      <p-button
+        size="small"
+        label="Nueva Atención"
+        (click)="nuevaAtencion()"
+        styleClass="!rounded-full bg-[#375f95]"
+      >
+      </p-button>
     </div>
   </div>
 
@@ -21,9 +34,9 @@
       class="mb-4"
     >
       <p-tablist>
-        <p-tab value="0">Mis atenciones</p-tab>
-        <p-tab value="1">Verificaciones de pago</p-tab>
-        <!-- <p-tab value="2">Atenciones cerradas</p-tab> -->
+        <p-tab value="0">Todos mis atenciones</p-tab>
+        <p-tab value="1">Mis atenciones abiertas</p-tab>
+        <p-tab value="2">Atenciones cerradas</p-tab>
       </p-tablist>
 
       <p-tabpanels>
@@ -60,7 +73,7 @@
         [rowsPerPageOptions]="[5, 10, 20]"
         showGridlines
       >
-        <!-- <ng-template #caption>
+        <ng-template #caption>
           <div class="flex justify-between">
             <div>
               <p-iconfield iconPosition="left" class="ml-auto">
@@ -86,122 +99,65 @@
               </p-button>
             </div>
           </div>
-        </ng-template> -->
+        </ng-template>
         <ng-template pTemplate="header">
           <tr class="uppercase">
-            <th>
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Fecha/Hora
-              </div>
+            <th pSortableColumn="nombre">
+              Nombre <p-sortIcon field="nombre" />
             </th>
-            <th>
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Código contribuyente
-              </div>
+            <th pSortableColumn="pipeline">
+              Pipeline <p-sortIcon field="pipeline" />
             </th>
-            <th>
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Contribuyente
-              </div>
+            <th pSortableColumn="estado">
+              Estado <p-sortIcon field="estado" />
             </th>
-            <th *ngIf="activeTab != '1'">
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Tipo
-              </div>
+            <th pSortableColumn="fecha">
+              Fecha de creación <p-sortIcon field="fecha" />
             </th>
-            <th *ngIf="activeTab != '1'">
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Canal
-              </div>
+            <th class="text-center" pSortableColumn="prioridad">
+              Prioridad <p-sortIcon field="prioridad" />
             </th>
-            <th *ngIf="activeTab != '1'">
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Método
-              </div>
+            <th pSortableColumn="propietario">
+              Asesor <p-sortIcon field="propietario" />
             </th>
-            <th *ngIf="activeTab != '1'">
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Contacto Usado
-              </div>
+            <th pSortableColumn="canal">
+              Canal <p-sortIcon field="canal" />
             </th>
-            <th>
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Resultado
-              </div>
-            </th>
-            <th>
-              <div
-                class="flex justify-center items-center text-xs uppercase gap-4"
-              >
-                Sectorista
-              </div>
+            <th pSortableColumn="resultado">
+              Resultado <p-sortIcon field="resultado" />
             </th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-item>
-          <tr>
+          <tr [routerLink]="['/adviser/atencion-detalle']">
             <td>
-              <p class="text-sm text-center font-light">
-                {{ item?.createdAt | date : "dd/MM/yyyy hh:ss a" }}
-              </p>
+              {{ item.nombre }}
             </td>
-            <td>
-              <p class="text-sm text-center font-light">
-                {{ item.portfolioDetail?.code }}
-              </p>
-            </td>
-            <td>
-              <p class="text-sm text-center font-light">
-                {{ item.portfolioDetail?.taxpayerName }}
-              </p>
-            </td>
-            <!-- <td>{{ item.estado }}</td> -->
-            <td *ngIf="activeTab != '1'">
-              <p class="text-sm text-center font-light">
-                {{ item?.type }}
-              </p>
-            </td>
-            <td *ngIf="activeTab != '1'">
-              <p class="text-sm text-center font-light">
-                {{ item?.channel }}
-              </p>
-            </td>
-            <td *ngIf="activeTab != '1'">
-              <p class="text-sm font-light text-center">
-                {{ item?.method }}
-              </p>
-            </td>
-            <td *ngIf="activeTab != '1'">
-              <p class="text-sm font-light text-center">
-                {{ item?.contact }}
-              </p>
+            <td>{{ item.pipeline }}</td>
+            <td>{{ item.estado }}</td>
+            <td>{{ item.fecha }}</td>
+            <td class="text-center">
+              <span
+                class="text-xs font-semibold px-2 py-1 rounded"
+                [ngClass]="{
+                  'bg-red-100 text-red-800': item.prioridad === 'Alta',
+                  'bg-yellow-100 text-yellow-800': item.prioridad === 'Media',
+                  'bg-green-100 text-green-800': item.prioridad === 'Baja'
+                }"
+              >
+                {{ item.prioridad }}
+              </span>
             </td>
             <td>
-              <p class="text-sm font-light text-center">
-                {{ item?.result }}
-              </p>
+              <ng-container *ngIf="item.propietario; else noAsignado">
+                {{ item.propietario }}
+              </ng-container>
+              <ng-template #noAsignado>
+                <span class="italic text-gray-400">Sin asignar</span>
+              </ng-template>
             </td>
-            <td>
-              <p class="text-sm font-light text-center">
-                {{ item?.createdByUser?.name }}
-              </p>
-            </td>
+            <td>{{ item.fuente }}</td>
+            <td>{{ item.resultado }}</td>
           </tr>
         </ng-template>
       </p-table>

@@ -1,14 +1,13 @@
-import { HttpClient } from '@angular/common/http';
-import { environment } from '@envs/environments';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '@envs/enviroments';
 import { PaginatedResponse } from '@interfaces/paginated-response.interface';
-import { toFormData } from '@utils/formData.function';
 import { Observable } from 'rxjs';
 
 export class GenericCrudService<T> {
   protected readonly url!: string;
 
   constructor(protected http: HttpClient, endpoint: string) {
-    this.url = `${environment.apiUrl}v1/${endpoint}`;
+    this.url = `${environment.apiUrl}/${endpoint}`;
   }
 
   getAll(
@@ -25,20 +24,40 @@ export class GenericCrudService<T> {
   }
 
   getByIdDetalle(id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.url}/detail/${id}`);
+    return this.http.get<any[]>(`${this.url}/detalle/${id}`);
   }
+
+  // getAllWithToken(
+  //   limit?: number,
+  //   offset?: number,
+  //   q?: string
+  // ): Observable<PaginatedResponse<T>> {
+  //     const token = this.tokenes.getToken();; // Asegúrate de tener este servicio
+
+  //     const headers = new HttpHeaders({
+  //       Authorization: `Bearer ${token}`,
+  //       'Content-Type': 'application/json',
+  //     });
+
+  //     const params = new URLSearchParams();
+  //     if (limit !== undefined) params.set('limit', limit.toString());
+  //     if (offset !== undefined) params.set('offset', offset.toString());
+  //     if (q) params.set('q', q);
+
+  //     const queryString = params.toString();
+
+  //     return this.http.get<PaginatedResponse<T>>(
+  //       `${this.url}?${queryString}`,
+  //       { headers }
+  //     );
+  // }
 
   findOne(id: number, q?: string): Observable<T> {
     return this.http.get<T>(`${this.url}/${id}`);
   }
 
-  create(dto: Partial<T>, file?: File): Observable<T> {
-    if (file) {
-      const formData = toFormData(dto);
-      formData.append('file', file, file.name);
-      return this.http.post<T>(this.url, formData);
-    }
-
+  create(dto: Partial<T>): Observable<T> {
+    // const formData = toFormData(dto);
     return this.http.post<T>(this.url, dto);
   }
 
@@ -51,13 +70,8 @@ export class GenericCrudService<T> {
     return this.http.post<T[]>(`${this.url}/assignment/${id}${query}`, dto);
   }
 
-  update(id: number, dto: Partial<T>, file?: File): Observable<T> {
-    if (file) {
-      const formData = toFormData(dto);
-      formData.append('file', file, file.name);
-      return this.http.patch<T>(`${this.url}/${id}`, formData);
-    }
-
+  update(id: number, dto: Partial<T>): Observable<T> {
+    // const formData = toFormData(dto);
     return this.http.patch<T>(`${this.url}/${id}`, dto);
   }
 
@@ -71,7 +85,7 @@ export class GenericCrudService<T> {
   }
 
   obtenerArchivo?(id: number): Observable<Blob> {
-    return this.http.get(`${this.url}/getFile/${id}`, {
+    return this.http.get(`${this.url}/obtenerArchivo/${id}`, {
       responseType: 'blob',
     });
   }

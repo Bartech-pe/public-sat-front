@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { UserStore } from '@stores/user.store';
 import { AvatarModule } from 'primeng/avatar';
@@ -16,7 +16,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { User } from '@models/user.model';
 import { InboxStore } from '@stores/inbox.store';
 import { Inbox, InboxUser } from '@models/inbox.model';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { ButtonDeleteComponent } from '@shared/buttons/button-delete/button-delete.component';
 
 @Component({
   selector: 'app-user-inbox-form',
@@ -32,7 +32,7 @@ import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.compon
     InputNumberModule,
     ButtonModule,
     ButtonSaveComponent,
-    BtnDeleteComponent,
+    ButtonDeleteComponent,
   ],
   templateUrl: './user-inbox-form.component.html',
   styles: ``,
@@ -95,8 +95,8 @@ export class UserInboxFormComponent implements OnInit {
         this.assignmentList = item.inboxes.map(
           (inbox: any) =>
             ({
-              inboxId: inbox.id,
-              userId: inbox.InboxUser.userId,
+              idInbox: inbox.id,
+              idUser: inbox.InboxUser.idUser,
               inbox: inbox,
             } as InboxUser)
         );
@@ -116,10 +116,10 @@ export class UserInboxFormComponent implements OnInit {
 
   assign() {
     this.selectedInboxes.forEach((item) => {
-      if (!this.assignmentList.map((a) => a.inboxId).includes(item.id)) {
+      if (!this.assignmentList.map((a) => a.idInbox).includes(item.id)) {
         this.assignmentList.push({
-          inboxId: item.id,
-          userId: this.itemSelected?.id!,
+          idInbox: item.id,
+          idUser: this.itemSelected?.id!,
           inbox: item,
         } as InboxUser);
       }
@@ -128,7 +128,7 @@ export class UserInboxFormComponent implements OnInit {
 
   remove(item: InboxUser): void {
     this.assignmentList = this.assignmentList.filter(
-      (i) => i.inboxId !== item.inboxId
+      (i) => i.idInbox !== item.idInbox
     );
   }
 
@@ -139,8 +139,8 @@ export class UserInboxFormComponent implements OnInit {
     this.store.assignment(
       this.itemSelected?.id! as number,
       this.assignmentList.map((item) => ({
-        inboxId: item.inboxId,
-        userId: this.itemSelected?.id!,
+        idInbox: item.idInbox,
+        idUser: this.itemSelected?.id!,
       })),
       q
     );

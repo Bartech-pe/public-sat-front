@@ -11,7 +11,7 @@
 
   <div class="flex-1 p-2 overflow-y-auto max-h-60">
     <div *ngFor="let msg of messages" class="text-sm my-1">
-      <div [ngClass]="{'text-right': msg.senderId}">
+      <div [ngClass]="{'text-right': msg.isSender}">
         <span class="inline-block px-2 py-1 rounded bg-blue-100 text-gray-800">
           {{ msg.content }}
         </span>

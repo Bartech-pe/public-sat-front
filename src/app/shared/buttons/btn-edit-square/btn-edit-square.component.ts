@@ -39,7 +39,7 @@ export class BtnEditSquareComponent {
   authStore = inject(AuthStore);
 
   get canUpdate(): boolean {
-    return !!this.authStore.screenSelected()?.RoleScreenOffice?.canUpdate;
+    return !!this.authStore.screenSelected()?.RoleScreen?.canUpdate;
   }
 
   @Output() onClick = new EventEmitter();

@@ -1,13 +1,13 @@
-import { Role, RoleScreenOffice } from './role.model';
+import { Role, RoleScreen } from './role.model';
 
 export interface Screen {
   id: number;
   name: string;
   description: string;
-  path: string;
+  url: string;
   icon?: string;
-  parentId?: number;
-  RoleScreenOffice?: RoleScreenOffice;
+  idParent?: number;
+  RoleScreen?: RoleScreen;
   roles: Role[];
   items: Screen[];
   status?: boolean;

@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { RoleStore } from '@stores/role.store';
@@ -96,12 +96,19 @@ export class RoleFormComponent implements OnInit {
     }
 
     // Si hay un item seleccionado, se carga en el formulario
-    if (item && this.id != item.id) {
+    if (item) {
       this.id = item.id ?? null;
       this.formData.setValue({
         name: item.name ?? '',
         description: item.description ?? '',
         status: item.status!,
+      });
+    } else {
+      // No hay item seleccionado, se resetea el formulario
+      this.formData.reset({
+        name: '',
+        description: '',
+        status: true,
       });
     }
   });

@@ -3,16 +3,16 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   effect,
   inject,
-  signal,
 } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DialogService } from 'primeng/dynamicdialog';
 import { StateFormComponent } from './state-form/state-form.component';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { AccordionModule } from 'primeng/accordion';
@@ -21,46 +21,39 @@ import { CommonModule } from '@angular/common';
 import { BadgeModule } from 'primeng/badge';
 import { AvatarModule } from 'primeng/avatar';
 import { DialogModule } from 'primeng/dialog';
-import { CampaignStateStore } from '@stores/campaign-state.store';
-import { AssistanceStateStore } from '@stores/assistance-state.store';
+import { EstadoCampaniaStore } from '@stores/estado-campania.store';
+import { EstadoCampania } from '@models/estado-campania.model';
+import { EstadoAtencionStore } from '@stores/estado-atencion.store';
+import { EstadoTelefonicoStore } from '@stores/estado-telefonico.store';
+import { EstadoAtencion } from '@models/estado-atencion.model';
+import { EstadoTelefonico } from '@models/estado-telefonico.model';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { BtnEditSquareComponent } from '@shared/buttons/btn-edit-square/btn-edit-square.component';
-import { ChannelStateStore } from '@stores/channel-state.store';
-import { CampaignState } from '@models/campaign-state.model';
-import { AssistanceState } from '@models/assistance-state.model';
-import { ChannelState } from '@models/channel-state.model';
-import { CategoryChannelStore } from '@stores/category-channel.store';
-import { CategoryChannel } from '@models/category-channel.model';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { AssistanceStateFormComponent } from './assistance-state-form/assistance-state-form.component';
-import { ChannelStateFormComponent } from './channel-state-form/channel-state-form.component';
-
-type ViewType = 'channels' | 'assistances' | 'campaigns';
+import { BtnDeleteSquareComponent } from '@shared/buttons/btn-delete-square/btn-delete-square.component';
 
 @Component({
   selector: 'app-custom-states',
   imports: [
-    CommonModule,
-    RouterModule,
     TableModule,
     InputTextModule,
     ColorPickerModule,
     ButtonModule,
     FormsModule,
+    BreadcrumbModule,
     CardModule,
     InputTextModule,
     ButtonModule,
     TabsModule,
     TagModule,
     AccordionModule,
+    CommonModule,
     AvatarModule,
     BadgeModule,
     DialogModule,
     TableModule,
     ButtonSaveComponent,
     BtnEditSquareComponent,
-    BtnDeleteComponent,
+    BtnDeleteSquareComponent,
   ],
   providers: [DialogService],
   templateUrl: './custom-states.component.html',
@@ -70,137 +63,119 @@ export class CustomStatesComponent {
   home = { icon: 'pi pi-home', routerLink: '/' };
 
   openModal: boolean = false;
-
   value: number = 0;
 
-  private readonly router = inject(Router);
-
-  private readonly route = inject(ActivatedRoute);
-
   private readonly msg = inject(MessageGlobalService);
-
   private readonly dialogService = inject(DialogService);
+  readonly storeCampania = inject(EstadoCampaniaStore);
+  readonly storeAtencion = inject(EstadoAtencionStore);
+  readonly storeCanal = inject(EstadoTelefonicoStore);
 
-  readonly categoryChannelStore = inject(CategoryChannelStore);
-
-  readonly campaignStateStore = inject(CampaignStateStore);
-
-  readonly assistanceStateStore = inject(AssistanceStateStore);
-
-  readonly channelStateStore = inject(ChannelStateStore);
-
-  originalRoute: string = '';
-
-  get listCategoryChannels(): CategoryChannel[] {
-    return this.categoryChannelStore.items();
+  get totalItemsCampania(): number {
+    return this.storeCampania.totalItems();
   }
 
-  get totalCampaignStateStore(): number {
-    return this.campaignStateStore.totalItems();
+  get listadoEstadosCampania(): EstadoCampania[] {
+    return this.storeCampania.items();
   }
 
-  get campaignStateList(): CampaignState[] {
-    return this.campaignStateStore.items();
+  get totalItemsAtencion(): number {
+    return this.storeAtencion.totalItems();
   }
 
-  get assistanceStateList(): AssistanceState[] {
-    return this.assistanceStateStore.items();
+  get listadoEstadosAtencion(): EstadoAtencion[] {
+    return this.storeAtencion.items();
   }
 
-  get channelStateList(): ChannelState[] {
-    return this.channelStateStore.items();
+  get totalItemsCanal(): number {
+    return this.storeCanal.totalItems();
   }
 
-  getChannelState(category: number): ChannelState[] {
-    return this.channelStateList.filter((m) => m.categoryId === category);
+  get listadoEstadosCanal(): EstadoTelefonico[] {
+    return this.storeCanal.items();
   }
 
-  getAssistanceState(category: number): ChannelState[] {
-    return this.assistanceStateList.filter((m) => m.categoryId === category);
+  get estadosTelefonico(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 1);
+  }
+
+  get estadosEmail(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 2);
+  }
+
+  get estadosChat(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 3);
+  }
+
+  get estadosWhatsApp(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 4);
   }
 
   private resetOnSuccessEffect = effect(() => {
     // CAMPANIA
-    const errorCampaignState = this.campaignStateStore.error();
-    const actionCampaignState = this.campaignStateStore.lastAction();
+    const errorCampania = this.storeCampania.error();
+    const actionCampania = this.storeCampania.lastAction();
 
-    if (!this.openModal && errorCampaignState) {
-      this.msg.error(errorCampaignState ?? '¡Error al eliminar Campaña!');
+    if (!this.openModal && errorCampania) {
+      this.msg.error(errorCampania ?? '¡Error al eliminar Campaña!');
       return;
     }
 
-    if (actionCampaignState === 'deleted') {
+    if (actionCampania === 'deleted') {
       this.msg.success('¡Estado de Campaña eliminado exitosamente!');
-      this.campaignStateStore.clearAll();
-      this.campaignStateStore.loadAll();
+      this.storeCampania.clearAll();
+      this.storeCampania.loadAll();
       return;
     }
 
     // ATENCIÓN
-    const errorAssistanceState = this.assistanceStateStore.error();
-    const actionAssistanceState = this.assistanceStateStore.lastAction();
+    const errorAtencion = this.storeAtencion.error();
+    const actionAtencion = this.storeAtencion.lastAction();
 
-    if (!this.openModal && errorAssistanceState) {
-      this.msg.error(errorAssistanceState ?? '¡Error al eliminar Atención!');
+    if (!this.openModal && errorAtencion) {
+      this.msg.error(errorAtencion ?? '¡Error al eliminar Atención!');
       return;
     }
 
-    if (actionAssistanceState === 'deleted') {
+    if (actionAtencion === 'deleted') {
       this.msg.success('¡Estado de Atención eliminado exitosamente!');
-      this.assistanceStateStore.clearAll();
-      this.assistanceStateStore.loadAll();
+      this.storeAtencion.clearAll();
+      this.storeAtencion.loadAll();
       return;
     }
 
     // CANAL
-    const errorChannelState = this.channelStateStore.error();
-    const actionChannelState = this.channelStateStore.lastAction();
+    const errorCanal = this.storeCanal.error();
+    const actionCanal = this.storeCanal.lastAction();
 
-    if (!this.openModal && errorChannelState) {
-      this.msg.error(
-        errorChannelState ?? '¡Error al eliminar Canal Telefónico!'
-      );
+    if (!this.openModal && errorCanal) {
+      this.msg.error(errorCanal ?? '¡Error al eliminar Canal Telefónico!');
       return;
     }
 
-    if (actionChannelState === 'deleted') {
+    if (actionCanal === 'deleted') {
       this.msg.success('¡Estado Telefónico eliminado exitosamente!');
-      this.channelStateStore.clearAll();
-      this.channelStateStore.loadAll();
+      this.storeCanal.clearAll();
+      this.storeCanal.loadAll();
       return;
     }
   });
 
-  viewValue = signal<ViewType>('channels');
-
   ngOnInit(): void {
-    this.originalRoute = this.router.url.split('?')[0];
-    console.log('Ruta original:', this.originalRoute);
-    this.route.queryParams.subscribe((params) => {
-      const view = params['view'] ?? 'channels';
-      this.viewValue.set(view);
-    });
     this.loadData();
   }
 
   loadData() {
-    this.categoryChannelStore.loadAll();
-    this.campaignStateStore.loadAll();
-    this.assistanceStateStore.loadAll();
-    this.channelStateStore.loadAll();
-  }
-
-  changeView(view: ViewType) {
-    this.router.navigate([this.originalRoute], {
-      queryParams: { view },
-    });
+    this.storeCampania.loadAll();
+    this.storeAtencion.loadAll();
+    this.storeCanal.loadAll();
   }
 
   openNew() {}
 
-  nuevoCampaignState() {
+  nuevoEstadoCampania() {
     this.openModal = true;
-    this.campaignStateStore.clearSelected();
+    this.storeCampania.clearSelected();
     const ref = this.dialogService.open(StateFormComponent, {
       header: 'Nuevo Estado - Campaña',
       styleClass: 'modal-md',
@@ -218,12 +193,11 @@ export class CustomStatesComponent {
     });
   }
 
-  EditarCampaignState(state: CampaignState) {
-    console.log("ESTADO EDIT", state);
-    this.campaignStateStore.loadById(state.id);
+  EditarEstadoCampania(state: EstadoCampania) {
+    this.storeCampania.loadById(state.id);
     this.openModal = true;
     const ref = this.dialogService.open(StateFormComponent, {
-      header: 'Editar Estado - Campaña: ' + state.name,
+      header: 'Editar Estado - Campaña: ' + state.nombre,
       styleClass: 'modal-lg',
       modal: true,
       focusOnShow: false,
@@ -240,28 +214,28 @@ export class CustomStatesComponent {
     });
   }
 
-  eliminarCampaignState(state: any) {
+  eliminarEstadoCampania(state: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.nombre}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {
-        this.campaignStateStore.delete(state.id);
+        this.storeCampania.delete(state.id);
       }
     );
   }
 
-  newAssistanceState(categoryId: number) {
+  nuevoEstadoAtencion() {
     this.openModal = true;
-    this.assistanceStateStore.clearSelected();
-    const ref = this.dialogService.open(AssistanceStateFormComponent, {
-      header: 'Nuevo Estado de atención',
+    this.storeAtencion.clearSelected();
+    const ref = this.dialogService.open(StateFormComponent, {
+      header: 'Nuevo Estado - Atención',
       styleClass: 'modal-md',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: { categoryId },
+      data: 1,
     });
 
     ref.onClose.subscribe((res) => {
@@ -272,16 +246,16 @@ export class CustomStatesComponent {
     });
   }
 
-  editAssistanceState(state: AssistanceState) {
-    this.assistanceStateStore.loadById(state.id);
+  EditarEstadoAtencion(state: any) {
+    this.storeAtencion.loadById(state.id);
     this.openModal = true;
-    const ref = this.dialogService.open(AssistanceStateFormComponent, {
-      header: `Editar estado de atención | ${state.name}`,
+    const ref = this.dialogService.open(StateFormComponent, {
+      header: 'Editar estado - Atención: ' + state.nombre,
       styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: { categoryId: state.categoryId },
+      data: 1,
     });
 
     ref.onClose.subscribe((res) => {
@@ -292,30 +266,28 @@ export class CustomStatesComponent {
     });
   }
 
-  deleteAssistanceState(state: AssistanceState) {
-    console.log(state);
+  eliminarEstadoAtencion(state: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.nombre}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {
-        this.assistanceStateStore.delete(state.id);
+        this.storeAtencion.delete(state.id);
       }
     );
   }
 
-  newChannelState(categoryId: number) {
+  nuevoEstadoTelefonico() {
     this.openModal = true;
-    this.channelStateStore.clearSelected();
-    this.assistanceStateStore.clearSelected();
-    const ref = this.dialogService.open(ChannelStateFormComponent, {
-      header: 'Nuevo estado de canal',
+    this.storeCanal.clearSelected();
+    const ref = this.dialogService.open(StateFormComponent, {
+      header: 'Nuevo Estado - Canal',
       styleClass: 'modal-md',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: { categoryId },
+      data: 0,
     });
 
     ref.onClose.subscribe((res) => {
@@ -326,16 +298,16 @@ export class CustomStatesComponent {
     });
   }
 
-  editChannelState(state: ChannelState) {
-    this.channelStateStore.loadById(state.id);
+  EditarEstadoTelefonico(state: any) {
+    this.storeCanal.loadById(state.id);
     this.openModal = true;
-    const ref = this.dialogService.open(ChannelStateFormComponent, {
-      header: `Editar estado de canal | ${state.name}`,
+    const ref = this.dialogService.open(StateFormComponent, {
+      header: 'Editar estado - Canal: ' + state.nombre,
       styleClass: 'modal-lg',
       modal: true,
       dismissableMask: false,
       closable: true,
-      data: { categoryId: state.categoryId },
+      data: 0,
     });
 
     ref.onClose.subscribe((res) => {
@@ -346,14 +318,14 @@ export class CustomStatesComponent {
     });
   }
 
-  deleteChannelState(state: ChannelState) {
+  eliminarEstadoTelefonico(state: any) {
     this.msg.confirm(
       `<div class='px-4 py-2'>
-        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.name}</span>? </p>
+        <p class='text-center'> ¿Está seguro de eliminar el Estado <span class='uppercase font-bold'>${state.nombre}</span>? </p>
         <p class='text-center'> Esta acción no se puede deshacer. </p>
       </div>`,
       () => {
-        this.channelStateStore.delete(state.id);
+        this.storeCanal.delete(state.id);
       }
     );
   }

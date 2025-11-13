@@ -3,8 +3,7 @@ import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Team, TeamUser } from '@models/team.model';
 import { User } from '@models/user.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
+import { MessageGlobalService } from '@services/message-global.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { TeamStore } from '@stores/team.store';
 import { UserStore } from '@stores/user.store';
@@ -27,7 +26,6 @@ import { TableModule } from 'primeng/table';
     MultiSelectModule,
     ButtonModule,
     ButtonSaveComponent,
-    BtnDeleteComponent,
   ],
   templateUrl: './team-user-form.component.html',
   styles: ``,
@@ -64,7 +62,7 @@ export class TeamUserFormComponent implements OnInit {
     if (error) {
       console.log('error', error);
       this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al guardar el equipo!'
+        error ?? '¡Ups, ocurrió un error inesperado al guardar el rol!'
       );
       return; // Salimos si hay un error
     }
@@ -77,8 +75,8 @@ export class TeamUserFormComponent implements OnInit {
           avatarUrl: item.avatarUrl,
           name: item.name,
           email: item.email,
-          userId: item.id,
-          teamId: this.itemSelected?.id!,
+          idUser: item.id,
+          idTeam: this.itemSelected?.id!,
         } as TeamUser;
       });
       this.assignmentList = splitBlocks<TeamUser>(list, 10);
@@ -103,13 +101,13 @@ export class TeamUserFormComponent implements OnInit {
   assign() {
     const list = this.assignmentList.flat().flat();
     this.selectedUsers.forEach((item) => {
-      if (!list.map((a) => a.userId).includes(item.id)) {
+      if (!list.map((a) => a.idUser).includes(item.id)) {
         list.push({
           avatarUrl: item.avatarUrl,
           name: item.name,
           email: item.email,
-          userId: item.id,
-          teamId: this.itemSelected?.id!,
+          idUser: item.id,
+          idTeam: this.itemSelected?.id!,
         } as TeamUser);
       }
     });
@@ -118,21 +116,12 @@ export class TeamUserFormComponent implements OnInit {
     this.selectedUsers = [];
   }
 
-  remove(item: TeamUser): void {
-    const list = this.assignmentList
-      .flat()
-      .flat()
-      .filter((a) => a.userId !== item.userId);
-
-    this.assignmentList = splitBlocks<TeamUser>(list, 10);
-  }
-
   onSubmit() {
     this.store.assignment(
       this.itemSelected?.id! as number,
       this.assignmentList.flat().flatMap((item) => ({
-        teamId: item.teamId,
-        userId: item.userId,
+        idTeam: item.idTeam,
+        idUser: item.idUser,
       }))
     );
   }

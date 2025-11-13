@@ -1,13 +1,9 @@
-export interface Reply {
-  id: number;
-  from: string;
-  body: string;
-  date: Date;
-  type: 'CIUDADANO' | 'ASESOR' | 'RESPUESTA_INTERNA' | 'REENVIO_INTERNO';
-  replyTarget?: 'CIUDADANO' | 'Interno';
-  attachments?: {
-    name: string;
-    size: number;
-    url: string;
-  }[];
+export class ReplyCenterMail {
+  mailAttentionId: number;
+  content: string;
+
+  constructor(data: Partial<ReplyCenterMail> = {}) {
+    this.mailAttentionId = data.mailAttentionId ?? 0;
+    this.content = data.content ?? '';
+  }
 }

@@ -25,12 +25,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { AtencionDetalleComponent } from './atencion-detalle/atencion-detalle.component';
 import { DialogService } from 'primeng/dynamicdialog';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { Router, RouterModule } from '@angular/router';
-import { CitizenAssistance } from '@models/citizen-assistance.model';
-import { CitizenAssistanceService } from '@services/citizen-assistance.service';
-import { map } from 'rxjs';
-import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
 
 interface Atenciones {
   id?: string;
@@ -64,23 +60,14 @@ interface Atenciones {
     InputIconModule,
     IconFieldModule,
     RouterModule,
-    TitleSatComponent,
   ],
   templateUrl: './dashboard-adviser.component.html',
   styles: ``,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DashboardAdviserComponent implements OnInit {
-  title: string = 'Atención al ciudadano';
-
-  descripcion: string = 'Lista de atenciones realizadas.';
-
-  createButtonLabel: string = 'Nuevo usuario';
   private readonly msg = inject(MessageGlobalService);
-
   private readonly dialogService = inject(DialogService);
-
-  private readonly citizenAssistanceService = inject(CitizenAssistanceService);
 
   formData = new FormGroup({
     idtipoConsulta: new FormControl<string>('', {
@@ -115,8 +102,6 @@ export class DashboardAdviserComponent implements OnInit {
   ];
 
   activeTab: string = '0';
-
-  tableAssistances: CitizenAssistance[] = [];
 
   tickets: Atenciones[] = [
     {
@@ -194,9 +179,7 @@ export class DashboardAdviserComponent implements OnInit {
 
   constructor(private router: Router) {}
 
-  ngOnInit(): void {
-    this.getAtenciones();
-  }
+  ngOnInit(): void {}
 
   fuction() {}
 
@@ -212,27 +195,16 @@ export class DashboardAdviserComponent implements OnInit {
     }
   }
 
-  getAtenciones() {
-    this.citizenAssistanceService
-      .getAll()
-      .pipe(map((res) => res.data))
-      .subscribe({
-        next: (data) => {
-          this.tableAssistances = data;
-        },
-      });
-  }
-
   nuevaAtencion() {}
 
   get filteredTickets() {
     if (this.activeTab === '1') {
-      return this.tableAssistances.filter((item) => item.verifyPayment);
+      return this.tickets.filter((t) => t.abierto);
     }
     if (this.activeTab === '2') {
-      return this.tableAssistances;
+      return this.tickets.filter((t) => !t.abierto);
     }
-    return this.tableAssistances.filter((item) => !item.verifyPayment);
+    return this.tickets;
   }
 
   onTabChange(event: string) {

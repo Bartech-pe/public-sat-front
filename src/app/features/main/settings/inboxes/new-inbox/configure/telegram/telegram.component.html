@@ -1,0 +1,64 @@
+<form [formGroup]="formData" class="grid grid-cols-1 gap-4">
+  <p class="font-medium text-base text-center">Canal de Telegram</p>
+  <p class="font-normal text-sm">
+    Integre con el canal de Telegram y comience a apoyar a sus clientes.
+  </p>
+  <div class="grid grid-cols-1 gap-2">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" > Nombre del canal </label>
+      <input id="nameTelegram" pInputText formControlName="name"  placeholder="Ingrese el nombre del canal"/>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Número de Teléfono </label>
+      <div class="flex items-center gap-2">
+        <p-inputNumber
+          formControlName="phoneNumber"
+          [disabled]="codeSended() || requireEmail()"
+          [useGrouping]="false"
+          prefix="+51 "
+          placeholder="Ingrese número"
+          (onInput)="onPhoneChange($event)"
+        >
+        </p-inputNumber>
+        <p-button [hidden]="requireEmail()" [disabled]="codeSended()" (click)="confirmModal()" label="Validar" [outlined]="true" />
+      </div>
+    </div>
+    @if (requireEmail()) {
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">Correo electrónico</label>
+        <div class="flex items-center gap-2">
+          <input id="emailTelegram" pInputText [(ngModel)]="email" [ngModelOptions]="{standalone: true}"/>
+          <p-button [disabled]="codeSended()" (click)="confirmModal()" label="Validar" [outlined]="true" />
+        </div>
+      </div>
+    }
+    @if(phone() != "" && codeSended())
+    {
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium"> Codigo de inicio de Sesión: </label>
+          <div class="flex items-center gap-2">
+            <p-inputmask
+              mask="99999"
+              placeholder="12345"
+              (onInput)="onCodeChange($event)"
+            />
+          </div>
+        </div>
+    }
+
+    <small class="text-gray-500">
+      Configura el número de teléfono que usarás para autenticarte.
+    </small>
+  </div>
+  <div class="flex justify-end gap-4">
+    <div class="flex gap-2">
+      <button-save
+        [label]="'Crear canal de Telegram'"
+        [loading]="loading"
+        [disabled]="formData.invalid || code().length != 5"
+        (click)="createNewSession()"
+      />
+    </div>
+  </div>
+
+</form>

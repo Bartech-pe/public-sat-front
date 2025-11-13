@@ -1,4 +1,4 @@
-import { createEntityStore } from './generic/createEntityStore';
+import { createEntityStore } from './createEntityStore';
 import { Skill } from '@models/skill.model';
 import { SkillService } from '@services/skill.service';
 

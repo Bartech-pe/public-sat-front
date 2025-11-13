@@ -7,12 +7,11 @@ import {
   Output
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { ImageModule } from 'primeng/image';
 
 @Component({
   selector: 'app-button-channel',
   standalone: true,
-  imports: [ButtonModule, CommonModule, ImageModule],
+  imports: [ButtonModule, CommonModule],
   templateUrl: './button-channel.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``
@@ -20,7 +19,7 @@ import { ImageModule } from 'primeng/image';
 export class ButtonChannelComponent {
   @Input() label!: string;
   @Input() icon!: string;
-  @Input() image?: string;
+  @Input() image!: string;
 
   @Input() textColor!: string;
   @Input() hoverColor!: string;

@@ -4,8 +4,6 @@ export const pauseCodeAgent = [
   { code: 'TRAIN', name: 'Capacitación' },
   { code: 'TECH', name: 'Problema técnico' },
   { code: 'ADMIN', name: 'Tarea administrativa' },
-  { code: 'WRAP', name: 'Finalizando llamada' },
-  { code: 'WRAPUP', name: 'Tiempo de post-llamada' },
 ];
 
 export enum VicidialPauseCode {
@@ -16,20 +14,8 @@ export enum VicidialPauseCode {
   TRAIN = 'TRAIN', // Capacitación
   PERSN = 'PERSN', // Asunto personal
   TECH = 'TECH', // Problema técnico
-  WRAP = 'WRAP', // Tiempo de post-llamada
-  WRAPUP = 'WRAPUP', // Tiempo pausa de post-llamada
+  WRAP = 'WRAP', // Tiempo de post-llamada / wrap-up
   ADMIN = 'ADMIN', // Tareas administrativas
   COACH = 'COACH', // Escucha o coaching
   QA = 'QA', // Control de calidad
-
-  PARK = 'PARK',
-}
-
-export enum ChannelPhoneState {
-  READY = 1,
-  QUEUE = 19,
-  INCALL = 17,
-  PAUSED = 18,
-  DISPO = 15,
-  OFFLINE = 16,
 }

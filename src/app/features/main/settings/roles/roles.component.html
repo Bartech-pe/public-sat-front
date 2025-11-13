@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 gap-4">
+<div class="grid grid-cols-1 gap-4 px-3">
   <!-- Encabezado -->
   <div class="bg-gray-50 shadow rounded-xl p-4">
     <div class="flex justify-between items-center">
@@ -16,25 +16,17 @@
 
   <section class="grid grid-cols-1 gap-2">
     <p-card>
-      <p-table
-        [value]="listRoles"
-        [scrollable]="true"
-        scrollHeight="calc(100vh - 19.5rem)"
-      >
+      <p-table [value]="listRoles">
         <ng-template #header>
           <tr>
             <th>
-              <div class="flex justify-start items-center text-xs uppercase">
-                Nombre
-              </div>
+              <div class="flex justify-start items-center">Nombre</div>
             </th>
-            <th>
-              <div class="flex justify-start items-center text-xs uppercase">
-                Descripción
-              </div>
+            <th class="w-32">
+              <div class="flex justify-center items-center">Permisos</div>
             </th>
             <th class="w-28">
-              <div class="flex justify-center items-center"></div>
+              <div class="flex justify-center items-center">Acciones</div>
             </th>
           </tr>
         </ng-template>
@@ -43,23 +35,27 @@
             <td>
               <div class="flex items-center gap-2">
                 <div class="flex flex-col">
-                  <h5 class="text-sm font-medium capitalize">
+                  <h5 class="text-base font-medium capitalize">
                     {{ item.name }}
                   </h5>
+                  <p class="text-sm font-light">{{ item.description }}</p>
                 </div>
               </div>
             </td>
-            <td>
-              <div class="flex items-center gap-2">
-                <div class="flex flex-col">
-                  <p class="text-sm font-light">{{ item.description }}</p>
-                </div>
+            <td class="w-32">
+              <div class="flex justify-center items-center">
+                <btn-custom
+                  severity="success"
+                  icon="lucide:layout-grid"
+                  tooltip="Permisos"
+                  (click)="assignment(item)"
+                />
               </div>
             </td>
             <td class="w-28">
               <div class="flex justify-center items-center gap-1">
                 <button-edit (click)="edit(item)" />
-                <btn-delete *ngIf="!item.inmutable" (click)="remove(item)" />
+                <button-delete *ngIf="!item.inmutable" (click)="remove(item)" />
               </div>
             </td>
           </tr>

@@ -12,7 +12,7 @@ export class ScreenService extends GenericCrudService<Screen> {
     super(http, 'screens');
   }
 
-  findAllByOffice(id: number): Observable<Screen[]> {
-    return this.http.get<Screen[]>(`${this.url}/byOffice/${id}`);
+  findAllByRol(id: number): Observable<Screen[]> {
+    return this.http.get<Screen[]>(`${this.url}/byRol/${id}`);
   }
 }

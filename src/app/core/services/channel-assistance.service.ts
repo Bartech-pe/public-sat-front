@@ -1,27 +1,42 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { GenericCrudService } from '@services/generic/generic-crud.service';
-import { ChannelAssistance } from '@models/channel-assistance.model';
-import { Observable } from 'rxjs';
-import { IAttentionRecord } from '@interfaces/features/main/unified-query-system/attentionRecord.interface';
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { environment } from "@envs/enviroments";
+import { Observable } from "rxjs";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class ChannelAssistanceService extends GenericCrudService<ChannelAssistance> {
-  constructor(http: HttpClient) {
-    super(http, 'channel-assistances');
+export class ChannelAssistanceService {
+  private readonly url = `${environment.apiUrl}/channel-room`;
+
+  constructor(private http : HttpClient){}
+
+  getMessagesFromAssistance(assistanceId: number): Observable<any>{
+    try {
+      return this.http.get<any>(`${this.url}/assistance/${assistanceId}`);
+    } catch (error) {
+      console.log(error)
+      throw new Error('No se pudo enviar el mensaje')
+    }
   }
 
-  findByDocIde(docIde: string): Observable<ChannelAssistance[]> {
-    return this.http.get<ChannelAssistance[]>(
-      `${this.url}/findByDocIde/${docIde}`
-    );
+  getAssistances(channelRoomId: number): Observable<any>{
+    try {
+      return this.http.get<any>(`${this.url}/${channelRoomId}/assistance/retrieve`);
+    } catch (error) {
+      console.log(error)
+      throw new Error('No se pudo enviar el mensaje')
+    }
+  }
+  sendEmailWithConversation(assintanceId: number): Observable<any>{
+    try {
+      return this.http.post<any>(`${this.url}/assistance/${assintanceId}/send-to-email`, {});
+    } catch (error) {
+      console.log(error)
+      throw new Error('No se pudo enviar el mensaje')
+    }
   }
 
-  findByDocIdentityTyped(docIde: string): Observable<IAttentionRecord[]> {
-    return this.http.get<IAttentionRecord[]>(
-      `${this.url}/findByDocIde/${docIde}`
-    );
-  }
+
+
 }

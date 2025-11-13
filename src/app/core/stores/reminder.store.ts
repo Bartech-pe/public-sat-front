@@ -1,5 +1,5 @@
 
-import { createEntityStore } from './generic/createEntityStore';
+import { createEntityStore } from './createEntityStore';
 
 import { Reminder } from '@models/reminder.model';
 import { ReminderService } from '@services/reminder.service';

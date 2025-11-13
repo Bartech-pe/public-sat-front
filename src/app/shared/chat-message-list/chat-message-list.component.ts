@@ -1,22 +1,15 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  CUSTOM_ELEMENTS_SCHEMA,
-  EventEmitter,
-  inject,
-  Input,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
 import { ChatMessage } from '@models/chat-message.model';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
 import { ChatMessageService } from '@services/message.service';
 import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
-import { DialogModule } from 'primeng/dialog';
+
+
 @Component({
   selector: 'chat-message-list',
   imports: [
@@ -26,18 +19,18 @@ import { DialogModule } from 'primeng/dialog';
     ButtonModule,
     InputTextModule,
     PopoverModule,
-    OverlayPanelModule,
-    DialogModule
+    OverlayPanelModule
   ],
   templateUrl: './chat-message-list.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  styles: ``,
+  styles: ``
 })
 export class ChatMessageListComponent {
-  @Input() messages: ChatMessage[] = [];
 
-  apiUrlImage = environment.apiUrl.replace(/\/$/, '');
-  visibleImage: boolean = false;
+ @Input() messages: ChatMessage[] = [];
+
+  environment = environment;
+
   readonly chatMessageService: ChatMessageService = inject(ChatMessageService);
 
   selectedMessage: ChatMessage | null = null;
@@ -46,14 +39,14 @@ export class ChatMessageListComponent {
   @ViewChild('menu') menuOverlay!: OverlayPanel;
 
   onDeleteMessage(id: number) {
-    this.deleteMessage.emit(id);
+      this.deleteMessage.emit(id);
   }
 
   eliminarMensaje(msg: ChatMessage) {
     if (!msg?.id) return;
 
     this.chatMessageService.deleteMessage(msg.id).subscribe(() => {
-      this.messages = this.messages.filter((m) => m.id !== msg.id);
+      this.messages = this.messages.filter(m => m.id !== msg.id);
 
       // ✅ Oculta el menú contextual
       this.menuOverlay?.hide();
@@ -72,10 +65,4 @@ export class ChatMessageListComponent {
     });
   }
 
-  urlImage:any="";
-  clickImage(msg:any){
-    this.visibleImage = true;
-    this.urlImage = this.apiUrlImage + msg.resourceUrl
-  
-  }
 }

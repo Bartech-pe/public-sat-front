@@ -12,7 +12,7 @@ export interface Skill {
 
 export interface SkillUser {
   name?: string;
-  skillId: number;
-  userId: number;
+  idSkill: number;
+  idUser: number;
   score: number;
 }

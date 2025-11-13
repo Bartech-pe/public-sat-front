@@ -1,129 +1,66 @@
-<div class="grid grid-cols-1 gap-4">
-  <!-- <div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-8">
+  <div class="grid grid-cols-2 gap-4">
     <div class="flex flex-col gap-2">
       <h5 class="text-2xl font-semibold">{{ title }}</h5>
       <p class="text-sm font-normal">
         {{ descripcion }}
       </p>
     </div>
-  </div> -->
-
-  <!-- Encabezado -->
-  <div class="bg-gray-50 shadow-lg rounded-xl p-4">
-    <h5 class="text-2xl font-semibold">
-      {{ title }}
-    </h5>
-    <div class="flex flex-col w-full gap-3 text-n-slate-11">
-      <p
-        class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
-      >
-        {{ descripcion }}
-      </p>
+    <div class="flex justify-end">
+      <button-save
+        [label]="createButtonLabel"
+        [icon]="'mdi:plus-circle-outline'"
+        (click)="addNew()"
+      />
     </div>
   </div>
 
   <section class="w-full">
-    <p-tabs [value]="activeTab">
-      <p-tablist class="flex items-center justify-around">
-        @for (category of listCategoryChannels; track $index) {
-        <p-tab [value]="$index" class="flex items-center">
-          <iconify-icon [icon]="category.icon" class="text-xl" />
-          <span>{{ category.name }}</span>
-        </p-tab>
-        }
-      </p-tablist>
-      <p-tabpanels>
-        @for (category of listCategoryChannels; track $index) {
-        <p-tabpanel [value]="$index">
-          <div class="grid grid-cols-1 gap-4">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-xl">
-                Respuestas predefinidas | {{ category.name }}
-              </h3>
-              <div class="flex justify-end">
-                <button-save
-                  [label]="createButtonLabel"
-                  [icon]="'mdi:plus-circle-outline'"
-                  (click)="addNew()"
-                />
-              </div>
-            </div>
-            <p-table
-              #dt
-              [value]="getPredefinedResponses(category.id)"
-              class="p-datatable-sm shadow-md rounded-xl"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>
-                    <div
-                      class="flex justify-start items-center text-xs uppercase"
-                    >
-                      Título
-                    </div>
-                  </th>
-                  <th class="bg-[#16236e] text-white">
-                    <div
-                      class="flex justify-center items-center text-xs uppercase"
-                    >
-                      Contenido
-                    </div>
-                  </th>
-                  <th class="text-right w-28"></th>
-                </tr>
-              </ng-template>
+    <p-table
+      #dt
+      [value]="listPredefinedResponses"
+      [paginator]="true"
+      [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      [scrollable]="true"
+      scrollHeight="400px"
+      class="p-datatable-sm shadow-md rounded-xl"
+    >
+      <ng-template pTemplate="header">
+        <tr [style.backgroundColor]="'#16236e'" style="color: white">
+          <th pSortableColumn="code">
+            Código corto
+            <p-sortIcon field="code"></p-sortIcon>
+          </th>
 
-              <ng-template pTemplate="body" let-item>
-                <tr>
-                  <td>
-                    <div class="flex flex-col">
-                      <h5 class="text-sm font-medium capitalize">
-                        {{ item.title }}
-                      </h5>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="flex items-center space-x-2">
-                      <div [innerHTML]="item.content"></div>
-                    </div>
-                  </td>
-                  <td class="w-28">
-                    <div class="flex justify-center items-center gap-1">
-                      <button-edit (click)="edit(item)" />
-                      <btn-delete (click)="remove(item)" />
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template #emptymessage>
-                <tr>
-                  <td colspan="100">
-                    <div class="text-center text-sm font-light p-4">
-                      No existen respuestas predefinidas.
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template #footer>
-                <tr>
-                  <td colspan="100">
-                    <div class="flex justify-center items-center">
-                      <sat-paginator
-                        [totalItems]="totalItems"
-                        [limit]="limit()"
-                        [offset]="offset()"
-                        [limitOptions]="[10, 25, 50]"
-                        (pageChange)="onPageChange($event)"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </p-tabpanel>
-        }
-      </p-tabpanels>
-    </p-tabs>
+          <th class="bg-[#16236e] text-white">Contenido</th>
+
+          <th class="text-right w-28">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.code }}</td>
+          <td>
+            <div class="flex items-center space-x-2">
+              <span>
+                {{
+                  item.message?.length > 200
+                    ? (item.message | slice : 0 : 100) + "..."
+                    : item.message
+                }}
+              </span>
+            </div>
+          </td>
+          <td class="w-28">
+            <div class="flex justify-center items-center gap-1">
+              <button-edit (click)="edit(item)" />
+              <button-delete (click)="remove(item)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </section>
 </div>

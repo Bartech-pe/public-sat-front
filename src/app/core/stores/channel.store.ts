@@ -1,4 +1,4 @@
-import { createEntityStore } from './generic/createEntityStore';
+import { createEntityStore } from './createEntityStore';
 import { Channel } from '@models/channel.model';
 import { ChannelService } from '@services/channel.service';
 

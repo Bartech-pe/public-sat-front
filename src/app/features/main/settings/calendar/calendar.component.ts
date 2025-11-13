@@ -9,19 +9,15 @@ import {
   CalendarEventAction,
   CalendarEventTimesChangedEvent,
 } from 'angular-calendar';
-import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-calendar',
-  imports: [CommonModule, CardModule, CalendarModule],
+  imports: [CommonModule, CalendarModule],
   templateUrl: './calendar.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CalendarComponent implements OnInit {
- title: string = 'Calendario';
-
-  descripcion: string =
-    'Configuración de fechas y feriados';
+  title: string = 'Calendario';
 
   icon: string = 'material-symbols:calendar-month-outline-rounded';
 

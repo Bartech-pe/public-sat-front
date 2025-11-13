@@ -18,22 +18,8 @@ export class MarkdownPipe implements PipeTransform {
   transform(value: string | null): SafeHtml {
     if (!value) return '';
 
-        const normalized = value.trim().replace(/^\s+/gm, '');
-
-    // 🔹 2. Convierte markdown a HTML
-    const rawHtml = marked.parse(normalized) as string;
-
-    // 🔹 3. Asegura que los links sean seguros y abran en otra pestaña
-    const withSafeLinks = rawHtml.replace(
-      /<a /g,
-      '<a target="_blank" rel="noopener noreferrer" '
-    );
-
-    // 🔹 4. Limpia el HTML
-    const cleanHtml = DOMPurify.sanitize(withSafeLinks, {
-      FORBID_TAGS: ['script', 'style'],
-    });
-
+    const rawHtml = marked.parse(value, { async: false }) as string;
+    const cleanHtml = DOMPurify.sanitize(rawHtml);
     return this.sanitizer.bypassSecurityTrustHtml(cleanHtml);
   }
 }

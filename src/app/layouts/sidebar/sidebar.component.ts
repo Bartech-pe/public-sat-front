@@ -159,9 +159,9 @@ export class SidebarComponent {
   //     ],
   //   },
   //   {
-  //     icon: 'lucide:portfolios',
+  //     icon: 'lucide:briefcase',
   //     label: 'Cartera',
-  //     link: '/portfolios',
+  //     link: '/briefcase',
   //     active: false,
   //     items: [],
   //   },
@@ -179,7 +179,7 @@ export class SidebarComponent {
   //     active: false,
   //     items: [
   //       {
-  //         icon: 'lucide:portfolios',
+  //         icon: 'lucide:briefcase',
   //         label: 'Configuración de la cuenta',
   //         link: '/settings/general',
   //       },

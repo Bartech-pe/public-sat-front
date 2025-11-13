@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 gap-4">
+<div class="grid grid-cols-1 gap-4 px-3">
   <!-- Encabezado -->
   <div class="bg-gray-50 shadow rounded-xl p-4">
     <div class="flex justify-between items-center">
@@ -23,13 +23,13 @@
   <section class="w-full">
     <p-card>
       <div class="grid grid-cols-1 gap-4">
-        <div class="flex items-center justify-end gap-4">
-          <!-- <input
+        <div class="flex items-center gap-4">
+          <input
             pInputText
             [(ngModel)]="searchText"
             placeholder="Buscar"
             class="w-64"
-          /> -->
+          />
           <div class="flex flex-col gap-2">
             <p-select
               id="category"
@@ -40,7 +40,7 @@
             />
           </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <!-- cards -->
           <!-- <p-card *ngFor="let item of listSkills" class="h-full">
             <div class="flex flex-col gap-4">
@@ -50,9 +50,9 @@
                   <p-chip
                     [ngClass]="{
                       '!py-0.5': true,
-                      '!bg-sky-100': item.categoryId === 'Tributaria',
-                      '!bg-green-100': item.categoryId === 'No tributaria',
-                      '!bg-purple-100': item.categoryId === 'Administrativa'
+                      '!bg-sky-100': item.category === 'Tributaria',
+                      '!bg-green-100': item.category === 'No tributaria',
+                      '!bg-purple-100': item.category === 'Administrativa'
                     }"
                     >{{ item.category }}</p-chip
                   >
@@ -94,7 +94,7 @@
                 >
                 </p-tag>
               </div>
-              <p class="font-normal text-sm text-justify">
+              <p class="font-normal text-md">
                 {{ item.description }}
               </p>
               <p class="font-normal text-sm flex items-center gap-1">
@@ -105,25 +105,7 @@
                 }}</span>
               </p>
             </div>
-            <div class="flex justify-between">
-              <div class="flex items-center gap-2">
-                <p class="font-normal text-sm mt-1">Estado:</p>
-                <p-tag
-                  class="text-xs"
-                  [value]="item.status == true ? 'Activo' : 'Inactivo'"
-                  [severity]="item.status == true ? 'success' : 'danger'"
-                  ><iconify-icon
-                    *ngIf="item.status == true"
-                    [icon]="'prime:check-circle'"
-                    class="text-lg"
-                  />
-                  <iconify-icon
-                    *ngIf="item.status != true"
-                    [icon]="'system-uicons:cross-circle'"
-                    class="text-lg"
-                  />
-                </p-tag>
-              </div>
+            <div class="flex justify-end">
               <div class="flex gap-2">
                 <btn-edit-square (onClick)="edit(item)" />
                 <btn-delete-square (onClick)="remove(item)" />

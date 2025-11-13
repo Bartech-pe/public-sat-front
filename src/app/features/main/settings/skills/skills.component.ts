@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { User } from '@models/user.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { UserStore } from '@stores/user.store';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -62,7 +62,7 @@ export class SkillsComponent implements OnInit {
   descripcion: string =
     'Administra el catálogo de habilidades para los asesores.';
 
-  createButtonLabel: string = 'Nueva Habilidad';
+  createButtonLabel: string = 'Crear Nueva Habilidad';
 
   private readonly msg = inject(MessageGlobalService);
 

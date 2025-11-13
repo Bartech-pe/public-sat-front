@@ -1,0 +1,207 @@
+<div class="flex flex-col gap-[.5rem] p-4">
+  <!-- <div class="mb-2">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="home" class="text-[#16236e]" />
+  </div> -->
+
+  <div class="flex justify-between">
+    <h5 class="text-2xl font-semibold">Campañas - Live chat</h5>
+  </div>
+
+  <div class="flex flex-col w-full gap-3 text-n-slate-11 mb-5">
+    <p
+      class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl"
+    >
+      El live chat permite a tus clientes comunicarse contigo en tiempo real
+      desde tu sitio web o aplicación. Es una herramienta eficaz para brindar
+      soporte inmediato, resolver dudas al instante y mejorar la experiencia del
+      usuario durante su visita.
+    </p>
+    <!-- <a
+      class="items-center hidden gap-1 text-sm font-medium sm:inline-flex w-fit text-n-blue-text hover:underline"
+      href=""
+    >
+      Aprende más sobre el live chat
+      <iconify-icon [icon]="'si:chevron-right-fill'" class="text-xl" />
+    </a> -->
+  </div>
+
+  <div class="p-8 bg-white rounded-xl shadow-md">
+    <div class="flex flex-wrap items-center justify-between mb-4">
+      <div class="flex flex-wrap gap-2 items-center">
+        <h2 class="text-2xl font-semibold text-sky-700">Lista de Campañas</h2>
+      </div>
+      <div class="flex gap-2">
+        <button
+          class="w-auto rounded-full bg-[#375F95] border border-[#375F95] text-white font-semibold py-2 px-4 hover:bg-[#2c4c78] transition flex items-center gap-2"
+          (click)="openNew()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32">
+            <path fill="#fff" d="M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13s13-5.832 13-13S23.168 3 16 3m0 2c6.087 0 11 4.913 11 11s-4.913 11-11 11S5 22.087 5 16S9.913 5 16 5m-1 5v5h-5v2h5v5h2v-5h5v-2h-5v-5z" />
+          </svg>
+          Crear Campaña
+        </button>
+      </div>
+    </div>
+
+
+    <div class="">
+      <p-table
+        #dt2
+        [value]="registros"
+        dataKey="nombre"
+        responsiveLayout="scroll"
+        class="p-datatable-sm"
+        [paginator]="true"
+        [rows]="5"
+        [rowsPerPageOptions]="[5, 10, 20]"
+      >
+        <ng-template #caption>
+          <div class="flex justify-between">
+            <div>
+              <p-iconfield iconPosition="left" class="ml-auto">
+                <p-inputicon>
+                  <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input
+                  pInputText
+                  type="text"
+                  (input)="dt2.filterGlobal($event.target, 'contains')"
+                  placeholder="Buscar por palabra clave"
+                  class="!rounded-full !border border-gray-300 px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#375F95]"
+                />
+              </p-iconfield>
+            </div>
+            <div>
+              <p-button
+                size="small"
+                label="Exportar"
+                styleClass="w-full !rounded-full"
+                variant="outlined"
+                severity="success"
+              >
+                <iconify-icon [icon]="'ri:file-excel-2-fill'" class="text-xl" />
+              </p-button>
+            </div>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr class="uppercase">
+            <th pSortableColumn="id">
+              <div
+                class="flex justify-center items-center text-xs uppercase gap-4"
+              >
+                ID
+                <p-sortIcon field="id" />
+              </div>
+            </th>
+            <th pSortableColumn="nombre">
+              <div
+                class="flex justify-center items-center text-xs uppercase gap-4"
+              >
+                Nombre
+                <p-sortIcon field="nombre" />
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Plantilla
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Base N° 1
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Arte N° 2
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Formato N° 3
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Opcional N° 4
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Registros
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Cargada
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Estado
+              </div>
+            </th>
+            <th>
+              <div class="flex justify-center items-center text-xs uppercase">
+                Acciones
+              </div>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>
+              <p class="text-sm font-light">{{ item.id }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.nombre }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.plantilla }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.base1 }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.arte2 }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.formato3 }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.opcional4 }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.registros }}</p>
+            </td>
+            <td>
+              <p class="text-sm font-light">{{ item.cargada }}</p>
+            </td>
+            <td>
+              <div class="flex justify-center items-center">
+                <p-tag
+                  class="uppercase tex-sm !rounded-full"
+                  [value]="item.estado"
+                  [severity]="
+                    item.estado === 'Aprobado'
+                      ? 'info'
+                      : item.estado === 'Finalizado'
+                      ? 'success'
+                      : 'warning'
+                  "
+                />
+              </div>
+            </td>
+            <td>
+              <div class="flex justify-center items-center gap-1">
+                <button-edit />
+                <button-delete />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

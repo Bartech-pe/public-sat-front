@@ -1,0 +1,165 @@
+<div class="w-full flex justify-center">
+  <div class="w-full px-3">
+    <div class="flex flex-col gap-4">
+      <!-- Encabezado -->
+      <div class="bg-gray-50 shadow rounded-xl p-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h5 class="text-2xl font-semibold mb-1">Carteras</h5>
+            <div class="flex flex-col w-full gap-3 text-n-slate-11">
+              <p
+                class="mb-0 text-sm font-normal line-clamp-5 sm:line-clamp-none max-w-3xl text-gray-600"
+              >
+                Gestiona las carteras de contribuyentes para cobranza
+              </p>
+            </div>
+          </div>
+          <button-save
+            label="Crear Nueva Cartera"
+            [icon]="'mdi:plus-circle-outline'"
+            (click)="addNew()"
+          />
+        </div>
+      </div>
+
+      <!-- Buscador -->
+      <!-- <div class="bg-gray-50 shadow rounded-xl p-4 mb-4">
+        <h2 class="text-lg font-semibold mb-2">Buscar cartera</h2>
+        <div class="w-full md:w-1/4 mb-2">
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="filtroNombre"
+            placeholder="Buscar por nombre..."
+            class="w-full p-inputtext-sm"
+            (input)="filtrar()"
+          />
+        </div>
+      </div> -->
+
+      <!-- Tabla -->
+      <section class="w-full mt-0 shadow rounded-xl p-4 bg-white">
+        <p-table
+          [value]="listCarteras"
+          [paginator]="true"
+          [rows]="10"
+          [responsiveLayout]="'scroll'"
+          sortMode="multiple"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Nombre <p-sortIcon field="name" />
+                </div>
+              </th>
+              <th pSortableColumn="description">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Descripción <p-sortIcon field="description" />
+                </div>
+              </th>
+              <!-- <th pSortableColumn="fecha_creacion">Fecha de creación <p-sortIcon field="fecha_creacion" /></th> -->
+              <th pSortableColumn="createdByUser.name">
+                <div class="flex items-center text-xs uppercase gap-4">
+                  Creado por <p-sortIcon field="createdByUser.name" />
+                </div>
+              </th>
+              <th pSortableColumn="dateStart">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Fecha inicio <p-sortIcon field="dateStart" />
+                </div>
+              </th>
+              <th pSortableColumn="dateEnd">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Fecha fin <p-sortIcon field="dateEnd" />
+                </div>
+              </th>
+              <th>
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Estado
+                </div>
+              </th>
+              <th class="items-center" pSortableColumn="amount">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Registros <p-sortIcon field="amount" />
+                </div>
+              </th>
+              <th class="items-center">
+                <div
+                  class="flex justify-center items-center text-xs uppercase gap-4"
+                >
+                  Acciones
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <p class="text-sm font-light">{{ item.name }}</p>
+              </td>
+              <td>
+                <p class="text-sm font-light">{{ item.description }}</p>
+              </td>
+              <!-- <td>{{ item.fecha_creacion | date: 'yyyy-MM-dd' }}</td> -->
+              <td>
+                <p class="text-sm font-light">
+                  {{ item.createdByUser?.name }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item.dateStart | date : "dd/MM/yyyy" }}
+                </p>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item.dateEnd | date : "dd/MM/yyyy" }}
+                </p>
+              </td>
+              <td>
+                <div class="flex justify-center items-center">
+                  <p-tag
+                    [value]="item.status === true ? ' Finalizado' : 'Activo'"
+                    [severity]="item.status === true ? 'warn' : 'success'"
+                  />
+                </div>
+              </td>
+              <td>
+                <p class="text-sm font-light text-center">
+                  {{ item.amount | number : "1.0-0" }}
+                </p>
+              </td>
+
+              <td class="w-28">
+                <div class="flex justify-center items-center gap-1">
+                  <button-edit (click)="edit(item)" [disabled]="item.status" />
+                  <button-delete
+                    (click)="remove(item)"
+                    [disabled]="item.status"
+                  />
+                  <button-detail (click)="verDetalle(item)" />
+                  <button-statu
+                    (click)="editarEstadoCartera(item)"
+                    [disabled]="item.status"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    </div>
+  </div>
+</div>

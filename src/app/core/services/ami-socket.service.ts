@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
+import { ChannelRoomNewMessageDto, ChannelRoomViewStatusDto, ChatListInbox} from '@interfaces/features/main/omnichannel-inbox/omnichannel-inbox.interface';
 import { ActualCall } from '@models/supervise';
 import { Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
@@ -12,7 +13,7 @@ export class AmiSocketService {
   private newChannels = new Subject<ActualCall[]>();
 
   constructor() {
-    this.socket = io(environment.apiUrl);
+    this.socket = io(environment.wsUrl || 'http://localhost:4000');
 
     this.socket.on('connect', () => {
       console.log('✅ WebSocket connected');
@@ -25,9 +26,11 @@ export class AmiSocketService {
     this.socket.on('CoreShowChannelsComplete', (payload: ActualCall[]) => {
       this.newChannels.next(payload);
     });
+
   }
 
   onNewChannelsDetected(): Observable<ActualCall[]> {
     return this.newChannels.asObservable();
   }
+
 }

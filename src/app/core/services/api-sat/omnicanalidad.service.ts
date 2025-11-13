@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OmnicanalidadService {
   private http = inject(HttpClient);
-  private url = `${environment.apiUrl}v1/omnicanalidad`;
+  private url = `${environment.apiUrl}/omnicanalidad`;
 
   getInfoContactoCelular(
     psiTipConsulta: number,
@@ -29,19 +29,19 @@ export class OmnicanalidadService {
     );
   }
 
-  consultarTramite(psiTipDId: 1 | 2 | 5, numDoc: string) {
+  consultarTramite(psiTipDId: number, numDoc: number) {
     return this.http.get<any[]>(
       `${this.url}/solicitud/consultarTramite/${psiTipDId}/${numDoc}`
     );
   }
 
-  consultarPapeleta(psiTipDId: 1 | 2 | 5, numDoc: string) {
+  consultarPapeleta(psiTipDId: number, numDoc: number) {
     return this.http.get<any[]>(
       `${this.url}/deuda/consultarPapeleta/${psiTipDId}/${numDoc}`
     );
   }
 
-  consultarMultaAdm(psiTipDId: 1 | 2 | 5, numDoc: string) {
+  consultarMultaAdm(psiTipDId: 1 | 2, numDoc: number) {
     return this.http.get<any[]>(
       `${this.url}/deuda/consultarMultaAdm/${psiTipDId}/${numDoc}`
     );

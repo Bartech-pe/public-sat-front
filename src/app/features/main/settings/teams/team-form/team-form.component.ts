@@ -13,7 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { TeamStore } from '@stores/team.store';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -78,7 +78,7 @@ export class TeamFormComponent implements OnInit {
     if (error) {
       console.log('error', error);
       this.msg.error(
-        error ?? '¡Ups, ocurrió un error inesperado al guardar el equipo!'
+        error ?? '¡Ups, ocurrió un error inesperado al guardar el rol!'
       );
       return; // Salimos si hay un error
     }
@@ -87,8 +87,8 @@ export class TeamFormComponent implements OnInit {
     if (action === 'created' || action === 'updated') {
       this.msg.success(
         action === 'created'
-          ? '¡Equipo creado exitosamente!'
-          : '¡Equipo actualizado exitosamente!'
+          ? '¡Rol creado exitosamente!'
+          : '¡Rol actualizado exitosamente!'
       );
 
       this.formData.reset({

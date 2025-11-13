@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
 import { StorageService } from './storage.service';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class KeepaliveService implements OnDestroy {
   }
 
   private ping() {
-    this.http.get(`${environment.apiUrl}v1/alosat/keepalive`).subscribe({
+    this.http.get(`${environment.apiUrl}/alosat/keepalive`).subscribe({
       next: () => (this.fails = 0),
       error: () => {
         this.fails++;
@@ -42,7 +42,7 @@ export class KeepaliveService implements OnDestroy {
   private handleVisibilityChange = () => {
     if (document.visibilityState === 'hidden') {
       const token = this.storage.getToken();
-      fetch(`${environment.apiUrl}v1/alosat/keepalive`, {
+      fetch(`${environment.apiUrl}/alosat/keepalive`, {
         method: 'GET', // o POST si backend acepta
         headers: {
           Authorization: `Bearer ${token}`,

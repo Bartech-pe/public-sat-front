@@ -1,11 +1,214 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
+import { AccordionModule } from 'primeng/accordion';
+import { AvatarModule } from 'primeng/avatar';
+import { BadgeModule } from 'primeng/badge';
+import { DialogModule } from 'primeng/dialog';
+import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TableModule } from 'primeng/table';
+import { GlobalService } from '@services/global-app.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { AsignarSupervisorComponent } from './asignar-supervisor/asignar-supervisor.component';
+import { environment } from '@envs/enviroments';
+import { UserStore } from '@stores/user.store';
+import { User } from '@models/user.model';
+import { EstadoTelefonico } from '@models/estado-telefonico.model';
+import { EstadoTelefonicoStore } from '@stores/estado-telefonico.store';
+import { MessageGlobalService } from '@services/message-global.service';
 
 @Component({
   selector: 'app-supervisor',
-  imports: [CommonModule, RouterModule],
-  template: ` <router-outlet /> `,
+  imports: [
+    CardModule,
+    InputTextModule,
+    Select,
+    ButtonModule,
+    TabsModule,
+    TagModule,
+    AccordionModule,
+    CommonModule,
+    AvatarModule,
+    BadgeModule,
+    DialogModule,
+    ToggleSwitch,
+    TableModule,
+  ],
+  templateUrl: './supervisor.component.html',
   styles: ``,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class SupervisorComponent {}
+export class SupervisorComponent implements OnInit {
+  private readonly globalService = inject(GlobalService);
+
+  private readonly dialogService = inject(DialogService);
+
+  private readonly msg =inject( MessageGlobalService);
+
+  private readonly userStore = inject(UserStore);
+
+  // get listaAsesores(): User[] {
+  //   return this.userStore.items().map((item) => {
+  //     item.avatarUrl =
+  //       'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png';
+  //     return item;
+  //   });
+  // }
+
+  listaAsesores: User[] = [];
+
+  listadoInteracciones = [
+    {
+      id: '106',
+      tipo: 'chat',
+      contribuyente: 'Contribuyente F',
+      estado: true,
+      fecha: '17/05/2025',
+    },
+    {
+      id: '109',
+      tipo: 'telefónico',
+      contribuyente: 'Contribuyente F',
+      estado: false,
+      fecha: '15/04/2025',
+    },
+  ];
+
+  listaEstados = [
+    { id: 1, name: 'En Llamada' },
+    { id: 2, name: 'Fuera de Línea' },
+    { id: 3, name: 'Disponible' },
+    { id: 4, name: 'Pausa' },
+  ];
+
+  listadoLlamadasEspera = [
+    {
+      id: '106',
+      contribuyente: 'Contribuyente F',
+      categoria: 'Tributario',
+      tiempoCola: '2 minutos',
+    },
+    {
+      id: '109',
+      contribuyente: 'No Tributario',
+      categoria: 'Contribuyente A',
+      tiempoCola: '3 minutos',
+    },
+  ];
+
+  value: number = 0;
+  asesorSeleccionado: string = '';
+  estadoAsesor: string = '';
+  checked: boolean = false;
+  displayAsignarCanal: boolean = false;
+  displayVerHistorial: boolean = false;
+  displayCambiarEstado: boolean = false;
+
+   readonly storeCanal = inject(EstadoTelefonicoStore);
+
+  get totalItemsCanal(): number {
+    return this.storeCanal.totalItems();
+  }
+
+  get listadoEstadosCanal(): EstadoTelefonico[] {
+    return this.storeCanal.items();
+  }
+
+  get estadosTelefonico(): EstadoTelefonico[] {
+      return this.listadoEstadosCanal.filter((m) => m.categoria === 1);
+  }
+
+  get estadosEmail(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 2);
+  }
+
+  get estadosChat(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 3);
+  }
+
+  get estadosWhatsApp(): EstadoTelefonico[] {
+    return this.listadoEstadosCanal.filter((m) => m.categoria === 4);
+  }
+
+  
+  loading= false;
+  ngOnInit(): void {
+   
+    
+      this.cargarAsesores();
+     // medio segundo
+    this.loadData();
+  }
+
+  cargarAsesores() {
+    this.userStore.loadAll();
+    console.log("entroe")
+      setTimeout(() => {
+        this.listaAsesores = this.userStore.items().map(item => ({
+          ...item,
+          avatarUrl: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png'
+        }));
+        
+      }, 500);
+
+      console.log(this.listaAsesores)
+  }
+
+  loadData() {
+      this.storeCanal.loadAll();
+  }
+
+  panelAbierto(event: any) {
+    console.log('Panel abierto:', event);
+  }
+
+  panelCerrado(event: any) {
+    console.log('Panel cerrado:', event);
+  }
+
+  modalAsignarCanal(asesor: any) {
+
+      const ref = this.dialogService.open(AsignarSupervisorComponent, {
+        data: asesor,
+        header: 'Asignar Canal - ' + asesor.name,
+        styleClass: 'modal-lg',
+        modal: true,
+        dismissableMask: false,
+        closable: true,
+      });
+
+      ref.onClose.subscribe((res) => {
+        if (res) {
+          this.cargarAsesores();
+          this.msg.success("Canal asignado exitosamente al asesor " + asesor.name);
+        }
+      });
+  }
+
+  modalVerHistorial(asesor: string) {
+    this.displayVerHistorial = true;
+    this.asesorSeleccionado = asesor;
+  }
+
+  modalCambiarEstado(item: any) {
+    console.log('ITEM', item);
+    console.log('ITEM tab', this.value)
+    this.displayCambiarEstado = true;
+    this.asesorSeleccionado = item.name;
+    this.estadoAsesor = item.status;
+  }
+
+  edit(item: any) {}
+
+  remove(item: any) {}
+}

@@ -1,0 +1,26 @@
+<div class="grid grid-cols-1 gap-4">
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="observacionCaso">
+      Compromiso de pago
+    </label>
+    <p class="font-light text-sm px-4">
+      {{ informacionCaso!.compromisoPago }}
+    </p>
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="observacionCaso">
+      Observación
+    </label>
+    <p class="font-light text-sm px-4">
+      {{ informacionCaso!.observacion ?? "-" }}
+    </p>
+  </div>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-medium" for="observacionCaso">
+      Seguimiento
+    </label>
+    <p class="font-light text-sm px-4">
+      {{ informacionCaso!.seguimiento ?? "-" }}
+    </p>
+  </div>
+</div>

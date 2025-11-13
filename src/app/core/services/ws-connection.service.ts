@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 
 import { Observable } from 'rxjs';
 import { ChatMessage } from '@stores/chat-message.model';
-import { environment } from '@envs/environments';
+import { environment } from '@envs/enviroments';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +13,7 @@ export class SocketMessageService {
   // private socket: Socket;
 
   // constructor() {
-  //   this.socket = io(environment.apiUrl);
+  //   this.socket = io(environment.wsUrl);
   // }
 
   // // Emitir un mensaje al servidor

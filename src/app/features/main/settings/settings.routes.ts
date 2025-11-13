@@ -10,7 +10,7 @@ export const settingsRoutes: Routes = [
       ),
   },
   {
-    path: 'users',
+    path: 'usuarios',
     title: 'SAT | Usuarios',
     loadComponent: () =>
       import('@features/main/settings/users/users.component').then(
@@ -26,31 +26,31 @@ export const settingsRoutes: Routes = [
       ),
   },
   {
-    path: 'departments',
+    path: 'areas',
     title: 'SAT | Áreas',
     loadComponent: () =>
-      import('@features/main/settings/departments/departments.component').then(
-        (c) => c.DepartmentsComponent
+      import('@features/main/settings/areas/areas.component').then(
+        (c) => c.AreasComponent
       ),
   },
   {
-    path: 'offices',
+    path: 'oficinas',
     title: 'SAT | Oficinas',
     loadComponent: () =>
-      import('@features/main/settings/offices/offices.component').then(
-        (c) => c.OfficesComponent
+      import('@features/main/settings/oficinas/oficinas.component').then(
+        (c) => c.OficinasComponent
       ),
   },
   {
-    path: 'channels',
+    path: 'inboxes',
     title: 'SAT | Configuración de canales',
     loadComponent: () =>
-      import('@features/main/settings/channels/channels.component').then(
-        (c) => c.ChannelsComponent
+      import('@features/main/settings/inboxes/inboxes.component').then(
+        (c) => c.InboxesComponent
       ),
   },
   {
-    path: 'states',
+    path: 'status',
     title: 'SAT | Estados personalizados',
     loadComponent: () =>
       import(
@@ -58,12 +58,12 @@ export const settingsRoutes: Routes = [
       ).then((c) => c.CustomStatesComponent),
   },
   {
-    path: 'automatic-messages',
+    path: 'mensajes-automaticos',
     title: 'SAT | Mensajes automaticos',
     loadComponent: () =>
       import(
-        '@features/main/settings/automatic-messages/automatic-messages.component'
-      ).then((c) => c.AutomaticMessagesComponent),
+        '@features/main/settings/mensajes-automaticos/mensajes-automaticos.component'
+      ).then((c) => c.MensajesAutomaticosComponent),
   },
   {
     path: 'skills',
@@ -82,16 +82,24 @@ export const settingsRoutes: Routes = [
       ),
   },
   {
-    path: 'tags',
+    path: 'wallets',
+    title: 'SAT | Carteras',
+    loadComponent: () =>
+      import('@features/main/settings/wallets/wallets.component').then(
+        (c) => c.WalletsComponent
+      ),
+  },
+  {
+    path: 'labels',
     title: 'SAT | Etiquetas',
     loadComponent: () =>
-      import('@features/main/settings/tags/tags.component').then(
-        (c) => c.TagsComponent
+      import('@features/main/settings/labels/labels.component').then(
+        (c) => c.LabelsComponent
       ),
   },
   {
     path: 'reminder',
-    title: 'SAT | Recordatorio',
+    title: 'SAT | Recordatorio ',
     loadComponent: () =>
       import('@features/main/settings/reminder/reminder.component').then(
         (c) => c.ReminderComponent
@@ -109,23 +117,31 @@ export const settingsRoutes: Routes = [
     path: 'predefined-response',
     loadComponent: () =>
       import(
-        '@features/main/settings/predefined-responses/predefined-responses.component'
-      ).then((m) => m.PredefinedResponsesComponent),
+        '@features/main/quick-response/quick.response-dashboard/quick.response-dashboard.component'
+      ).then((m) => m.QuickresponseDashboardComponent),
   },
   {
-    path: 'holidays',
-    title: 'SAT | Feriado',
-    loadComponent: () =>
-      import('@features/main/settings/holidays/holidays.component').then(
-        (c) => c.HolidaysComponent
-      ),
+  path: 'feriado',
+  title: 'SAT | Feriado',
+  loadComponent: () =>
+    import('@features/main/campaigns/feriado/feriado.component').then(
+      (c) => c.FeriadoComponent
+    ),
   },
   {
-    path: 'channel-schedule',
-    title: 'SAT | Asignación de Horarios',
-    loadComponent: () =>
-      import('@features/main/settings/holidays/holidays.component').then(
-        (c) => c.HolidaysComponent
-      ),
+  path: 'schedule-assignment',
+  title: 'SAT | Asignación de Horarios',
+  loadComponent: () =>
+    import('@features/main/settings/schedule-assignment/schedule-assignment.component').then(
+      (c) => c.ScheduleAssignmentComponent
+    ),
+  },
+  {
+  path: 'monitoring-panel',
+  title: 'SAT | Panel',
+  loadComponent: () =>
+    import('@features/main/settings/monitoring-panel/monitoring-panel.component').then(
+      (c) => c.MonitoringPanelComponent
+    ),
   },
 ];

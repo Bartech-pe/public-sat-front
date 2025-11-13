@@ -12,13 +12,10 @@ export enum ChannelLogo  {
 }
 
 export enum ChannelStatusIcon  {
-    identity_verification = 'cuida:warning-outline',
-    in_progress = 'cuida:warning-outline',
-    priority = 'nonicons:error-16',
-    closed = 'icon-park-outline:check-one',
+    pendiente = 'cuida:warning-outline',
+    prioridad = 'nonicons:error-16',
+    completado = 'icon-park-outline:check-one',
 }
-
-
 
 export enum ChannelStatusTag  {
     pendiente = 'warning',
@@ -26,39 +23,8 @@ export enum ChannelStatusTag  {
     completado = 'success'
 }
 
-export enum ChannelAttentionStatusTag  {
-    identity_verification = 'Identificación',
-    priority = 'Prioridad',
-    closed = 'Cerrado',
-    in_progress = 'En proceso'
-}
-
-
-export enum ChannelAttentionStatusReverse  {
-    pendiente = 'in_progress',
-    prioridad = 'priority',
-    completado = 'closed'
-}
-
-export enum ChannelAttentionStatusReverseTag  {
-    in_progress= 'pendiente',
-    identity_verification= 'pendiente',
-    priority= 'prioridad',
-    closed= 'completado'
-}
-
-export enum ChannelAttentionStatusTagType  {
-    identity_verification = 'info',
-    closed = 'success',
-    priority = 'danger',
-    in_progress = 'warning'
-}
-
-
-export type ChannelStatusWithExtraStatuses = 'all' | ChatStatus;
 
 export type ChatStatus = 'pendiente' | 'prioridad' | 'completado';
-export type ChannelAttentionStatus = 'identity_verification' | 'closed' | 'in_progress' | 'priority';
 export type MessageStatus = 'read' | 'unread';
 export type Channels = 'all' | 'telegram' | 'whatsapp' | 'instagram' | 'messenger' | 'email' | 'sms' | 'chatsat';
 export type BotStatus = 'paused' | 'active' | 'out'
@@ -78,18 +44,18 @@ export enum CHANNELS {
 export interface ChatDetail
 {
   channelRoomId: number;
-  attention: ChannelAttentionSummariesDTO;
+  assistanceId: number;
   externalRoomId: string;
   channel: Channels;
   status: ChatStatus
-  citizen: ChannelCitizenSummariesDto;
+  citizen: ChannelCitizen;
   botStatus: BotStatus;
-  agentAssigned?: ChannelAgent | null;
+  agentAssigned?: ChannelAgent;
   messages: ChannelMessage[];
   hasMore?: boolean
 }
 
-export interface ChannelCitizenSummariesDto
+export interface ChannelCitizen
 {
     id: number;
     fullName: string;
@@ -110,7 +76,7 @@ export interface ChannelMessage
     sender: ChannelSender;
     attachments: MessageAttachment[],
     timestamp?: Date;
-    time?: string;
+    time: string;
 }
 
 export interface ChannelSender
@@ -126,24 +92,23 @@ export interface ChannelSender
 
 export interface ChannelAgent
 {
-    id?: number | null;
-    name?: string | null;
-    alias?: string | null;
-    phoneNumber?: string | null;
-    email?: string | null;
+    id: number;
+    name: string;
+    alias?: string;
+    phoneNumber?: string;
+    email?: string;
 }
 
 export interface LastMessageReceived
 {
     id : number;
     channelRoomId?: number;
-    attention?: ChannelAttentionSummariesDTO;
+    assistanceId?: number;
     externalMessageId : string;
-    hasAttachment?: boolean;
     message: string;
     status: MessageStatus;
     citizen: channelCitizen;
-    time: Date;
+    time: string;
     fromMe: boolean;
 }
 export interface channelCitizen{
@@ -156,22 +121,14 @@ export interface channelCitizen{
 
 export interface ChatListInbox{
     channelRoomId: number;
-    attention: ChannelAttentionSummariesDTO;
+    assistanceId: number;
     externalRoomId: string;
     channel: Channels;
     status: ChatStatus;
-    advisor?: AdvisorAssigned | null;
+    advisor: AdvisorAssigned;
     lastMessage: LastMessageReceived;
     unreadCount: number;
     botStatus: BotStatus;
-}
-
-export interface ChannelAttentionSummariesDTO{
-  id: number;
-  status: ChannelAttentionStatus;
-  endDate?: Date | null;
-  consultTypeId?: number | null;
-  attentionDetail?: string |  null;
 }
 
 export interface getAdvisorsResponseDto {
@@ -184,10 +141,10 @@ export interface getAdvisorsResponseDto {
 
 export interface ChannelRoomNewMessageDto{
     channelRoomId: number;
-    attention: ChannelAttentionSummariesDTO;
+    assistanceId: number;
     externalRoomId: string;
     channel: Channels;
-    advisor: AdvisorAssigned | null;
+    advisor: AdvisorAssigned;
     status: ChatStatus;
     attachments: MessageAttachment[];
     message: NewMessage;
@@ -205,8 +162,8 @@ export interface MessageAttachment
   extension: string
 }
 export interface AdvisorAssigned{
-    id?: number | null;
-    name?: string | null;
+    id: number;
+    name: string;
 }
 export interface ChannelRoomViewStatusDto{
     channelRoomId: number;
@@ -216,7 +173,6 @@ export interface ChannelRoomViewStatusDto{
 
 export interface AdvisorChangedDto {
   channelRoomId: number;
-  attentionId: number;
   id: number;
   name: string;
   displayName?: string;
@@ -237,7 +193,7 @@ export interface NewMessage{
 	  sender: ChannelUser;
     attachments: MessageAttachment[]
     status: 'read' | 'unread';
-    time: Date;
+    time: string;
     fromMe: boolean;
 }
 

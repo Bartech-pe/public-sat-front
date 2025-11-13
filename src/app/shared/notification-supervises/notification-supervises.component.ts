@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { User } from '@models/user.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
+import { MessageGlobalService } from '@services/message-global.service';
 import { SocketService } from '@services/socket.service';
+import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { UserStore } from '@stores/user.store';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -17,6 +18,7 @@ import { Popover } from 'primeng/popover';
     ReactiveFormsModule,
     ButtonModule,
     DropdownModule,
+    //ButtonCancelComponent,
   ],
   templateUrl: './notification-supervises.component.html',
   styles: ``
@@ -33,15 +35,15 @@ export class NotificationSupervisesComponent implements OnInit, OnDestroy {
   }
 
   isLoading = false;
-  
+
   get listSupervises (): User[] {
-    return this.storeUser.items().filter((user) => user.roleId === 2);
+    return this.storeUser.items().filter((user) => user.idRole === 2);
   }
 
   limit = signal(10);
   offset = signal(0);
   formNotificacion = new FormGroup({
-    userId: new FormControl<number[]>([], {
+    idUser: new FormControl<number[]>([], {
       nonNullable: true,
       validators: [Validators.required] // Ensures at least one supervisor is selected
     }),
@@ -58,17 +60,17 @@ export class NotificationSupervisesComponent implements OnInit, OnDestroy {
       const formValue = this.formNotificacion.value;
       console.log('Form Submitted:', formValue);
       this.socketService.sendAlertas(formValue);
-      this.formNotificacion.reset({ userId: [], message: '' });
+      this.formNotificacion.reset({ idUser: [], message: '' });
       this.formNotificacion.markAsUntouched();
       this.isLoading = false;
       if (this.popoverButonesNotificaciones) {
           this.popoverButonesNotificaciones.hide();
       }
-      
+
     } else {
       this.msg.error('Por favor complete todos los campos');
       this.formNotificacion.markAllAsTouched();
-     
+
     }
   }
 

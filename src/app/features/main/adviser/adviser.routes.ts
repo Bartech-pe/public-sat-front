@@ -2,11 +2,11 @@ import { Route } from '@angular/router';
 
 export const adviserRoutes: Route[] = [
   {
-    path: 'phone',
+    path: 'telefono',
     title: 'SAT | Teléfono',
     loadComponent: () =>
-      import('@features/main/adviser/phone/phone.component').then(
-        (c) => c.PhoneComponent
+      import('@features/main/adviser/telefono/telefono.component').then(
+        (c) => c.TelefonoComponent
       ),
   },
   {

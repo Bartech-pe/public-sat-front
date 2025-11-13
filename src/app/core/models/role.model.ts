@@ -4,19 +4,18 @@ export interface Role {
   id: number;
   name: string;
   description?: string;
-  RoleScreenOffice?: RoleScreenOffice;
+  RoleScreen?: RoleScreen;
   screens: Screen[];
   status: boolean;
 }
 
-export interface RoleScreenOffice {
-  roleId: number;
-  screenId: number;
-  officeId: number;
+export interface RoleScreen {
   name?: string;
   url?: string;
-  parentId?: number;
+  idRole: number;
+  idParent?: number;
   parent?: Screen;
+  idScreen: number;
   markAll?: boolean;
   canRead: boolean;
   canCreate: boolean;
