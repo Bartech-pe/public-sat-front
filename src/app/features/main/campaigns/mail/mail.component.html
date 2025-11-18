@@ -40,7 +40,7 @@
           [rows]="10"
           [responsiveLayout]="'scroll'"
           sortMode="multiple"
-          >
+        >
           <!-- [paginator]="true" -->
           <!-- [showCurrentPageReport]="true"
           currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}" -->
@@ -170,30 +170,30 @@
             </tr>
           </ng-template>
           <ng-template #emptymessage>
-          <tr>
-            <td colspan="100">
-              <div class="text-center text-sm font-light p-4">
-                No hay campañas de correo creados.
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <!-- TODO: PROBAR CON DATA -->
-        <ng-template #footer>
-          <tr>
-            <td colspan="100">
-              <div class="flex justify-center items-center">
-                <sat-paginator
-                  [totalItems]="total"
-                  [limit]="limit()"
-                  [offset]="offset()"
-                  [limitOptions]="[10, 25, 50]"
-                  (pageChange)="onPageChange($event)"
-                />
-              </div>
-            </td>
-          </tr>
-        </ng-template>
+            <tr>
+              <td colspan="100">
+                <div class="text-center text-sm font-light p-4">
+                  No hay campañas de correo creados.
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <!-- TODO: PROBAR CON DATA -->
+          <ng-template #footer>
+            <tr>
+              <td colspan="100">
+                <div class="flex justify-center items-center">
+                  <sat-paginator
+                    [totalItems]="total()"
+                    [limit]="limit()"
+                    [offset]="offset()"
+                    [limitOptions]="[10, 25, 50]"
+                    (pageChange)="onPageChange($event)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
         </p-table>
       </section>
     </div>

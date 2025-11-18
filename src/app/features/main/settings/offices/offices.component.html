@@ -18,9 +18,9 @@
     </div>
   </div>
 
-  <section class="grid grid-cols-1 gap-2">
+  <!-- <section class="grid grid-cols-1 gap-2">
     <p-card>
-      <p-table [value]="listOffices">
+      <p-table [value]="dataTable">
         <ng-template #header>
           <tr>
             <th>
@@ -108,5 +108,18 @@
         </ng-template>
       </p-table>
     </p-card>
+  </section> -->
+
+   <section class="h-[calc(100vh-17rem)] overflow-y-auto">
+    <complete-table
+      [cols]="cols"
+      [orderBy]="orderBy"
+      [dataTable]="dataTable"
+      [total]="totalItems"
+      [limit]="limit()"
+      [offset]="offset()"
+      (actionClicked)="onTableAction($event)"
+      (searchChange)="searchChange($event)"
+    />
   </section>
 </div>

@@ -118,8 +118,6 @@ export class MailViewerComponent {
         0
       );
 
-      console.log('height', height);
-
       // Si el contenido es muy corto, el navegador no ajusta bien => forzamos altura mínima visual de 20px
       iframeEl.style.height = (height > 20 ? height : 20) + 'px';
     }

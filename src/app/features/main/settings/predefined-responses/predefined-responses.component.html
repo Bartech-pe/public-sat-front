@@ -25,30 +25,18 @@
   <section class="w-full">
     <p-tabs [value]="activeTab">
       <p-tablist class="flex items-center justify-around">
-        @for (category of listCategoryChannels; track $index) {
-        <p-tab [value]="$index" class="flex items-center">
+        @for (category of listCategoryChannels; track category.id) {
+        <p-tab [value]="category.id" class="flex items-center">
           <iconify-icon [icon]="category.icon" class="text-xl" />
           <span>{{ category.name }}</span>
         </p-tab>
         }
       </p-tablist>
       <p-tabpanels>
-        @for (category of listCategoryChannels; track $index) {
-        <p-tabpanel [value]="$index">
+        @for (category of listCategoryChannels; track category.id) {
+        <p-tabpanel [value]="category.id">
           <div class="grid grid-cols-1 gap-4">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-xl">
-                Respuestas predefinidas | {{ category.name }}
-              </h3>
-              <div class="flex justify-end">
-                <button-save
-                  [label]="createButtonLabel"
-                  [icon]="'mdi:plus-circle-outline'"
-                  (click)="addNew()"
-                />
-              </div>
-            </div>
-            <p-table
+            <!-- <p-table
               #dt
               [value]="getPredefinedResponses(category.id)"
               class="p-datatable-sm shadow-md rounded-xl"
@@ -135,7 +123,31 @@
                   </td>
                 </tr>
               </ng-template>
-            </p-table>
+            </p-table> -->
+            <section class="h-[calc(100vh-17rem)] overflow-y-auto">
+              <div class="flex justify-between items-center">
+                <h3 class="font-bold text-xl">
+                  Respuestas predefinidas | {{ category.name }}
+                </h3>
+                <div class="flex justify-end">
+                  <button-save
+                    [label]="createButtonLabel"
+                    [icon]="'mdi:plus-circle-outline'"
+                    (click)="addNew()"
+                  />
+                </div>
+              </div>
+              <complete-table
+                [cols]="cols"
+                [orderBy]="orderBy"
+                [dataTable]="dataTable"
+                [total]="totalItems"
+                [limit]="limit()"
+                [offset]="offset()"
+                (actionClicked)="onTableAction($event)"
+                (searchChange)="searchChange($event)"
+              />
+            </section>
           </div>
         </p-tabpanel>
         }

@@ -59,12 +59,13 @@ export class MailComponent implements OnInit {
   }
 
   loadData() {
-    this.emailCampaignService.getAll(this.limit(), this.offset()).subscribe((res) => {
-      this.total.set(res?.total??0);
-      this.listaCampaniasSMS = res.data;
-    });
+    this.emailCampaignService
+      .getAll(this.limit(), this.offset())
+      .subscribe((res) => {
+        this.total.set(res?.total ?? 0);
+        this.listaCampaniasSMS = res.data;
+      });
   }
-
 
   onPageChange(event: { limit: number; offset: number }) {
     this.limit.set(event.limit);
@@ -96,8 +97,8 @@ export class MailComponent implements OnInit {
       closable: true,
     });
     ref.onClose.subscribe((res) => {
-       this.openModal = false;
-       this.loadData();
+      this.openModal = false;
+      this.loadData();
     });
   }
 
@@ -144,7 +145,7 @@ export class MailComponent implements OnInit {
             <p class='text-center'> Esta acción no se puede deshacer. </p>
           </div>`,
       () => {
-        console.log("???????????????????????",registro.id)
+        console.log('???????????????????????', registro.id);
         this.emailCampaignService.delete(registro.id);
       }
     );

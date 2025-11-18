@@ -32,7 +32,7 @@ export class PaginatorComponent {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.totalItems / this.limit);
+    return this.totalItems == 0 ? 1 : Math.ceil(this.totalItems / this.limit);
   }
 
   onPageClick(page: number | string): void {

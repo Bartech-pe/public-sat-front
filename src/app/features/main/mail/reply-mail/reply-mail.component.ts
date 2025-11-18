@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   EventEmitter,
@@ -9,9 +8,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PredefinedResponses } from '@models/predefined-response.model';
-import { MessageGlobalService } from '@services/generic/message-global.service';
 import { PredefinedResponsesService } from '@services/predefined.service';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -148,11 +145,7 @@ export class ReplyMailComponent {
     return `${tag.bg} ${tag.border} ${tag.text} border rounded-lg p-2`;
   }
 
-  getSafeContent(
-    body?: string,
-    attachments: any[] = [],
-    dateReply?: string
-  ): string {
+  getSafeContent(body?: string, attachments: any[] = []): string {
     // Si viene vacío, devolvemos un fallback claro
     if (!body || body.trim() === '') {
       return '<i>(sin contenido)</i>';
@@ -204,7 +197,7 @@ export class ReplyMailComponent {
     return attachments.filter((a) => !a.inMessage);
   }
 
-  getReplyContent(reply: any): string {
+  getReplyContent(reply: any, type: string): string {
     const chain: any[] = [];
 
     // Recorremos hacia atrás para obtener toda la cadena
@@ -234,7 +227,21 @@ export class ReplyMailComponent {
 
       if (!html) {
         // mensaje más antiguo, solo contenido
-        html = `
+        if (type == 'REENVIO_INTERNO') {
+          html = `
+          <p>---------- Mensaje reenviado ----------</p>
+          <div class="gmail_quote gmail_quote_container">
+          <div dir="ltr" class="gmail_attr">
+              <p>De: ${msg.from}</p>
+              <p>Para: ${msg.to}</p>
+              <p>Fecha: El ${formattedDate} a las ${formattedTime}</p>
+              <p>Asunto: ${msg.subject}</p>
+          <br>
+          </div>
+          ${safe}
+          </div>`;
+        } else {
+          html = `
         <div class="gmail_quote gmail_quote_container">
           <div dir="ltr" class="gmail_attr">
             El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
@@ -244,9 +251,24 @@ export class ReplyMailComponent {
             ${safe}
           </blockquote>
         </div>`;
+        }
       } else {
         // mensaje que responde a otro
-        html = `
+        if (type == 'REENVIO_INTERNO') {
+          html = `
+          ${safe}
+          <p>---------- Mensaje reenviado ----------</p>
+          <div class="gmail_quote gmail_quote_container">
+          <div dir="ltr" class="gmail_attr">
+              <p>De: ${msg.from}</p>
+              <p>Para: ${msg.to}</p>
+              <p>Fecha: El ${formattedDate} a las ${formattedTime}</p>
+              <p>Asunto: ${msg.subject}</p>
+            </div>
+          <br>
+        ${html}</div>`;
+        } else {
+          html = `
         <div class="gmail_quote">
           <div dir="ltr" class="gmail_attr">
             El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
@@ -257,6 +279,7 @@ export class ReplyMailComponent {
             ${html}
           </blockquote>
         </div>`;
+        }
 
         //         return `
         //   ${quoted}
@@ -315,13 +338,12 @@ export class ReplyMailComponent {
       });
   }
 
-  forwardMail(id: number) {
+  forwardMail(mail: any) {
     const ref = this.dialogService.open(FormForwardComponent, {
       header: 'Reenviar',
       styleClass: 'modal-2xl',
       data: {
-        mailId: this.mailId,
-        replyId: id,
+        mail,
       },
       focusOnShow: false,
       dismissableMask: false,

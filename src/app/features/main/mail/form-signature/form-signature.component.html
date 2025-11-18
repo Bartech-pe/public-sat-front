@@ -1,5 +1,43 @@
 <div class="grid grid-cols-1 gap-4">
-  <p-editor [(ngModel)]="signature" [style]="{ height: '100px' }" />
+  <p-editor [(ngModel)]="signature" styleClass="[&_.p-editor-content]:!h-32">
+    <ng-template #header>
+      <span class="ql-formats">
+        <button type="button" class="ql-bold" aria-label="Negrita"></button>
+        <button type="button" class="ql-italic" aria-label="Itálica"></button>
+        <button
+          type="button"
+          class="ql-underline"
+          aria-label="Subrayado"
+        ></button>
+      </span>
+      <span class="ql-formats">
+        <select class="ql-color"></select>
+        <select class="ql-background"></select>
+      </span>
+      <span class="ql-formats">
+        <button
+          type="button"
+          class="ql-list"
+          value="ordered"
+          aria-label="Lista ordenada"
+        ></button>
+        <select class="ql-align">
+          <option selected></option>
+          <option value="center"></option>
+          <option value="right"></option>
+          <option value="justify"></option>
+        </select>
+        <button
+          type="button"
+          class="ql-blockquote"
+          aria-label="Cita en bloque"
+        ></button>
+      </span>
+      <span class="ql-formats">
+        <button type="button" class="ql-image" aria-label="Image"></button>
+      </span>
+    </ng-template>
+  </p-editor>
   <div class="flex justify-end gap-4">
     <div class="flex gap-2">
       <button-cancel (click)="onCancel()" />

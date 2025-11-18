@@ -49,12 +49,11 @@
           severity="secondary"
           tooltip="Reenviar"
           icon="entypo:forward"
-          (click)="$event.stopPropagation(); forwardMail(reply.id)"
+          (click)="$event.stopPropagation(); forwardMail(reply)"
         />
       </div>
     </div>
   </div>
-
   <!-- Cuerpo del reply -->
   <app-mail-viewer
     [safeMailHtml]="getSafeContent(reply.content, reply.attachments)"
@@ -72,7 +71,9 @@
     (click)="reply.repliedTo.show = !reply.repliedTo.show"
   />
   @if (!!reply.repliedTo.show) {
-  <app-mail-viewer [safeMailHtml]="getReplyContent(reply.repliedTo)" />
+  <app-mail-viewer
+    [safeMailHtml]="getReplyContent(reply.repliedTo, reply.type)"
+  />
   } }
 
   <!-- Archivos adjuntos del reply -->
@@ -285,23 +286,12 @@
             </div>
 
             <div class="flex items-center gap-2 text-gray-500">
-              <button
-                type="button"
+              <btn-custom
+                icon="quill:signature"
+                severity="secondary"
+                tooltip="Insertar firma"
                 (click)="insertSignature()"
-                class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="#777"
-                    d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20m3.5 15h-7v-2h7zm0-4h-7v-2h7zm0-4h-7V7h7z"
-                  />
-                </svg>
-              </button>
+              />
             </div>
           </div>
         </div>

@@ -52,6 +52,8 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
   styles: ``,
 })
 export class AudioSettingsComponent implements OnInit {
+
+  @ViewChild('fileDropRef') fileDropRef: any;
   audioDirectory: string = '';
   audioUrl: SafeUrl | null = null;
   audioBlob: Blob | null = null;
@@ -61,12 +63,14 @@ export class AudioSettingsComponent implements OnInit {
     list_name: '',
     list_description: '',
     campaign_id: '',
-    active: 'Y',
+    active: 'N',
     type: 'I',
     departmentId: '',
     campaign_name: '',
-    dtoList: [],
+    
   };
+
+  dtoList:any[] = [];
 
   public files: NgxFileDropEntry[] = [];
   public selectedFile: File | null = null;
@@ -133,7 +137,7 @@ export class AudioSettingsComponent implements OnInit {
 
   onFileDropped(files: NgxFileDropEntry[]) {
     const droppedFile = files[0];
-    this.formlist.dtoList = [];
+    this.dtoList = [];
     this.files = files;
     if (droppedFile.fileEntry.isFile) {
       const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
@@ -189,28 +193,19 @@ export class AudioSettingsComponent implements OnInit {
             const telefono = element.TELEFONO?.toString().trim();
             const obligado = element.OBLIGADO?.toString().trim();
 
-            if (telefono && obligado) {
-              this.formlist.dtoList.push({
-                first_name: obligado,
-                last_name: element.PLACA || '',
-                phone_number: telefono,
-                status: 'NEW',
-              });
-              filasValidas++;
-            } else {
-              console.warn(
-                `Fila ${index + 2} omitida: faltan datos obligatorios`
-              );
-            }
+              if (telefono && obligado) {
+                this.dtoList.push({
+                  first_name: obligado,
+                  last_name: element.PLACA || '',
+                  phone_number: telefono,
+                  status: 'NEW',
+                });
+                filasValidas++;
+              }
           });
 
           if (filasValidas === 0) {
             this.msg.error('No hay filas válidas con TELEFONO y OBLIGADO');
-          } else {
-            console.log(
-              'Datos válidos cargados en dtoList:',
-              this.formlist.dtoList
-            );
           }
         };
 
@@ -497,6 +492,11 @@ export class AudioSettingsComponent implements OnInit {
     this.nameArchivo = '';
     this.columnas = [];
     this.previewData = [];
+    this.fileInput.nativeElement.value = '';
+
+    if (this.fileDropRef) {
+      this.fileDropRef.files = []; 
+    }
   }
 
   onCancel() {
@@ -519,20 +519,20 @@ export class AudioSettingsComponent implements OnInit {
       return;
     }
 
-    if (!this.formlist.dtoList || this.formlist.dtoList.length === 0) {
-      this.msg.error('No hay leads para guardar');
-      return;
-    }
-
-    this.formlist.dtoList = [];
-    this.audioStoreService
-      .createlista(this.formlist, this.selectedFile)
-      .subscribe({
-        next: (res) => {
-          this.msg.success('Leads guardados correctamente');
+   
+    this.audioStoreService.createlista(this.formlist, this.selectedFile).subscribe({
+      next: (res) => {
+        if (res.status === 'duplicate') {
+          this.msg.warn('El ID de la lista ya existe. Por favor, elige un identificador diferente.');
+        } else {
+          this.msg.success('Los leads se guardaron correctamente.');
           this.onCancel();
-        },
-        error: (err) => {},
-      });
+        }
+      },
+      error: (err) => {
+        console.error('Error al guardar la lista:', err);
+        this.msg.error('Ocurrió un error al guardar los leads. Intenta nuevamente más tarde.');
+      },
+    });
   }
 }

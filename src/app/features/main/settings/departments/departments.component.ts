@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { Department } from '@models/department.model';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
@@ -19,6 +19,8 @@ import { DepartmentFormComponent } from './department-form/department-form.compo
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { AuthStore } from '@stores/auth.store';
 import { TagModule } from 'primeng/tag';
+import { CompleteTableComponent } from '@shared/table/complete-table/complete-table.component';
+import { ColumnDefinition, SortField } from '@models/column-table.models';
 
 @Component({
   selector: 'app-departments',
@@ -32,16 +34,13 @@ import { TagModule } from 'primeng/tag';
     AvatarGroupModule,
     BadgeModule,
     OverlayBadgeModule,
+    CompleteTableComponent,
     ButtonSaveComponent,
-    ButtonEditComponent,
-    BtnDeleteComponent,
-    PaginatorComponent,
-    TagModule
   ],
   templateUrl: './departments.component.html',
   styles: ``,
 })
-export class DepartmentsComponent {
+export class DepartmentsComponent implements OnInit {
   private readonly authStore = inject(AuthStore);
 
   get title(): string {
@@ -62,6 +61,16 @@ export class DepartmentsComponent {
 
   readonly store = inject(DepartmentStore);
 
+  cols!: ColumnDefinition[];
+
+  orderBy: SortField[] = [
+    {
+      name: 'Nombre',
+      field: 'name',
+      type: 'string',
+    },
+  ];
+
   limit = signal(10);
   offset = signal(0);
 
@@ -69,7 +78,7 @@ export class DepartmentsComponent {
     return this.store.totalItems();
   }
 
-  get listDepartments(): Department[] {
+  get dataTable(): Department[] {
     return this.store.items();
   }
 
@@ -96,17 +105,76 @@ export class DepartmentsComponent {
   });
 
   ngOnInit(): void {
+    this.cols = [
+      {
+        fields: [
+          { field: 'name' },
+          { field: 'description', textClass: 'text-xs font-light italic' },
+        ],
+        header: 'Nombre',
+        align: 'start',
+      },
+      {
+        field: 'status',
+        type: 'boolean',
+        header: 'Estado',
+        align: 'center',
+        trueText: 'Activo',
+        falseText: 'Inactivo',
+        isTag: true,
+        widthClass: '!w-32',
+      },
+      {
+        header: '',
+        type: 'custom-buttons',
+        buttons: [
+          {
+            component: 'button-edit',
+            onClick: 'edit',
+          },
+          {
+            component: 'btn-delete',
+            onClick: 'remove',
+          },
+        ],
+        widthClass: '!w-28',
+      },
+    ];
+
     this.loadData();
   }
 
-  loadData() {
-    this.store.loadAll(this.limit(), this.offset());
+  loadData(q?: Record<string, any>) {
+    this.store.loadAll(this.limit(), this.offset(), q);
   }
 
-  onPageChange(event: { limit: number; offset: number }) {
-    this.limit.set(event.limit);
-    this.offset.set(event.offset);
-    this.loadData();
+  searchChange({
+    limit,
+    offset,
+    q,
+  }: {
+    limit: number;
+    offset: number;
+    q: Record<string, any>;
+  }) {
+    this.limit.set(limit);
+    this.offset.set(offset);
+    this.loadData(q);
+  }
+
+  onTableAction(event: { action: string; item: any }) {
+    const { action, item } = event;
+
+    switch (action) {
+      case 'edit':
+        this.edit(item);
+        break;
+      case 'remove':
+        this.remove(item);
+        break;
+      default:
+        console.warn(`Acción no manejada: ${action}`);
+    }
   }
 
   addNew() {

@@ -82,13 +82,20 @@
             @for (view of this.optionViews; track view) {
             <button
               (click)="setView(view.key)"
-              class="flex items-center gap-x-2 px-3 py-2 rounded-full text-sm w-full text-slate-600 text-left hover:text-[#375f95] transition-colors cursor-pointer"
+              class="flex justify-between items-center gap-x-2 px-2 py-2 rounded-full text-sm w-full text-slate-600 text-left hover:text-[#375f95] transition-colors cursor-pointer"
               [ngStyle]="getButtonStyle(view)"
               (mouseenter)="view.isHover = true"
               (mouseleave)="view.isHover = false"
             >
-              <iconify-icon [icon]="view.icon" class="text-2xl" />
-              {{ view.label }}
+              <div class="flex items-center">
+                <iconify-icon [icon]="view.icon" class="text-2xl" />
+                {{ view.label }}
+              </div>
+              <p-badge
+                severity="secondary"
+                badgeSize="small"
+                [value]="view.count"
+              />
             </button>
             }
           </div>

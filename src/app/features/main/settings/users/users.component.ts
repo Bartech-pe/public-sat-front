@@ -16,20 +16,18 @@ import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TableModule } from 'primeng/table';
-import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { DialogService } from 'primeng/dynamicdialog';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { UserFormComponent } from './user-form/user-form.component';
 import { SkillUserFormComponent } from './skill-user-form/skill-user-form.component';
-import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { UserInboxFormComponent } from './user-inbox-form/user-inbox-form.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { VicidialUserComponent } from './user-vicidial/user-vicidial.component';
 import { CardModule } from 'primeng/card';
 import { TitleSatComponent } from '@shared/title-sat/title-sat.component';
-import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { TooltipModule } from 'primeng/tooltip';
+import { CompleteTableComponent } from '@shared/table/complete-table/complete-table.component';
+import { ColumnDefinition, SortField } from '@models/column-table.models';
 
 @Component({
   selector: 'app-users',
@@ -45,11 +43,8 @@ import { TooltipModule } from 'primeng/tooltip';
     OverlayBadgeModule,
     TooltipModule,
     ButtonSaveComponent,
-    BtnCustomComponent,
-    ButtonEditComponent,
     TitleSatComponent,
-    BtnDeleteComponent,
-    PaginatorComponent,
+    CompleteTableComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './users.component.html',
@@ -71,14 +66,24 @@ export class UsersComponent implements OnInit {
 
   readonly store = inject(UserStore);
 
-  limit = signal(10);
-  offset = signal(0);
+  cols!: ColumnDefinition[];
+
+  orderBy: SortField[] = [
+    {
+      name: 'Nombre',
+      field: 'name',
+      type: 'string',
+    },
+  ];
+
+  limit = signal<number>(10);
+  offset = signal<number>(0);
 
   get totalItems(): number {
     return this.store.totalItems();
   }
 
-  get listUsers(): User[] {
+  get dataTable(): User[] {
     return this.store.items();
   }
 
@@ -106,17 +111,145 @@ export class UsersComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.cols = [
+      {
+        fields: [
+          { field: 'name' },
+          { field: 'email', textClass: 'text-xs font-light italic' },
+        ],
+        avatarUrl: 'avatarUrl',
+        header: 'Nombre',
+        widthClass: '!min-w-72',
+      },
+      {
+        fields: [
+          { field: 'role.name', textClass: 'text-sm capitalize text-center' },
+        ],
+        header: 'Rol',
+        align: 'center',
+      },
+      {
+        field: 'verify',
+        type: 'boolean',
+        header: 'Cuenta verificada',
+        align: 'center',
+        trueText: 'Verificado',
+        falseText: 'Verificación pendiente',
+      },
+      {
+        header: 'Habilidades',
+        type: 'buttons',
+        align: 'center',
+        buttons: [
+          {
+            icon: 'lucide:stars',
+            tooltip: 'Asignar habilidades',
+            severity: 'contrast',
+            badgeField: 'skills',
+            onClick: 'assignmentSkills',
+          },
+        ],
+      },
+      {
+        header: 'Canales',
+        type: 'buttons',
+        align: 'center',
+        buttons: [
+          {
+            icon: 'fluent:channel-share-12-regular',
+            tooltip: 'Asignar canales',
+            severity: 'contrast',
+            badgeField: 'skills',
+            onClick: 'assignmentInboxes',
+            disabled: (row) => !this.isAloSat(row),
+          },
+        ],
+      },
+      {
+        header: 'VICIdial',
+        type: 'buttons',
+        align: 'center',
+        buttons: [
+          {
+            icon: 'lucide:phone-call',
+            tooltip: 'Credenciales VICIdial',
+            severity: 'primary',
+            badgeField: undefined,
+            onClick: 'vicidialParams',
+            showDot: true,
+            disabled: (row) => !row.vicidial,
+          },
+        ],
+      },
+      {
+        field: 'status',
+        type: 'boolean',
+        header: 'Estado',
+        align: 'center',
+        trueText: 'Activo',
+        falseText: 'Inactivo',
+        isTag: true,
+        widthClass: '!w-32',
+      },
+      {
+        header: '',
+        type: 'custom-buttons',
+        buttons: [
+          {
+            component: 'button-edit',
+            onClick: 'edit',
+          },
+          {
+            component: 'btn-delete',
+            onClick: 'remove',
+          },
+        ],
+        widthClass: '!w-28',
+      },
+    ];
     this.loadData();
   }
 
-  loadData() {
-    this.store.loadAll(this.limit(), this.offset());
+  loadData(q?: Record<string, any>) {
+    this.store.loadAll(this.limit(), this.offset(), q);
   }
 
-  onPageChange(event: { limit: number; offset: number }) {
-    this.limit.set(event.limit);
-    this.offset.set(event.offset);
-    this.loadData();
+  searchChange({
+    limit,
+    offset,
+    q,
+  }: {
+    limit: number;
+    offset: number;
+    q: Record<string, any>;
+  }) {
+    this.limit.set(limit);
+    this.offset.set(offset);
+    this.loadData(q);
+  }
+
+  onTableAction(event: { action: string; item: any }) {
+    const { action, item } = event;
+
+    switch (action) {
+      case 'assignmentSkills':
+        this.assignmentSkills(item);
+        break;
+      case 'assignmentInboxes':
+        this.assignmentInboxes(item);
+        break;
+      case 'vicidialParams':
+        this.vicidialParams(item);
+        break;
+      case 'edit':
+        this.edit(item);
+        break;
+      case 'remove':
+        this.remove(item);
+        break;
+      default:
+        console.warn(`Acción no manejada: ${action}`);
+    }
   }
 
   isAloSat(user: User): boolean {

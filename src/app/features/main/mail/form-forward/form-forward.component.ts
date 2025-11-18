@@ -18,6 +18,8 @@ import {
   AutoCompleteModule,
 } from 'primeng/autocomplete';
 import { MessageGlobalService } from '@services/generic/message-global.service';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
+import { EmailSignatureService } from '@services/email-signature.service';
 
 @Component({
   selector: 'app-form-forward',
@@ -28,9 +30,8 @@ import { MessageGlobalService } from '@services/generic/message-global.service';
     InputTextModule,
     TextareaModule,
     AutoCompleteModule,
-    ButtonSaveComponent,
-    ButtonCancelComponent,
     MailViewerComponent,
+    BtnCustomComponent,
   ],
   templateUrl: './form-forward.component.html',
   styles: ``,
@@ -46,6 +47,8 @@ export class FormForwardComponent implements OnInit {
 
   private readonly mailService = inject(MailService);
 
+  private readonly emailSignatureService = inject(EmailSignatureService);
+
   private readonly datePipe = inject(DatePipe);
 
   forwardTo?: string;
@@ -55,24 +58,14 @@ export class FormForwardComponent implements OnInit {
   forwardFrom?: string;
   forwardMailAttentionId: number | null = null;
 
-  emailList: any[] = [
-    {
-      name: 'Erik Huaman Guiop',
-      email: 'erik.huaman@bartech.pe',
-    },
-    {
-      name: 'Adela Rimarachin',
-      email: 'adela.heredia@gmail.com',
-    },
-  ];
-
   emailItemsTo: any[] = [];
 
   searchEmailTo(event: AutoCompleteCompleteEvent) {
-    this.emailItemsTo = this.emailList.filter(
-      (item) =>
-        item.name.includes(event.query) || item.email.includes(event.query)
-    );
+    this.mailService.getEmailCitizen(event.query).subscribe({
+      next: (res) => {
+        this.emailItemsTo = res;
+      },
+    });
   }
 
   getSafeContent(
@@ -144,7 +137,7 @@ export class FormForwardComponent implements OnInit {
   loading: boolean = false;
 
   get invalid(): boolean {
-    return !this.forwardBody;
+    return !this.forwardBody || !this.forwardTo;
   }
 
   ngOnInit(): void {
@@ -187,32 +180,45 @@ export class FormForwardComponent implements OnInit {
       if (!html) {
         // mensaje más antiguo, solo contenido
         html = `
-        <div class="gmail_quote gmail_quote_container">
+          <p>---------- Mensaje reenviado ----------</p>
+          <div class="gmail_quote gmail_quote_container">
           <div dir="ltr" class="gmail_attr">
-            El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
-            (<a href="mailto:${msg.from}">${msg.from}</a>) escribió:
+              <p>De: ${msg.from}</p>
+              <p>Para: ${msg.to}</p>
+              <p>Fecha: El ${formattedDate} a las ${formattedTime}</p>
+              <p>Asunto: ${msg.subject}</p>
+          <br>
           </div>
-          <blockquote class="gmail_quote gmail_quote_block">
-            ${safe}
-          </blockquote>
-        </div>`;
+          ${safe}
+          </div>`;
       } else {
         // mensaje que responde a otro
         html = `
-        <div class="gmail_quote">
+          ${safe}
+          <p>---------- Mensaje reenviado ----------</p>
+          <div class="gmail_quote gmail_quote_container">
           <div dir="ltr" class="gmail_attr">
-            El ${formattedDate} a las ${formattedTime}, ${msg.name || msg.from} 
-            (<a href="mailto:${msg.from}">${msg.from}</a>) escribió:
-          </div>
-          <blockquote class="gmail_quote gmail_quote_block">
-            ${safe}
-            ${html}
-          </blockquote>
-        </div>`;
+              <p>De: ${msg.from}</p>
+              <p>Para: ${msg.to}</p>
+              <p>Fecha: El ${formattedDate} a las ${formattedTime}</p>
+              <p>Asunto: ${msg.subject}</p>
+            </div>
+          <br>
+        ${html}</div>`;
       }
     }
 
     return html;
+  }
+
+  insertSignature() {
+    this.emailSignatureService.findOneByTokenUserId().subscribe({
+      next: (data) => {
+        if (data?.content) {
+          this.forwardBody += '<br><p>--</p><br>' + data?.content;
+        }
+      },
+    });
   }
 
   onCancel() {
@@ -240,7 +246,9 @@ export class FormForwardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al enviar', err);
-        this.msg.error(err?.message || 'Ocurrio un error al reenviar el mensaje');
+        this.msg.error(
+          err?.message || 'Ocurrio un error al reenviar el mensaje'
+        );
       },
     });
   }

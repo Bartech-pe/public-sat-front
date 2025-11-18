@@ -217,4 +217,10 @@ export class MailService {
       mailAttentionIds,
     });
   }
+
+  getEmailCitizen(email: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/getEmailCitizen`, {
+      email,
+    });
+  }
 }

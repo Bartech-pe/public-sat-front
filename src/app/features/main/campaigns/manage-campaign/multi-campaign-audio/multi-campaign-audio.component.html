@@ -116,6 +116,25 @@
               <i class="pi pi-file-excel text-4xl text-blue-500 mb-2"></i>
               <p class="text-gray-600">Arrastra tu archivo Excel aquí.</p>
             </div>
+            <div *ngIf="selectedFile" class="flex items-center justify-between bg-green-50 border border-green-300 rounded-xl p-4">
+                <div class="flex items-center space-x-3">
+                  <i class="pi pi-file-excel text-2xl text-green-600"></i>
+                  <div>
+                    <p class="font-medium text-gray-800">{{ selectedFile.name }}</p>
+                    <p class="text-xs text-gray-500">
+                      Tamaño: {{ (selectedFile.size / 1024 / 1024) | number:'1.2-2' }} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                 
+                  class="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded shadow"
+                  (click)="clearFile(fileUpload)"
+                  type="button"
+                  aria-label="Eliminar archivo"
+                ><iconify-icon [icon]="'lucide:file-x'" class="text-lg" />
+                Eliminar</button>
+              </div>
           </ng-template>
         </p-fileUpload>
 

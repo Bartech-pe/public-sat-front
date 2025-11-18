@@ -164,10 +164,10 @@ export class DashboardAdviserComponent implements OnInit {
       estado: false,
     },
   ];
-  limit = signal(10)
-  offset  = signal(0)
-  verifyPayment = signal<boolean | null>(null)
-  totalRecords = signal(0)
+  limit = signal(10);
+  offset = signal(0);
+  verifyPayment = signal<boolean | null>(null);
+  totalRecords = signal(0);
   get tableChannelAttentionsFiltered(): IAttentionRecord[] {
     return [
       ...this.filteredMepecos,
@@ -185,7 +185,6 @@ export class DashboardAdviserComponent implements OnInit {
   tableGenericAssistances: IAttentionRecord[] = [];
 
   tickets: Atenciones[] = [];
-
 
   selectedAtencion!: Atenciones;
 

@@ -193,10 +193,7 @@
           </div>
         </td> -->
         <td class="w-28">
-          <button-split
-            [options]="menuItems"
-            [context]="item"
-          ></button-split>
+          <button-split [options]="menuItems" [context]="item"></button-split>
           @if (itemListen!=null) {
           <app-escucha-vivo
             [(visible)]="showListen"
@@ -213,6 +210,15 @@
             [item]="itemControl"
           ></app-control-grabacion>
           }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="100">
+          <div class="text-center text-sm font-light p-4">
+            No se encontraron Asesores.
+          </div>
         </td>
       </tr>
     </ng-template>

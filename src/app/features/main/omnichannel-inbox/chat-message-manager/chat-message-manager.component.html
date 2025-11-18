@@ -147,7 +147,7 @@ completionEventReceived){
         size="large"
         shape="circle"
       >
-        <span class="text-neutral-700 text-lg font-bold">{{ chatDetail?.citizen?.fullName.charAt(0) }}</span>
+        <span class="text-neutral-700 text-lg font-bold">{{ !chatDetail?.citizen?.fullName ? 'D' : chatDetail?.citizen?.fullName.charAt(0) }}</span>
       </p-avatar>
       <div class="flex flex-col">
         <div class="flex items-center gap-4">
@@ -315,7 +315,7 @@ completionEventReceived){
         size="large"
         shape="circle"
       >
-        <span class="text-neutral-700 text-lg font-bold">{{ chatDetail?.citizen?.fullName.charAt(0) }}</span>
+        <span class="text-neutral-700 text-lg font-bold">{{ !chatDetail?.citizen?.fullName ? 'D' : chatDetail?.citizen?.fullName.charAt(0) }}</span>
       </p-avatar>
       <!-- Contact Details -->
       <div class="flex flex-col">

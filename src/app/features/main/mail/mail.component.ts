@@ -77,6 +77,8 @@ import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { UserStore } from '@stores/user.store';
 import { UserService } from '@services/user.service';
 import { TimeAgoPipe } from '@pipes/time-ago.pipe';
+import { OverlayBadgeModule } from 'primeng/overlaybadge';
+import { BadgeModule } from 'primeng/badge';
 
 interface OptionView {
   id?: number;
@@ -86,6 +88,7 @@ interface OptionView {
   textColor: string;
   bgColor: string;
   isHover?: boolean;
+  count?: number;
 }
 
 @Component({
@@ -115,6 +118,7 @@ interface OptionView {
     Dialog,
     DatePickerModule,
     AutoCompleteModule,
+    BadgeModule,
     BtnCustomComponent,
     ReplyMailComponent,
     PaginatorComponent,
@@ -404,9 +408,14 @@ export class MailComponent implements OnInit {
               view.icon = state.icon ?? view.icon;
               view.textColor = getContrastColor(state.color);
               view.bgColor = state.color;
+              view.count = state.count;
             }
           }
         });
+        this.optionViews[0].count = this.optionViews.reduce(
+          (acc, it) => acc + (it.count ?? 0),
+          0
+        );
       },
     });
   }
@@ -1527,7 +1536,7 @@ export class MailComponent implements OnInit {
   writeNewEmail() {
     this.dialogService.open(MailEditorComponent, {
       header: 'Mensaje nuevo',
-      styleClass: 'modal-lg !mb-10 !mr-10',
+      styleClass: 'modal-xl !mb-10 !mr-10',
       position: 'bottomright',
       modal: false,
       focusOnShow: false,

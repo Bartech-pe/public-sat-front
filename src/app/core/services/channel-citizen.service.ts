@@ -23,6 +23,7 @@ export interface IGetAttentionsOfCitizen {
   endDate?: Date | null;
   type: string;
   category: string;
+  categoryChannelId: number;
   channel?: string;
   advisorIntervention?: boolean;
   user?: string;

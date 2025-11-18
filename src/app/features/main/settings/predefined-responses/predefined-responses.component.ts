@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
@@ -12,16 +12,13 @@ import { FormPredefinedComponent } from './form-predefined/form-predefined.compo
 import { PredefinedResponsesStore } from '@stores/predefined.store';
 import { PredefinedResponses } from '@models/predefined-response.model';
 import { CommonModule } from '@angular/common';
-import { PaginatorComponent } from '@shared/paginator/paginator.component';
-import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
 import { CategoryChannelStore } from '@stores/category-channel.store';
 import { CategoryChannel } from '@models/category-channel.model';
 import { TabsModule } from 'primeng/tabs';
-import { ButtonSplitComponent } from '@shared/buttons/button-split/button-split.component';
-import { IButtonSplit } from '@interfaces/button.interface';
 import { PredefinedResponsesService } from '@services/predefined.service';
+import { CompleteTableComponent } from '@shared/table/complete-table/complete-table.component';
+import { ColumnDefinition, SortField } from '@models/column-table.models';
 
 @Component({
   selector: 'app-predefined-responses',
@@ -34,19 +31,16 @@ import { PredefinedResponsesService } from '@services/predefined.service';
     ButtonModule,
     FormsModule,
     BreadcrumbModule,
-    ButtonSplitComponent,
-    ButtonEditComponent,
-    BtnDeleteComponent,
+    CompleteTableComponent,
     ButtonSaveComponent,
-    PaginatorComponent
   ],
   templateUrl: './predefined-responses.component.html',
   styles: ``,
 })
-export class PredefinedResponsesComponent {
+export class PredefinedResponsesComponent implements OnInit {
   title: string = 'Respuestas predefinidas';
   descripcion: string =
-    "Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación";
+    'Las respuestas predefinidas son plantillas preconfiguradas que le ayudan a responder rápidamente a una conversación';
 
   createButtonLabel: string = 'Nueva Respuesta';
 
@@ -60,33 +54,23 @@ export class PredefinedResponsesComponent {
 
   readonly store = inject(PredefinedResponsesStore);
 
+  readonly service = inject(PredefinedResponsesService);
 
-  constructor(private predefinedResponsesService: PredefinedResponsesService){}
+  cols!: ColumnDefinition[];
 
+  orderBy: SortField[] = [
+    {
+      name: 'Nombre',
+      field: 'name',
+      type: 'string',
+    },
+  ];
 
   get listCategoryChannels(): CategoryChannel[] {
     return this.categoryChannelStore.items().filter((item) => item.id !== 1);
   }
 
-  menuItems: IButtonSplit[] = [
-      {
-        label: 'Copia para canales',
-        icon: 'fluent:copy-arrow-right-16-regular',
-        action: (item: PredefinedResponses) => {
-          this.predefinedResponsesService.copyToOtherChannels(item.id).subscribe(response => {
-            if(!response?.success)
-            {
-              this.msg.warn("No se pudo copiar esta respuesta predefinida", "Respuestas predefinidas", 3000)
-              return
-            }
-            this.msg.success(response.message, "Respuestas predefinidas", 3000)
-            this.loadData()
-          })
-        },
-      },
-    ];
-
-  activeTab: number = 0;
+  activeTab: number = 2;
 
   limit = signal(10);
   offset = signal(0);
@@ -95,14 +79,8 @@ export class PredefinedResponsesComponent {
     return this.store.totalItems();
   }
 
-  get listPredefinedResponses(): PredefinedResponses[] {
+  get dataTable(): PredefinedResponses[] {
     return this.store.items();
-  }
-
-  getPredefinedResponses(category: number) {
-    return this.listPredefinedResponses.filter(
-      (item) => item.categoryId === category
-    );
   }
 
   private resetOnSuccessEffect = effect(() => {
@@ -123,24 +101,126 @@ export class PredefinedResponsesComponent {
     if (action === 'deleted') {
       this.msg.success('¡Respuesta predefinida eliminada exitosamente!');
       this.store.clearAll();
-      this.store.loadAll();
+      this.loadData();
       return;
     }
   });
 
   ngOnInit(): void {
+    this.cols = [
+      {
+        fields: [
+          { field: 'title' },
+          { field: 'description', textClass: 'text-xs font-light italic' },
+        ],
+        header: 'Título',
+        align: 'start',
+      },
+      {
+        field: 'content',
+        type: 'html',
+        header: 'Contenido',
+        align: 'start',
+      },
+      {
+        field: 'status',
+        type: 'boolean',
+        header: 'Estado',
+        align: 'center',
+        trueText: 'Activo',
+        falseText: 'Inactivo',
+        isTag: true,
+        widthClass: '!w-32',
+      },
+      {
+        header: '',
+        type: 'custom-buttons',
+        buttons: [
+          {
+            component: 'button-edit',
+            onClick: 'edit',
+          },
+          {
+            component: 'btn-delete',
+            onClick: 'remove',
+          },
+          {
+            component: 'button-split',
+            menuItems: [
+              {
+                label: 'Copia para canales',
+                icon: 'fluent:copy-arrow-right-16-regular',
+                action: (item: PredefinedResponses) => {
+                  console.log("item", item)
+                  this.service
+                    .copyToOtherChannels(item.id)
+                    .subscribe((response) => {
+                      if (!response?.success) {
+                        this.msg.warn(
+                          'No se pudo copiar esta respuesta predefinida',
+                          'Respuestas predefinidas',
+                          3000
+                        );
+                        return;
+                      }
+                      this.msg.success(
+                        response.message,
+                        'Respuestas predefinidas',
+                        3000
+                      );
+                      this.loadData();
+                    });
+                },
+              },
+            ],
+          },
+        ],
+        widthClass: '!w-28',
+      },
+    ];
+
+    this.loadCategories();
     this.loadData();
   }
 
-  loadData() {
+  loadCategories() {
     this.categoryChannelStore.loadAll();
-    this.store.loadAll(this.limit(), this.offset());
   }
 
-  onPageChange(event: { limit: number; offset: number }) {
-    this.limit.set(event.limit);
-    this.offset.set(event.offset);
-    this.loadData();
+  loadData(q?: Record<string, any>) {
+    this.store.loadAll(this.limit(), this.offset(), {
+      ...q,
+      categoryId: this.activeTab,
+    });
+  }
+
+  searchChange({
+    limit,
+    offset,
+    q,
+  }: {
+    limit: number;
+    offset: number;
+    q: Record<string, any>;
+  }) {
+    this.limit.set(limit);
+    this.offset.set(offset);
+    this.loadData(q);
+  }
+
+  onTableAction(event: { action: string; item: any }) {
+    const { action, item } = event;
+
+    switch (action) {
+      case 'edit':
+        this.edit(item);
+        break;
+      case 'remove':
+        this.remove(item);
+        break;
+      default:
+        console.warn(`Acción no manejada: ${action}`);
+    }
   }
 
   addNew() {

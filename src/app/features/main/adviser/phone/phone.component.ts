@@ -61,8 +61,8 @@ import { DurationPipe } from '@pipes/duration.pipe';
 import { UnifiedQuerySistemComponent } from '../unified-query-system/unified-query-system.component';
 import { CheckboxModule } from 'primeng/checkbox';
 import { VicidialUserComponent } from '@features/main/settings/users/user-vicidial/user-vicidial.component';
-import { UserStore } from '@stores/user.store';
 import { CallDispoComponent } from './call-dispo/call-dispo.component';
+import { UserService } from '@services/user.service';
 
 @Component({
   selector: 'app-phone',
@@ -106,7 +106,7 @@ export class PhoneComponent implements OnInit {
 
   private readonly authStore = inject(AuthStore);
 
-  private readonly userStore = inject(UserStore);
+  private readonly userService = inject(UserService);
 
   private readonly aloSatStore = inject(AloSatStore);
 
@@ -224,10 +224,6 @@ export class PhoneComponent implements OnInit {
     return this.aloSatStore.callInfo();
   }
 
-  get lastCallInfo(): any | undefined {
-    return this.aloSatStore.lastCallInfo();
-  }
-
   get loadingCitizen(): boolean {
     return this.aloSatStore.loadingCitizen();
   }
@@ -342,6 +338,11 @@ export class PhoneComponent implements OnInit {
       this.formDataAtencion.get('tipDoc')?.setValue(citizen.vtipDoc);
       this.formDataAtencion.get('docIde')?.setValue(citizen.vdocIde);
       this.formDataAtencion.get('name')?.setValue(citizen.vcontacto);
+    } else {
+      this.formDataAtencion.get('consultTypeCode')?.setValue(undefined);
+      this.formDataAtencion.get('tipDoc')?.setValue(undefined);
+      this.formDataAtencion.get('docIde')?.setValue(undefined);
+      this.formDataAtencion.get('name')?.setValue(undefined);
     }
   });
 
@@ -643,14 +644,18 @@ export class PhoneComponent implements OnInit {
   vicidialParams() {
     const user = this.authStore.user();
     if (user) {
-      this.userStore.loadById(user.id);
-      const ref = this.dialogService.open(VicidialUserComponent, {
-        header: `Credenciales VICIdial | ${user.name}`,
-        styleClass: 'modal-md',
-        modal: true,
-        focusOnShow: false,
-        dismissableMask: false,
-        closable: true,
+      this.userService.findOne(user.id).subscribe({
+        next: (user) => {
+          const ref = this.dialogService.open(VicidialUserComponent, {
+            header: `Credenciales VICIdial | ${user.name}`,
+            styleClass: 'modal-md',
+            data: user.vicidial,
+            modal: true,
+            focusOnShow: false,
+            dismissableMask: false,
+            closable: true,
+          });
+        },
       });
     }
   }

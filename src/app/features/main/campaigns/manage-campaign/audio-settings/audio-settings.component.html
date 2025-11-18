@@ -252,6 +252,7 @@
 
           <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
             <ngx-file-drop
+              #fileDropRef
               dropZoneLabel="Arrastra y suelta o haz clic para seleccionar"
               (onFileDrop)="onFileDropped($event)"
               (click)="onDropZoneClick()"

@@ -1,9 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { BtnDeleteComponent } from '@shared/buttons/btn-delete/btn-delete.component';
-import { ButtonEditComponent } from '@shared/buttons/button-edit/button-edit.component';
-import { PaginatorComponent } from '@shared/paginator/paginator.component';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { BadgeModule } from 'primeng/badge';
@@ -19,8 +16,9 @@ import { Office } from '@models/office.model';
 import { OfficeFormComponent } from './office-form/office-form.component';
 import { AuthStore } from '@stores/auth.store';
 import { RolePermissionComponent } from './role-permission/role-permission.component';
-import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { TagModule } from 'primeng/tag';
+import { CompleteTableComponent } from '@shared/table/complete-table/complete-table.component';
+import { ColumnDefinition, SortField } from '@models/column-table.models';
 
 @Component({
   selector: 'app-offices',
@@ -35,16 +33,12 @@ import { TagModule } from 'primeng/tag';
     BadgeModule,
     OverlayBadgeModule,
     ButtonSaveComponent,
-    ButtonEditComponent,
-    BtnDeleteComponent,
-    BtnCustomComponent,
-    PaginatorComponent,
-    TagModule
+    CompleteTableComponent,
   ],
   templateUrl: './offices.component.html',
   styles: ``,
 })
-export class OfficesComponent {
+export class OfficesComponent implements OnInit {
   private readonly authStore = inject(AuthStore);
 
   get title(): string {
@@ -65,6 +59,16 @@ export class OfficesComponent {
 
   readonly store = inject(OfficeStore);
 
+  cols!: ColumnDefinition[];
+
+  orderBy: SortField[] = [
+    {
+      name: 'Nombre',
+      field: 'name',
+      type: 'string',
+    },
+  ];
+
   limit = signal(10);
   offset = signal(0);
 
@@ -72,7 +76,7 @@ export class OfficesComponent {
     return this.store.totalItems();
   }
 
-  get listOffices(): Office[] {
+  get dataTable(): Office[] {
     return this.store.items();
   }
 
@@ -99,17 +103,102 @@ export class OfficesComponent {
   });
 
   ngOnInit(): void {
+    this.cols = [
+      {
+        fields: [
+          { field: 'name' },
+          { field: 'description', textClass: 'text-xs font-light italic' },
+        ],
+        header: 'Nombre',
+        align: 'start',
+      },
+      {
+        fields: [
+          {
+            field: 'department.name',
+            textClass: 'text-sm capitalize text-center',
+          },
+        ],
+        header: 'Área',
+        align: 'center',
+      },
+      {
+        header: 'Permisos',
+        type: 'buttons',
+        align: 'center',
+        buttons: [
+          {
+            icon: 'lucide:layout-grid',
+            tooltip: 'Permisos',
+            severity: 'success',
+            onClick: 'assignment',
+          },
+        ],
+      },
+      {
+        field: 'status',
+        type: 'boolean',
+        header: 'Estado',
+        align: 'center',
+        trueText: 'Activo',
+        falseText: 'Inactivo',
+        isTag: true,
+         widthClass: '!w-32',
+      },
+      {
+        header: '',
+        type: 'custom-buttons',
+        buttons: [
+          {
+            component: 'button-edit',
+            onClick: 'edit',
+          },
+          {
+            component: 'btn-delete',
+            onClick: 'remove',
+          },
+        ],
+         widthClass: '!w-28',
+      },
+    ];
+
     this.loadData();
   }
 
-  loadData() {
-    this.store.loadAll(this.limit(), this.offset());
+  loadData(q?: Record<string, any>) {
+    this.store.loadAll(this.limit(), this.offset(), q);
   }
 
-  onPageChange(event: { limit: number; offset: number }) {
-    this.limit.set(event.limit);
-    this.offset.set(event.offset);
-    this.loadData();
+  searchChange({
+    limit,
+    offset,
+    q,
+  }: {
+    limit: number;
+    offset: number;
+    q: Record<string, any>;
+  }) {
+    this.limit.set(limit);
+    this.offset.set(offset);
+    this.loadData(q);
+  }
+
+  onTableAction(event: { action: string; item: any }) {
+    const { action, item } = event;
+
+    switch (action) {
+      case 'assignment':
+        this.assignment(item);
+        break;
+      case 'edit':
+        this.edit(item);
+        break;
+      case 'remove':
+        this.remove(item);
+        break;
+      default:
+        console.warn(`Acción no manejada: ${action}`);
+    }
   }
 
   addNew() {

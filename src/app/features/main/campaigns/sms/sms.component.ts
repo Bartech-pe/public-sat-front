@@ -75,7 +75,7 @@ export class SmsComponent implements OnInit {
     return this.smsStore.items().sort((a, b) => b.id - a.id);
   }
 
-  get getTotalItems(): number
+  get totalItems(): number
   {
     return this.smsStore.totalItems()
   }

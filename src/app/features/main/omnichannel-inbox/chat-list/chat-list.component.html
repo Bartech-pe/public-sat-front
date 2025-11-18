@@ -229,7 +229,7 @@
                   size="large"
                   shape="circle"
                 >
-                  <span class="text-neutral-700 text-lg font-bold">{{ chat?.lastMessage?.citizen?.fullName.charAt(0) }}</span>
+                  <span class="text-neutral-700 text-lg font-bold">{{ !chatDetail?.citizen?.fullName ? 'D' : chatDetail?.citizen?.fullName.charAt(0) }}</span>
                 </p-avatar>
                 <!-- <p-avatar
           shape="circle"

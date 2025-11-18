@@ -78,7 +78,7 @@ export class FormSignatureComponent implements OnInit {
     this.userId = this.authStore.user()?.id;
     this.service.findOneByTokenUserId().subscribe({
       next: (data) => {
-        this.signature = data.content;
+        this.signature = data?.content;
       },
     });
   }

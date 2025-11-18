@@ -250,6 +250,7 @@ export class UnifiedQuerySistemComponent implements OnInit {
               (attention) => {
                 return {
                   categoryChannel: {
+                    id: attention?.categoryChannelId,
                     name: attention?.channel,
                   },
                   method: 'CHAT',
@@ -270,8 +271,6 @@ export class UnifiedQuerySistemComponent implements OnInit {
                 };
               }
             );
-
-            console.log('channelAttentions', channelAttentions);
 
             this.tableChannelAllAttentions = [
               ...this.tableChannelAllAttentions,

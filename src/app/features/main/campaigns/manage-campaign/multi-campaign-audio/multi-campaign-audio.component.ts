@@ -91,10 +91,11 @@ export class MultiCampaignAudioComponent implements OnInit {
   }
 
   // Parse Excel en upload
+  selectedFile: File | null = null;
   onFileUploads(event: any) {}
   onFileUpload(event: any) {
     const file = event.files[0];
-
+    this.selectedFile = event.files[0];   
     if (!file) return;
 
     this.loading = true;
@@ -215,8 +216,12 @@ export class MultiCampaignAudioComponent implements OnInit {
 
     this.audioStoreService.createlistaMultiple(request, file).subscribe({
       next: (res) => {
-        this.msg.success('Leads guardados correctamente');
-        this.onCancel();
+        if (res.status === 'duplicate') {
+          this.msg.warn('El ID de la lista ya existe. Por favor, elige un identificador diferente.');
+        } else {
+          this.msg.success('Los leads se guardaron correctamente.');
+          this.onCancel();
+        }
       },
       error: (err) => {},
     });
@@ -229,6 +234,11 @@ export class MultiCampaignAudioComponent implements OnInit {
         (res: any) => res.campaign_id == selectedCampaingId
       );
     }
+  }
+  
+  clearFile(fileUpload: any) {
+    this.selectedFile = null;
+    fileUpload.clear(); // limpia el input de PrimeNG
   }
 
   onCancel() {

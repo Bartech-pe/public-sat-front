@@ -16,8 +16,8 @@ export class AssistanceStateService extends GenericCrudService<AssistanceState> 
    * Cambiar el estado de correos entre asesores
    *
    */
-  assistanceStateEmail(): Observable<AssistanceState[]> {
-    return this.http.put<AssistanceState[]>(
+  assistanceStateEmail(): Observable<(AssistanceState & { count: number })[]> {
+    return this.http.get<(AssistanceState & { count: number })[]>(
       `${this.url}/assistanceStateEmail`,
       {}
     );
