@@ -5,7 +5,7 @@ import {
   VicidialPauseCode,
 } from '@constants/pause-code-agent.constant';
 import { environment } from '@envs/environments';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { CallTimerService } from './call-timer.service';
 import { CitizenInfo, ExternalCitizenService } from './externalCitizen.service';
 import { ChannelState } from '@models/channel-state.model';
@@ -27,6 +27,8 @@ export class AloSatService {
   private timer: any;
 
   private _isLogged: boolean = false;
+
+  public queueCalls: number = 0;
 
   set isLogged(val: boolean) {
     this._isLogged = val;
@@ -252,12 +254,17 @@ export class AloSatService {
   }
 
   confExtenCheck() {
-    return this.http.get<any>(`${this.basePath}/conf-exten-check`);
+    return this.http.get<any>(`${this.basePath}/conf-exten-check`).pipe(
+      map((res) => {
+        this.queueCalls = res.queueCalls ?? 0;
+        return res;
+      })
+    );
   }
 
   startKeepAlive() {
     this.stopKeepAlive();
-    this.timer = setInterval(() => this.confExtenCheck(), 2000);
+    this.timer = setInterval(() => this.confExtenCheck(), 2500);
   }
 
   stopKeepAlive() {
@@ -265,5 +272,12 @@ export class AloSatService {
       clearInterval(this.timer);
       this.timer = undefined;
     }
+  }
+
+  manualDialing(phoneNumber: string, phoneCode: string) {
+    return this.http.post<any>(`${this.basePath}/manual-dialing`, {
+      phoneNumber,
+      phoneCode,
+    });
   }
 }

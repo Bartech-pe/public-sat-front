@@ -12,7 +12,6 @@ import { TableModule } from 'primeng/table';
 import { EditorModule } from 'primeng/editor';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
-import * as XLSX from 'xlsx';
 import {
   FormBuilder,
   FormGroup,
@@ -29,13 +28,13 @@ import { EmailTemplate } from '@models/email-template.model';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { downloadEmailExcel } from '@utils/plantilla-excel';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import { ButtonDetailComponent } from '@shared/buttons/button-detail/button-detail.component';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { DialogModule } from 'primeng/dialog';
 import { EmailCampaignDetailService } from '@services/email-campaign-detail.service';
 import { EmailCampaignService } from '@services/email-campaign.service';
 import { FieldsetModule } from 'primeng/fieldset';
 import { Select } from 'primeng/select';
+import { Workbook } from 'exceljs';
 
 interface Contacto {
   nombre: string;
@@ -57,10 +56,10 @@ interface Contacto {
     DialogModule,
     EditorModule,
     ButtonModule,
-   // ButtonDetailComponent,
+    // ButtonDetailComponent,
     ButtonCancelComponent,
     FieldsetModule,
-    Select
+    Select,
   ],
   providers: [MessageService],
   templateUrl: './manage-email.component.html',
@@ -131,36 +130,67 @@ export class ManageEmailComponent {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     this.previewData = [];
+
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+
       if (!this.isExcelFile(file)) {
         return;
       }
+
       this.nombreArchivo = file.name;
+
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+      reader.onload = async (e: any) => {
+        const buffer = e.target.result;
+
+        const workbook = new Workbook();
+        await workbook.xlsx.load(buffer);
 
         // Primera hoja
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
+        const worksheet = workbook.worksheets[0];
 
-        // Convertir hoja a JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        if (!worksheet) {
+          this.msg.error('El archivo no contiene hojas');
+          return;
+        }
+
+        // Convertir hoja a JSON manualmente
+        const jsonData: any[] = [];
+        let headers: string[] = [];
+
+        worksheet.eachRow((row: any, rowNumber: number) => {
+          const rowValues = row.values as any[];
+
+          // ExcelJS coloca el primer valor en index 1, no en 0 → lo alineamos
+          const cleanValues = rowValues.slice(1);
+
+          // Primera fila = encabezados
+          if (rowNumber === 1) {
+            headers = cleanValues.map((h: any) =>
+              h ? h.toString().trim() : ''
+            );
+            return;
+          }
+
+          // Filas siguientes: convertir a objeto usando los headers
+          const rowObj: any = {};
+          cleanValues.forEach((value, i) => {
+            rowObj[headers[i]] = value ?? '';
+          });
+
+          jsonData.push(rowObj);
+        });
 
         if (jsonData.length === 0) {
           this.msg.error('El archivo está vacío');
           return;
         }
 
-        // Validar columnas obligatorias
+        // Validación de campos obligatorios
         const requiredFields = ['CORREO', 'NOMBRE'];
-        if (typeof jsonData[0] !== 'object' || jsonData[0] === null) {
-          this.msg.error('Formato del Excel inválido');
-          return;
-        }
-        const sheetHeaders = Object.keys(jsonData[0]);
+
+        const sheetHeaders = headers;
 
         for (const field of requiredFields) {
           if (!sheetHeaders.includes(field)) {
@@ -241,10 +271,15 @@ export class ManageEmailComponent {
     }
 
     if (!this.previewData || this.previewData.length === 0) {
-      this.msg.warn('Por favor, genere la vista previa antes de guardar la campaña.');
+      this.msg.warn(
+        'Por favor, genere la vista previa antes de guardar la campaña.'
+      );
       return;
     }
 
+    // -----------------------------------------------------------
+    // Procesar adjuntos
+    // -----------------------------------------------------------
     let nuevosAdjuntos: any[] = [];
     try {
       const archivos = this.adjuntos();
@@ -264,7 +299,9 @@ export class ManageEmailComponent {
       return;
     }
 
-    // 🔹 3️⃣ Construcción de detalles de campaña
+    // -----------------------------------------------------------
+    // Construcción de detalles de campaña
+    // -----------------------------------------------------------
     const emailCampaignDetails = this.previewData.map((contacto: any) => ({
       processCode: 2,
       senderCode: 2,
@@ -276,25 +313,40 @@ export class ManageEmailComponent {
       documentTypeCode: null,
       documentTypeValue: null,
       terminalName: 'TERMINAL-01',
-      //attachments: nuevosAdjuntos.length ? nuevosAdjuntos : [],
     }));
-   console.log("nuevosAdjuntos")
-    console.log(nuevosAdjuntos)
 
+    // -----------------------------------------------------------
+    // Generar Excel con EXCELJS
+    // -----------------------------------------------------------
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet('CampaignEmails');
 
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(emailCampaignDetails);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { CampaignEmails: worksheet },
-      SheetNames: ['CampaignEmails'],
-    };
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    // Agregar encabezados
+    const headers = Object.keys(emailCampaignDetails[0]);
+    worksheet.addRow(headers);
 
+    // Agregar filas
+    emailCampaignDetails.forEach((obj: any) => {
+      worksheet.addRow(headers.map((h: string) => obj[h]));
+    });
+
+    // Ajustar tamaño columnas
+    headers.forEach((h: string, i: number) => {
+      worksheet.getColumn(i + 1).width = Math.max(15, h.length + 5);
+    });
+
+    // Generar buffer
+    const excelBuffer = await workbook.xlsx.writeBuffer();
+
+    // Crear archivo File para enviar al backend
     const fileName = `campaign_emails_${Date.now()}.xlsx`;
     const file = new File([excelBuffer], fileName, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
-
+    // -----------------------------------------------------------
+    // Enviar al backend
+    // -----------------------------------------------------------
     const formData = new FormData();
     formData.append('name', request.name.trim());
     formData.append('campaignStatus', '1');
@@ -305,17 +357,14 @@ export class ManageEmailComponent {
     formData.append('attachments', JSON.stringify(nuevosAdjuntos));
     formData.append('file', file, file.name);
 
-
     this.emailCampaignService.createlistMulti(formData).subscribe({
-      next: (res) => {
-
-        this.msg.success('✅ Campaña de correos creada exitosamente');
+      next: () => {
+        this.msg.success('Campaña de correos creada exitosamente');
         this.ref.close(true);
       },
       error: (err) => {
-
         console.error('Error al crear la campaña:', err);
-        this.msg.error('❌ Error al crear la campaña. Intente nuevamente.');
+        this.msg.error('Error al crear la campaña. Intente nuevamente.');
       },
     });
   }

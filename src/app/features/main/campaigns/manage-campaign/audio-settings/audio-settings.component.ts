@@ -9,12 +9,10 @@ import {
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { GlobalService } from '@services/global-app.service';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { VicidialService } from '@services/vicidial.service';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { descargarPlantillaExcelAudio } from '@utils/plantilla-excel';
-
 import {
   FileSystemFileEntry,
   NgxFileDropEntry,
@@ -24,14 +22,15 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
-import * as XLSX from 'xlsx';
 import { SelectModule } from 'primeng/select';
-import { environment } from '@envs/environments';
 import { TableModule } from 'primeng/table';
 import { DepartmentStore } from '@stores/department.store';
 import { Department } from '@models/department.model';
 import { AudioStoreService } from '@services/audio-store.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { Workbook } from 'exceljs';
+import { TtsService } from '@services/tts.service';
+
 @Component({
   selector: 'app-audio-settings',
   imports: [
@@ -45,14 +44,13 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
     ButtonCancelComponent,
     SelectModule,
     TableModule,
-    ButtonSaveComponent
+    ButtonSaveComponent,
   ],
   templateUrl: './audio-settings.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``,
 })
 export class AudioSettingsComponent implements OnInit {
-
   @ViewChild('fileDropRef') fileDropRef: any;
   audioDirectory: string = '';
   audioUrl: SafeUrl | null = null;
@@ -67,16 +65,17 @@ export class AudioSettingsComponent implements OnInit {
     type: 'I',
     departmentId: '',
     campaign_name: '',
-    
   };
 
-  dtoList:any[] = [];
+  dtoList: any[] = [];
 
   public files: NgxFileDropEntry[] = [];
   public selectedFile: File | null = null;
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
 
-  readonly departmentStore = inject(DepartmentStore);
+  private readonly departmentStore = inject(DepartmentStore);
+
+  private readonly ttsService = inject(TtsService);
 
   get departmentList(): Department[] {
     return this.departmentStore.items();
@@ -95,7 +94,6 @@ export class AudioSettingsComponent implements OnInit {
   audioUrlAudio: SafeUrl | null = null;
   vidicialId: string | null = null;
   constructor(
-    private globalService: GlobalService,
     private msg: MessageGlobalService,
     private sanitizer: DomSanitizer,
     public config: DynamicDialogConfig,
@@ -139,6 +137,7 @@ export class AudioSettingsComponent implements OnInit {
     const droppedFile = files[0];
     this.dtoList = [];
     this.files = files;
+
     if (droppedFile.fileEntry.isFile) {
       const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
       this.nameArchivo = droppedFile.relativePath;
@@ -149,34 +148,40 @@ export class AudioSettingsComponent implements OnInit {
         return;
       }
 
-      fileEntry.file((file: File) => {
+      fileEntry.file(async (file: File) => {
         this.selectedFile = file;
+
         const reader = new FileReader();
 
-        reader.onload = (e: any) => {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+        reader.onload = async (e: any) => {
+          const buffer = e.target.result;
 
-          // Primera hoja
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
+          const workbook = new Workbook();
 
-          // Convertir hoja a JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-          if (jsonData.length === 0) {
-            this.msg.error('El archivo está vacío');
+          try {
+            // Cargar el archivo Excel
+            await workbook.xlsx.load(buffer);
+          } catch (err) {
+            this.msg.error('No se pudo leer el archivo, formato incorrecto');
             return;
           }
+
+          // Primera hoja
+          const worksheet = workbook.worksheets[0];
+
+          if (!worksheet) {
+            this.msg.error('El archivo no contiene hojas');
+            return;
+          }
+
+          // Extraer todas las filas en JSON (headers en la primera fila)
+          const sheetHeaders: string[] = [];
+          worksheet.getRow(1).eachCell((cell) => {
+            sheetHeaders.push((cell.value || '').toString().trim());
+          });
 
           // Validar columnas obligatorias
           const requiredFields = ['TELEFONO', 'OBLIGADO'];
-          if (typeof jsonData[0] !== 'object' || jsonData[0] === null) {
-            this.msg.error('Formato del Excel inválido');
-            return;
-          }
-          const sheetHeaders = Object.keys(jsonData[0]);
-
           for (const field of requiredFields) {
             if (!sheetHeaders.includes(field)) {
               this.msg.error(
@@ -186,22 +191,35 @@ export class AudioSettingsComponent implements OnInit {
             }
           }
 
+          const telefonoIndex = sheetHeaders.indexOf('TELEFONO') + 1;
+          const obligadoIndex = sheetHeaders.indexOf('OBLIGADO') + 1;
+          const placaIndex = sheetHeaders.indexOf('PLACA') + 1;
+
           let filasValidas = 0;
 
-          // Procesar filas
-          jsonData.forEach((element: any, index: number) => {
-            const telefono = element.TELEFONO?.toString().trim();
-            const obligado = element.OBLIGADO?.toString().trim();
+          // Recorrer filas desde la segunda (1 = header)
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return; // Saltar encabezados
 
-              if (telefono && obligado) {
-                this.dtoList.push({
-                  first_name: obligado,
-                  last_name: element.PLACA || '',
-                  phone_number: telefono,
-                  status: 'NEW',
-                });
-                filasValidas++;
-              }
+            const telefono = row
+              .getCell(telefonoIndex)
+              .value?.toString()
+              .trim();
+            const obligado = row
+              .getCell(obligadoIndex)
+              .value?.toString()
+              .trim();
+            const placa = placaIndex ? row.getCell(placaIndex).value || '' : '';
+
+            if (telefono && obligado) {
+              this.dtoList.push({
+                first_name: obligado,
+                last_name: placa.toString(),
+                phone_number: telefono,
+                status: 'NEW',
+              });
+              filasValidas++;
+            }
           });
 
           if (filasValidas === 0) {
@@ -238,14 +256,14 @@ export class AudioSettingsComponent implements OnInit {
   }
 
   reproducirTexto() {
-    const texto = (this.ttsText || '').trim();
+    const text = (this.ttsText || '').trim();
 
-    if (texto.length < 20) {
+    if (text.length < 20) {
       this.msg.info('El texto debe tener al menos 20 caracteres.');
       return;
     }
 
-    this.globalService.createTextoAudio(texto).subscribe({
+    this.ttsService.create({ text }).subscribe({
       next: (blob) => {
         this.audioBlob = blob;
         const url = URL.createObjectURL(blob);
@@ -374,7 +392,7 @@ export class AudioSettingsComponent implements OnInit {
           type: 'audio/wav',
         });
 
-        this.globalService.uploadAudio(file).subscribe({
+        this.audioStoreService.uploadAudio(file).subscribe({
           next: (res) => {
             this.msg.success('Audio subido exitosamente.');
             this.audioBlob = null;
@@ -393,9 +411,9 @@ export class AudioSettingsComponent implements OnInit {
           .slice(0, -1)
           .join('.');
 
-        this.msg.info(
-          'No se detectó nuevo audio, actualizando solo el nombre.'
-        );
+        // this.msg.info(
+        //   'No se detectó nuevo audio, actualizando solo el nombre.'
+        // );
         this.actualizarCampania(nameWithoutExtension);
       }
     } catch (err) {
@@ -495,7 +513,7 @@ export class AudioSettingsComponent implements OnInit {
     this.fileInput.nativeElement.value = '';
 
     if (this.fileDropRef) {
-      this.fileDropRef.files = []; 
+      this.fileDropRef.files = [];
     }
   }
 
@@ -519,20 +537,25 @@ export class AudioSettingsComponent implements OnInit {
       return;
     }
 
-   
-    this.audioStoreService.createlista(this.formlist, this.selectedFile).subscribe({
-      next: (res) => {
-        if (res.status === 'duplicate') {
-          this.msg.warn('El ID de la lista ya existe. Por favor, elige un identificador diferente.');
-        } else {
-          this.msg.success('Los leads se guardaron correctamente.');
-          this.onCancel();
-        }
-      },
-      error: (err) => {
-        console.error('Error al guardar la lista:', err);
-        this.msg.error('Ocurrió un error al guardar los leads. Intenta nuevamente más tarde.');
-      },
-    });
+    this.audioStoreService
+      .createlista(this.formlist, this.selectedFile)
+      .subscribe({
+        next: (res) => {
+          if (res.status === 'duplicate') {
+            this.msg.warn(
+              'El ID de la lista ya existe. Por favor, elige un identificador diferente.'
+            );
+          } else {
+            this.msg.success('Los leads se guardaron correctamente.');
+            this.onCancel();
+          }
+        },
+        error: (err) => {
+          console.error('Error al guardar la lista:', err);
+          this.msg.error(
+            'Ocurrió un error al guardar los leads. Intenta nuevamente más tarde.'
+          );
+        },
+      });
   }
 }

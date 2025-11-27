@@ -63,6 +63,8 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { VicidialUserComponent } from '@features/main/settings/users/user-vicidial/user-vicidial.component';
 import { CallDispoComponent } from './call-dispo/call-dispo.component';
 import { UserService } from '@services/user.service';
+import { NewCallComponent } from './new-call/new-call.component';
+import { HistoryCallbackComponent } from './history-callback/history-callback.component';
 
 @Component({
   selector: 'app-phone',
@@ -242,6 +244,10 @@ export class PhoneComponent implements OnInit {
       : !this.existCitizen
       ? 'Número no registrado en el sistema'
       : 'Número registrado en el sistema';
+  }
+
+  get queueCalls(): number {
+    return this.aloSatService.queueCalls;
   }
 
   get currentState(): any {
@@ -533,6 +539,46 @@ export class PhoneComponent implements OnInit {
       data: {
         campaignId: this.campaignId,
         currentState: this.currentState,
+      },
+      modal: true,
+      focusOnShow: false,
+      dismissableMask: true,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res) => {
+      this.openModal = false;
+      // this.aloSatStore.getState();
+    });
+  }
+
+  manualDialing() {
+    this.openModal = true;
+    const ref = this.dialogService.open(NewCallComponent, {
+      header: 'Marcación manual',
+      styleClass: 'modal-md',
+      data: {
+        campaignId: this.campaignId,
+      },
+      modal: true,
+      focusOnShow: false,
+      dismissableMask: false,
+      closable: true,
+    });
+
+    ref.onClose.subscribe((res) => {
+      this.openModal = false;
+      // this.aloSatStore.getState();
+    });
+  }
+
+  callHistory() {
+    this.openModal = true;
+    const ref = this.dialogService.open(HistoryCallbackComponent, {
+      header: 'Historial de llamadas',
+      styleClass: 'modal-4xl',
+      data: {
+        campaignId: this.campaignId,
       },
       modal: true,
       focusOnShow: false,

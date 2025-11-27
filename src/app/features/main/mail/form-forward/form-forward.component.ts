@@ -20,6 +20,7 @@ import {
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { EmailSignatureService } from '@services/email-signature.service';
+import { MailEditorComponent } from '@shared/editor/mail-editor/mail-editor.component';
 
 @Component({
   selector: 'app-form-forward',
@@ -31,6 +32,7 @@ import { EmailSignatureService } from '@services/email-signature.service';
     TextareaModule,
     AutoCompleteModule,
     MailViewerComponent,
+    MailEditorComponent,
     BtnCustomComponent,
   ],
   templateUrl: './form-forward.component.html',

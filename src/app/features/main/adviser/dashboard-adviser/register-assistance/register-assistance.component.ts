@@ -25,6 +25,10 @@ import { TypeContactStore } from '@stores/type-contact.store';
 import { TypeContact } from '@models/type-contact.modal';
 import { DialogService } from 'primeng/dynamicdialog';
 import { FormTypeContactComponent } from '../form-type-contact/form-type-contact.component';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ReminderService } from '@services/reminder.service';
+import { CreateReminderDto, Reminder } from '@models/reminder.model';
 
 @Component({
   selector: 'app-register-assistance',
@@ -36,7 +40,9 @@ import { FormTypeContactComponent } from '../form-type-contact/form-type-contact
     SelectModule,
     InputTextModule,
     TextareaModule,
+    DatePickerModule,
     ButtonModule,
+    CheckboxModule,
     BtnCustomComponent,
     ButtonSaveComponent,
     UnifiedQuerySistemComponent,
@@ -54,6 +60,7 @@ export class RegisterAssistanceComponent implements OnInit {
   private readonly typeIdeDocStore = inject(TypeIdeDocStore);
 
   private readonly genericAssistanceService = inject(GenericAssistanceService);
+  private readonly reminderService = inject(ReminderService);
 
   private readonly msg = inject(MessageGlobalService);
 
@@ -104,7 +111,23 @@ export class RegisterAssistanceComponent implements OnInit {
   }
 
   loading: boolean = false;
+  minDate: Date = new Date();
+  enableReminder: boolean = false;
 
+  formReminder = new FormGroup({
+    name: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    description: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    reminderAt: new FormControl<Date | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+  });
   ngOnInit(): void {
     this.consultTypeStore.loadAll();
     this.typeIdeDocStore.loadAll();
@@ -121,6 +144,12 @@ export class RegisterAssistanceComponent implements OnInit {
       contactType: undefined,
       contact: undefined,
     });
+    this.formReminder.patchValue({
+      description: undefined,
+      name: undefined,
+      reminderAt: undefined,
+    });
+    this.enableReminder = false;
   }
 
   newConsultType() {
@@ -143,7 +172,19 @@ export class RegisterAssistanceComponent implements OnInit {
   onSubmitAtencion() {
     const { contact, contactType, ...form } = this.formDataAtencion.value;
 
+    if (this.enableReminder) {
+      if (this.formReminder.invalid) {
+        this.loading = false;
+        this.msg.warn(
+          'Formulario inválido, por favor llene los datos de recordatorio o desactive la opcion de establecer recordatorio.',
+          'Registrar asistencia',
+          2000
+        );
+        return;
+      }
+    }
     this.loading = true;
+
     this.genericAssistanceService
       .create({
         ...form,
@@ -157,6 +198,16 @@ export class RegisterAssistanceComponent implements OnInit {
       })
       .subscribe({
         next: (data) => {
+          if (this.enableReminder) {
+            const reminderDto: CreateReminderDto = {
+              name: this.formReminder.value.name!,
+              description: this.formReminder.value.description || undefined,
+              reminderAt: this.formReminder.value.reminderAt!,
+            };
+            console.log(this.formReminder.value);
+            this.reminderService.create(reminderDto).subscribe((x) => {});
+          }
+          this.loading = false;
           this.resetForm();
           this.msg.success('¡Resultado registrado y llamada finalizada!');
         },

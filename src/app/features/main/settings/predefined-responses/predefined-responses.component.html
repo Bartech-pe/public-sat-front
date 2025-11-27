@@ -124,7 +124,7 @@
                 </tr>
               </ng-template>
             </p-table> -->
-            <section class="h-[calc(100vh-17rem)] overflow-y-auto">
+            <section class="grid grid-cols-1 gap-2">
               <div class="flex justify-between items-center">
                 <h3 class="font-bold text-xl">
                   Respuestas predefinidas | {{ category.name }}
@@ -137,16 +137,18 @@
                   />
                 </div>
               </div>
-              <complete-table
-                [cols]="cols"
-                [orderBy]="orderBy"
-                [dataTable]="dataTable"
-                [total]="totalItems"
-                [limit]="limit()"
-                [offset]="offset()"
-                (actionClicked)="onTableAction($event)"
-                (searchChange)="searchChange($event)"
-              />
+              <div class="h-[calc(100vh-24rem)] overflow-y-auto">
+                <complete-table
+                  [cols]="cols"
+                  [orderBy]="orderBy"
+                  [dataTable]="dataTable"
+                  [total]="totalItems"
+                  [limit]="limit()"
+                  [offset]="offset()"
+                  (actionClicked)="onTableAction($event)"
+                  (searchChange)="searchChange($event)"
+                />
+              </div>
             </section>
           </div>
         </p-tabpanel>

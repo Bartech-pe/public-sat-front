@@ -20,10 +20,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MessageGlobalService } from '@services/generic/message-global.service';
-import {
-  pauseCodeAgent,
-  VicidialPauseCode,
-} from '@constants/pause-code-agent.constant';
+import { VicidialPauseCode } from '@constants/pause-code-agent.constant';
 import { AloSatService } from '@services/alo-sat.service';
 import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 

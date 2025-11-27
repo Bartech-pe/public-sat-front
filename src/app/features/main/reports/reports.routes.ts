@@ -89,4 +89,12 @@ export const reportsRoutes: Routes = [
         '@features/main/reports/send-audio-campaign/send-audio-campaign.component'
       ).then((c) => c.SendAudioCampaignComponent),
   },
+  {
+    path: 'vicidal-reports',
+    title: 'Vicidial Reportes | Vicidial',
+    loadComponent: () =>
+      import(
+        '@features/main/reports/vicidial-reports/vicidial-reports.component'
+      ).then((c) => c.VicidialReportsComponent),
+  },
 ];

@@ -53,7 +53,7 @@ export class VicidialService {
 
   getByIdlistCampania(id: string): Observable<any> {
     return this.http
-      .get<any>(`${this.baseUrl}central/campanias/getbyid/${id}`)
+      .get<any>(`${this.baseUrl}central/campanign/getbyid/${id}`)
       .pipe(
         catchError((error) => {
           return this.handleError(error);

@@ -71,14 +71,13 @@ import { FileViewerComponent } from './file-viewer/file-viewer.component';
 import { fileIcons } from '@utils/mail.utils';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ChannelCategories } from '@constants/channel.constant';
-import { MailEditorComponent } from './mail-editor/mail-editor.component';
+import { EmailFormComponent } from './email-form/email-form.component';
 import { FormForwardComponent } from './form-forward/form-forward.component';
 import { PaginatorComponent } from '@shared/paginator/paginator.component';
-import { UserStore } from '@stores/user.store';
 import { UserService } from '@services/user.service';
 import { TimeAgoPipe } from '@pipes/time-ago.pipe';
-import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { BadgeModule } from 'primeng/badge';
+import { MailEditorComponent } from '@shared/editor/mail-editor/mail-editor.component';
 
 interface OptionView {
   id?: number;
@@ -119,10 +118,11 @@ interface OptionView {
     DatePickerModule,
     AutoCompleteModule,
     BadgeModule,
+    TimeAgoPipe,
+    MailEditorComponent,
     BtnCustomComponent,
     ReplyMailComponent,
     PaginatorComponent,
-    TimeAgoPipe,
   ],
   templateUrl: './mail.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -355,6 +355,7 @@ export class MailComponent implements OnInit {
   originalRoute: string = '';
 
   ngOnInit() {
+
     this.loadChannelStateEmails();
 
     this.getMyChannelStateEmail();
@@ -364,6 +365,10 @@ export class MailComponent implements OnInit {
     this.loadAssistanceStateEmails();
 
     this.loadPredefinedResponseMail();
+
+    // Por si alguna vez quieren leer los spams (dentro del correo) esta función s
+    // trae todos los spams y hace un log en consola de estos
+    // this.loadSpamMessages()
 
     this.originalRoute = this.router.url.split('?')[0];
     console.log('Ruta original:', this.originalRoute);
@@ -432,6 +437,14 @@ export class MailComponent implements OnInit {
     this.emailSignatureService.findOneByTokenUserId().subscribe({
       next: (data) => {
         this.signature = data?.content ?? '';
+      },
+    });
+  }
+
+  loadSpamMessages() {
+    this.mailService.getSpamMessages().subscribe({
+      next: (data) => {
+        console.log(data)
       },
     });
   }
@@ -764,7 +777,7 @@ export class MailComponent implements OnInit {
     // 🚫 ya no mandamos this.replyTarget al backend
     this.mailService.replyEmail(mailId, this.replyText!).subscribe({
       next: (res) => {
-        console.log('✅ Respuesta guardada en backend:', res);
+        console.log('Respuesta guardada en backend:', res);
 
         this.replyText = '';
         this.attachments = [];
@@ -773,7 +786,7 @@ export class MailComponent implements OnInit {
         this.cancelReply();
       },
       error: (err) => {
-        console.error('❌ Error enviando reply', err);
+        console.error('Error enviando reply', err);
       },
     });
   }
@@ -1128,7 +1141,7 @@ export class MailComponent implements OnInit {
             this.loadMails();
           },
           error: (err) => {
-            console.error(`❌ Error cerrando tickets ${mailAttentionIds}`, err);
+            console.error(`Error cerrando tickets ${mailAttentionIds}`, err);
           },
         });
       }
@@ -1329,7 +1342,7 @@ export class MailComponent implements OnInit {
   }
 
   openDetails(mail: MailDto) {
-    console.log('📄 Ver detalles de:', mail);
+    console.log('Ver detalles de:', mail);
     this.selectMail(mail);
   }
 
@@ -1382,7 +1395,7 @@ export class MailComponent implements OnInit {
 
     this.mailService.forwardEmail(payload).subscribe({
       next: (res) => {
-        console.log('✅ Correo reenviado:', res);
+        console.log('Correo reenviado:', res);
 
         // const newForward: Reply = {
         //   id: Date.now(),
@@ -1416,7 +1429,7 @@ export class MailComponent implements OnInit {
         this.cancelForward();
       },
       error: (err) => {
-        console.error('❌ Error reenviando correo', err);
+        console.error('Error reenviando correo', err);
       },
     });
   }
@@ -1439,7 +1452,7 @@ export class MailComponent implements OnInit {
         this.loadMails(); // opcional refrescar
       },
       error: (err) => {
-        console.error('❌ Error en rebalanceo', err);
+        console.error('Error en rebalanceo', err);
         this.msg.error(err?.error?.message);
       },
     });
@@ -1453,7 +1466,7 @@ export class MailComponent implements OnInit {
         console.log('🎯 Tickets del ASESOR', res);
         this.mails.set(res);
       },
-      error: (err) => console.error('❌ Error obteniendo tickets', err),
+      error: (err) => console.error('Error obteniendo tickets', err),
     });
   }
 
@@ -1465,7 +1478,7 @@ export class MailComponent implements OnInit {
         console.log('📬 Correos abiertos del ASESOR', res);
         this.mails.set(res);
       },
-      error: (err) => console.error('❌ Error obteniendo abiertos', err),
+      error: (err) => console.error('Error obteniendo abiertos', err),
     });
   }
 
@@ -1534,7 +1547,7 @@ export class MailComponent implements OnInit {
   }
 
   writeNewEmail() {
-    this.dialogService.open(MailEditorComponent, {
+    this.dialogService.open(EmailFormComponent, {
       header: 'Mensaje nuevo',
       styleClass: 'modal-xl !mb-10 !mr-10',
       position: 'bottomright',

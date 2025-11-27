@@ -13,19 +13,18 @@ import { VicidialService } from '@services/vicidial.service';
 import { ButtonCancelComponent } from '@shared/buttons/button-cancel/button-cancel.component';
 import { DepartmentStore } from '@stores/department.store';
 import { NgxFileDropModule } from 'ngx-file-drop';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { FieldsetModule } from 'primeng/fieldset';
 
 import { TableModule } from 'primeng/table';
-import * as XLSX from 'xlsx';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AudioStoreService } from '@services/audio-store.service';
 import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.component';
+import { Workbook } from 'exceljs';
 
 @Component({
   selector: 'app-multi-campaign-audio',
@@ -41,7 +40,7 @@ import { ButtonSaveComponent } from '@shared/buttons/button-save/button-save.com
     ButtonCancelComponent,
     TableModule,
     FileUploadModule,
-    ButtonSaveComponent
+    ButtonSaveComponent,
   ],
   templateUrl: './multi-campaign-audio.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -92,36 +91,77 @@ export class MultiCampaignAudioComponent implements OnInit {
 
   // Parse Excel en upload
   selectedFile: File | null = null;
-  onFileUploads(event: any) {}
-  onFileUpload(event: any) {
+
+  async onFileUpload(event: any) {
     const file = event.files[0];
-    this.selectedFile = event.files[0];   
+    this.selectedFile = event.files[0];
     if (!file) return;
 
     this.loading = true;
+
     const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-      const jsonDataHeader = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    reader.onload = async (e: any) => {
+      const arrayBuffer = e.target.result;
 
-      if (jsonData.length === 0) {
-        this.msg.error('El archivo está vacío');
-        return;
+      try {
+        // ----------------------------------------------------
+        // Leer archivo con ExcelJS
+        // ----------------------------------------------------
+        const workbook = new Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+
+        const worksheet = workbook.worksheets[0];
+        if (!worksheet) {
+          this.msg.error('El archivo no contiene hojas válidas');
+          this.loading = false;
+          return;
+        }
+
+        // Obtener la fila de encabezados
+        const headerRow = worksheet.getRow(1);
+        if (!headerRow || !headerRow.values) {
+          this.msg.error('No se pudieron leer los encabezados del Excel');
+          this.loading = false;
+          return;
+        }
+        // Extraer encabezados, omitiendo el primer índice que es undefined
+        this.excelHeaders = (headerRow.values as any[])
+          .slice(1)
+          .map((v) => (v ? v.toString() : ''));
+
+        const jsonData: any[] = [];
+        worksheet.eachRow((row: any, rowNumber: number) => {
+          // Saltar encabezado
+          if (rowNumber === 1) return;
+
+          const rowValues = row.values.slice(1); // eliminar índice 0
+          const obj: any = {};
+
+          this.excelHeaders.forEach((header, index) => {
+            obj[header] = rowValues[index] ?? '';
+          });
+
+          jsonData.push(obj);
+        });
+
+        // ----------------------------------------------------
+        // Validar contenido
+        // ----------------------------------------------------
+        if (jsonData.length === 0) {
+          this.msg.error('El archivo está vacío');
+          this.loading = false;
+          return;
+        }
+
+        this.previewData = jsonData;
+        this.loading = false;
+      } catch (error) {
+        console.error('Error leyendo Excel con ExcelJS:', error);
+        this.msg.error('No se pudo leer el archivo Excel.');
+        this.loading = false;
       }
-
-      // Extrae headers (primera fila)
-      const rawHeaders = jsonDataHeader[0];
-      this.excelHeaders = Array.isArray(rawHeaders)
-        ? (rawHeaders as string[])
-        : [];
-      console.log(this.excelHeaders);
-      this.previewData = jsonData;
-      this.loading = false;
     };
+
     reader.readAsArrayBuffer(file);
   }
 
@@ -168,7 +208,7 @@ export class MultiCampaignAudioComponent implements OnInit {
     });
   }
 
-  submitForm() {
+  async submitForm() {
     if (
       !this.selectedCampaign ||
       this.excelHeaders.length === 0 ||
@@ -198,26 +238,37 @@ export class MultiCampaignAudioComponent implements OnInit {
       vicidial_lead_id: this.listId,
     }));
 
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(campaignEmails);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { CampaignEmails: worksheet },
-      SheetNames: ['CampaignEmails'],
-    };
+    /** ---------------------------
+     *  EXCELJS IMPLEMENTATION
+     * --------------------------- */
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet('CampaignEmails');
 
-    const excelBuffer: any = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array',
-    });
+    // Columnas automáticas según keys del JSON
+    worksheet.columns = Object.keys(campaignEmails[0]).map((key) => ({
+      header: key,
+      key: key,
+      width: 30,
+    }));
+
+    // Agregar todas las filas
+    worksheet.addRows(campaignEmails);
+
+    // Generar buffer
+    const excelBuffer = await workbook.xlsx.writeBuffer();
 
     const fileName = `campaign_emails_${new Date().getTime()}.xlsx`;
     const file = new File([excelBuffer], fileName, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
+    // Enviar al servicio
     this.audioStoreService.createlistaMultiple(request, file).subscribe({
       next: (res) => {
         if (res.status === 'duplicate') {
-          this.msg.warn('El ID de la lista ya existe. Por favor, elige un identificador diferente.');
+          this.msg.warn(
+            'El ID de la lista ya existe. Por favor, elige un identificador diferente.'
+          );
         } else {
           this.msg.success('Los leads se guardaron correctamente.');
           this.onCancel();
@@ -235,7 +286,7 @@ export class MultiCampaignAudioComponent implements OnInit {
       );
     }
   }
-  
+
   clearFile(fileUpload: any) {
     this.selectedFile = null;
     fileUpload.clear(); // limpia el input de PrimeNG

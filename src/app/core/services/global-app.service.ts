@@ -13,7 +13,6 @@ import { environment } from '@envs/environments';
 })
 export class GlobalService {
   private readonly baseUrl!: string;
-  private readonly urlTextoAudio!: string;
   constructor(private http: HttpClient) {
     this.baseUrl = `${environment.apiUrl}`;
   }
@@ -65,26 +64,6 @@ export class GlobalService {
     return this.http
       .get<any[]>(`${this.baseUrl}/${endpoint}/${id_item}`)
       .pipe(catchError(this.handleError));
-  }
-
-  createTextoAudio(text: string) {
-    const body = new HttpParams().set('text', text);
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded',
-    });
-
-    return this.http.post(`${this.urlTextoAudio}/tts`, body.toString(), {
-      headers,
-      responseType: 'blob',
-    });
-  }
-
-  uploadAudio(file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file); // "file" debe coincidir con el nombre usado en FileInterceptor('file')
-
-    return this.http.post(`${this.baseUrl}v1/central/upload`, formData);
   }
 
   // createTextoAudio(data: any): Observable<any> {

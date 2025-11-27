@@ -20,6 +20,7 @@ import { InboxUserFormComponent } from './inbox-user-form/inbox-user-form.compon
 import { ImageModule } from 'primeng/image';
 import { InboxStore } from '@stores/inbox.store';
 import { CardModule } from 'primeng/card';
+import { GmailService } from '@services/gmail.service';
 
 @Component({
   selector: 'app-channels',
@@ -56,7 +57,9 @@ export class ChannelsComponent {
 
   private readonly dialogService = inject(DialogService);
 
-  readonly store = inject(InboxStore);
+  private readonly store = inject(InboxStore);
+
+  private readonly gmailService = inject(GmailService);
 
   limit = signal(10);
   offset = signal(0);
@@ -179,5 +182,9 @@ export class ChannelsComponent {
         this.store.delete(item.id);
       }
     );
+  }
+
+  refreshCredential(id: number) {
+    this.gmailService.refreshCredential(id);
   }
 }

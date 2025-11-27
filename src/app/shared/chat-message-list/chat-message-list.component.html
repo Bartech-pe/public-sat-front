@@ -11,7 +11,7 @@
   >
     <!-- Contenedor interno -->
     <div
-      class="flex flex-col max-w-[75%] lg:max-w-[70%]"
+      class="flex flex-row-reverse gap-2 max-w-[75%] lg:max-w-[70%]"
       [ngClass]="{
         'items-end text-right': msg.isSender,
         'items-start text-left': !msg.isSender
@@ -171,21 +171,24 @@
       </div>
 
       <!-- ⋮ botón contextual -->
-      <button
-        *ngIf="msg.isSender"
-        type="button"
-        class="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 hover:scale-110"
-        (click)="menu.toggle($event); selectedMessage = msg"
-        aria-label="Opciones del mensaje"
-      >
-        <div class="w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50">
-          <iconify-icon
-            icon="ci:more-vertical"
-            width="16"
-            class="text-gray-500"
-          ></iconify-icon>
-        </div>
-      </button>
+       <div class="h-full flex items-center">
+
+         <button
+           *ngIf="msg.isSender"
+           type="button"
+           class=" opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 hover:scale-110"
+           (click)="menu.toggle($event); selectedMessage = msg"
+           aria-label="Opciones del mensaje"
+         >
+           <div class="w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50">
+             <iconify-icon
+               icon="ci:more-vertical"
+               width="16"
+               class="text-gray-500"
+             ></iconify-icon>
+           </div>
+         </button>
+       </div>
     </div>
   </div>
 </div>

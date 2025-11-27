@@ -34,11 +34,8 @@
                 Agentes
               </div>
             </th>
-            <th class="w-28">
-              <div
-                class="flex justify-center items-center text-xs uppercase"
-              ></div>
-            </th>
+            <th class="w-16"></th>
+            <th class="w-28"></th>
           </tr>
         </ng-template>
         <ng-template #body let-item>
@@ -66,6 +63,7 @@
                 </div>
               </div>
             </td>
+
             <td class="w-32">
               <div class="flex justify-center items-center gap-1">
                 <!-- <btn-custom
@@ -86,6 +84,17 @@
                     (click)="assignment(item)"
                   />
                 </p-overlaybadge>
+              </div>
+            </td>
+            <td class="w-16">
+              <div class="flex justify-center items-center gap-1">
+                <btn-custom
+                  severity="contrast"
+                  icon="uil:refresh"
+                  tooltip="Refrescar credenciales"
+                  (click)="refreshCredential(item.id)"
+                  [disabled]="item.channelId !== 4"
+                />
               </div>
             </td>
             <td class="w-28">

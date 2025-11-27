@@ -27,6 +27,20 @@ export class CallService {
     // return this.http.get<any>(this.basePath, { params });
   }
 
+  getCallsByUser(
+    limit?: number,
+    offset?: number,
+    q?: Record<string, any>
+  ): Observable<PaginatedResponse<CallItem>> {
+    const query = q ? `q=${encodeURIComponent(JSON.stringify(q))}` : '';
+    const limitQ = limit ? `limit=${limit}&` : '';
+    const offsetQ = limit ? `offset=${offset}&` : '';
+    return this.http.get<PaginatedResponse<CallItem>>(
+      `${this.basePath}/byUser?${limitQ}${offsetQ}${query}`
+    );
+    // return this.http.get<any>(this.basePath, { params });
+  }
+
   getStateStatus(q: Record<string, any>) {
     const query = q ? `?q=${encodeURIComponent(JSON.stringify(q))}` : '';
     return this.http.get<any>(`${this.basePath}/statesCount${query}`);

@@ -47,16 +47,343 @@
   </div> -->
 
   <div class="flex items-center gap-4 w-fit pr-4">
-    <button mat-raised-button class="nav-button">
-      <i class="fas fa-bell" matBadgeOverlap="false"></i>
-    </button>
+    <div class="relative">
+      <button
+        (click)="toggleReminders()"
+        class="w-10 h-10 rounded-full flex items-center justify-center bg-[#2d4f7a] text-white shadow-md hover:shadow-lg hover:bg-[#375f95] active:scale-95 transition duration-200 relative cursor-pointer"
+        aria-haspopup="true"
+        [attr.aria-expanded]="isRemindersOpen()"
+      >
+        <iconify-icon [icon]="'carbon:reminder'" class="text-2xl" />
+
+        <span
+          *ngIf="allRemindersRead > 0"
+          class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm"
+        >
+          {{ allRemindersRead }}
+        </span>
+        <!-- Badge -->
+      </button>
+
+      <div
+        *ngIf="isRemindersOpen()"
+        @dropdownAnimation
+        class="absolute right-0 mt-3 w-[340px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(55,95,149,0.15)] border border-neutral-200 z-50 overflow-hidden"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div
+          class="relative px-4 py-3 bg-gradient-to-br from-[#375f95] to-[#2b4a7d]"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"
+              >
+                <iconify-icon [icon]="'carbon:reminder'" class="text-xl" />
+              </div>
+              <div class="flex flex-col gap-0.0">
+                <h3 class="text-white font-semibold text-sm">Recordatorios</h3>
+                <span class="text-white/60 text-[10px]"
+                  >{{ todayReminders?.length }} recordatorio{{
+                    todayReminders?.length > 1 ? "s" : ""
+                  }}</span
+                >
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                class="px-2.5 py-1 text-[10px] text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                (click)="markAllRemindersAsRead()"
+              >
+                Marcar todas
+              </button>
+              <!-- <button
+                class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all hover:scale-105 active:scale-95"
+                (click)="openCreateReminder()"
+                pTooltip="Nuevo recordatorio"
+                tooltipPosition="bottom"
+              >
+                <iconify-icon [icon]="'mdi:plus'" class="text-xl" />
+              </button> -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div class="max-h-[320px] overflow-y-auto custom-scrollbar">
+          <ng-container *ngIf="reminders?.length; else noNotes">
+            <!-- Sección: Hoy -->
+            <ng-container *ngIf="todayReminders?.length">
+              <div
+                class="px-4 py-2 bg-[#375f95]/10 border-b border-[#375f95]/20"
+              >
+                <div class="flex items-center gap-2">
+                  <span
+                    class="iconify text-blue-600"
+                    data-icon="mdi:calendar-arrow-right"
+                  ></span>
+                  <span
+                    class="text-xs font-bold text-blue-600 uppercase tracking-wide"
+                    >Hoy</span
+                  >
+                  <span
+                    class="text-[10px] text-white bg-blue-600 px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {{ todayRemindersRead.length }}
+                  </span>
+                  <!-- <span
+                    class="iconify text-[#375f95]"
+                    data-icon="mdi:calendar-today"
+                  ></span>
+                  <span
+                    class="text-xs font-bold text-[#375f95] uppercase tracking-wide"
+                    >Hoy</span
+                  > -->
+                  <!-- <span
+                    class="text-[10px] text-white bg-[#375f95] px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {{ todayRemindersRead.length }}
+                  </span> -->
+                </div>
+              </div>
+
+              <div
+                *ngFor="let n of todayReminders"
+                (click)="markAllRemindersAsRead(n)"
+                [class]="'group relative flex items-start gap-3 mx-2 my-2 p-3 pl-5 rounded-xl border transition-all cursor-pointer ' +
+                         (!n.status ? 'bg-gray-50 hover:bg-gray-100 border-gray-200 opacity-60 before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-xl before:bg-gray-300' :
+                          'bg-white hover:bg-blue-50/50 border-gray-200 hover:border-[#375f95]/40 shadow-sm hover:shadow-md before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-xl before:bg-[var(--sat-principal)]')"
+              >
+                <!-- Contenido -->
+                <div class="flex-1 min-w-0">
+                  <p [class]="'text-sm font-semibold leading-snug ' + (!n.status ? 'text-gray-500' : 'text-gray-800')">
+                    {{ n.name }}
+                  </p>
+                  <p
+                    *ngIf="n.description"
+                    [class]="'text-xs leading-relaxed mt-1.5 ' + (!n.status ? 'text-gray-400' : 'text-gray-600')"
+                  >
+                    {{ n.description }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span
+                      [class]="'text-[11px] flex items-center gap-1 font-medium ' + (!n.status ? 'text-gray-400' : 'text-[#375f95]')"
+                    >
+                      <span
+                        class="iconify text-sm"
+                        data-icon="mdi:clock-outline"
+                      ></span>
+                      {{ n.reminderAt | date : "shortTime" }}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-100 transition-all"
+                  (click)="deleteReminder(n); $event.stopPropagation()"
+                  pTooltip="Eliminar"
+                  tooltipPosition="left"
+                >
+                  <iconify-icon
+                    icon="mdi:trash-can-outline"
+                    width="20"
+                  ></iconify-icon>
+                </button>
+              </div>
+            </ng-container>
+
+            <!-- Sección: Próximos -->
+            <ng-container *ngIf="upcomingReminders?.length">
+              <div class="px-4 py-2 bg-blue-50 border-y border-blue-100 mt-1">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="iconify text-blue-600"
+                    data-icon="mdi:calendar-arrow-right"
+                  ></span>
+                  <span
+                    class="text-xs font-bold text-blue-600 uppercase tracking-wide"
+                    >Próximos</span
+                  >
+                  <span
+                    class="text-[10px] text-white bg-blue-600 px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {{ upcomingRemindersRead.length }}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                *ngFor="let n of upcomingReminders"
+                (click)="markAllRemindersAsRead(n)"
+                [class]="'group relative flex items-start gap-3 mx-2 my-2 p-3 pl-5 rounded-xl border transition-all cursor-pointer ' +
+                         (!n.status ? 'bg-gray-50 hover:bg-gray-100 border-gray-200 opacity-60 before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-xl before:bg-gray-300' :
+                          'bg-white hover:bg-blue-50/50 border-gray-200 hover:border-[#375f95]/40 shadow-sm hover:shadow-md before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-xl before:bg-[var(--sat-principal)]')"
+              >
+                <!-- Contenido -->
+                <div class="flex-1 min-w-0">
+                  <p [class]="'text-sm font-semibold leading-snug ' + (!n.status ? 'text-gray-500' : 'text-gray-800')">
+                    {{ n.name }}
+                  </p>
+                  <p
+                    *ngIf="n.description"
+                    [class]="'text-xs leading-relaxed mt-1.5 ' + (!n.status ? 'text-gray-400' : 'text-gray-600')"
+                  >
+                    {{ n.description }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span
+                      [class]="'text-[11px] flex items-center gap-1 font-medium ' + (!n.status ? 'text-gray-400' : 'text-[#375f95]')"
+                    >
+                      <span
+                        class="iconify text-sm"
+                        data-icon="mdi:calendar-clock"
+                      ></span>
+                      {{ n.reminderAt | date : "short" }}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-100 transition-all"
+                  (click)="deleteReminder(n); $event.stopPropagation()"
+                  pTooltip="Eliminar"
+                  tooltipPosition="left"
+                >
+                  <iconify-icon
+                    icon="mdi:trash-can-outline"
+                    width="20"
+                  ></iconify-icon>
+                </button>
+              </div>
+            </ng-container>
+
+            <!-- Sección: Pasados -->
+            <ng-container *ngIf="pastReminders?.length">
+              <div class="px-4 py-2 bg-gray-100 border-y border-gray-200 mt-1">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="iconify text-blue-600"
+                    data-icon="mdi:calendar-arrow-right"
+                  ></span>
+                  <span
+                    class="text-xs font-bold text-blue-600 uppercase tracking-wide"
+                    >Anteriores</span
+                  >
+                  <span
+                    class="text-[10px] text-white bg-blue-600 px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {{ pastRemindersRead.length }}
+                  </span>
+                  <!-- <span
+                    [class]="(!n.status && pastRemindersRead.length <= 0 ? 'text-gray-500' : 'text-blue-600')"
+                    data-icon="mdi:history"
+                  ></span>
+                  <span
+                    [class]="'text-xs font-bold uppercase tracking-wide'+(!n.status && pastRemindersRead.length <= 0 ? 'text-gray-500' : 'text-blue-600')"
+                    >Anteriores</span
+                  >
+                  <span
+                  [class]="'text-[10px]  bg-gray-200 px-2 py-0.5 rounded-full font-medium'+(!n.status && pastRemindersRead.length <= 0 ? 'text-gray-500' : 'text-blue-600')"
+                  >
+                    {{ pastRemindersRead.length }}
+                  </span> -->
+                </div>
+              </div>
+
+              <div
+                *ngFor="let n of pastReminders"
+                (click)="markAllRemindersAsRead(n)"
+                [class]="'group relative flex items-start gap-3 mx-2 my-1.5 p-2.5 pl-5 rounded-lg border transition-all cursor-pointer ' +
+                         (!n.status ? 'bg-gray-50 hover:bg-gray-100 border-gray-200 opacity-60 before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-lg before:bg-gray-300' :
+                          'bg-white hover:bg-blue-50/50 border-gray-200 hover:border-[#375f95]/40 shadow-sm hover:shadow-md before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:rounded-l-lg before:bg-[var(--sat-principal)]')"
+              >
+                <!-- Contenido -->
+                <div class="flex-1 min-w-0">
+                  <p [class]="'text-sm font-medium leading-snug ' + (!n.status ? 'text-gray-500' : 'text-gray-800')">
+                    {{ n.name }}
+                  </p>
+                  <p
+                    *ngIf="n.description"
+                    [class]="'text-xs leading-relaxed mt-1 ' + (!n.status ? 'text-gray-400' : 'text-gray-600')"
+                  >
+                    {{ n.description }}
+                  </p>
+                  <span
+                    [class]="'text-[11px] flex items-center gap-1 mt-1.5 ' + (!n.status ? 'text-gray-400' : 'text-[#375f95]')"
+                  >
+                    <span
+                      class="iconify text-sm"
+                      data-icon="mdi:calendar-clock"
+                    ></span>
+                    {{ n.reminderAt | date : "short" }}
+                  </span>
+                </div>
+
+                <!-- Botón eliminar -->
+                <button
+                  class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-100 transition-all"
+                  (click)="deleteReminder(n); $event.stopPropagation()"
+                  pTooltip="Eliminar"
+                  tooltipPosition="left"
+                >
+                  <iconify-icon
+                    icon="mdi:trash-can-outline"
+                    width="18"
+                  ></iconify-icon>
+                </button>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <!-- Sin recordatorios -->
+          <ng-template #noNotes>
+            <div class="py-12 px-6 text-center">
+              <div
+                class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center border border-gray-200"
+              >
+                <iconify-icon
+                  icon="mdi:bell-off-outline"
+                  width="40"
+                  class="text-gray-400"
+                ></iconify-icon>
+              </div>
+              <p class="text-sm text-gray-600 font-semibold">
+                Sin recordatorios
+              </p>
+              <p class="text-xs text-gray-500 mt-1">
+                Presiona <span class="text-[#375f95] font-bold">+</span> para
+                crear uno
+              </p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="px-4 py-2.5 bg-gray-50/80 border-t border-gray-100/80 flex justify-between items-center"
+        >
+          <span class="text-[11px] text-gray-400 flex items-center gap-1.5">
+            <span class="iconify" data-icon="mdi:format-list-checks"></span>
+            {{ reminders?.length || 0 }} total
+          </span>
+          <button
+            class="text-[11px] text-[#375f95] hover:text-[#2b4a7d] font-medium transition flex items-center gap-1"
+            (click)="isRemindersOpen.set(false)"
+          >
+            Cerrar
+            <span class="iconify text-xs" data-icon="mdi:chevron-up"></span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="relative">
       <button
         (click)="toggleNotifications()"
         class="w-10 h-10 rounded-full flex items-center justify-center bg-[#2d4f7a] text-white shadow-md hover:shadow-lg hover:bg-[#375f95] active:scale-95 transition duration-200 relative cursor-pointer"
         aria-haspopup="true"
-        [attr.aria-expanded]="isNotificationsOpen"
+        [attr.aria-expanded]="isNotificationsOpen()"
       >
         <!-- Icono -->
         <svg
@@ -65,7 +392,7 @@
           height="22"
           viewBox="0 0 512 512"
           class="transition-transform duration-200"
-          [class.scale-110]="isNotificationsOpen"
+          [class.scale-110]="isNotificationsOpen()"
         >
           <path
             fill="currentColor"
@@ -83,7 +410,7 @@
       </button>
 
       <div
-        *ngIf="isNotificationsOpen"
+        *ngIf="isNotificationsOpen()"
         @dropdownAnimation
         class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top transition-all duration-300 animate-fadeIn"
         (click)="$event.stopPropagation()"
@@ -98,12 +425,12 @@
               >Notificaciones</strong
             >
           </div>
-          <button
+          <!-- <button
             class="text-xs text-[#375f95]/70 hover:text-[#375f95] hover:underline transition"
             (click)="markAllAsRead()"
           >
             Marcar todas
-          </button>
+          </button> -->
         </div>
 
         <!-- Lista -->
@@ -157,7 +484,7 @@
           </span>
           <button
             class="text-[#375f95] hover:text-[#2b4a7d] hover:underline text-xs transition"
-            (click)="isNotificationsOpen = false"
+            (click)="isNotificationsOpen.set(false)"
           >
             Cerrar
           </button>
@@ -167,31 +494,26 @@
 
     <div class="relative flex items-center gap-3 ml-4">
       <div class="flex flex-col text-right">
-        <span class="font-semibold text-white">{{ displayName }}</span>
-        <span class="text-xs text-gray-300 capitalize">{{ role }}</span>
+        <span class="font-semibold text-white capitalize">
+          {{ displayName }}
+        </span>
+        <span class="text-xs text-gray-300 capitalize">
+          {{ role }}
+        </span>
       </div>
 
       <button
         (click)="toggleDropdown()"
         class="w-11 h-11 rounded-full flex items-center justify-center bg-transparent hover:bg-white/10 active:bg-white/20 transition duration-200 cursor-pointer"
       >
-        <!-- <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="30"
-          height="30"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="#fff"
-            d="M6.25 7a5.75 5.75 0 1 1 11.5 0a5.75 5.75 0 0 1-11.5 0m5.548 7.261a1 1 0 0 1 .13-.011h.144q.066 0 .13.011l7.295 1.283l.038.008c1.344.31 2.788 1.163 3.069 2.82l.004.029l.114.877v.002c.264 2.009-1.329 3.47-3.21 3.47a1 1 0 0 1-.124-.01h-14.9c-1.881 0-3.475-1.462-3.21-3.472l.114-.869l.005-.03c.28-1.627 1.736-2.528 3.077-2.819l.029-.006z"
-          />
-        </svg> -->
         <p-avatar
           shape="circle"
           size="normal"
           styleClass="w-8 h-8 flex items-center justify-center bg-green-200"
         >
-          <span class="text-neutral-700 text-lg font-bold">{{ initials }}</span>
+          <span class="text-neutral-700 text-lg font-bold uppercase">
+            {{ initials }}
+          </span>
         </p-avatar>
       </button>
 

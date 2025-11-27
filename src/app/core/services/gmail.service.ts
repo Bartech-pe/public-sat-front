@@ -39,6 +39,27 @@ export class GmailService {
       });
   }
 
+  // Crear credencial (ahora con datos dinámicos desde el componente)
+  refreshCredential(id: number) {
+    this.http
+      .get<{ authUrl: string }>(`${this.baseUrl}/refreshCredential/${id}`)
+      .subscribe({
+        next: (res) => {
+          let authUrl = res.authUrl;
+          // Fuerza selector de cuenta
+          if (!authUrl.includes('prompt=')) {
+            authUrl +=
+              (authUrl.includes('?') ? '&' : '?') + 'prompt=select_account';
+          }
+          console.log('Redirigiendo a:', authUrl);
+          window.location.href = authUrl;
+        },
+        error: (err) => {
+          console.error('Error al iniciar conexión con Gmail', err);
+        },
+      });
+  }
+
   // // Conectar correol
   // loginWithGoogle(mail: string): void {
   //   this.http
@@ -59,7 +80,7 @@ export class GmailService {
   //         window.location.href = authUrl;
   //       },
   //       error: (err) => {
-  //         console.error('❌ Error al iniciar conexión con Gmail', err);
+  //         console.error('Error al iniciar conexión con Gmail', err);
   //       },
   //     });
   // }

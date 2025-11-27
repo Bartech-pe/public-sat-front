@@ -172,6 +172,118 @@
               ></textarea>
             </div>
           </div>
+          <!-- Sección de Recordatorio (fuera del formDataAtencion) -->
+          <div class="flex flex-col gap-4">
+            <!-- Checkbox para habilitar recordatorio -->
+            <div class="flex items-center gap-3">
+              <!-- <p-checkbox
+                inputId="enableReminder"
+                [(ngModel)]="enableReminder"
+              /> -->
+              <p-checkbox
+                [(ngModel)]="enableReminder"
+                inputId="pauseCall"
+                binary="true"
+                [ngModelOptions]="{ standalone: true }"
+              >
+              </p-checkbox>
+              <label
+                for="enableReminder"
+                class="text-sm font-medium text-gray-700 cursor-pointer"
+              >
+                Establecer recordatorio
+              </label>
+            </div>
+
+            <!-- Formulario de recordatorio separado -->
+            <form
+              *ngIf="enableReminder"
+              [formGroup]="formReminder"
+              class="flex flex-col gap-4 bg-gray-50 rounded-xl"
+            >
+              <div
+                class="flex items-center gap-2 pb-2 border-b border-gray-200"
+              >
+                <iconify-icon
+                  icon="mdi:bell-ring-outline"
+                  width="20"
+                  class="text-[var(--sat-principal)]"
+                ></iconify-icon>
+                <span class="text-sm font-semibold text-gray-700"
+                  >Datos del recordatorio</span
+                >
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="reminderName">
+                  Nombre del recordatorio:
+                  <span class="text-xs text-rose-500">*</span>
+                </label>
+                <input
+                  id="reminderName"
+                  pInputText
+                  formControlName="name"
+                  placeholder="Ej: Llamar al cliente"
+                />
+                <div
+                  *ngIf="
+                    formReminder.controls.name.invalid &&
+                    formReminder.controls.name.touched
+                  "
+                >
+                  <small
+                    class="text-rose-500"
+                    *ngIf="formReminder.controls.name.errors?.['required']"
+                  >
+                    El nombre del recordatorio es requerido.
+                  </small>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="reminderDescription">
+                  Descripción:
+                </label>
+                <textarea
+                  id="reminderDescription"
+                  rows="2"
+                  pTextarea
+                  formControlName="description"
+                  placeholder="Detalles adicionales del recordatorio..."
+                ></textarea>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium" for="reminderAt">
+                  Fecha y hora: <span class="text-xs text-rose-500">*</span>
+                </label>
+                <p-datepicker
+                  id="reminderAt"
+                  formControlName="reminderAt"
+                  [showTime]="true"
+                  [showIcon]="true"
+                  [minDate]="minDate"
+                  dateFormat="dd/mm/yy"
+                  hourFormat="12"
+                  placeholder="Seleccione fecha y hora"
+                  appendTo="body"
+                />
+                <div
+                  *ngIf="
+                    formReminder.controls.reminderAt.invalid &&
+                    formReminder.controls.reminderAt.touched
+                  "
+                >
+                  <small
+                    class="text-rose-500"
+                    *ngIf="formReminder.controls.reminderAt.errors?.['required']"
+                  >
+                    La fecha del recordatorio es requerida.
+                  </small>
+                </div>
+              </div>
+            </form>
+          </div>
           <div class="flex justify-end items-center gap-4">
             <div class="flex gap-2">
               <btn-custom

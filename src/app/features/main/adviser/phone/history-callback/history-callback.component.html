@@ -1,0 +1,169 @@
+<div class="grid grid-cols-1 gap-4">
+  <!-- <div class="grid grid-cols-1 gap-4">
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 justify-end"
+    >
+      <div>
+        <input
+          pInputText
+          [(ngModel)]="activeSearch"
+          placeholder="Buscar por teléfono"
+          class="!rounded-full w-full"
+        />
+      </div>
+      <div>
+        <p-select
+          [options]="advisors()"
+          [(ngModel)]="activeAdvisorFilter"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Asesores"
+          class="!rounded-full !w-full"
+          appendTo="body"
+          [showClear]="true"
+        ></p-select>
+      </div>
+
+      <div>
+        <p-select
+          [options]="states()"
+          [(ngModel)]="activeStateFilter"
+          optionLabel="statusName"
+          optionValue="statusId"
+          placeholder="Estados de llamada"
+          class="!rounded-full !w-full"
+          appendTo="body"
+          [showClear]="true"
+        ></p-select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <p class="font-semibold text-gray-700 text-sm">Rango de fecha:</p>
+        <div class="grid grid-cols-2 gap-4">
+          <p-datepicker
+            [iconDisplay]="'input'"
+            [showIcon]="true"
+            inputId="startDate"
+            [(ngModel)]="activeStartDateFilter"
+            styleClass="!rounded-full !w-full"
+            inputStyleClass="!rounded-full !w-full"
+            class="!rounded-full !w-full"
+            appendTo="body"
+          />
+          <p-datepicker
+            [iconDisplay]="'input'"
+            [showIcon]="true"
+            inputId="endDate"
+            [(ngModel)]="activeEndDateFilter"
+            styleClass="!rounded-full !w-full"
+            inputStyleClass="!rounded-full !w-full"
+            class="!rounded-full !w-full"
+            appendTo="body"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end">
+      <div class="grid grid-cols-2 gap-2 items-center">
+        <p-button
+          severity="contrast"
+          size="small"
+          (click)="search()"
+          label="Filtrar"
+          rounded
+          styleClass="min-w-32"
+        />
+
+        <p-button
+          severity="danger"
+          variant="outlined"
+          size="small"
+          (click)="clear()"
+          label="Limpiar"
+          rounded
+          styleClass="min-w-32"
+        />
+      </div>
+    </div>
+  </div> -->
+
+  <p-table [value]="items()" [responsiveLayout]="'scroll'" sortMode="multiple">
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="w-48">Fecha y hora</th>
+        <th>
+          <div class="flex items-center justify-center">Duración (seg)</div>
+        </th>
+        <th>
+          <div class="flex items-center justify-center">Teléfono</div>
+        </th>
+        <th>
+          <div class="flex items-center justify-center">
+            Resultado de llamada
+          </div>
+        </th>
+        <th class="w-16"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>
+          <div class="text-sm">
+            {{ item.callDate | date : "dd/MM/yyyy HH:mm:ss" }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
+            {{ item.lengthInSec | duration }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center justify-center text-sm">
+            {{ item.phoneNumber }}
+          </div>
+        </td>
+        <td>
+          <div class="flex justify-center items-center gap-2 text-sm">
+            <!-- <iconify-icon [icon]="item.stateIcon" [class]="item.stateStyle" /> -->
+            <label>{{ item.statusName }}</label>
+          </div>
+        </td>
+        <td class="w-16">
+          <div class="flex justify-center">
+            <btn-custom
+              [disabled]="!item.phoneNumber"
+              label="Marcar"
+              severity="primary"
+              icon="mingcute:phone-fill"
+              [text]="false"
+              (click)="onSubmit(item.phoneNumber!)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="100">
+          <div class="text-center text-sm font-light p-4">
+            No se encontraron asesores de Aló Sat.
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #footer>
+      <tr>
+        <td colspan="100">
+          <div class="flex justify-center items-center">
+            <sat-paginator
+              [totalItems]="totalItems"
+              [limit]="limit()"
+              [offset]="offset()"
+              (pageChange)="onPageChange($event)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

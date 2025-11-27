@@ -1,8 +1,6 @@
-import { mergeMap } from 'rxjs';
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
-  effect,
   ElementRef,
   inject,
   OnInit,
@@ -12,7 +10,6 @@ import {
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
-import * as XLSX from 'xlsx';
 import {
   FormBuilder,
   FormGroup,
@@ -35,11 +32,13 @@ import { User } from '@models/user.model';
 import { AuthStore } from '@stores/auth.store';
 import { MessageGlobalService } from '@services/generic/message-global.service';
 import { SmsCampaignService } from '@services/sms-campaign.service';
-import { MessagePreview, ShowHeader } from '@models/sms-campaign.model';
+import { ShowHeader } from '@models/sms-campaign.model';
 import { CampaignState } from '@models/campaign-state.model';
 import { CampaignStateStore } from '@stores/campaign-state.store';
 import { DepartmentStore } from '@stores/department.store';
 import { Department } from '@models/department.model';
+import { Workbook } from 'exceljs';
+
 @Component({
   selector: 'app-form-sms',
   imports: [
@@ -64,8 +63,6 @@ import { Department } from '@models/department.model';
   styles: ``,
 })
 export class FormSmsComponent implements OnInit {
-
-
   @ViewChild('fileDropRef') fileDropRef: any;
 
   public readonly ref: DynamicDialogRef = inject(DynamicDialogRef);
@@ -145,7 +142,7 @@ export class FormSmsComponent implements OnInit {
         this.rows = res.rows;
         this.nombreArchivo = file.name;
 
-        // ✅ Habilitar el select de contacto
+        // Habilitar el select de contacto
         this.formData.get('contact')?.enable();
         this.formData.get('variable')?.enable();
         this.msg.success('¡Archivo cargado correctamente!');
@@ -183,19 +180,18 @@ export class FormSmsComponent implements OnInit {
     // Limpiar y deshabilitar el campo select
     const contactControl = this.formData.get('contact');
     contactControl?.reset();
-    contactControl?.disable(); 
+    contactControl?.disable();
 
     const variableControl = this.formData.get('variable');
-    variableControl?.reset(); 
-    variableControl?.disable(); 
+    variableControl?.reset();
+    variableControl?.disable();
 
     this.fileInput.nativeElement.value = '';
 
-    // 🔹 Limpiar drop zone (solo visual)
+    // Limpiar drop zone (solo visual)
     if (this.fileDropRef) {
       this.fileDropRef.files = []; // limpia la lista interna de ngx-file-drop
     }
-
   }
 
   previewMessage() {
@@ -214,7 +210,6 @@ export class FormSmsComponent implements OnInit {
     this.fileInput.nativeElement.click();
   }
 
- 
   get CampaignList(): CampaignState[] {
     return this.campaignStateStore.items()!;
   }
@@ -247,14 +242,14 @@ export class FormSmsComponent implements OnInit {
     return this.authStore.user()!;
   }
 
-  createCampaing() {
- 
+  async createCampaing() {
     if (this.formData.invalid) {
-      this.msg.warn('Por favor, completa todos los campos requeridos antes de continuar.');
+      this.msg.warn(
+        'Por favor, completa todos los campos requeridos antes de continuar.'
+      );
       this.formData.markAllAsTouched();
       return;
     }
-
 
     if (!this.listaVistaPrevia || this.listaVistaPrevia.length === 0) {
       this.msg.warn('Por favor, valide la lista antes de crear la campaña.');
@@ -264,8 +259,11 @@ export class FormSmsComponent implements OnInit {
     const contactosInvalidos = this.listaVistaPrevia.filter(
       (c: any) => !c.contact || !c.message || c.message.trim() === ''
     );
+
     if (contactosInvalidos.length > 0) {
-      this.msg.warn('Algunos contactos no tienen número o mensaje. Por favor verifica la lista.');
+      this.msg.warn(
+        'Algunos contactos no tienen número o mensaje. Por favor verifica la lista.'
+      );
       return;
     }
 
@@ -280,39 +278,58 @@ export class FormSmsComponent implements OnInit {
     }));
 
     try {
-      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(campaignSMS);
-      const workbook: XLSX.WorkBook = {
-        Sheets: { CampaignSMS: worksheet },
-        SheetNames: ['CampaignSMS'],
-      };
- 
-      const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      // -------------------------------------------------------
+      // Generar archivo Excel con EXCELJS
+      // -------------------------------------------------------
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('CampaignSMS');
+
+      // Headers
+      const headers = Object.keys(campaignSMS[0]);
+      worksheet.addRow(headers);
+
+      // Rows
+      campaignSMS.forEach((row: any) => {
+        worksheet.addRow(headers.map((h: string) => row[h]));
+      });
+
+      // Auto ancho de columnas
+      headers.forEach((h: string, i: number) => {
+        worksheet.getColumn(i + 1).width = Math.max(15, h.length + 5);
+      });
+
+      // Buffer del Excel
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+
       const fileName = `campaign_sms_${Date.now()}.xlsx`;
       const file = new File([excelBuffer], fileName, {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
-  
       const request = this.formData.getRawValue();
       const formData = new FormData();
       formData.append('name', request.name.trim());
       formData.append('campaignStatus', '1');
       formData.append('sender', request.senderId.trim());
       formData.append('message', request.message.trim());
-      formData.append('totalRegistered', this.listaVistaPrevia.length.toString());
+      formData.append(
+        'totalRegistered',
+        this.listaVistaPrevia.length.toString()
+      );
       formData.append('file', file, file.name);
 
-
+      // -------------------------------------------------------
+      // Enviar al backend
+      // -------------------------------------------------------
       this.smsCampaignService.createlistMulti(formData).subscribe({
-        next: (res) => {
+        next: () => {
           this.msg.success('Campaña SMS creada y enviada exitosamente.');
           this.ref.close(true);
-          this.ref.close(true);
         },
-        error: (err) => {
-         
-          this.msg.error('❌ Ocurrió un error al enviar la campaña. Intenta nuevamente.');
-     
+        error: () => {
+          this.msg.error(
+            'Ocurrió un error al enviar la campaña. Intenta nuevamente.'
+          );
         },
       });
     } catch (error) {
@@ -351,11 +368,11 @@ export class FormSmsComponent implements OnInit {
   }
 
   private renderTemplate(template: string, contacto: any): string {
-      return template.replace(/\[([^\]]+)\]/g, (_, variable) => {
-        const key = variable.trim().toUpperCase();
-        // Si el contacto tiene una propiedad con ese nombre, la reemplaza, si no deja vacío
-        return contacto[key] ?? '';
-      });
+    return template.replace(/\[([^\]]+)\]/g, (_, variable) => {
+      const key = variable.trim().toUpperCase();
+      // Si el contacto tiene una propiedad con ese nombre, la reemplaza, si no deja vacío
+      return contacto[key] ?? '';
+    });
   }
 
   showDialog() {

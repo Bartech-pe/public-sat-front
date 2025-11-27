@@ -223,4 +223,10 @@ export class MailService {
       email,
     });
   }
+
+  getSpamMessages(pageToken: string | null= null): Observable<any> {
+
+    const pageTokenQ = pageToken ? `pageToken=${pageToken}&` : '';
+    return this.http.get<any>(`${this.baseUrl}/spam/messages?${pageTokenQ}`);
+  }
 }

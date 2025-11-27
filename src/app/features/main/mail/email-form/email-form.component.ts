@@ -34,6 +34,7 @@ import Block from 'quill/blots/block';
 import Container from 'quill/blots/container';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MailEditorComponent } from '@shared/editor/mail-editor/mail-editor.component';
 
 // Obtener Parchment para asignar el scope (alcance) correcto
 const Parchment = Quill.import('parchment');
@@ -71,7 +72,7 @@ Quill.register(
 );
 
 @Component({
-  selector: 'app-mail-editor',
+  selector: 'app-email-form',
   imports: [
     CommonModule,
     FormsModule,
@@ -84,13 +85,14 @@ Quill.register(
     PopoverModule,
     InputNumberModule,
     ButtonModule,
+    MailEditorComponent,
     BtnCustomComponent,
   ],
-  templateUrl: './mail-editor.component.html',
+  templateUrl: './email-form.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: ``,
 })
-export class MailEditorComponent {
+export class EmailFormComponent {
   @ViewChild(Editor, { static: true }) editor!: Editor;
 
   @ViewChild('responses') responses!: Popover;

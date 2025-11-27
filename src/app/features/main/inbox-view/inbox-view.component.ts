@@ -126,20 +126,21 @@ export class InboxViewComponent implements OnInit, OnDestroy {
 
     if (this.socketService.isConnected) {
       this.socketService.registerUser(this.userCurrent.id);
-    } 
+    }
 
     this.socketService.onMessage((msg) => {
-      if(this.idRoomChat ==  msg.chatRoomId){
-          msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
-          msg.isSender = msg.senderId === this.userCurrent.id;
+      if (this.idRoomChat == msg.chatRoomId) {
+        if (this.listMessageChatRoom.find((message) => message.id == msg.id))
+          return;
 
-          this.listMessageChatRoom.push(msg);
-          if (this.userIsAtBottom) {
-            this.forceScrollToBottom = true;
-          }
+        msg.senderId = msg.senderId ?? msg.sender?.id ?? 0;
+        msg.isSender = msg.senderId === this.userCurrent.id;
+        this.listMessageChatRoom.push(msg);
+        if (this.userIsAtBottom) {
+          this.forceScrollToBottom = true;
+        }
       }
     });
-
 
     // this.loadUnreadMessages();
     // setInterval(() => this.loadUnreadMessages(), 10000);
@@ -160,7 +161,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       chatRoomId: this.selectedChatId,
       isRead: false,
     };
-
+    let asd: number = 0;
     this.chatMessageService
       .registerMessage(newMessage)
       .subscribe((response: any) => {
@@ -173,18 +174,18 @@ export class InboxViewComponent implements OnInit, OnDestroy {
         //   message:chat
         // }
         // this.chatMessageService.registerMessageNotificacion(req).subscribe(res =>{ console.log(res) });
-        this.forceScrollToBottom = true; 
-    });
+        this.forceScrollToBottom = true;
+      });
   }
 
-   infoUserGroup: any = {};
+  infoUserGroup: any = {};
   openedChats: any[] = [];
   infoUsers?: UserSender;
-  disabledButton:boolean = false;
-  idRoomChat=null;
-  idUsuario:any = null;
+  disabledButton: boolean = false;
+  idRoomChat = null;
+  idUsuario: any = null;
   viewMessages(chat: any) {
-    this.idUsuario =   this.getLastMessageIdUser(chat);
+    this.idUsuario = this.getLastMessageIdUser(chat);
 
     this.idRoomChat = chat.id;
     this.disabledButton = false;
@@ -202,18 +203,17 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     // Verificamos usuario actual antes de continuar
     const currentUserId = this.userCurrent?.id;
     if (!currentUserId) {
-   
       return;
     }
 
-    console.log(currentUserId)
+    console.log(currentUserId);
     this.disabledButton = true;
     // 🚀 Obtenemos los mensajes y procesamos correctamente el "isSender" y el "sender"
     this.chatMessageService.getRoomMessages(chat.id).subscribe({
       next: (response) => {
         const currentUser = this.userCurrent!;
 
-        console.log(currentUser)
+        console.log(currentUser);
 
         this.listMessageChatRoom = response.map((msg: any) => {
           const senderId = msg.senderId ?? msg.sender?.id ?? 0;
@@ -274,8 +274,6 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     });
   }
 
-
-
   viewMessage(contact: any) {
     const body = {
       name: 'Nuevo Mensaje',
@@ -332,7 +330,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       // Mostramos la imagen localmente (si lo usas en tu UI)
       this.previewImage = previewUrl;
 
-       let type: string = 'file'; // valor por defecto
+      let type: string = 'file'; // valor por defecto
 
       if (file.type.startsWith('image/')) {
         type = 'image';
@@ -347,7 +345,7 @@ export class InboxViewComponent implements OnInit, OnDestroy {
         type = 'text';
       }
       console.log(type);
-      
+
       // Armamos el FormData para el backend
       const formData = new FormData();
       formData.append('file', file);
@@ -375,7 +373,6 @@ export class InboxViewComponent implements OnInit, OnDestroy {
 
     reader.readAsDataURL(file);
   }
-
 
   ngAfterViewInit(): void {
     this.scrollContainer?.nativeElement?.addEventListener('scroll', () => {
@@ -466,8 +463,6 @@ export class InboxViewComponent implements OnInit, OnDestroy {
       },
     });
   }
-
- 
 
   selectedChatId: number = 1;
   newMessage: string = '';
@@ -615,5 +610,4 @@ export class InboxViewComponent implements OnInit, OnDestroy {
     this.messageService.clear('confirm');
     this.visible = false;
   }
-  
 }

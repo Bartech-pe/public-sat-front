@@ -28,49 +28,8 @@
 
   <!-- Campo introducción del usuario -->
   <label class="block text-sm font-medium">Mensaje:</label>
-  <p-editor
-    [(ngModel)]="forwardBody"
-    placeholder="Escribe un mensaje para acompañar el reenvío..."
-    styleClass="[&_.p-editor-content]:!h-32"
-  >
-    <ng-template #header>
-      <span class="ql-formats">
-        <button type="button" class="ql-bold" aria-label="Negrita"></button>
-        <button type="button" class="ql-italic" aria-label="Itálica"></button>
-        <button
-          type="button"
-          class="ql-underline"
-          aria-label="Subrayado"
-        ></button>
-      </span>
-      <span class="ql-formats">
-        <select class="ql-color"></select>
-        <select class="ql-background"></select>
-      </span>
-      <span class="ql-formats">
-        <button
-          type="button"
-          class="ql-list"
-          value="ordered"
-          aria-label="Lista ordenada"
-        ></button>
-        <select class="ql-align">
-          <option selected></option>
-          <option value="center"></option>
-          <option value="right"></option>
-          <option value="justify"></option>
-        </select>
-        <button
-          type="button"
-          class="ql-blockquote"
-          aria-label="Cita en bloque"
-        ></button>
-      </span>
-      <!-- <span class="ql-formats">
-        <button type="button" class="ql-image" aria-label="Image"></button>
-      </span> -->
-    </ng-template>
-  </p-editor>
+  <mail-editor [(ngModel)]="forwardBody" />1
+
   <label class="block text-sm font-medium"> Mensaje adjunto: </label>
   <app-mail-viewer [safeMailHtml]="forwardText" />
 
@@ -86,50 +45,50 @@
     </div>
   </div> -->
   <div class="flex justify-between gap-2">
-        <div class="flex items-center gap-3">
-          <div class="relative flex">
-            <button
-              type="button"
-              (click)="onSubmit()"
-              [disabled]="invalid"
-              class="bg-[#375f95] text-white px-4 py-2 rounded-l-full hover:bg-[#263f61]"
-            >
-              Enviar
-            </button>
+    <div class="flex items-center gap-3">
+      <div class="relative flex">
+        <button
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="invalid"
+          class="bg-[#375f95] text-white px-4 py-2 rounded-l-full hover:bg-[#263f61]"
+        >
+          Enviar
+        </button>
 
-            <button
-              type="button"
-              class="bg-[#375f95] text-white px-2 rounded-r-full hover:bg-[#263f61] flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-              >
-                <path fill="currentColor" d="M7 10l5 5l5-5z" />
-              </svg>
-            </button>
-          </div>
+        <button
+          type="button"
+          class="bg-[#375f95] text-white px-2 rounded-r-full hover:bg-[#263f61] flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+          >
+            <path fill="currentColor" d="M7 10l5 5l5-5z" />
+          </svg>
+        </button>
+      </div>
 
-          <div class="flex gap-2">
-            <div class="flex items-center gap-2 text-gray-500">
-              <btn-custom
-                icon="quill:signature"
-                severity="secondary"
-                tooltip="Insertar firma"
-                (click)="insertSignature()"
-              />
-            </div>
-          </div>
-        </div>
-        <div>
+      <div class="flex gap-2">
+        <div class="flex items-center gap-2 text-gray-500">
           <btn-custom
-            icon="lucide:trash-2"
+            icon="quill:signature"
             severity="secondary"
-            tooltip="Descartar borrador"
-            (click)="onCancel()"
+            tooltip="Insertar firma"
+            (click)="insertSignature()"
           />
         </div>
       </div>
+    </div>
+    <div>
+      <btn-custom
+        icon="lucide:trash-2"
+        severity="secondary"
+        tooltip="Descartar borrador"
+        (click)="onCancel()"
+      />
+    </div>
+  </div>
 </div>

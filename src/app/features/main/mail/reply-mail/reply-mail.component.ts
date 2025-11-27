@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
   EventEmitter,
   inject,
   Input,
@@ -21,6 +22,8 @@ import { MailViewerComponent } from '../mail-viewer/mail-viewer.component';
 import { escapeRegex, fileIcons } from '@utils/mail.utils';
 import { TimeAgoPipe } from '@pipes/time-ago.pipe';
 import { FormsModule } from '@angular/forms';
+import { MailEditorComponent } from '@shared/editor/mail-editor/mail-editor.component';
+import { EmailSignatureService } from '@services/email-signature.service';
 
 interface Reply {
   id: number;
@@ -45,6 +48,7 @@ interface Reply {
     BtnCustomComponent,
     EditorModule,
     PopoverModule,
+    MailEditorComponent,
     MailViewerComponent,
     BtnCustomComponent,
     TimeAgoPipe,
@@ -56,6 +60,8 @@ export class ReplyMailComponent {
   mediaUrl: string = environment.apiUrl;
 
   @ViewChild('responses') responses!: Popover;
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   @Input() mailId?: number;
 
@@ -70,6 +76,8 @@ export class ReplyMailComponent {
   private readonly predefinedResponsesService = inject(
     PredefinedResponsesService
   );
+
+  private readonly emailSignatureService = inject(EmailSignatureService);
 
   predefinedResponseList: PredefinedResponses[] = [];
 
@@ -189,12 +197,26 @@ export class ReplyMailComponent {
     return cleanHtml;
   }
 
+  attachFile() {
+    this.fileInput.nativeElement.click();
+  }
+
   hasAttachments(attachments: any[]) {
     return attachments.filter((a) => !a.inMessage).length != 0;
   }
 
   getAttachments(attachments: any[]): any[] {
     return attachments.filter((a) => !a.inMessage);
+  }
+
+  insertSignature() {
+    this.emailSignatureService.findOneByTokenUserId().subscribe({
+      next: (data) => {
+        if (data?.content) {
+          this.replyText = this.replyText + '<br><p>--</p><br>' + data?.content;
+        }
+      },
+    });
   }
 
   getReplyContent(reply: any, type: string): string {
@@ -329,11 +351,11 @@ export class ReplyMailComponent {
       .replyEmail(mailAttentionId, this.replyText, threadId)
       .subscribe({
         next: (res) => {
-          console.log('✅ Respuesta guardada en backend:', res);
+          console.log('Respuesta guardada en backend:', res);
           this.cancelReply();
         },
         error: (err) => {
-          console.error('❌ Error enviando reply', err);
+          console.error('Error enviando reply', err);
         },
       });
   }

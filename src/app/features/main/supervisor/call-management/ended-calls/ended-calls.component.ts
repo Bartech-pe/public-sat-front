@@ -1,7 +1,6 @@
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
-  effect,
   inject,
   OnInit,
   signal,
@@ -12,17 +11,10 @@ import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
-import { TableModule, TablePageEvent } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { CallService } from '@services/call.service';
-import {
-  CallHistory,
-  CallItem,
-  IAdvisor,
-  ICallFilter,
-  ICallStateItem,
-  ICallStates,
-} from '@models/call.model';
+import { CallItem, IAdvisor, ICallStates } from '@models/call.model';
 import { CallStateService } from '@services/call-state.service';
 import { AmiService } from '@services/ami.service';
 import { CommonModule } from '@angular/common';
@@ -55,15 +47,14 @@ export class EndedCallsComponent implements OnInit {
 
   private readonly aloSatService = inject(AloSatService);
 
-  constructor(
-    private callService: CallService,
-    private callStateService: CallStateService,
-    private amiService: AmiService
-  ) {}
+  private readonly callService = inject(CallService);
+
   items = signal<CallItem[]>([]);
+
   states = signal<
     { statusId: string; statusName: string; campaignId: string }[]
   >([]);
+
   advisors = signal<IAdvisor[]>([]);
   total = signal<ICallStates[]>([]);
   activeSearch = signal<string | undefined>(undefined);

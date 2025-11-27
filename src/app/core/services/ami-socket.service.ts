@@ -15,7 +15,7 @@ export class AmiSocketService {
     this.socket = io(environment.apiUrl);
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected');
+      console.log('WebSocket connected');
     });
 
     this.socket.on('disconnect', (reason) => {

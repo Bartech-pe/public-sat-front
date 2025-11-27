@@ -3,141 +3,97 @@ import {
   ChangeDetectionStrategy,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  inject,
   OnInit,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
-  CitizenInfo,
-  ExternalCitizenService,
-} from '@services/externalCitizen.service';
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { MessageGlobalService } from '@services/generic/message-global.service';
+import { BtnCustomComponent } from '@shared/buttons/btn-custom/btn-custom.component';
 import { ButtonModule } from 'primeng/button';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { DialogService } from 'primeng/dynamicdialog';
+import { AloSatService } from '@services/alo-sat.service';
+import { KeyFilterModule } from 'primeng/keyfilter';
 
 @Component({
   selector: 'app-new-call',
-  imports: [FormsModule, ButtonModule, CommonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    KeyFilterModule,
+    BtnCustomComponent,
+  ],
   templateUrl: './new-call.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class NewCallComponent implements OnInit {
-  busqueda: string = '';
+  formData = new FormGroup({
+    phoneNumber: new FormControl<string | undefined>(undefined, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    phoneCode: new FormControl<string | undefined>('1', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+  });
 
-  vistaSeleccionada: string = 'Comunicaciones';
+  private readonly msg = inject(MessageGlobalService);
 
-  botonSeleccionado = false;
+  public readonly ref = inject(DynamicDialogRef);
 
-  pausaActiva = false;
+  private readonly dialogService = inject(DialogService);
 
-  filaExpandidaIndex: number | null = null;
-  citizen: CitizenInfo | null = null;
+  private readonly aloSatService = inject(AloSatService);
 
-  datosPorVista: { [key: string]: any[] } = {
-    Deudas: [],
-    Trámites: [],
-    Medidas: [],
-    Declaraciones: [],
-    Notificaciones: [],
-    Comunicaciones: [
-      {
-        fecha: '02/01/2025',
-        tipo: 'Trámite',
-        canal: 'Email',
-        metodo: 'Correo',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Ana',
-        acciones: '',
-      },
-      {
-        fecha: '02/01/2025',
-        tipo: 'Trámite',
-        canal: 'Email',
-        metodo: 'Correo',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Ana',
-        acciones: '',
-      },
-      {
-        fecha: '02/01/2025',
-        tipo: 'Trámite',
-        canal: 'Email',
-        metodo: 'Correo',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Ana',
-        acciones: '',
-      },
-      {
-        fecha: '02/01/2025',
-        tipo: 'Trámite',
-        canal: 'Email',
-        metodo: 'Correo',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Ana',
-        acciones: '',
-      },
-      {
-        fecha: '02/01/2025',
-        tipo: 'Trámite',
-        canal: 'Email',
-        metodo: 'Correo',
-        contacto: 'juan@mail.com',
-        resultado: 'Pendiente',
-        usuario: 'Ana',
-        acciones: '',
-      },
-    ],
-  };
+  submited: boolean = false;
 
-  items = [
-    {
-      nombre: 'Juan Pérez',
-      estado: 'Activo',
-      detalles:
-        'Llamado el 5 de agosto. Comentó que está satisfecho con el servicio.',
-    },
-    {
-      nombre: 'Ana López',
-      estado: 'Pendiente',
-      detalles: 'Se dejó mensaje de voz. Seguir intentando el contacto.',
-    },
-  ];
+  campaignId: string = '';
 
-  constructor(private externalCitizenService: ExternalCitizenService) {}
+  ngOnInit(): void {
+    const instance = this.dialogService.getInstance(this.ref);
 
-  ngOnInit(): void {}
+    const data = instance.data;
 
-  expandirFila(index: number) {
-    this.filaExpandidaIndex = this.filaExpandidaIndex === index ? null : index;
+    if (data) {
+      const { campaignId } = data;
+      this.campaignId = campaignId;
+    }
   }
 
-  buscarContribuyente() {
-    if (!this.busqueda.trim()) {
-      console.warn('Búsqueda vacía');
-      return;
-    }
+  onSubmit() {
+    this.submited = true;
+    const { phoneNumber, phoneCode } = this.formData.value;
 
-    this.externalCitizenService
-      .getCitizenInformation({
-        psiTipConsulta: 2,
-        piValPar1: 2,
-        pvValPar2: this.busqueda,
-      })
-      .subscribe((response) => {
-        console.log(response);
-        let reponseHardCoded = [
-          {
-            vcontacto: 'A. CRISANTO Z. S.A.C. CONTRATISTAS GENERALES',
-            vnumTel: '999935494',
-            vtipDoc: 'RUC',
-            vdocIde: '20101279554 ',
-          },
-        ];
-        this.citizen = reponseHardCoded[0];
-      });
+    this.aloSatService.manualDialing(phoneNumber!, phoneCode!).subscribe({
+      next: (data) => {
+        this.msg.success('¡Marcación exitosa!');
+        this.ref.close(true);
+        this.resetForm();
+      },
+    });
+  }
 
-    // Aquí podrías invocar un servicio real para la búsqueda
+  resetForm() {
+    this.formData.reset({
+      phoneNumber: undefined,
+      phoneCode: '1',
+    });
+  }
+
+  onCancel() {
+    this.ref.close();
+    this.formData.reset();
   }
 }

@@ -316,11 +316,7 @@
                   </ng-container>
 
                   <div class="grid grid-cols-1 gap-4 rounded-lg shadow-sm">
-                    <p-editor
-                      [(ngModel)]="replyText"
-                      placeholder="Escribe un mensaje para acompañar el reenvío..."
-                      [style]="{ height: '150px' }"
-                    />
+                    <mail-editor [(ngModel)]="replyText" />
 
                     <div
                       *ngIf="attachments.length > 0"
@@ -418,7 +414,7 @@
                               <div class="flex flex-col gap-4 p-3">
                                 <div>
                                   <span class="font-medium block mb-2"
-                                    >Respuestas rápidas
+                                    >Respuestas predefinidas
                                   </span>
                                   <ul class="list-none p-0 m-0 flex flex-col">
                                     <li
@@ -441,9 +437,9 @@
                                     </li>
                                     @if (predefinedResponseList.length == 0) {
                                     <li
-                                      class="flex items-center gap-2 px-2 py-3 text-center"
+                                      class="flex items-center gap-2 px-2 py-3 text-center font-extralight italic text-xs"
                                     >
-                                      Sin respuestas predifinidas
+                                      Sin respuestas...
                                     </li>
                                     }
                                   </ul>
@@ -501,278 +497,7 @@
                 </div>
               </div>
 
-              <!-- 💬 Chat de respuesta -->
-              <!-- <div *ngIf="replyMode" class="px-6 pb-6">
-          <ng-container *ngIf="replyMode !== 'reply'">
-            <div class="space-y-4 mt-4 mb-4">
-              <input
-                [(ngModel)]="replyTo"
-                type="text"
-                placeholder="Para"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none text-gray-800 placeholder-gray-500 overflow-hidden shadow-sm"
-              />
-
-              <input
-                [(ngModel)]="replySubject"
-                type="text"
-                placeholder="Asunto"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none text-gray-800 placeholder-gray-500 overflow-hidden shadow-sm"
-              />
-            </div>
-          </ng-container>
-
-          <div class="border border-gray-300 rounded-lg shadow-sm">
-            <div class="p-4">
-              <p-editor
-                [(ngModel)]="replyText"
-                placeholder="Escribe un mensaje para acompañar el reenvío..."
-                [style]="{ height: '150px' }"
-              />
-            </div>
-
-            <div
-              *ngIf="attachments.length > 0"
-              class="px-4 py-2 border-b border-gray-200 space-y-2 bg-gray-50"
-            >
-              <div
-                *ngFor="let file of attachments; let i = index"
-                class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-2 shadow-sm"
-              >
-                <div class="flex items-center gap-2 overflow-hidden">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="text-gray-500 flex-shrink-0"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2l4 4h-4z"
-                    />
-                  </svg>
-                  <div class="flex flex-col overflow-hidden">
-                    <span class="text-sm truncate max-w-[200px]">{{
-                      file.name
-                    }}</span>
-                    <span class="text-xs text-gray-500">{{
-                      formatSize(file.size)
-                    }}</span>
-                  </div>
-                </div>
-
-                <div class="flex-1 mx-4" *ngIf="file.progress < 100">
-                  <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      class="h-1 bg-blue-600 transition-all duration-500"
-                      [style.width.%]="file.progress"
-                    ></div>
-                  </div>
-                </div>
-
-                <div *ngIf="file.progress === 100" class="text-green-600 mx-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-                    />
-                  </svg>
-                </div>
-
-                <button
-                  type="button"
-                  (click)="removeAttachment(i)"
-                  class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71 2.89 18.3 9.18 12 2.89 5.71 4.3 4.29 10.59 10.6 16.89 4.29z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="px-4 py-3 flex justify-between gap-2">
-              {{ this.replyMode }}
-              <div class="flex items-center gap-3">
-
-                <div class="relative flex">
-                  <button
-                    type="button"
-                    (click)="handleSend()"
-                    class="bg-[#375f95] text-white px-4 py-2 rounded-l-full hover:bg-[#263f61]"
-                  >
-                    Enviar
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="toggleSendMenu()"
-                    class="bg-[#375f95] text-white px-2 rounded-r-full hover:bg-[#263f61] flex items-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                    >
-                      <path fill="currentColor" d="M7 10l5 5l5-5z" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div class="flex gap-2">
-                  <div class="flex items-center justify-center">
-                    <btn-custom
-                      icon="tabler:message"
-                      severity="secondary"
-                      tooltip="Insertar respuesta rapida"
-                      (click)="selectResponse($event)"
-                    />
-
-                    <p-popover #responses>
-                      <div class="flex flex-col gap-4">
-                        <div>
-                          <span class="font-medium block mb-2"
-                            >Respuestas rápidas
-                          </span>
-                          <ul class="list-none p-0 m-0 flex flex-col">
-                            <li
-                              *ngFor="let response of predefinedResponseList"
-                              class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border hover:bg-sky-100"
-                              (click)="insertResponse(response)"
-                            >
-                              <div class="flex flex-col gap-2">
-                                <p class="font-medium">{{ response.title }}</p>
-                                <div
-                                  [innerHTML]="getSafeContent(response.content)"
-                                ></div>
-                              </div>
-                            </li>
-                            @if (predefinedResponseList.length == 0) {
-                            <li
-                              class="flex items-center gap-2 px-2 py-3 text-center"
-                            >
-                              Sin respuestas predifinidas
-                            </li>
-                            }
-                          </ul>
-                        </div>
-                      </div>
-                    </p-popover>
-                  </div>
-
-                  <div class="flex items-center">
-                    <input
-                      type="file"
-                      #fileInput
-                      style="display: none"
-                      (change)="onFileSelected($event)"
-                    />
-                    <btn-custom
-                      icon="mdi:paperclip"
-                      severity="secondary"
-                      tooltip="Adjuntar archivos"
-                      (click)="attachFile()"
-                    />
-                  </div>
-
-                  <div class="flex items-center gap-2 text-gray-500">
-                    <btn-custom
-                      icon="quill:signature"
-                      severity="secondary"
-                      tooltip="Insertar firma"
-                      (click)="insertSignature()"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <button
-                  (click)="cancelReply()"
-                  class="p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="#777"
-                      d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div> -->
-
               <div class="flex items-center gap-2 px-6 pb-6">
-                <!--   <button
-            class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border hover:bg-gray-50"
-            (click)="startReply()"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              class="inline-block"
-            >
-              <path
-                fill="none"
-                stroke="#000"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M19.75 18.219c0-2.352 0-3.527-.383-4.455a5.06 5.06 0 0 0-2.743-2.743c-.928-.383-2.103-.383-4.455-.383H3.871m4.236-4.857L4.31 9.577c-.293.293-.44.677-.44 1.061m4.236 4.857L4.31 11.699a1.5 1.5 0 0 1-.44-1.061"
-              />
-            </svg>
-            Responder
-          </button>
-
-          <button
-            class="flex items-center gap-2 px-5 py-2 rounded-full bg-white border hover:bg-gray-50"
-            (click)="startForwardCompose()"
-          >
-            Reenviar
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              style="
-                display: inline-block;
-                transform: scaleX(-1);
-                transform-origin: center;
-              "
-            >
-              <path
-                fill="none"
-                stroke="#000"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M19.75 18.219c0-2.352 0-3.527-.383-4.455a5.06 5.06 0 0 0-2.743-2.743c-.928-.383-2.103-.383-4.455-.383H3.871m4.236-4.857L4.31 9.577c-.293.293-.44.677-.44 1.061m4.236 4.857L4.31 11.699a1.5 1.5 0 0 1-.44-1.061"
-              />
-            </svg>
-          </button>
- -->
                 <div
                   *ngIf="isForwardMode"
                   class="absolute top-0 left-0 w-full h-full bg-black/40 flex items-center justify-center z-50"
@@ -795,11 +520,9 @@
 
                       <!-- Campo introducción del usuario -->
                       <label class="block text-sm font-medium">Mensaje:</label>
-                      <p-editor
-                        [(ngModel)]="forwardBody"
-                        placeholder="Escribe un mensaje para acompañar el reenvío..."
-                        [style]="{ height: '150px' }"
-                      />
+
+                      <mail-editor [(ngModel)]="forwardBody" />
+
                       <label class="block text-sm font-medium">
                         Mensaje adjunto:
                       </label>
@@ -851,14 +574,6 @@
                     icon="entypo:forward"
                     (click)="startForwardCompose()"
                   />
-                  <!-- <btn-custom
-              label="Nueva conversación"
-              [text]="false"
-              [outlined]="true"
-              severity="contrast"
-              icon="mynaui:send-solid"
-              (click)="startCompose()"
-            /> -->
                 </div>
               </div>
             </div>

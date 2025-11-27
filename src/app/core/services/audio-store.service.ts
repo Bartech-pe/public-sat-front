@@ -98,4 +98,11 @@ export class AudioStoreService {
       headers,
     });
   }
+
+  uploadAudio(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file); // "file" debe coincidir con el nombre usado en FileInterceptor('file')
+
+    return this.http.post(`${this.baseUrl}upload`, formData);
+  }
 }

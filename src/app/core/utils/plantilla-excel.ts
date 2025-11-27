@@ -1,7 +1,32 @@
-import * as XLSX from 'xlsx';
+import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver';
+
+function exportExcelFile(headers: string[], fileName: string) {
+  const workbook = new Workbook();
+  const worksheet = workbook.addWorksheet('Plantilla');
+
+  // Agregar fila de encabezados
+  worksheet.addRow(headers);
+
+  // Ajustar ancho automático
+  headers.forEach((h, i) => {
+    worksheet.getColumn(i + 1).width = h.length + 5;
+  });
+
+  // Generar archivo
+  workbook.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    saveAs(blob, fileName);
+  });
+}
+
+/* ======================================
+   PLANTILLA 1
+====================================== */
+
 export function descargarPlantillaExcel() {
-  //'PAGO',
   const headers = [
     'SECTORISTA',
     'SEGMENTO',
@@ -20,18 +45,14 @@ export function descargarPlantillaExcel() {
     'EMAIL',
   ];
 
-  const worksheet = XLSX.utils.aoa_to_sheet([headers]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Plantilla');
-
-  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  saveAs(blob, 'plantilla-carga.xlsx');
+  exportExcelFile(headers, 'plantilla-carga.xlsx');
 }
 
+/* ======================================
+   PLANTILLA 2
+====================================== */
 
 export function downloadEmailExcel() {
-  //'PAGO',
   const headers = [
     'CORREO',
     'NOMBRE',
@@ -46,17 +67,14 @@ export function downloadEmailExcel() {
     'WHATSAPP',
   ];
 
-  const worksheet = XLSX.utils.aoa_to_sheet([headers]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Plantilla');
-
-  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  saveAs(blob, 'plantilla-campaña-correo.xlsx');
+  exportExcelFile(headers, 'plantilla-campaña-correo.xlsx');
 }
 
+/* ======================================
+   PLANTILLA 3 (AUDIO)
+====================================== */
+
 export function descargarPlantillaExcelAudio() {
-  //'PAGO',
   const headers = [
     'TIPO',
     'DOCUMENTO',
@@ -70,11 +88,5 @@ export function descargarPlantillaExcelAudio() {
     'ESTADO',
   ];
 
-  const worksheet = XLSX.utils.aoa_to_sheet([headers]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Plantilla');
-
-  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  saveAs(blob, 'plantilla-campaña_audio.xlsx');
+  exportExcelFile(headers, 'plantilla-campaña_audio.xlsx');
 }

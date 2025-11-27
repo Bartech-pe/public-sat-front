@@ -23,6 +23,8 @@ export class SocketService {
 
   private requestPortfolioErrorSubject = new Subject<any>();
 
+  // private newReminderSubject = new Subject<any>();
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     if (isPlatformBrowser(this.platformId)) {
       this.initializeSocketConnection();
@@ -122,6 +124,10 @@ export class SocketService {
     return this.requestPortfolioCompleteSubject.asObservable();
   }
 
+  // onBotRepliesStatusChanged(): Observable<void> {
+  //   return this.newReminderSubject.asObservable();
+  // }
+
   // Escuchar cuando termina el proceso
   onPortfolioCancelled(): Observable<any> {
     return this.requestPortfolioCancelledSubject.asObservable();
@@ -198,6 +204,10 @@ export class SocketService {
 
   onNewAlert(callback: (data: any) => void): void {
     this.socket?.on('nueva_alerta', callback);
+  }
+
+  onNewReminder(callback: (data: any) => void): void {
+    this.socket?.on('reminders.new', callback);
   }
 
   onAlertas(callback: (msg: any) => void): void {

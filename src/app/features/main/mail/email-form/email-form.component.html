@@ -40,70 +40,7 @@
             />
           </div>
         </div>
-        <p-editor
-          formControlName="content"
-          placeholder="Escribe un mensaje para acompañar el reenvío..."
-          styleClass="[&_.p-editor-content]:!h-64"
-        >
-          <ng-template #header>
-            <span class="ql-formats">
-              <button
-                type="button"
-                class="ql-bold"
-                aria-label="Negrita"
-              ></button>
-              <button
-                type="button"
-                class="ql-italic"
-                aria-label="Itálica"
-              ></button>
-              <button
-                type="button"
-                class="ql-underline"
-                aria-label="Subrayado"
-              ></button>
-            </span>
-            <span class="ql-formats">
-              <select class="ql-color"></select>
-              <select class="ql-background"></select>
-            </span>
-            <span class="ql-formats">
-              <button
-                type="button"
-                class="ql-list"
-                value="ordered"
-                aria-label="Lista ordenada"
-              ></button>
-              <select class="ql-align">
-                <option selected></option>
-                <option value="center"></option>
-                <option value="right"></option>
-                <option value="justify"></option>
-              </select>
-              <button
-                type="button"
-                class="ql-blockquote"
-                aria-label="Cita en bloque"
-              ></button>
-            </span>
-            <span class="ql-formats">
-              <button
-                type="button"
-                class="ql-image"
-                aria-label="Image"
-              ></button>
-            </span>
-            <!-- <div class="ql-formats">
-              <button
-                type="button"
-                class="custom-table-btn"
-                (click)="insertCustomTable()"
-              >
-                <iconify-icon [icon]="'prime:table'" class="text-lg" />
-              </button>
-            </div> -->
-          </ng-template>
-        </p-editor>
+        <mail-editor formControlName="content" />
       </div>
       <div class="flex justify-between gap-2">
         <div class="flex items-center gap-3">
@@ -145,7 +82,7 @@
                 <div class="flex flex-col gap-4 p-3">
                   <div>
                     <span class="font-medium block mb-2"
-                      >Respuestas rápidas
+                      >Respuestas predefinidas
                     </span>
                     <ul class="list-none p-0 m-0 flex flex-col">
                       <li
@@ -163,8 +100,10 @@
                         </div>
                       </li>
                       @if (predefinedResponseList.length == 0) {
-                      <li class="flex items-center gap-2 px-2 py-3 text-center">
-                        Sin respuestas predifinidas
+                      <li
+                        class="flex items-center gap-2 px-2 py-3 text-center font-extralight italic text-xs"
+                      >
+                        Sin respuestas...
                       </li>
                       }
                     </ul>

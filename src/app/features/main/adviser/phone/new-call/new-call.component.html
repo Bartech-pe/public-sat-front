@@ -1,293 +1,51 @@
-<div class="max-h-[90vh] overflow-y-auto px-4 py-6 space-y-6 bg-gray-50">
-  <div class="flex justify-between items-center">
-    <!-- Título general -->
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">Sistema de Consulta Unificada</h1>
-      <p class="text-sm text-gray-600">
-        Consulta toda la información de contribuyentes de manera centralizada
-      </p>
+<form [formGroup]="formData" class="grid grid-cols-1 gap-6">
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center gap-2">
+      <label class="text-sm font-medium" for="displayNameUser">
+        Campaña activa {{ campaignId }}
+      </label>
     </div>
-
-    <!-- Botones de llamada -->
-      <div class="flex gap-2">
-        <button
-          (click)="pausaActiva = true"
-          [ngClass]="[
-            'px-4 py-2 rounded-full transition-colors text-sm font-medium',
-            pausaActiva ? 'bg-red-600 text-white' : 'bg-red-300 text-red-900 hover:bg-red-400'
-          ]"
+    <!-- <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="idPhoneCode">
+        Dial Código
+        <span class="text-xs"
+          >(Esto es por lo general un 1 en el EE.UU.-Canada)</span
         >
-          Pausar llamada
-        </button>
-
-        <button
-          [disabled]="!pausaActiva"
-          (click)="pausaActiva = false"
-          [ngClass]="[
-            'px-4 py-2 rounded-full transition-colors text-sm font-medium',
-            !pausaActiva ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'
-          ]"
-        >
-          Reanudar llamada
-        </button>
-      </div>
-    </div>
-
-    <!-- Número no reconocido -->
-    <div class="w-full bg-red-50 rounded-lg p-6 text-center shadow">
-
-      <div class="text-2xl font-bold text-red-600 flex justify-center items-center gap-2">
-        <iconify-icon icon="mdi:close-circle-outline" class="text-3xl"></iconify-icon>
-        No existe este número en el Sistema
-      </div>
-
-      <div class="text-2xl font-bold text-sky-700 flex justify-center items-center gap-2">
-        <iconify-icon icon="mdi:phone-incoming" class="text-2xl"></iconify-icon>
-        968113456
-      </div>
-
-    </div>
-
-    <!-- Card de búsqueda -->
-    <div class="bg-white rounded-lg shadow-md p-6 space-y-4">
-      <!-- Título del card -->
-      <div>
-        <h2 class="text-lg font-bold text-gray-800">Búsqueda del Contribuyente</h2>
-          <p class="text-sm text-gray-600">
-            Ingresa el número de documento de identidad, RUC o nombre del administrado para consultar su información
-          </p>
-      </div>
-
-      <!-- Input + botón (estilo actualizado) -->
-      <div class="w-full flex flex-col sm:flex-row sm:items-center gap-4">
-          <!-- Input personalizado -->
-          <input
-              type="text"
-              [(ngModel)]="busqueda"
-              placeholder="Ej. 123456789 o Juan Pérez"
-              class="w-full px-3 py-2 text-sm rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
-          />
-
-          <!-- Botón alineado -->
-          <div class="flex items-center">
-              <button
-              (click)="buscarContribuyente()"
-              Class="flex items-center gap-2 rounded-full bg-blue-200 p-2 hover:bg-blue-300"
-              >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <g fill="none" stroke="#373737" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                  <path fill="#373737" fill-opacity="0" stroke-dasharray="40" stroke-dashoffset="40" d="M10.76 13.24c-2.34 -2.34 -2.34 -6.14 0 -8.49c2.34 -2.34 6.14 -2.34 8.49 0c2.34 2.34 2.34 6.14 0 8.49c-2.34 2.34 -6.14 2.34 -8.49 0Z">
-                    <animate fill="freeze" attributeName="fill-opacity" begin="0.7s" dur="0.5s" values="0;1" />
-                    <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="40;0" />
-                  </path>
-                  <path stroke-dasharray="12" stroke-dashoffset="12" d="M10.5 13.5l-7.5 7.5">
-                    <animate fill="freeze" attributeName="stroke-dashoffset" begin="0.5s" dur="0.2s" values="12;0" />
-                  </path>
-                </g>
-              </svg>
-              <span>Buscar</span>
-            </button>
-          </div>
-          </div>
-      </div>
-  </div>
-
-  <div class="flex flex-col xl:flex-row gap-4 w-full pb-4">
-
-  <!-- Información del Contribuyente -->
-  <div class="bg-white rounded-lg shadow p-6 space-y-4 w-full xl:w-[40%]">
-    <div class="flex justify-between items-center border-b pb-3">
-      <div>
-        <h2 class="text-lg font-semibold text-gray-800">{{citizen?.vcontacto}}</h2>
-        <p class="text-sm text-gray-500">Contribuyente N° {{citizen?.vdocIde}}</p>
-      </div>
-      <span class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">Activo</span>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
-      <div>
-        <p class="font-medium text-gray-800">N° Documento de identidad</p>
-        <p>{{citizen?.vdocIde}}</p>
-      </div>
-      <div>
-        <p class="font-medium text-gray-800">Tipo de persona</p>
-        <p>Natural</p>
-      </div>
-      <div class="sm:col-span-2">
-        <p class="font-medium text-gray-800">Dirección</p>
-        <p><strong>Calle 123 #45-67, Barrio Centro</strong></p>
-      </div>
-      <div>
-        <p class="font-medium text-gray-800">Teléfono</p>
-        <p>{{citizen?.vnumTel}}</p>
-      </div>
-      <div>
-        <p class="font-medium text-gray-800">Correo electrónico</p>
-        <p>juan.perez&#64;.com</p>
-      </div>
+      </label>
+      <input
+        id="idPhoneCode"
+        pInputText
+        formControlName="phoneCode"
+        pKeyFilter="numeric"
+      />
+    </div> -->
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" for="idPhoneNumber">
+        Número de teléfono <span class="text-xs"> (solo dígitos)</span>
+      </label>
+      <input
+        id="idPhoneNumber"
+        pInputText
+        formControlName="phoneNumber"
+        pKeyFilter="numeric"
+      />
     </div>
   </div>
-
-  <!-- Control de Llamada -->
-  <div class="bg-white rounded-lg shadow p-4 w-full xl:w-[30%]">
-    <h3 class="text-sm font-semibold mb-2 text-gray-700">Control de Llamada</h3>
-    <div class="text-sm text-gray-600 space-y-1">
-      <p><span class="font-medium">Número:</span> +51 987 654 321</p>
-      <p><span class="font-medium">Duración:</span> <span class="font-mono font-semibold">00:05:23</span></p>
-      <p><span class="font-medium">Estado:</span> Conectado</p>
-    </div>
-    <div class="flex gap-2 mt-4 flex-wrap">
-      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Silenciar</button>
-      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Transferir</button>
-      <button class="flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 hover:bg-gray-300">Escalar</button>
-      <button class="flex items-center gap-2 rounded-full bg-red-500 px-4 py-2 hover:bg-red-300 text-white">Finalizar</button>
-    </div>
+  <div class="flex justify-end gap-4">
+    <btn-custom
+      label="Cancelar"
+      severity="danger"
+      icon="ooui:cancel"
+      [text]="false"
+      (click)="onCancel()"
+    />
+    <btn-custom
+      [disabled]="formData.invalid"
+      label="Marcar"
+      severity="primary"
+      icon="mingcute:phone-fill"
+      [text]="false"
+      (click)="onSubmit()"
+    />
   </div>
-
-  <!-- Registro de Atención -->
-  <div class="bg-white rounded-lg shadow p-4 space-y-2 w-full xl:w-[30%]">
-    <h3 class="text-sm font-semibold text-gray-700">Registro de Atención</h3>
-    <p class="text-sm text-gray-600"><span class="font-medium">ID:</span> #ATN-2025-001234</p>
-    <div class="text-sm space-y-2">
-      <select class="w-full border border-gray-300 rounded-full px-2 py-1 text-sm">
-        <option>Telefónico</option>
-      </select>
-      <select class="w-full border border-gray-300 rounded-full px-2 py-1 text-sm">
-        <option>Papeletas</option>
-        <option>Multas</option>
-        <option>Trámites</option>
-      </select>
-      <textarea placeholder="Descripción de la consulta..." class="w-full border border-gray-300 rounded px-2 py-1 text-sm" rows="3"></textarea>
-      <textarea placeholder="Resultado de la atención..." class="w-full border border-gray-300 rounded px-2 py-1 text-sm" rows="2"></textarea>
-      <button
-        class="flex items-center gap-2 rounded-full px-4 py-2 hover:opacity-90 text-white"
-        style="background-color: #194A84"
-      >
-        Guardar
-      </button>
-    </div>
-  </div>
-
-
-</div>
-
-<!-- 👤 Panel Derecho: Info de Ciudadano + Navegación + Tabla -->
-    <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
-      <!-- Info del ciudadano -->
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <iconify-icon icon="mdi:account-circle" class="text-3xl text-sky-600"></iconify-icon>
-          <h2 class="text-lg font-bold text-gray-800">Juan Carlos Pérez García</h2>
-        </div>
-        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-          <p><span class="font-medium">DNI:</span> 12345678</p>
-          <p><span class="font-medium">RUC:</span> 20123456789</p>
-          <p><iconify-icon icon="mdi:phone" class="text-base"></iconify-icon> 999-123-456</p>
-          <p><iconify-icon icon="mdi:email" class="text-base"></iconify-icon> juan&#64;mail.com</p>
-          <p><iconify-icon icon="mdi:map-marker" class="text-base"></iconify-icon> Lima, Perú</p>
-        </div>
-      </div>
-
-      <!-- Navegación de vistas -->
-      <div class="flex items-center gap-2 pl-2 mb-3">
-        <ng-container *ngFor="let vista of ['Deudas', 'Trámites', 'Medidas', 'Declaraciones', 'Notificaciones', 'Comunicaciones']">
-            <button
-              (click)="vistaSeleccionada = vista"
-              [ngClass]="{
-                'rounded-full px-4 py-2 transition-colors duration-200 border-none': true,
-                'bg-gray-200 text-black': vistaSeleccionada !== vista,
-                'bg-green-100 text-green-600 font-semibold': vistaSeleccionada === vista
-              }">
-              {{ vista }}
-            </button>
-          </ng-container>
-      </div>
-
-      <!-- Exportar y actualizar -->
-      <div class="flex justify-end gap-2">
-        <button class="flex items-center gap-2 rounded-full bg-blue-200 px-4 py-2 hover:bg-blue-300">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
-            <path fill="#373737" d="M4 24C4 12.954 12.954 4 24 4s20 8.954 20 20s-8.954 20-20 20S4 35.046 4 24m31-7.75a1.25 1.25 0 1 0-2.5 0v2.48A9.99 9.99 0 0 0 24 14a9.99 9.99 0 0 0-8 3.998a1.25 1.25 0 0 0 2 1.502a7.503 7.503 0 0 1 13.074 2H27.25a1.25 1.25 0 1 0 0 2.5h6.5c.69 0 1.25-.56 1.25-1.25zM14.25 33c.69 0 1.25-.56 1.25-1.25v-2.48A9.99 9.99 0 0 0 24 34a9.99 9.99 0 0 0 8-3.998a1.25 1.25 0 0 0-2-1.502a7.503 7.503 0 0 1-13.074-2h3.824a1.25 1.25 0 1 0 0-2.5h-6.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25" />
-          </svg>
-          <span>Actualizar</span>
-        </button>
-      </div>
-
-      <!-- Filtros -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
-        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
-          <option>Todos los tipos</option>
-        </select>
-        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
-          <option>Todos los canales</option>
-        </select>
-        <select class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-0">
-          <option>Todos los usuarios</option>
-        </select>
-         <div class="flex">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              class="rounded-l-md border border-gray-300 px-2 py-1 w-full focus:outline-none focus:ring-0"
-            />
-            <button
-              class="bg-[#194A84] text-white px-3 py-1 rounded-r-md hover:bg-[#153c6a] transition"
-              title="Buscar"
-            >
-              Buscar
-            </button>
-          </div>
-      </div>
-
-
-      <!-- Tabla -->
-      <div class="overflow-x-auto bg-white rounded-lg shadow">
-          <table class="w-full text-sm text-gray-700">
-              <thead class="bg-gray-100 text-left">
-                <tr>
-                    <th class="px-4 py-2">Fecha/Hora</th>
-                    <th class="px-4 py-2">Tipo</th>
-                    <th class="px-4 py-2">Canal</th>
-                    <th class="px-4 py-2">Método</th>
-                    <th class="px-4 py-2">Contacto usado</th>
-                    <th class="px-4 py-2">Resultado</th>
-                    <th class="px-4 py-2">Usuario</th>
-                    <th class="px-4 py-2 text-center">Detalles</th>
-                </tr>
-              </thead>
-              <tbody>
-              <tr
-                  *ngFor="let item of datosPorVista[vistaSeleccionada]"
-                  class="hover:bg-gray-50 transition"
-              >
-                  <td class="px-4 py-2">{{ item.fecha }}</td>
-                  <td class="px-4 py-2">{{ item.tipo }}</td>
-                  <td class="px-4 py-2">{{ item.canal }}</td>
-                  <td class="px-4 py-2">{{ item.metodo }}</td>
-                  <td class="px-4 py-2">{{ item.contacto }}</td>
-                  <td class="px-4 py-2 text-green-700">{{ item.resultado }}</td>
-                  <td class="px-4 py-2">{{ item.usuario }}</td>
-                  <td class="px-4 py-2 text-center">
-                    <button
-                        (click)="botonSeleccionado = true"
-                        [ngClass]="
-                          'flex items-center gap-2 rounded-full px-4 py-2 transition-colors ' +
-                          (botonSeleccionado
-                            ? 'bg-blue-700 text-white'
-                            : 'bg-blue-200 text-black hover:bg-blue-300')
-                        ">
-                      Ver detalles
-                    </button>
-                  </td>
-              </tr>
-              <tr *ngIf="datosPorVista[vistaSeleccionada].length === 0">
-                  <td
-                  class="px-4 py-2 text-center text-gray-500"
-                  colspan="8"
-                  >
-                  No hay registros disponibles para esta vista.
-                  </td>
-              </tr>
-              </tbody>
-          </table>
-      </div>
-    </div>
+</form>

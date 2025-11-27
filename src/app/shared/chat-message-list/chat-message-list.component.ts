@@ -27,7 +27,7 @@ import { DialogModule } from 'primeng/dialog';
     InputTextModule,
     PopoverModule,
     OverlayPanelModule,
-    DialogModule
+    DialogModule,
   ],
   templateUrl: './chat-message-list.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -55,7 +55,7 @@ export class ChatMessageListComponent {
     this.chatMessageService.deleteMessage(msg.id).subscribe(() => {
       this.messages = this.messages.filter((m) => m.id !== msg.id);
 
-      // ✅ Oculta el menú contextual
+      // Oculta el menú contextual
       this.menuOverlay?.hide();
     });
   }
@@ -72,10 +72,9 @@ export class ChatMessageListComponent {
     });
   }
 
-  urlImage:any="";
-  clickImage(msg:any){
+  urlImage: any = '';
+  clickImage(msg: any) {
     this.visibleImage = true;
-    this.urlImage = this.apiUrlImage + msg.resourceUrl
-  
+    this.urlImage = this.apiUrlImage + msg.resourceUrl;
   }
 }

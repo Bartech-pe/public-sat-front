@@ -1,10 +1,16 @@
 <div class="grid grid-cols-1 gap-4">
   <ng-container *ngIf="isLogged; else elseTemplate">
     <p-card *ngIf="!isInCall && !isInDispo" class="w-full rounded-md shadow-xl">
-      <h2 class="text-lg font-semibold border-b pb-2 text-sky-700">
-        Estado Actual
-      </h2>
-      <div class="flex flex-col items-center justify-center py-4 gap-4">
+      <ng-template #header>
+        <div class="pt-3 grid grid-cols-1 gap-2">
+          <div class="px-5">
+            <h2 class="text-lg font-semibold text-sky-700">Estado Actual</h2>
+          </div>
+          <div class="w-full border-t border-slate-300"></div>
+        </div>
+      </ng-template>
+
+      <div class="flex flex-col items-center justify-center py-2 gap-2">
         <h3
           [ngClass]="['text-2xl font-bold text-center', currentState.textColor]"
         >
@@ -13,59 +19,85 @@
             {{ currentState.label }}
           </span>
         </h3>
-        <div class="flex items-center justify-center gap-12">
-          <div class="text-center">
-            <p class="text-xl font-mono">
-              {{
-                callInfo?.updatedAt
-                  ? (callInfo?.updatedAt | date : "hh:mm:ss .a")
-                  : "--:--"
-              }}
-            </p>
-            <p class="text-sm text-gray-500">Última actividad</p>
+
+        <p class="italic text-red-500">Llamadas en cola: {{ queueCalls }}</p>
+
+        <div class="flex flex-col items-center justify-center py-2 gap-4">
+          <div class="flex items-center justify-center gap-12">
+            <div class="text-center">
+              <p class="text-xl font-mono">
+                {{
+                  callInfo?.updatedAt
+                    ? (callInfo?.updatedAt | date : "hh:mm:ss .a")
+                    : "--:--"
+                }}
+              </p>
+              <p class="text-sm text-gray-500">Última actividad</p>
+            </div>
+            <div class="text-center">
+              <p class="text-xl font-mono">
+                {{ callInfo?.callsToday ?? "0" }}
+              </p>
+              <p class="text-sm text-gray-500">Llamadas hoy</p>
+            </div>
           </div>
-          <div class="text-center">
-            <p class="text-xl font-mono">
-              {{ callInfo?.callsToday ?? "0" }}
-            </p>
-            <p class="text-sm text-gray-500">Llamadas hoy</p>
+          <div class="grid grid-cols-2 gap-4">
+            <btn-custom
+              *ngIf="isInPaused"
+              label="Cambiar a Disponible"
+              severity="success"
+              icon="lucide:phone-call"
+              [text]="false"
+              styleClass="!w-full"
+              (click)="changeAvailable()"
+            />
+            <btn-custom
+              *ngIf="!isInPaused"
+              label="Solicitar Pausa"
+              severity="warn"
+              icon="lucide:circle-pause"
+              [text]="false"
+              styleClass="!w-full"
+              (click)="requestPause()"
+            />
+            <btn-custom
+              label="Desconectar"
+              severity="danger"
+              icon="lucide:phone-off"
+              [text]="false"
+              styleClass="!w-full"
+              (click)="onLogout()"
+            />
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <btn-custom
-            *ngIf="isInPaused"
-            label="Cambiar a Disponible"
-            severity="success"
-            icon="lucide:phone-call"
-            [text]="false"
-            styleClass="!w-full"
-            (click)="changeAvailable()"
-          />
-          <btn-custom
-            *ngIf="!isInPaused"
-            label="Solicitar Pausa"
-            severity="warn"
-            icon="lucide:circle-pause"
-            [text]="false"
-            styleClass="!w-full"
-            (click)="requestPause()"
-          />
-          <btn-custom
-            label="Desconectar"
-            severity="danger"
-            icon="lucide:phone-off"
-            [text]="false"
-            styleClass="!w-full"
-            (click)="onLogout()"
-          />
-        </div>
-        <div *ngIf="isInPaused" class="flex gap-4">
-          <btn-custom
-            label="Cambiar código de pausa"
-            severity="primary"
-            [text]="true"
-            (click)="requestPause()"
-          />
+        <div class="w-full grid grid-cols-1 gap-1">
+          <div class="flex items-center justify-center">
+            <btn-custom
+              label="INTRODUZCA UN CÓDIGO DE PAUSA"
+              severity="primary"
+              [text]="true"
+              (click)="requestPause()"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center justify-center">
+              <btn-custom
+                label="Marcación manual"
+                severity="primary"
+                [text]="true"
+                (click)="manualDialing()"
+              />
+            </div>
+            <div class="flex items-center justify-center">
+              <btn-custom
+                label="Historial de llamadas"
+                severity="primary"
+                [text]="true"
+                (click)="callHistory()"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </p-card>
@@ -266,6 +298,7 @@
                         styleClass="capitalize"
                         panelStyleClass="capitalize"
                         appendTo="body"
+                        [filter]="true"
                       />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -565,21 +598,8 @@
       Enlaces Directos SAT
     </h2>
 
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
-      <p-button
-        size="small"
-        label="Intranet SAT"
-        [raised]="true"
-        styleClass="w-full !rounded-full !shadow-none"
-        severity="info"
-      >
-        <iconify-icon
-          [icon]="'tabler:square-rounded-letter-w'"
-          class="text-xl"
-        />
-      </p-button>
-
-      <p-button
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+      <!-- <p-button
         size="small"
         label="SGD"
         severity="info"
@@ -590,9 +610,8 @@
           [icon]="'tabler:square-rounded-letter-d'"
           class="text-xl"
         />
-      </p-button>
-
-      <p-button
+      </p-button> -->
+      <!-- <p-button
         size="small"
         label="SIAT"
         severity="info"
@@ -603,20 +622,33 @@
           [icon]="'tabler:square-rounded-letter-s'"
           class="text-xl"
         />
-      </p-button>
-
-      <p-button
-        size="small"
-        label="Web SAT"
-        severity="info"
-        styleClass="w-full !rounded-full !shadow-none"
-        [raised]="true"
+      </p-button> -->
+      <a
+        pButton
+        class="w-full !rounded-full !shadow-none p-button-xl p-button-primary"
+        href="http://intranet/intranetv3/home.aspx"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <iconify-icon
+          [icon]="'tabler:square-rounded-letter-i'"
+          class="text-xl"
+        />
+        <span class="p-button-label">Intranet SAT</span>
+      </a>
+      <a
+        pButton
+        class="w-full !rounded-full !shadow-none p-button-xl p-button-primary"
+        href="https://www.sat.gob.pe/Websitev9"
+        target="_blank"
+        rel="noopener noreferrer"
       >
         <iconify-icon
           [icon]="'tabler:square-rounded-letter-w'"
           class="text-xl"
         />
-      </p-button>
+        <span class="p-button-label">Web SAT</span>
+      </a>
     </div>
   </div>
 </div>
